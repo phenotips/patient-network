@@ -27,23 +27,23 @@ import org.xwiki.component.annotation.Role;
  * Creates a custom view of the similarities between two patients, a reference patients and a patient matching the
  * reference patient's phenotypic profile. The resulting object is an extended version of the {@link Patient base
  * patient API}, which may block access to certain restricted information, and may extend data with similarity
- * information. For example, a phenotype from the matched patient that matches another phenotype from the reference
- * patient will {@link SimilarPhenotype#getReference() indicate that}, and will be able to compute a
- * {@link SimilarPhenotype#getScore() similarity score}.
+ * information. For example, a feature from the matched patient that matches another feature from the reference patient
+ * will {@link FeatureSimilarityView#getReference() indicate that}, and will be able to compute a
+ * {@link FeatureSimilarityView#getScore() similarity score}.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Role
-public interface SimilarPatientFactory
+public interface PatientSimilarityViewFactory
 {
     /**
-     * Instantiates a {@link SimilarPatient} specific to this factory, linking the two patients.
+     * Instantiates a {@link PatientSimilarityView} specific to this factory, linking the two patients.
      * 
      * @param match the matched patient whose data will be exposed
      * @param reference the patient used as the reference against which to compare
      * @return the extended patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
-    SimilarPatient makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException;
+    PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException;
 }

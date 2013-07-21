@@ -19,46 +19,40 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.Patient;
+import org.phenotips.data.FeatureMetadatum;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * View of a patient as related to another reference patient.
+ * View of a feature metadatum as related to another reference metadatum.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Unstable
-public interface SimilarPatient extends Patient
+public interface FeatureMetadatumSimilarityView extends FeatureMetadatum
 {
     /**
-     * The reference patient against which we're comparing.
+     * Does this similar feature metadata pair have both a match and a reference?
      * 
-     * @return the patient for which we're searching similar cases
+     * @return {@code true} if both related values are present, {@code false} otherwise
      */
-    Patient getReference();
+    boolean isMatchingPair();
 
     /**
-     * What type of access does the user have to this patient profile.
+     * Returns the reference feature metadatum matched by this value, if any.
      * 
-     * @return an {@link AccessType} value
+     * @return a feature metadatum from the reference patient, or {@code null} if this metadatum doesn't match a
+     *         reference metadatum
      */
-    AccessType getAccess();
+    FeatureMetadatum getReference();
 
     /**
-     * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
-     * token as an identifier for the pair (reference patient<->matched patient).
+     * How similar is this feature metadatum to the reference.
      * 
-     * @return a token which can be used for identifying the anonymous email session
-     */
-    String getContactToken();
-
-    /**
-     * How similar is this patient to the reference.
-     * 
-     * @return a similarity score, between {@code -1} for opposite patient descriptions and {@code 1} for an exact
-     *         match, with {@code 0} for patients with no similarities
+     * @return a similarity score, between {@code -1} for opposite feature descriptions and {@code 1} for an exact
+     *         match, with {@code 0} for values with no similarities, and {@code NaN} in case there's no matched
+     *         reference
      */
     double getScore();
 }

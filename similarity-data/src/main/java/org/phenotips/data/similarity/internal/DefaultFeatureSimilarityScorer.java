@@ -19,8 +19,8 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Phenotype;
-import org.phenotips.data.similarity.PhenotypeSimilarityScorer;
+import org.phenotips.data.Feature;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -35,21 +35,21 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * {@link PhenotypeSimilarityScorer Similarity scorer} for phenotypes, rewarding phenotypes that are closely related.
+ * {@link FeatureSimilarityScorer Similarity scorer} for features, rewarding features that are closely related.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Component
 @Singleton
-public class DefaultPhenotypeSimilarityScorer implements PhenotypeSimilarityScorer
+public class DefaultFeatureSimilarityScorer implements FeatureSimilarityScorer
 {
     /** Provides access to the term ontology. */
     @Inject
     private OntologyManager ontologyManager;
 
     @Override
-    public double getScore(Phenotype match, Phenotype reference)
+    public double getScore(Feature match, Feature reference)
     {
         if (match == null || reference == null) {
             return Double.NaN;
@@ -72,8 +72,8 @@ public class DefaultPhenotypeSimilarityScorer implements PhenotypeSimilarityScor
      * other (at most 3 generations away), then {@code Integer.MAX_VALUE} is returned. The order of the two terms
      * doesn't matter.
      * 
-     * @param match the first phenotype term
-     * @param reference the second phenotype term
+     * @param match the first feature term
+     * @param reference the second feature term
      * @return a number between {@code 1} and {@code 3} representing the number of generations between the two terms, or
      *         {@code Integer.MAX_VALUE} if the two terms aren't related or are more than 3 generations apart
      */

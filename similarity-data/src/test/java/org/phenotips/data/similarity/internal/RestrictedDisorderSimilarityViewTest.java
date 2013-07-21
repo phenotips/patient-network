@@ -19,10 +19,9 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Disease;
+import org.phenotips.data.Disorder;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.SimilarDisease;
-import org.phenotips.data.similarity.internal.RestrictedSimilarDisease;
+import org.phenotips.data.similarity.DisorderSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 
@@ -36,21 +35,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for the "restricted" {@link SimilarDisease} implementation, {@link RestrictedSimilarDisease}.
+ * Tests for the "restricted" {@link DisorderSimilarityView} implementation, {@link RestrictedDisorderSimilarityView}.
  * 
  * @version $Id$
  */
-public class RestrictedSimilarDiseaseTest
+public class RestrictedDisorderSimilarityViewTest
 {
     /** Basic test for ID retrieval. */
     @Test
     public void testGetId()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
         when(mockMatch.getId()).thenReturn("MIM:136140");
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PUBLIC);
         Assert.assertEquals("MIM:136140", o.getId());
     }
 
@@ -58,9 +57,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetIdWithPrivateAccess()
     {
-        Disease mockMatch = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.PRIVATE);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.PRIVATE);
         Assert.assertNull(o.getId());
         Mockito.verify(mockMatch, Mockito.never()).getId();
     }
@@ -69,9 +68,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetIdWithMatchAccess()
     {
-        Disease mockMatch = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.MATCH);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.MATCH);
         Assert.assertNull(o.getId());
         Mockito.verify(mockMatch, Mockito.never()).getId();
     }
@@ -80,9 +79,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetIdWithNullMatch()
     {
-        Disease mockReference = mock(Disease.class);
+        Disorder mockReference = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PUBLIC);
         Assert.assertNull(o.getId());
         Mockito.verify(mockReference, Mockito.never()).getId();
     }
@@ -91,11 +90,11 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetName()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
         when(mockMatch.getName()).thenReturn("Some disease");
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PUBLIC);
         Assert.assertEquals("Some disease", o.getName());
     }
 
@@ -103,8 +102,8 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetNameWithPrivateAccess()
     {
-        Disease mockMatch = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.PRIVATE);
+        Disorder mockMatch = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.PRIVATE);
         Assert.assertNull(o.getName());
         Mockito.verify(mockMatch, Mockito.never()).getName();
     }
@@ -113,8 +112,8 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetNameWithMatchAccess()
     {
-        Disease mockMatch = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.MATCH);
+        Disorder mockMatch = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.MATCH);
         Assert.assertNull(o.getName());
         Mockito.verify(mockMatch, Mockito.never()).getName();
     }
@@ -123,9 +122,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetNameWithNullMatch()
     {
-        Disease mockReference = mock(Disease.class);
+        Disorder mockReference = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PUBLIC);
         Assert.assertNull(o.getName());
         Mockito.verify(mockReference, Mockito.never()).getName();
     }
@@ -134,8 +133,8 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetReference()
     {
-        Disease mockReference = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PUBLIC);
+        Disorder mockReference = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PUBLIC);
         Assert.assertSame(mockReference, o.getReference());
     }
 
@@ -143,17 +142,17 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetReferenceWithNullReference()
     {
-        Disease mockMatch = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.PUBLIC);
+        Disorder mockMatch = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.PUBLIC);
         Assert.assertNull(o.getReference());
     }
 
-    /** Retrieving the reference disease is always allowed, no matter the access type to the matched patient. */
+    /** Retrieving the reference disorder is always allowed, no matter the access type to the matched patient. */
     @Test
     public void testGetReferenceWithPrivateAccess()
     {
-        Disease mockReference = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PRIVATE);
+        Disorder mockReference = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PRIVATE);
         Assert.assertSame(mockReference, o.getReference());
     }
 
@@ -161,17 +160,17 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetScore() throws ComponentLookupException
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PUBLIC);
 
-        // Maximum score for the same disease
+        // Maximum score for the same disorder
         when(mockMatch.getId()).thenReturn("MIM:136140");
         when(mockReference.getId()).thenReturn("MIM:136140");
         Assert.assertEquals(1.0, o.getScore(), 1.0E-5);
 
-        // Minimum score for different diseases
+        // Minimum score for different disorders
         when(mockMatch.getId()).thenReturn("MIM:136140");
         when(mockReference.getId()).thenReturn("MIM:136141");
         Assert.assertEquals(-1.0, o.getScore(), 1.0E-5);
@@ -181,8 +180,8 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetScoreWithNullMatch()
     {
-        Disease mockReference = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PUBLIC);
+        Disorder mockReference = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PUBLIC);
         Assert.assertTrue(Double.isNaN(o.getScore()));
     }
 
@@ -190,8 +189,8 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetScoreWithNullReference()
     {
-        Disease mockMatch = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.PUBLIC);
+        Disorder mockMatch = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.PUBLIC);
         Assert.assertTrue(Double.isNaN(o.getScore()));
     }
 
@@ -199,10 +198,10 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testGetScoreWithPrivateAccess()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PRIVATE);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PRIVATE);
 
         when(mockMatch.getId()).thenReturn("MIM:136140");
         when(mockReference.getId()).thenReturn("MIM:136140");
@@ -213,15 +212,15 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSON() throws ComponentLookupException
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
 
         when(mockMatch.getId()).thenReturn("MIM:136140");
         when(mockMatch.getName()).thenReturn("#136140 FLOATING-HARBOR SYNDROME; FLHS");
 
         when(mockReference.getId()).thenReturn("MIM:136140");
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PUBLIC);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals("MIM:136140", result.getString("id"));
@@ -234,12 +233,12 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSONWithMissingReference() throws ComponentLookupException
     {
-        Disease mockMatch = mock(Disease.class);
+        Disorder mockMatch = mock(Disorder.class);
 
         when(mockMatch.getId()).thenReturn("MIM:136140");
         when(mockMatch.getName()).thenReturn("#136140 FLOATING-HARBOR SYNDROME; FLHS");
 
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, null, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.PUBLIC);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals("MIM:136140", result.getString("id"));
@@ -252,11 +251,11 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSONWithMissingMatch() throws ComponentLookupException
     {
-        Disease mockReference = mock(Disease.class);
+        Disorder mockReference = mock(Disorder.class);
 
         when(mockReference.getId()).thenReturn("MIM:136140");
 
-        SimilarDisease o = new RestrictedSimilarDisease(null, mockReference, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, mockReference, AccessType.PUBLIC);
 
         JSONObject result = o.toJSON();
         Assert.assertFalse(result.has("id"));
@@ -269,7 +268,7 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSONWithMissingMatchAndReference() throws ComponentLookupException
     {
-        SimilarDisease o = new RestrictedSimilarDisease(null, null, AccessType.PUBLIC);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, null, AccessType.PUBLIC);
         JSONObject result = o.toJSON();
         Assert.assertTrue(result.isNullObject());
     }
@@ -278,9 +277,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSONWithPrivateAccess()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.PRIVATE);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.PRIVATE);
         Assert.assertTrue(o.toJSON().isNullObject());
     }
 
@@ -288,9 +287,9 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testToJSONWithMatchAccess()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
-        SimilarDisease o = new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.MATCH);
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
+        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.MATCH);
         Assert.assertTrue(o.toJSON().isNullObject());
     }
 
@@ -298,10 +297,12 @@ public class RestrictedSimilarDiseaseTest
     @Test
     public void testIsMatchingPair()
     {
-        Disease mockMatch = mock(Disease.class);
-        Disease mockReference = mock(Disease.class);
-        Assert.assertTrue(new RestrictedSimilarDisease(mockMatch, mockReference, AccessType.OWNED).isMatchingPair());
-        Assert.assertFalse(new RestrictedSimilarDisease(mockMatch, null, AccessType.OWNED).isMatchingPair());
-        Assert.assertFalse(new RestrictedSimilarDisease(null, mockReference, AccessType.OWNED).isMatchingPair());
+        Disorder mockMatch = mock(Disorder.class);
+        Disorder mockReference = mock(Disorder.class);
+        Assert.assertTrue(new RestrictedDisorderSimilarityView(mockMatch, mockReference, AccessType.OWNED)
+            .isMatchingPair());
+        Assert.assertFalse(new RestrictedDisorderSimilarityView(mockMatch, null, AccessType.OWNED).isMatchingPair());
+        Assert
+            .assertFalse(new RestrictedDisorderSimilarityView(null, mockReference, AccessType.OWNED).isMatchingPair());
     }
 }

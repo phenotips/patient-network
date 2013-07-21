@@ -19,39 +19,27 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.Phenotype;
+import org.phenotips.data.Feature;
 
-import org.xwiki.stability.Unstable;
+import org.xwiki.component.annotation.Role;
 
 /**
- * View of a phenotype as related to another reference phenotype.
+ * Computes the similarity between two different {@link Feature} values.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-@Unstable
-public interface SimilarPhenotype extends Phenotype
+@Role
+public interface FeatureSimilarityScorer
 {
     /**
-     * Does this similar phenotypes pair have both a match and a reference?
+     * Computes the similarity score between two feature terms. The values have to be from the same ontology.
      * 
-     * @return {@code true} if both related phenotypes are present, {@code false} otherwise
+     * @param match the matched feature, should not be {@code null}
+     * @param reference the reference feature, should not be {@code null}
+     * @return a similarity score, between {@code -1} for opposite values and {@code 1} for an exact match, with
+     *         {@code 0} for incomparable values, and {@code NaN} when one of the values is {@code null} or one of the
+     *         terms can't be found in the ontology
      */
-    boolean isMatchingPair();
-
-    /**
-     * Returns the reference phenotype matched by this phenotype, if any.
-     * 
-     * @return a phenotype from the reference patient, or {@code null} if this phenotype doesn't match a reference
-     *         phenotype
-     */
-    Phenotype getReference();
-
-    /**
-     * How similar is this phenotype to the reference.
-     * 
-     * @return a similarity score, between {@code -1} for opposite phenotypes and {@code 1} for an exact match, with
-     *         {@code 0} for phenotype with no similarities, and {@code NaN} in case there's no matched reference
-     */
-    double getScore();
+    double getScore(Feature match, Feature reference);
 }

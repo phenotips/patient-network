@@ -19,8 +19,8 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.PhenotypeMetadatum;
-import org.phenotips.data.similarity.PhenotypeMetadatumSimilarityScorer;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
 
 import org.xwiki.component.annotation.Component;
 
@@ -33,48 +33,56 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * {@link PhenotypeMetadatumSimilarityScorer Similarity scorer} for the Pace of Progression metaproperty, rewarding
- * speeds that are close to each other.
+ * {@link FeatureMetadatumSimilarityScorer Similarity scorer} for the Age of Onset metaproperty, rewarding age
+ * intervals that are close to each other.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Component
-@Named("pace_of_progression")
+@Named("age_of_onset")
 @Singleton
-public class PaceOfProgressionPhenotypeMetadatumSimilarityScorer implements PhenotypeMetadatumSimilarityScorer
+public class AgeOfOnsetFeatureMetadatumSimilarityScorer implements FeatureMetadatumSimilarityScorer
 {
     /** The possible values with an associated "coordinate" which tells how close two values are. */
     private static final Map<String, Double> ORDERED_VALUES = new HashMap<String, Double>();
     static {
-        // Nonprogressive disorder
-        ORDERED_VALUES.put("HP:0003680", 0.5);
-        // Slow progression
-        ORDERED_VALUES.put("HP:0003677", 1.0);
-        // Progressive disorder
-        ORDERED_VALUES.put("HP:0003676", 2.0);
-        // Rapidly progressive
-        ORDERED_VALUES.put("HP:0003678", 3.5);
+        // Congenital onset
+        ORDERED_VALUES.put("HP:0003577", 1.5);
+        // Embryonal onset
+        ORDERED_VALUES.put("HP:0011460", 1.0);
+        // Fetal onset
+        ORDERED_VALUES.put("HP:0011461", 2.0);
+        // Neonatal onset
+        ORDERED_VALUES.put("HP:0003623", 3.0);
+        // Infantile onset
+        ORDERED_VALUES.put("HP:0003593", 4.0);
+        // Childhood onset
+        ORDERED_VALUES.put("HP:0011463", 5.0);
+        // Juvenile onset;
+        ORDERED_VALUES.put("HP:0003621", 6.0);
+        // Adult onset
+        ORDERED_VALUES.put("HP:0003581", 8.0);
+        // Young adult onset
+        ORDERED_VALUES.put("HP:0011462", 7.0);
+        // Middle age onset
+        ORDERED_VALUES.put("HP:0003596", 8.0);
+        // Late onset
+        ORDERED_VALUES.put("HP:0003584", 9.0);
     }
 
-    /** Variable progression, can't be compared with the constant ones. */
-    private static final String VARIABLE_PROGRESSION = "HP:0003682";
-
     /** Distance at which two values are considered neutral, with a resulting score of {@code 0}. */
-    private static final double NEUTRAL_DIST = 1.5;
+    private static final double NEUTRAL_DIST = 2.5;
 
     /** Distance at which two values are considered too different, with a resulting score of {@code -1}. */
     private static final double MAX_DIST = 2 * NEUTRAL_DIST;
 
     @Override
-    public double getScore(PhenotypeMetadatum match, PhenotypeMetadatum reference)
+    public double getScore(FeatureMetadatum match, FeatureMetadatum reference)
     {
         if (match == null || reference == null || StringUtils.isEmpty(match.getId())
             || StringUtils.isEmpty(reference.getId())) {
             // Not enough information
-            return 0;
-        } else if (VARIABLE_PROGRESSION.equals(match.getId()) || VARIABLE_PROGRESSION.equals(reference.getId())) {
-            // Can't compare a variable progression against another known progression
             return 0;
         }
         return (NEUTRAL_DIST - distance(match.getId(), reference.getId())) / NEUTRAL_DIST;
@@ -83,7 +91,7 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorer implements Phen
     /**
      * Compute the distance between two values, based on {@link #ORDERED_VALUES their coordinates}.
      * 
-     * @param matchedOnset the onset value being scored, one of the HPO terms for pace of progression values
+     * @param matchedOnset the onset value being scored, one of the HPO terms for age of onset values
      * @param referenceOnset the onset value against which we're comparing
      * @return a number between {@code 0} (for perfect match) to {@link #MAX_DIST} (for complete mismatch)
      */

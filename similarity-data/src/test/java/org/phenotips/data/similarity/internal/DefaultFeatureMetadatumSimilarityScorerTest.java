@@ -19,10 +19,10 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.PhenotypeMetadatum;
-import org.phenotips.data.similarity.PhenotypeMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.DefaultPhenotypeMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.mocks.MockPhenotypeMetadatum;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.internal.DefaultFeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
@@ -32,24 +32,24 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Tests for the default {@link PhenotypeMetadatumSimilarityScorer} {@link DefaultPhenotypeMetadatumSimilarityScorer
+ * Tests for the default {@link FeatureMetadatumSimilarityScorer} {@link DefaultFeatureMetadatumSimilarityScorer
  * generic implementation}.
  * 
  * @version $Id$
  */
-public class DefaultPhenotypeMetadatumSimilarityScorerTest
+public class DefaultFeatureMetadatumSimilarityScorerTest
 {
     @Rule
-    public final MockitoComponentMockingRule<PhenotypeMetadatumSimilarityScorer> mocker =
-        new MockitoComponentMockingRule<PhenotypeMetadatumSimilarityScorer>(
-            DefaultPhenotypeMetadatumSimilarityScorer.class);
+    public final MockitoComponentMockingRule<FeatureMetadatumSimilarityScorer> mocker =
+        new MockitoComponentMockingRule<FeatureMetadatumSimilarityScorer>(
+            DefaultFeatureMetadatumSimilarityScorer.class);
 
     /** Same term should get the maximum score. */
     @Test
     public void testEqualValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum match = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum reference = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
         Assert.assertEquals(1.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -57,8 +57,8 @@ public class DefaultPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testDifferentValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("ONTO:0009", "High value", "range");
+        FeatureMetadatum match = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum reference = new MockFeatureMetadatum("ONTO:0009", "High value", "range");
         Assert.assertEquals(-1.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -66,8 +66,8 @@ public class DefaultPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testDifferentValueTypes() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("ONTO:0011", "Low impact", "impact");
+        FeatureMetadatum match = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum reference = new MockFeatureMetadatum("ONTO:0011", "Low impact", "impact");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -75,7 +75,7 @@ public class DefaultPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testMissingReference() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum match = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, null), 1.0E-5);
     }
 
@@ -83,7 +83,7 @@ public class DefaultPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testMissingMatch() throws ComponentLookupException
     {
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("ONTO:0001", "Low value", "range");
+        FeatureMetadatum reference = new MockFeatureMetadatum("ONTO:0001", "Low value", "range");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(null, reference), 1.0E-5);
     }
 

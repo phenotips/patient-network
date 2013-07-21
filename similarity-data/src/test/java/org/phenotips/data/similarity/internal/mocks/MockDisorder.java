@@ -19,22 +19,22 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.data.Disease;
+import org.phenotips.data.Disorder;
 
 import net.sf.json.JSONObject;
 
 /**
- * Simple mock for a disease, responding with pre-specified values.
+ * Simple mock for a disorder, responding with pre-specified values.
  * 
  * @version $Id$
  */
-public class MockDisease implements Disease
+public class MockDisorder implements Disorder
 {
     private final String id;
 
     private final String name;
 
-    public MockDisease(String id, String name)
+    public MockDisorder(String id, String name)
     {
         this.id = id;
         this.name = name;

@@ -19,22 +19,20 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.data.Phenotype;
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.Feature;
+import org.phenotips.data.FeatureMetadatum;
 
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
 import net.sf.json.JSONObject;
 
 /**
- * Simple mock for a patient phenotype, responding with pre-specified values.
+ * Simple mock for a patient feature, responding with pre-specified values.
  * 
  * @version $Id$
  */
-public class MockPhenotype implements Phenotype
+public class MockFeature implements Feature
 {
     private final String id;
 
@@ -44,14 +42,14 @@ public class MockPhenotype implements Phenotype
 
     private final boolean present;
 
-    private final Map<String, PhenotypeMetadatum> meta;
+    private final Map<String, FeatureMetadatum> meta;
 
-    public MockPhenotype(String id, String name, String type, boolean present)
+    public MockFeature(String id, String name, String type, boolean present)
     {
-        this(id, name, type, Collections.<String, PhenotypeMetadatum> emptyMap(), present);
+        this(id, name, type, Collections.<String, FeatureMetadatum> emptyMap(), present);
     }
 
-    public MockPhenotype(String id, String name, String type, Map<String, PhenotypeMetadatum> meta, boolean present)
+    public MockFeature(String id, String name, String type, Map<String, FeatureMetadatum> meta, boolean present)
     {
         this.id = id;
         this.name = name;
@@ -85,7 +83,7 @@ public class MockPhenotype implements Phenotype
     }
 
     @Override
-    public Map<String, ? extends PhenotypeMetadatum> getMetadata()
+    public Map<String, ? extends FeatureMetadatum> getMetadata()
     {
         return this.meta;
     }

@@ -19,40 +19,38 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.Feature;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * View of a phenotype metadatum as related to another reference metadatum.
+ * View of a patient feature as related to another reference feature.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Unstable
-public interface SimilarPhenotypeMetadatum extends PhenotypeMetadatum
+public interface FeatureSimilarityView extends Feature
 {
     /**
-     * Does this similar phenotype metadata pair have both a match and a reference?
+     * Does this similar features pair have both a match and a reference?
      * 
-     * @return {@code true} if both related values are present, {@code false} otherwise
+     * @return {@code true} if both related features are present, {@code false} otherwise
      */
     boolean isMatchingPair();
 
     /**
-     * Returns the reference phenotype metadatum matched by this value, if any.
+     * Returns the reference feature matched by this feature, if any.
      * 
-     * @return a phenotype metadatum from the reference patient, or {@code null} if this metadatum doesn't match a
-     *         reference metadatum
+     * @return a feature from the reference patient, or {@code null} if this feature doesn't match a reference feature
      */
-    PhenotypeMetadatum getReference();
+    Feature getReference();
 
     /**
-     * How similar is this phenotype metadatum to the reference.
+     * How similar is this feature to the reference.
      * 
-     * @return a similarity score, between {@code -1} for opposite phenotype descriptions and {@code 1} for an exact
-     *         match, with {@code 0} for values with no similarities, and {@code NaN} in case there's no matched
-     *         reference
+     * @return a similarity score, between {@code -1} for opposite features and {@code 1} for an exact match, with
+     *         {@code 0} for features with no similarities, and {@code NaN} in case there's no matched reference
      */
     double getScore();
 }

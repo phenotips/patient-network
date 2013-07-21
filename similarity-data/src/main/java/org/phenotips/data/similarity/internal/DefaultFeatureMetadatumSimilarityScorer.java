@@ -19,8 +19,8 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.PhenotypeMetadatum;
-import org.phenotips.data.similarity.PhenotypeMetadatumSimilarityScorer;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
 
 import org.xwiki.component.annotation.Component;
 
@@ -29,7 +29,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Simple {@link PhenotypeMetadatumSimilarityScorer similarity scorer} that gives {@code 0} if any of the two values is
+ * Simple {@link FeatureMetadatumSimilarityScorer similarity scorer} that gives {@code 0} if any of the two values is
  * missing, {@code 1} for exact matches, and {@code -1} if the two values are different.
  * 
  * @version $Id$
@@ -37,10 +37,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Component
 @Singleton
-public class DefaultPhenotypeMetadatumSimilarityScorer implements PhenotypeMetadatumSimilarityScorer
+public class DefaultFeatureMetadatumSimilarityScorer implements FeatureMetadatumSimilarityScorer
 {
     @Override
-    public double getScore(PhenotypeMetadatum match, PhenotypeMetadatum reference)
+    public double getScore(FeatureMetadatum match, FeatureMetadatum reference)
     {
         if (reference == null || match == null || !StringUtils.equals(reference.getType(), match.getType())) {
             // Not enough information, or different metadata types

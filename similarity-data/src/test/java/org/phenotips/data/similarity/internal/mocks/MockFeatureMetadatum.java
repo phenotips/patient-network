@@ -17,31 +17,53 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.phenotips.data.similarity.internal;
+package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.SimilarPatient;
-import org.phenotips.data.similarity.SimilarPatientFactory;
+import org.phenotips.data.FeatureMetadatum;
 
-import org.xwiki.component.annotation.Component;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link SimilarPatientFactory} which only allows access to public or shared information.
+ * Simple mock for a feature metadatum, responding with pre-specified values.
  * 
  * @version $Id$
- * @since 1.0M8
  */
-@Component
-@Named("restricted")
-@Singleton
-public class RestrictedSimilarPatientFactory implements SimilarPatientFactory
+public class MockFeatureMetadatum implements FeatureMetadatum
 {
-    @Override
-    public SimilarPatient makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException
+    private final String id;
+
+    private final String name;
+
+    private final String type;
+
+    public MockFeatureMetadatum(String id, String name, String type)
     {
-        return new RestrictedSimilarPatient(match, reference);
+        this.id = id;
+        this.name = name;
+        this.type = type;
+    }
+
+    @Override
+    public String getId()
+    {
+        return this.id;
+    }
+
+    @Override
+    public String getName()
+    {
+        return this.name;
+    }
+
+    @Override
+    public String getType()
+    {
+        return this.type;
+    }
+
+    @Override
+    public JSONObject toJSON()
+    {
+        return null;
     }
 }

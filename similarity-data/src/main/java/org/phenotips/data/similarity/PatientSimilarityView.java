@@ -19,38 +19,46 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.Disease;
+import org.phenotips.data.Patient;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * View of a disease as related to another reference disease.
+ * View of a patient as related to another reference patient.
  * 
  * @version $Id$
  * @since 1.0M8
  */
 @Unstable
-public interface SimilarDisease extends Disease
+public interface PatientSimilarityView extends Patient
 {
     /**
-     * Does this similar diseases pair have both a match and a reference?
+     * The reference patient against which we're comparing.
      * 
-     * @return {@code true} if both related diseases are present, {@code false} otherwise
+     * @return the patient for which we're searching similar cases
      */
-    boolean isMatchingPair();
+    Patient getReference();
 
     /**
-     * Returns the reference disease matched by this disease, if any.
+     * What type of access does the user have to this patient profile.
      * 
-     * @return a disease from the reference patient, or {@code null} if this disease doesn't match a reference disease
+     * @return an {@link AccessType} value
      */
-    Disease getReference();
+    AccessType getAccess();
 
     /**
-     * How similar is this disease to the reference.
+     * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
+     * token as an identifier for the pair (reference patient<->matched patient).
      * 
-     * @return a similarity score, between {@code -1} for opposite diseases and {@code 1} for an exact match, with
-     *         {@code 0} for diseases with no similarities, and {@code NaN} in case there's no matched reference
+     * @return a token which can be used for identifying the anonymous email session
+     */
+    String getContactToken();
+
+    /**
+     * How similar is this patient to the reference.
+     * 
+     * @return a similarity score, between {@code -1} for opposite patient descriptions and {@code 1} for an exact
+     *         match, with {@code 0} for patients with no similarities
      */
     double getScore();
 }

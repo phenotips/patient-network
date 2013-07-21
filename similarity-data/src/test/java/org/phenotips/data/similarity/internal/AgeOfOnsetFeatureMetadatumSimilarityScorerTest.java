@@ -19,10 +19,10 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.PhenotypeMetadatum;
-import org.phenotips.data.similarity.PhenotypeMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.PaceOfProgressionPhenotypeMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.mocks.MockPhenotypeMetadatum;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.internal.AgeOfOnsetFeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
@@ -32,24 +32,24 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Tests for the custom {@link PhenotypeMetadatumSimilarityScorer} implementation for
- * {@link PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest pace of progression}.
+ * Tests for the custom {@link FeatureMetadatumSimilarityScorer} implementation for
+ * {@link AgeOfOnsetFeatureMetadatumSimilarityScorer age of onset}.
  * 
  * @version $Id$
  */
-public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
+public class AgeOfOnsetFeatureMetadatumSimilarityScorerTest
 {
     @Rule
-    public final MockitoComponentMockingRule<PhenotypeMetadatumSimilarityScorer> mocker =
-        new MockitoComponentMockingRule<PhenotypeMetadatumSimilarityScorer>(
-            PaceOfProgressionPhenotypeMetadatumSimilarityScorer.class);
+    public final MockitoComponentMockingRule<FeatureMetadatumSimilarityScorer> mocker =
+        new MockitoComponentMockingRule<FeatureMetadatumSimilarityScorer>(
+            AgeOfOnsetFeatureMetadatumSimilarityScorer.class);
 
     /** Same term should get the maximum score. */
     @Test
     public void testEqualValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
         Assert.assertEquals(1.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -57,8 +57,8 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testOppositeValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003678", "Rapidly progressive", "pace");
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0011460", "Embryonal onset", "age_of_onset");
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0003584", "Late onset", "age_of_onset");
         Assert.assertEquals(-1.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -66,31 +66,17 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testCloseValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003677", "Slow progression", "pace");
-        Assert.assertEquals(0.6, this.mocker.getComponentUnderTest().getScore(match, reference), 0.1);
-
-        match = new MockPhenotypeMetadatum("HP:0003676", "Progressive disorder", "pace");
-        reference = new MockPhenotypeMetadatum("HP:0003677", "Progressive disorder", "pace");
-        Assert.assertEquals(0.3, this.mocker.getComponentUnderTest().getScore(match, reference), 0.1);
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0011460", "Embryonal onset", "age_of_onset");
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0011461", "Fetal onset", "age_of_onset");
+        Assert.assertEquals(0.75, this.mocker.getComponentUnderTest().getScore(match, reference), 0.2);
     }
 
-    /** Variable progression should give 0 score, no matter what the other value is. */
-    @Test
-    public void testVariableProgression() throws ComponentLookupException
-    {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003682", "Variable progression", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003677", "Slow progression", "pace");
-        Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
-        Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(reference, match), 1.0E-5);
-    }
-
-    /** Unknown progression terms should get a zero score. */
+    /** Unknown Age of Onset terms should get a zero score. */
     @Test
     public void testUnknownValues() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0123456", "Very slow progression", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0123456", "Teenage onset", "age_of_onset");
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0003621", "Juvenile onset", "age_of_onset");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(reference, match), 1.0E-5);
     }
@@ -99,7 +85,7 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testMissingReference() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, null), 1.0E-5);
     }
 
@@ -107,7 +93,7 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testMissingMatch() throws ComponentLookupException
     {
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(null, reference), 1.0E-5);
     }
 
@@ -122,8 +108,8 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testEmptyReference() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum(null, null, null);
+        FeatureMetadatum match = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
+        FeatureMetadatum reference = new MockFeatureMetadatum(null, null, null);
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -131,8 +117,8 @@ public class PaceOfProgressionPhenotypeMetadatumSimilarityScorerTest
     @Test
     public void testEmptyMatch() throws ComponentLookupException
     {
-        PhenotypeMetadatum match = new MockPhenotypeMetadatum(null, null, null);
-        PhenotypeMetadatum reference = new MockPhenotypeMetadatum("HP:0003680", "Nonprogressive disorder", "pace");
+        FeatureMetadatum match = new MockFeatureMetadatum(null, null, null);
+        FeatureMetadatum reference = new MockFeatureMetadatum("HP:0003593", "Infantile onset", "age_of_onset");
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 }

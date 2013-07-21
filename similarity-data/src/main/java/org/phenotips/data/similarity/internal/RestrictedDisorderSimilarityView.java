@@ -19,40 +19,41 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Disease;
+import org.phenotips.data.Disorder;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.SimilarDisease;
+import org.phenotips.data.similarity.DisorderSimilarityView;
 
 import org.apache.commons.lang3.StringUtils;
 
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link SimilarDisease} that only reveals information if the user has full access to the patient.
+ * Implementation of {@link DisorderSimilarityView} that only reveals information if the user has full access to the
+ * patient.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-public class RestrictedSimilarDisease implements SimilarDisease
+public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
 {
-    /** The matched disease to represent. */
-    private Disease match;
+    /** The matched disorder to represent. */
+    private Disorder match;
 
-    /** The reference disease against which to compare. */
-    private Disease reference;
+    /** The reference disorder against which to compare. */
+    private Disorder reference;
 
-    /** The access type the user has to the patient having this disease. */
+    /** The access type the user has to the patient having this disorder. */
     private AccessType access;
 
     /**
-     * Simple constructor passing the {@link #match matched disease}, the {@link #reference reference disease}, and the
-     * {@link #access patient access type}.
+     * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
+     * the {@link #access patient access type}.
      * 
-     * @param match the matched disease to represent
-     * @param reference the reference disease against which to compare, can be {@code null}
-     * @param access the access type the user has to the patient having this disease
+     * @param match the matched disorder to represent
+     * @param reference the reference disorder against which to compare, can be {@code null}
+     * @param access the access type the user has to the patient having this disorder
      */
-    public RestrictedSimilarDisease(Disease match, Disease reference, AccessType access)
+    public RestrictedDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
     {
         this.match = match;
         this.reference = reference;
@@ -101,7 +102,7 @@ public class RestrictedSimilarDisease implements SimilarDisease
     }
 
     @Override
-    public Disease getReference()
+    public Disorder getReference()
     {
         return this.reference;
     }

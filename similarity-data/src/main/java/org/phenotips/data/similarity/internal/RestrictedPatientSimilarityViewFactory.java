@@ -17,53 +17,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.phenotips.data.similarity.internal.mocks;
+package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 
-import net.sf.json.JSONObject;
+import org.xwiki.component.annotation.Component;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
- * Simple mock for a phenotype metadatum, responding with pre-specified values.
+ * Implementation of {@link PatientSimilarityViewFactory} which only allows access to public or shared information.
  * 
  * @version $Id$
+ * @since 1.0M8
  */
-public class MockPhenotypeMetadatum implements PhenotypeMetadatum
+@Component
+@Named("restricted")
+@Singleton
+public class RestrictedPatientSimilarityViewFactory implements PatientSimilarityViewFactory
 {
-    private final String id;
-
-    private final String name;
-
-    private final String type;
-
-    public MockPhenotypeMetadatum(String id, String name, String type)
-    {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-    }
-
     @Override
-    public String getId()
+    public PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException
     {
-        return this.id;
-    }
-
-    @Override
-    public String getName()
-    {
-        return this.name;
-    }
-
-    @Override
-    public String getType()
-    {
-        return this.type;
-    }
-
-    @Override
-    public JSONObject toJSON()
-    {
-        return null;
+        return new RestrictedPatientSimilarityView(match, reference);
     }
 }

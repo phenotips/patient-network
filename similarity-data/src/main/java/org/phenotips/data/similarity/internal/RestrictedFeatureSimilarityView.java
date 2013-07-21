@@ -20,12 +20,12 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.Phenotype;
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.Feature;
+import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PhenotypeSimilarityScorer;
-import org.phenotips.data.similarity.SimilarPhenotype;
-import org.phenotips.data.similarity.SimilarPhenotypeMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
+import org.phenotips.data.similarity.FeatureSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 
@@ -39,35 +39,35 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link SimilarPhenotype} that reveals the full patient information if the user has full access to
- * the patient, and only matching reference information for similar phenotypes if the patient is matchable.
+ * Implementation of {@link FeatureSimilarityView} that reveals the full patient information if the user has full access
+ * to the patient, and only matching reference information for similar features if the patient is matchable.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-public class RestrictedSimilarPhenotype implements SimilarPhenotype
+public class RestrictedFeatureSimilarityView implements FeatureSimilarityView
 {
-    /** The matched phenotype to represent. */
-    private Phenotype match;
+    /** The matched feature to represent. */
+    private Feature match;
 
-    /** The reference phenotype against which to compare. */
-    private Phenotype reference;
+    /** The reference feature against which to compare. */
+    private Feature reference;
 
-    /** The access type the user has to the patient having this phenotype. */
+    /** The access type the user has to the patient having this feature. */
     private AccessType access;
 
-    /** Links metadata values about this phenotype in the two patients. */
-    private Map<String, SimilarPhenotypeMetadatum> matchedMetadata;
+    /** Links metadata values about this feature in the two patients. */
+    private Map<String, FeatureMetadatumSimilarityView> matchedMetadata;
 
     /**
-     * Simple constructor passing the {@link #match matched phenotype}, the {@link #reference reference phenotype}, and
-     * the {@link #access patient access type}.
+     * Simple constructor passing the {@link #match matched feature}, the {@link #reference reference feature}, and the
+     * {@link #access patient access type}.
      * 
-     * @param match the matched phenotype to represent
-     * @param reference the reference phenotype against which to compare, can be {@code null}
-     * @param access the access type the user has to the patient having this phenotype
+     * @param match the matched feature to represent
+     * @param reference the reference feature against which to compare, can be {@code null}
+     * @param access the access type the user has to the patient having this feature
      */
-    public RestrictedSimilarPhenotype(Phenotype match, Phenotype reference, AccessType access)
+    public RestrictedFeatureSimilarityView(Feature match, Feature reference, AccessType access)
     {
         this.match = match;
         this.reference = reference;
@@ -80,8 +80,7 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
     @Override
     public String getType()
     {
-        return this.match != null ? this.match.getType() : this.reference != null ? this.reference.getType()
-            : null;
+        return this.match != null ? this.match.getType() : this.reference != null ? this.reference.getType() : null;
     }
 
     @Override
@@ -103,14 +102,14 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
     }
 
     @Override
-    public Map<String, ? extends PhenotypeMetadatum> getMetadata()
+    public Map<String, ? extends FeatureMetadatum> getMetadata()
     {
         if (!this.access.isOpenAccess()) {
             return Collections.emptyMap();
         }
 
-        Map<String, PhenotypeMetadatum> result = new HashMap<String, PhenotypeMetadatum>();
-        for (SimilarPhenotypeMetadatum meta : this.matchedMetadata.values()) {
+        Map<String, FeatureMetadatum> result = new HashMap<String, FeatureMetadatum>();
+        for (FeatureMetadatumSimilarityView meta : this.matchedMetadata.values()) {
             if (meta.getId() != null) {
                 result.put(meta.getType(), meta);
             }
@@ -134,10 +133,10 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
                 result.element("isPresent", false);
             }
 
-            Map<String, ? extends PhenotypeMetadatum> metadata = this.getMetadata();
+            Map<String, ? extends FeatureMetadatum> metadata = this.getMetadata();
             if (!metadata.isEmpty()) {
                 JSONArray metadataList = new JSONArray();
-                for (PhenotypeMetadatum metadatum : metadata.values()) {
+                for (FeatureMetadatum metadatum : metadata.values()) {
                     metadataList.add(metadatum.toJSON());
                 }
                 result.element("metadata", metadataList);
@@ -164,7 +163,7 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
     }
 
     @Override
-    public Phenotype getReference()
+    public Feature getReference()
     {
         return this.reference;
     }
@@ -202,22 +201,22 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
             this.matchedMetadata = Collections.emptyMap();
             return;
         }
-        this.matchedMetadata = new HashMap<String, SimilarPhenotypeMetadatum>();
+        this.matchedMetadata = new HashMap<String, FeatureMetadatumSimilarityView>();
 
         // Add terms that exist in the matched phenotype, paired with a base phenotype if one exists
         if (this.match != null && this.match.getMetadata() != null) {
-            for (Map.Entry<String, ? extends PhenotypeMetadatum> entry : this.match.getMetadata().entrySet()) {
-                this.matchedMetadata.put(entry.getKey(), new RestrictedSimilarPhenotypeMetadatum(entry.getValue(),
+            for (Map.Entry<String, ? extends FeatureMetadatum> entry : this.match.getMetadata().entrySet()) {
+                this.matchedMetadata.put(entry.getKey(), new RestrictedFeatureMetadatumSimilarityView(entry.getValue(),
                     getMetadatumIfExists(entry.getKey(), this.reference), this.access));
             }
         }
 
         // Add terms that only exist in the base phenotype
         if (this.reference != null && this.reference.getMetadata() != null) {
-            for (Map.Entry<String, ? extends PhenotypeMetadatum> entry : this.reference.getMetadata().entrySet()) {
+            for (Map.Entry<String, ? extends FeatureMetadatum> entry : this.reference.getMetadata().entrySet()) {
                 if (!this.matchedMetadata.containsKey(entry.getKey())) {
                     this.matchedMetadata.put(entry.getKey(),
-                        new RestrictedSimilarPhenotypeMetadatum(null, entry.getValue(), this.access));
+                        new RestrictedFeatureMetadatumSimilarityView(null, entry.getValue(), this.access));
                 }
             }
         }
@@ -227,29 +226,29 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
     }
 
     /**
-     * Get a metadatum element from one of the phenotypes.
+     * Get a metadatum element from one of the features.
      * 
      * @param toFind the type of metadatum to get
-     * @param lookIn the phenotype to get from, may be {@code null}
-     * @return the metadatum specified in the phenotype, or {@code null} if it does not exist
+     * @param lookIn the feature to get from, may be {@code null}
+     * @return the metadatum specified in the feature, or {@code null} if it does not exist
      */
-    private PhenotypeMetadatum getMetadatumIfExists(String toFind, Phenotype lookIn)
+    private FeatureMetadatum getMetadatumIfExists(String toFind, Feature lookIn)
     {
         return lookIn != null && lookIn.getMetadata() != null ? lookIn.getMetadata().get(toFind) : null;
     }
 
     /**
-     * Compute the similarity score of two possibly related phenotypes. The score is between {@code 0} and {@code 1},
-     * closer to {@code 1} for more similar phenotypes, closer or equal to {@code 0} for too far related phenotypes.
+     * Compute the similarity score of two possibly related features. The score is between {@code 0} and {@code 1},
+     * closer to {@code 1} for more similar features, closer or equal to {@code 0} for too far related features.
      * 
-     * @return a number between {@code 0} and {@code 1} describing the similarity of the two phenotypes, or {@code NaN}
-     *         if the terms can't be identified
+     * @return a number between {@code 0} and {@code 1} describing the similarity of the two features, or {@code NaN} if
+     *         the terms can't be identified
      */
     private double getRelativeScore()
     {
-        PhenotypeSimilarityScorer scorer;
+        FeatureSimilarityScorer scorer;
         try {
-            scorer = ComponentManagerRegistry.getContextComponentManager().getInstance(PhenotypeSimilarityScorer.class);
+            scorer = ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class);
         } catch (ComponentLookupException e) {
             return Double.NaN;
         }
@@ -257,11 +256,11 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
     }
 
     /**
-     * Adjust the score of a phenotype pair by taking into account the metadata matches. More correct metadata matches
+     * Adjust the score of a features pair by taking into account the metadata matches. More correct metadata matches
      * will shift the score closer to a perfect score (either {@code 1} or {@code -1}), while more anti-matches will
      * shift the score closer to irrelevance ({@code 0}).
      * 
-     * @param baseScore the base score for the phenotype pair, a number between {@code -1} and {@code 1}
+     * @param baseScore the base score for the features pair, a number between {@code -1} and {@code 1}
      * @return the adjusted score, still a number between {@code -1} and {@code 1}; the base score if no adjustments
      *         were needed
      */
@@ -277,7 +276,7 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
         int matchingMetadataPairs = 0;
 
         // Compute a contra-harmonic mean of the individual metadata scores
-        for (SimilarPhenotypeMetadatum meta : this.matchedMetadata.values()) {
+        for (FeatureMetadatumSimilarityView meta : this.matchedMetadata.values()) {
             double elementScore = meta.getScore();
             if (Double.isNaN(elementScore)) {
                 continue;
@@ -295,7 +294,7 @@ public class RestrictedSimilarPhenotype implements SimilarPhenotype
                 // For positive metadata matches, reduce the distance to 1 (perfect match score)
                 score = score + (1 - score) * metadataScore / (Math.pow(2.0, 1.0 / matchingMetadataPairs));
             } else {
-                // For negative metadata matches, reduce the distance to 0 (irrelevant phenotype pair score)
+                // For negative metadata matches, reduce the distance to 0 (irrelevant features score)
                 score = score + score * metadataScore / (1 + Math.pow(2.0, 1.0 / matchingMetadataPairs));
             }
             return Math.signum(baseScore) * score;

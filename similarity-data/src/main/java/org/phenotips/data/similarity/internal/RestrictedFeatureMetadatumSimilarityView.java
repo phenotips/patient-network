@@ -20,10 +20,10 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PhenotypeMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.SimilarPhenotypeMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -33,35 +33,35 @@ import org.apache.commons.lang3.StringUtils;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link SimilarPhenotypeMetadatum} that only reveals information if the user has full access to the
- * patient.
+ * Implementation of {@link FeatureMetadatumSimilarityView} that only reveals information if the user has full access to
+ * the patient.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-public class RestrictedSimilarPhenotypeMetadatum implements SimilarPhenotypeMetadatum
+public class RestrictedFeatureMetadatumSimilarityView implements FeatureMetadatumSimilarityView
 {
-    /** The matched phenotype metadatum to represent. */
-    private PhenotypeMetadatum metadatum;
+    /** The matched feature metadatum to represent. */
+    private FeatureMetadatum match;
 
-    /** The reference phenotype metadatum against which to compare. */
-    private PhenotypeMetadatum reference;
+    /** The reference feature metadatum against which to compare. */
+    private FeatureMetadatum reference;
 
     /** The access type the user has to the patient having this phenotype. */
     private AccessType access;
 
     /**
-     * Simple constructor passing the {@link #phenotype matched metadatum}, the {@link #reference reference metadatum},
-     * and the {@link #access patient access type}.
+     * Simple constructor passing the {@link #match matched metadatum}, the {@link #reference reference metadatum}, and
+     * the {@link #access patient access type}.
      * 
-     * @param metadatum the matched phenotype metadatum to represent
-     * @param reference the reference phenotype metadatum against which to compare, can be {@code null}
-     * @param access the access type the user has to the patient having the described phenotype
+     * @param match the matched feature metadatum to represent
+     * @param reference the reference feature metadatum against which to compare, can be {@code null}
+     * @param access the access type the user has to the patient having the described feature
      */
-    public RestrictedSimilarPhenotypeMetadatum(PhenotypeMetadatum metadatum, PhenotypeMetadatum reference,
+    public RestrictedFeatureMetadatumSimilarityView(FeatureMetadatum match, FeatureMetadatum reference,
         AccessType access)
     {
-        this.metadatum = metadatum;
+        this.match = match;
         this.reference = reference;
         this.access = access != null ? access : AccessType.PRIVATE;
     }
@@ -72,24 +72,23 @@ public class RestrictedSimilarPhenotypeMetadatum implements SimilarPhenotypeMeta
         if (!this.access.isOpenAccess()) {
             return null;
         }
-        return this.metadatum != null ? this.metadatum.getType() : this.reference != null ? this.reference.getType()
-            : null;
+        return this.match != null ? this.match.getType() : this.reference != null ? this.reference.getType() : null;
     }
 
     @Override
     public String getId()
     {
-        return this.access.isOpenAccess() && this.metadatum != null ? this.metadatum.getId() : null;
+        return this.access.isOpenAccess() && this.match != null ? this.match.getId() : null;
     }
 
     @Override
     public String getName()
     {
-        return this.access.isOpenAccess() && this.metadatum != null ? this.metadatum.getName() : null;
+        return this.access.isOpenAccess() && this.match != null ? this.match.getName() : null;
     }
 
     @Override
-    public PhenotypeMetadatum getReference()
+    public FeatureMetadatum getReference()
     {
         // This is what we started with, so it should be returned no matter the access type
         return this.reference;
@@ -98,34 +97,34 @@ public class RestrictedSimilarPhenotypeMetadatum implements SimilarPhenotypeMeta
     @Override
     public double getScore()
     {
-        if (this.metadatum == null || this.reference == null || StringUtils.isEmpty(this.metadatum.getId())
+        if (this.match == null || this.reference == null || StringUtils.isEmpty(this.match.getId())
             || StringUtils.isEmpty(this.reference.getId())) {
             return Double.NaN;
         }
         ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
-        PhenotypeMetadatumSimilarityScorer scorer = null;
+        FeatureMetadatumSimilarityScorer scorer = null;
         try {
-            scorer = cm.getInstance(PhenotypeMetadatumSimilarityScorer.class, this.metadatum.getType());
+            scorer = cm.getInstance(FeatureMetadatumSimilarityScorer.class, this.match.getType());
         } catch (ComponentLookupException ex) {
             try {
-                scorer = cm.getInstance(PhenotypeMetadatumSimilarityScorer.class);
+                scorer = cm.getInstance(FeatureMetadatumSimilarityScorer.class);
             } catch (ComponentLookupException e) {
                 // This should not happen
                 return Double.NaN;
             }
         }
-        return scorer.getScore(this.metadatum, this.reference);
+        return scorer.getScore(this.match, this.reference);
     }
 
     @Override
     public JSONObject toJSON()
     {
-        if (!this.access.isOpenAccess() || this.metadatum == null && this.reference == null) {
+        if (!this.access.isOpenAccess() || this.match == null && this.reference == null) {
             return new JSONObject(true);
         }
         JSONObject result = new JSONObject();
 
-        if (this.metadatum != null) {
+        if (this.match != null) {
             result.element("id", getId());
             result.element("name", getName());
         }
@@ -144,6 +143,6 @@ public class RestrictedSimilarPhenotypeMetadatum implements SimilarPhenotypeMeta
     @Override
     public boolean isMatchingPair()
     {
-        return this.metadatum != null && this.reference != null;
+        return this.match != null && this.reference != null;
     }
 }

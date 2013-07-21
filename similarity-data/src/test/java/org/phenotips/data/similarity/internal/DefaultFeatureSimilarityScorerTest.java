@@ -19,11 +19,11 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Phenotype;
-import org.phenotips.data.similarity.PhenotypeSimilarityScorer;
-import org.phenotips.data.similarity.internal.DefaultPhenotypeSimilarityScorer;
+import org.phenotips.data.Feature;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
+import org.phenotips.data.similarity.internal.DefaultFeatureSimilarityScorer;
 import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
-import org.phenotips.data.similarity.internal.mocks.MockPhenotype;
+import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -42,23 +42,23 @@ import org.junit.Test;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for the default {@link PhenotypeSimilarityScorer} {@link DefaultPhenotypeSimilarityScorer implementation}.
+ * Tests for the default {@link FeatureSimilarityScorer} {@link DefaultFeatureSimilarityScorer implementation}.
  * 
  * @version $Id$
  */
-public class DefaultPhenotypeSimilarityScorerTest
+public class DefaultFeatureSimilarityScorerTest
 {
     @Rule
-    public final MockitoComponentMockingRule<PhenotypeSimilarityScorer> mocker =
-        new MockitoComponentMockingRule<PhenotypeSimilarityScorer>(
-            DefaultPhenotypeSimilarityScorer.class);
+    public final MockitoComponentMockingRule<FeatureSimilarityScorer> mocker =
+        new MockitoComponentMockingRule<FeatureSimilarityScorer>(
+            DefaultFeatureSimilarityScorer.class);
 
     /** Same term should get the maximum score. */
     @Test
     public void testEqualValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature reference = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
         Assert.assertEquals(1.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -66,8 +66,8 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testDifferentValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0001382", "Abnormal joint mobility", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature reference = new MockFeature("HP:0001382", "Abnormal joint mobility", "phenotype", true);
         Assert.assertEquals(0.0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -75,8 +75,8 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testCloselyRelatedValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0001256", "Mild intelletual disability", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature reference = new MockFeature("HP:0001256", "Mild intelletual disability", "phenotype", true);
 
         double score = this.mocker.getComponentUnderTest().getScore(match, reference);
         Assert.assertEquals(0.5, score, 0.1);
@@ -89,8 +89,8 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testFarRelatedValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0011446", "Abnormal higher mental function", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature reference = new MockFeature("HP:0011446", "Abnormal higher mental function", "phenotype", true);
         Assert.assertEquals(0.2, this.mocker.getComponentUnderTest().getScore(match, reference), 0.1);
     }
 
@@ -98,8 +98,8 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testTooFarRelatedValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0000707", "Abnormality of the nervous system", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature reference = new MockFeature("HP:0000707", "Abnormality of the nervous system", "phenotype", true);
         Assert.assertEquals(0, this.mocker.getComponentUnderTest().getScore(match, reference), 1.0E-5);
     }
 
@@ -107,8 +107,8 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testUnknownValues() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0123456", "Some phenotype", "phenotype", true);
-        Phenotype reference = new MockPhenotype("HP:0000707", "Abnormality of the nervous system", "phenotype", true);
+        Feature match = new MockFeature("HP:0123456", "Some phenotype", "phenotype", true);
+        Feature reference = new MockFeature("HP:0000707", "Abnormality of the nervous system", "phenotype", true);
         Assert.assertTrue(Double.isNaN(this.mocker.getComponentUnderTest().getScore(match, reference)));
     }
 
@@ -116,7 +116,7 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testMissingReference() throws ComponentLookupException
     {
-        Phenotype match = new MockPhenotype("HP:0001249", "Intellectual disability", "phenotype", true);
+        Feature match = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true);
         Assert.assertTrue(Double.isNaN(this.mocker.getComponentUnderTest().getScore(match, null)));
     }
 
@@ -124,7 +124,7 @@ public class DefaultPhenotypeSimilarityScorerTest
     @Test
     public void testMissingMatch() throws ComponentLookupException
     {
-        Phenotype reference = new MockPhenotype("ONTO:0001", "Low value", "range", true);
+        Feature reference = new MockFeature("ONTO:0001", "Low value", "range", true);
         Assert.assertTrue(Double.isNaN(this.mocker.getComponentUnderTest().getScore(null, reference)));
     }
 

@@ -19,27 +19,39 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.Phenotype;
+import org.phenotips.data.Disorder;
 
-import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
- * Computes the similarity between two different {@link Phenotype} values.
+ * View of a disorder as related to another reference disorder.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-@Role
-public interface PhenotypeSimilarityScorer
+@Unstable
+public interface DisorderSimilarityView extends Disorder
 {
     /**
-     * Computes the similarity score between two phenotype terms. The values have to be from the same ontology.
+     * Does this similar disorders pair have both a match and a reference?
      * 
-     * @param match the matched phenotype, should not be {@code null}
-     * @param reference the reference phenotype, should not be {@code null}
-     * @return a similarity score, between {@code -1} for opposite values and {@code 1} for an exact match, with
-     *         {@code 0} for incomparable values, and {@code NaN} when one of the values is {@code null} or one of the
-     *         terms can't be found in the ontology
+     * @return {@code true} if both related disorders are present, {@code false} otherwise
      */
-    double getScore(Phenotype match, Phenotype reference);
+    boolean isMatchingPair();
+
+    /**
+     * Returns the reference disorder matched by this disease, if any.
+     * 
+     * @return a disorder from the reference patient, or {@code null} if this disorder doesn't match a reference
+     *         disorder
+     */
+    Disorder getReference();
+
+    /**
+     * How similar is this disorder to the reference.
+     * 
+     * @return a similarity score, between {@code -1} for opposite disorders and {@code 1} for an exact match, with
+     *         {@code 0} for disorders with no similarities, and {@code NaN} in case there's no matched reference
+     */
+    double getScore();
 }

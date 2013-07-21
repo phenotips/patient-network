@@ -19,12 +19,12 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.PhenotypeMetadatum;
+import org.phenotips.data.FeatureMetadatum;
 
 import org.xwiki.component.annotation.Role;
 
 /**
- * Computes the similarity between two different values of the same {@link PhenotypeMetadatum metadatum type}. Since the
+ * Computes the similarity between two different values of the same {@link FeatureMetadatum metadatum type}. Since the
  * possible metadata types have very different structures, with overlapping and/or tree-organized values, it's not
  * possible to have a generic method good for all cases, so specific implementations for several metadata types are
  * available.
@@ -33,15 +33,15 @@ import org.xwiki.component.annotation.Role;
  * @since 1.0M8
  */
 @Role
-public interface PhenotypeMetadatumSimilarityScorer
+public interface FeatureMetadatumSimilarityScorer
 {
     /**
      * Computes the similarity score between two values. The values have to be from the same category.
      * 
-     * @param match the value for the matched phenotype, may be {@code null}
-     * @param reference the value for the reference phenotype, may be {@code null}
+     * @param match the value for the matched feature, may be {@code null}
+     * @param reference the value for the reference feature, may be {@code null}
      * @return a similarity score, between {@code -1} for opposite values and {@code 1} for an exact match, with
      *         {@code 0} for incomparable values, including when one of the values is {@code null}
      */
-    double getScore(PhenotypeMetadatum match, PhenotypeMetadatum reference);
+    double getScore(FeatureMetadatum match, FeatureMetadatum reference);
 }

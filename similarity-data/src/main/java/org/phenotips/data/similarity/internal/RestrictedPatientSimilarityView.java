@@ -20,14 +20,14 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.Disease;
+import org.phenotips.data.Disorder;
+import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.Phenotype;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PhenotypeSimilarityScorer;
-import org.phenotips.data.similarity.SimilarDisease;
-import org.phenotips.data.similarity.SimilarPatient;
-import org.phenotips.data.similarity.SimilarPhenotype;
+import org.phenotips.data.similarity.DisorderSimilarityView;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
+import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
@@ -43,13 +43,13 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link SimilarPatient} that reveals the full patient information if the user has full access to the
- * patient, and only limited information for similar features if the patient is matchable.
+ * Implementation of {@link PatientSimilarityView} that reveals the full patient information if the user has full access
+ * to the patient, and only limited information for similar features if the patient is matchable.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-public class RestrictedSimilarPatient implements SimilarPatient
+public class RestrictedPatientSimilarityView implements PatientSimilarityView
 {
     /** The matched patient to represent. */
     private Patient match;
@@ -60,11 +60,11 @@ public class RestrictedSimilarPatient implements SimilarPatient
     /** The access type the user has to this patient. */
     private AccessType access;
 
-    /** Links phenotype values from this patient to the reference. */
-    private Set<SimilarPhenotype> matchedPhenotypes;
+    /** Links feature values from this patient to the reference. */
+    private Set<FeatureSimilarityView> matchedFeatures;
 
-    /** Links disease values from this patient to the reference. */
-    private Set<SimilarDisease> matchedDiseases;
+    /** Links disorder values from this patient to the reference. */
+    private Set<DisorderSimilarityView> matchedDisorders;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -73,7 +73,7 @@ public class RestrictedSimilarPatient implements SimilarPatient
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
-    public RestrictedSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException
+    public RestrictedPatientSimilarityView(Patient match, Patient reference) throws IllegalArgumentException
     {
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
@@ -89,8 +89,8 @@ public class RestrictedSimilarPatient implements SimilarPatient
         } else {
             this.access = AccessType.MATCH;
         }
-        matchPhenotypes();
-        matchDiseases();
+        matchFeatures();
+        matchDisorders();
     }
 
     @Override
@@ -106,16 +106,16 @@ public class RestrictedSimilarPatient implements SimilarPatient
     }
 
     @Override
-    public Set<? extends Phenotype> getPhenotypes()
+    public Set<? extends Feature> getFeatures()
     {
         if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
         }
 
-        Set<Phenotype> result = new HashSet<Phenotype>();
-        for (SimilarPhenotype phenotype : this.matchedPhenotypes) {
-            if (phenotype.isMatchingPair() || this.access.isOpenAccess() && phenotype.getId() != null) {
-                result.add(phenotype);
+        Set<Feature> result = new HashSet<Feature>();
+        for (FeatureSimilarityView feature : this.matchedFeatures) {
+            if (feature.isMatchingPair() || this.access.isOpenAccess() && feature.getId() != null) {
+                result.add(feature);
             }
         }
 
@@ -123,16 +123,16 @@ public class RestrictedSimilarPatient implements SimilarPatient
     }
 
     @Override
-    public Set<? extends Disease> getDiseases()
+    public Set<? extends Disorder> getDisorders()
     {
         if (!this.access.isOpenAccess()) {
             return Collections.emptySet();
         }
 
-        Set<Disease> result = new HashSet<Disease>();
-        for (SimilarDisease disease : this.matchedDiseases) {
-            if (disease.getId() != null) {
-                result.add(disease);
+        Set<Disorder> result = new HashSet<Disorder>();
+        for (DisorderSimilarityView disorder : this.matchedDisorders) {
+            if (disorder.getId() != null) {
+                result.add(disorder);
             }
         }
 
@@ -161,8 +161,8 @@ public class RestrictedSimilarPatient implements SimilarPatient
     @Override
     public double getScore()
     {
-        double phenotypeScore = getPhenotypesScore();
-        return adjustScoreWithDiseasesScore(phenotypeScore);
+        double featuresScore = getFeaturesScore();
+        return adjustScoreWithDisordersScore(featuresScore);
     }
 
     @Override
@@ -181,22 +181,22 @@ public class RestrictedSimilarPatient implements SimilarPatient
         result.element("access", this.access.toString());
         result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
         result.element("score", getScore());
-        result.element("featuresCount", this.match.getPhenotypes().size());
+        result.element("featuresCount", this.match.getFeatures().size());
 
-        Set<? extends Phenotype> phenotypes = getPhenotypes();
-        if (!phenotypes.isEmpty()) {
+        Set<? extends Feature> features = getFeatures();
+        if (!features.isEmpty()) {
             JSONArray featuresJSON = new JSONArray();
-            for (Phenotype phenotype : phenotypes) {
-                featuresJSON.add(phenotype.toJSON());
+            for (Feature feature : features) {
+                featuresJSON.add(feature.toJSON());
             }
             result.element("features", featuresJSON);
         }
 
-        Set<? extends Disease> diseases = getDiseases();
-        if (!diseases.isEmpty()) {
+        Set<? extends Disorder> disorders = getDisorders();
+        if (!disorders.isEmpty()) {
             JSONArray disordersJSON = new JSONArray();
-            for (Disease disease : diseases) {
-                disordersJSON.add(disease.toJSON());
+            for (Disorder disorder : disorders) {
+                disordersJSON.add(disorder.toJSON());
             }
             result.element("disorders", disordersJSON);
         }
@@ -205,60 +205,60 @@ public class RestrictedSimilarPatient implements SimilarPatient
     }
 
     /**
-     * Create pairs of matching phenotypes, one from the current patient and one from the reference patient. Unmatched
+     * Create pairs of matching features, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      */
-    private void matchPhenotypes()
+    private void matchFeatures()
     {
-        Set<SimilarPhenotype> result = new HashSet<SimilarPhenotype>();
-        for (Phenotype phenotype : this.match.getPhenotypes()) {
-            Phenotype matching = findMatchingPhenotype(phenotype, this.reference.getPhenotypes());
-            result.add(new RestrictedSimilarPhenotype(phenotype, matching, this.access));
+        Set<FeatureSimilarityView> result = new HashSet<FeatureSimilarityView>();
+        for (Feature feature : this.match.getFeatures()) {
+            Feature matching = findMatchingFeature(feature, this.reference.getFeatures());
+            result.add(new RestrictedFeatureSimilarityView(feature, matching, this.access));
         }
-        for (Phenotype phenotype : this.reference.getPhenotypes()) {
-            Phenotype matching = findMatchingPhenotype(phenotype, this.match.getPhenotypes());
+        for (Feature feature : this.reference.getFeatures()) {
+            Feature matching = findMatchingFeature(feature, this.match.getFeatures());
             if (matching == null) {
-                result.add(new RestrictedSimilarPhenotype(null, phenotype, this.access));
+                result.add(new RestrictedFeatureSimilarityView(null, feature, this.access));
             }
         }
-        this.matchedPhenotypes = Collections.unmodifiableSet(result);
+        this.matchedFeatures = Collections.unmodifiableSet(result);
     }
 
     /**
-     * Create pairs of matching diseases, one from the current patient and one from the reference patient. Unmatched
+     * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      */
-    private void matchDiseases()
+    private void matchDisorders()
     {
-        Set<SimilarDisease> result = new HashSet<SimilarDisease>();
-        for (Disease disease : this.match.getDiseases()) {
-            result.add(new RestrictedSimilarDisease(disease, findMatchingDisease(disease,
-                this.reference.getDiseases()), this.access));
+        Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
+        for (Disorder disorder : this.match.getDisorders()) {
+            result.add(new RestrictedDisorderSimilarityView(disorder, findMatchingDisorder(disorder,
+                this.reference.getDisorders()), this.access));
         }
-        for (Disease disease : this.reference.getDiseases()) {
-            if (this.match == null || findMatchingDisease(disease, this.match.getDiseases()) == null) {
-                result.add(new RestrictedSimilarDisease(null, disease, this.access));
+        for (Disorder disorder : this.reference.getDisorders()) {
+            if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
+                result.add(new RestrictedDisorderSimilarityView(null, disorder, this.access));
             }
         }
-        this.matchedDiseases = Collections.unmodifiableSet(result);
+        this.matchedDisorders = Collections.unmodifiableSet(result);
     }
 
     /**
-     * Searches for a similar phenotype in the reference patient, matching one of the matched patient's phenotypes, or
+     * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
      * 
-     * @param toMatch the phenotype to match
-     * @param lookIn the list of phenotypes to look in, either the reference patient or the matched patient phenotypes
-     * @return one of the phenotypes from the list, if it matches the target phenotype, or {@code null} otherwise
+     * @param toMatch the feature to match
+     * @param lookIn the list of features to look in, either the reference patient or the matched patient features
+     * @return one of the featuress from the list, if it matches the target feature, or {@code null} otherwise
      */
-    private Phenotype findMatchingPhenotype(Phenotype toMatch, Set<? extends Phenotype> lookIn)
+    private Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
     {
         try {
-            PhenotypeSimilarityScorer scorer =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(PhenotypeSimilarityScorer.class);
+            FeatureSimilarityScorer scorer =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class);
             double bestScore = 0;
-            Phenotype bestMatch = null;
-            for (Phenotype candidate : lookIn) {
+            Feature bestMatch = null;
+            for (Feature candidate : lookIn) {
                 double score = scorer.getScore(candidate, toMatch);
                 if (score > bestScore) {
                     bestScore = score;
@@ -267,7 +267,7 @@ public class RestrictedSimilarPatient implements SimilarPatient
             }
             return bestMatch;
         } catch (ComponentLookupException e) {
-            for (Phenotype candidate : lookIn) {
+            for (Feature candidate : lookIn) {
                 if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
                     return candidate;
                 }
@@ -277,16 +277,16 @@ public class RestrictedSimilarPatient implements SimilarPatient
     }
 
     /**
-     * Searches for a similar disease in the reference patient, matching one of the matched patient's diseases, or
+     * Searches for a similar disorder in the reference patient, matching one of the matched patient's disorders, or
      * vice-versa.
      * 
-     * @param toMatch the disease to match
-     * @param lookIn the list of diseases to look in, either the reference patient or the matched patient diseases
-     * @return one of the diseases from the list, if it matches the target disease, or {@code null} otherwise
+     * @param toMatch the disorder to match
+     * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
+     * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
      */
-    private Disease findMatchingDisease(Disease toMatch, Set<? extends Disease> lookIn)
+    private Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
     {
-        for (Disease candidate : lookIn) {
+        for (Disorder candidate : lookIn) {
             if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
                 return candidate;
             }
@@ -301,64 +301,64 @@ public class RestrictedSimilarPatient implements SimilarPatient
      *         match, with {@code 0} for patients with no similarities
      * @see #getScore()
      */
-    private double getPhenotypesScore()
+    private double getFeaturesScore()
     {
-        if (this.matchedPhenotypes.isEmpty()) {
+        if (this.matchedFeatures.isEmpty()) {
             return 0;
         }
-        double phenotypeScore;
+        double featureScore;
         // Lower bias means that positive values are far more important ("heavy") than negative ones
         // Higher bias means that the score is closer to an arithmetic mean
         double bias = 3.0;
         double squareSum = 0;
         double sum = 0;
-        int matchingMetadataPairs = 0;
-        int unmatchedMetadataPairs = 0;
+        int matchingFeaturePairs = 0;
+        int unmatchedFeaturePairs = 0;
 
-        for (SimilarPhenotype phenotype : this.matchedPhenotypes) {
-            double elementScore = phenotype.getScore();
+        for (FeatureSimilarityView feature : this.matchedFeatures) {
+            double elementScore = feature.getScore();
             if (Double.isNaN(elementScore)) {
-                ++unmatchedMetadataPairs;
+                ++unmatchedFeaturePairs;
                 continue;
             }
             squareSum += (bias + elementScore) * (bias + elementScore);
             sum += bias + elementScore;
-            ++matchingMetadataPairs;
+            ++matchingFeaturePairs;
         }
-        if (matchingMetadataPairs == 0) {
+        if (matchingFeaturePairs == 0) {
             return 0;
         }
-        phenotypeScore = squareSum / sum - bias;
+        featureScore = squareSum / sum - bias;
 
-        if (unmatchedMetadataPairs > 0 && phenotypeScore > 0) {
-            // When there are many unmatched metadata, lower the score towards 0 (irrelevant patient pair score)
-            phenotypeScore *=
-                Math.pow(0.9, Math.max(0, unmatchedMetadataPairs - Math.ceil(Math.log(matchingMetadataPairs))));
+        if (unmatchedFeaturePairs > 0 && featureScore > 0) {
+            // When there are many unmatched features, lower the score towards 0 (irrelevant patient pair score)
+            featureScore *=
+                Math.pow(0.9, Math.max(0, unmatchedFeaturePairs - Math.ceil(Math.log(matchingFeaturePairs))));
         }
-        return phenotypeScore;
+        return featureScore;
     }
 
     /**
-     * Adjust the similarity score by taking into account common diseases. Matching diseases will boost the base score
-     * given by the phenotypic similarity, while unmatched diseases don't affect the score at all. If the base score is
+     * Adjust the similarity score by taking into account common disorders. Matching disorders will boost the base score
+     * given by the phenotypic similarity, while unmatched disorders don't affect the score at all. If the base score is
      * negative, no boost is awarded.
      * 
-     * @param baseScore the score given by phenotypes alone, a number between {@code -1} and {@code 1}
-     * @return the adjusted similarity score, boosted closer to {@code 1} if there are common diseases between this
+     * @param baseScore the score given by features alone, a number between {@code -1} and {@code 1}
+     * @return the adjusted similarity score, boosted closer to {@code 1} if there are common disorders between this
      *         patient and the reference patient, or the unmodified base score otherwise; the score is never lowered,
      *         and never goes above {@code 1}
      * @see #getScore()
      */
-    private double adjustScoreWithDiseasesScore(double baseScore)
+    private double adjustScoreWithDisordersScore(double baseScore)
     {
-        if (this.matchedDiseases.isEmpty() || baseScore <= 0) {
+        if (this.matchedDisorders.isEmpty() || baseScore <= 0) {
             return baseScore;
         }
         double score = baseScore;
         double bias = 3;
-        for (SimilarDisease disease : this.matchedDiseases) {
-            if (disease.isMatchingPair()) {
-                // For each disease match, reduce the distance between the current score to 1 by 1/3
+        for (DisorderSimilarityView disorder : this.matchedDisorders) {
+            if (disorder.isMatchingPair()) {
+                // For each disorder match, reduce the distance between the current score to 1 by 1/3
                 score = score + (1 - score) / bias;
             }
         }
