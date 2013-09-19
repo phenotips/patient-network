@@ -1,0 +1,1509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc>
+  <web>PhenoTips</web>
+  <name>SimilarCases</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <parent>PhenoTips.WebHome</parent>
+  <creator>xwiki:XWiki.Admin</creator>
+  <author>xwiki:XWiki.Admin</author>
+  <customClass/>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <creationDate>1379441485000</creationDate>
+  <date>1379609994000</date>
+  <contentUpdateDate>1379609967000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <defaultTemplate/>
+  <validationScript/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <class>
+    <name>PhenoTips.SimilarCases</name>
+    <customClass/>
+    <customMapping/>
+    <defaultViewSheet/>
+    <defaultEditSheet/>
+    <defaultWeb/>
+    <nameField/>
+    <validationScript/>
+    <enable>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <name>enable</name>
+      <number>1</number>
+      <prettyName>Enable similar cases suggestions</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </enable>
+    <max_results>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>max_results</name>
+      <number>2</number>
+      <numberType>integer</numberType>
+      <prettyName>Maximum numbers of results to show</prettyName>
+      <size>3</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </max_results>
+    <min_score>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>min_score</name>
+      <number>3</number>
+      <numberType>float</numberType>
+      <prettyName>Minimum relevance score of retrieved suggestions (between 0 and 1)</prettyName>
+      <size>3</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </min_score>
+  </class>
+  <object>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>9f32c038-3885-430b-b820-c088c0b5940a</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function (PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.Matcher = Class.create({
+    matchServiceURL : "${xwiki.getURL('PhenoTips.SimilarCases', 'get')}",
+    matchContactURL : "${xwiki.getURL('PhenoTips.MatchContact', 'get')}",
+    _UNKNOWN_INFO_MARKER : "unknown",
+    _UNKNOWN_INFO_TEXT : "Undisclosed information",
+    _RESULTS_CONTAINER_MARKER : "similarity-results-container",
+    _RESULTS_TABLE_MARKER : "similarity-results",
+    _SUMMARY_MARKER : "summary",
+    _METADATA_MARKER : "metadata",
+    _NEGATIVE_MARKER : "negative",
+    _NOMATCH_MARKER : "no-match",
+    _NOMATCH_TEXT : "No match",
+
+    initialize : function(query, resultsContainer, options) {
+      if (!query || !resultsContainer) {return;}
+      this.query = query;
+      this.container = resultsContainer;
+      this.container.addClassName(this._RESULTS_CONTAINER_MARKER);
+      if (options) {
+        if (options.enableRefresh) {
+          var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).update('Refresh'));
+          this.container.insert({before : refreshButton});
+          this.launchSearch = this.launchSearch.bindAsEventListener(this);
+          refreshButton.observe('click', this.launchSearch);
+        }
+        this._maxResults = options.maxResults || '';
+        this._minScore = options.minScore || '';
+      }
+      this.launchSearch();
+
+      this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
+      this._contactDialog = new MS.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact a non-public case owner', 'verticalPosition': 'top', 'removeOnClose': false});
+    },
+
+    launchSearch : function(event) {
+      if (event) {event.stop();}
+      if (this.activeSearch) {return;}
+      var _this = this;
+      this.activeSearch = new Ajax.Request(
+        this.matchServiceURL,
+        {
+          parameters: {
+            'query' : this.query,
+            'outputSyntax' : "plain",
+            'maxResults' : this._maxResults,
+            'minScore' : this._minScore
+          },
+          method: "post",
+          onCreate : function() {
+            _this.container.addClassName('loading');
+            _this.container.update('');
+          },
+          onSuccess: function(response) {
+            _this.displayResults(response.responseJSON);
+          },
+          onComplete : function() {
+            _this.container.removeClassName('loading');
+            _this.activeSearch = false;
+          }
+        }
+      );
+    },
+
+    displayResults : function(data) {
+      this._data = data;
+
+      // Make sure the results are for this query
+      if (!data.query) {return;}
+      if (data.query.id != this.query) {return;}
+
+      // Empty the container to make room for the new results
+      this.container.update('');
+
+      // Process features
+      this._queryFeatures = this._createFeatureIndex(data.query.features);
+   
+      // Show result summary
+      data.featuresCount = data.query.features.size();
+      if (data.resultsCount &lt;= 0 || data.featuresCount &lt;= 0) {
+        this.displaySummary("No similar cases found.");
+        return;
+      }
+      this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
+
+      // Process results
+      var _this = this;
+      var resultsTable = new Element('table', {'class' : this._RESULTS_TABLE_MARKER});
+      this.container.insert(resultsTable);
+
+      var columns = {
+        "access"  : {
+           title  : "",
+           display: _this._displayResultAccess.bind(_this),
+           field  : "access"
+        },
+        "id"      : {
+           title  : "Case ID",
+           display: _this._displayResultIdentifier.bind(_this),
+           field  : "id"
+        },
+        "diagnosis": {
+           title  : "Diagnosis",
+           display: _this._displayResultDiagnosis.bind(_this),
+           field  : "disorders"
+        },
+        /*"contact" : {
+           title  : "Contact",
+           display: _this._displayResultContactInfo.bind(_this),
+           field  : "owner"
+        },*/
+        "score"   : {
+           title  : "Relevance",
+           display: _this._displayResultRelevance.bind(_this),
+           field  : "score"
+        },
+        "details" : {
+           title  : "Details",
+           display: _this._displayResultDetails.bind(_this)
+        }
+      };
+
+      this._displayTableHeader(columns, resultsTable);
+      data.results.each(function(r) {
+        _this._displayResultRow(r, columns, resultsTable);
+      });
+      delete this._queryFeatures;
+      delete this._data;
+    },
+
+    displaySummary : function (message, container) {
+      var c = container || this.container;
+      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message)
+      c.insert(summary);
+      return summary;
+    },
+
+    _createFeatureIndex : function(features) {
+      var featureIndex = {};
+      features.each(function (f) {
+        if (f.type &amp;&amp; f.id) {
+          featureIndex[f.type] = featureIndex[f.type] || {};
+          featureIndex[f.type][f.id] = f;
+        }
+      });
+      return featureIndex;
+    },
+
+    _getEmptyTableRow : function(table) {
+      var row = new Element('tr');
+      table.insert(row);
+      return row;
+    },
+
+    _displayTableHeader : function (columns, table) {
+      var row = this._getEmptyTableRow(table);
+      for (var c in columns) {
+        row.insert(new Element("th", {"class" : c}).update(columns[c].title));
+      }
+      return row;
+    },
+
+    _displayResultRow : function(result, columns, table) {
+      var row = this._getEmptyTableRow(table);
+      for (var c in columns) {
+        row.insert(new Element("td", {
+           "class" : c + (columns[c].field &amp;&amp; !result[columns[c].field] ? " " + this._UNKNOWN_INFO_MARKER : ""),
+           "title" : columns[c].title
+        }).update(columns[c].display(result)));
+      }
+      return row;
+    },
+
+    _displayResultAccess : function (r) {
+      var iconName = (r.access == 'match' || r.access == 'none') ? 'private' : 'public';
+      return this.Utils.generateIcon(iconName);
+    },
+
+    _displayResultIdentifier : function (r) {
+      return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "Undisclosed identifier");
+    },
+
+    _displayResultDiagnosis : function (r) {
+      if (r.access != 'match') {
+        if (!r.disorders || !r.disorders.length) {
+          return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
+        } else {
+          var dList = new Element('ul');
+          r.disorders.each(function(d) {
+            dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name)));
+          })
+          return dList;
+        }
+      } else {
+        return "Undisclosed diagnosis"
+      }
+    },
+
+    _displayResultContactInfo : function (r) {
+      var contactType = (r.myCase || r.myGroupsCase) ? "none" : (r.access == "public" ? "open" : "restricted");
+      var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "Contact owner for further information") : this.Utils.generateIcon('group');
+      var contactInfo;
+      if (contactType == "none") {
+        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case belongs to one of your consortia)"));
+      } else if (contactType == "open") {
+        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
+      } else {
+        contactInfo = new Element("a", {
+           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token,
+           "title" : "Contact owner for further information",
+           "class" : "owner-info "/* + contactType*/
+        }).update(r.owner || "Undisclosed owner. Initiate anonymous contact");
+        var _this = this;
+        contactInfo.observe('click', function (event) {
+           event.stop();
+           _this._launchContactDialog(r.token);
+        });
+      } 
+      return contactInfo.insert({top: " "}).insert({top: icon});
+    },
+
+    _launchContactDialog : function (token) {
+      var _this = this;
+      new Ajax.Request(this.matchContactURL, {
+        parameters : {
+          'patient': _this.query,
+          'token' : token
+        },
+        onCreate : function() {
+          _this._contactContainer.update('&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')"/&gt;');
+          _this._contactDialog.showDialog();
+        },
+        onSuccess : function(response) {
+           _this._contactContainer.update(response.responseText);
+           var form = _this._contactContainer.down('form');
+           var generateAction = form.down('input[name="generateAction"]');
+           var userMessage = form.down('#contact-message-preview');
+           if (userMessage &amp;&amp; form &amp;&amp; generateAction) {
+             // TODO only update with the latest response
+             form.select('input, textarea').invoke('observe', 'change', function (event) {
+               new Ajax.Request(generateAction.value, {
+                 parameters : form.serialize(true),
+                 onSuccess : function (response) {
+                   userMessage.update(response.responseText)
+                 }
+               });
+             });
+           }
+           _this._contactContainer.select('input[name="cancel"]').invoke('observe', 'click', function(event) {_this._contactDialog.closeDialog();});
+           _this._contactContainer.select('form.preview').invoke('observe', 'submit', function(event) {
+             
+           });
+        },
+        onFailure : function(response) {
+          var failureReason = response.responseText || response.statusText;
+          if (response.statusText == '' /* No response */ || response.status == 12031 /* In IE */) {
+             failureReason = 'Server not responding';
+          }
+          _this._messages.update(new Element('div', {'class' : 'errormessage'}).update('Failed to retrieve contact dialog. ' + failureReason));
+        },
+        on0 : function (response) {
+          response.request.options.onFailure(response);
+        }
+      });
+    },
+
+    _displayResultRelevance : function (r) {
+      return new Element("div").insert(new Element("p")).insert(this.Utils.generateSegmentedBar(5, r.score));
+    },
+
+   _displayResultDetails : function (r) {
+      var details = new Element("div");
+      
+      // Prepare features comparison:
+
+      // Count features matched in this result
+      var matchedFeatures = 0;
+
+      // Features not matched in the result
+      var resultUnmatchedFeatures = []; 
+
+      // Create the matched pairs      
+      var queryFeaturesComparison = Object.clone(this._queryFeatures);
+      r.features.each(function(f) {
+        if (f.queryType &amp;&amp; f.queryId &amp;&amp; queryFeaturesComparison[f.queryType]) {
+          var qF = queryFeaturesComparison[f.queryType][f.queryId];
+          if (qF) {
+            ++matchedFeatures;
+            // Here we assume there's at most one match pe query feature. TODO: make more flexible
+            qF.match = f;
+          }
+        } else {
+          resultUnmatchedFeatures.push(f);
+        }
+      });
+
+      // Write a summary of the feature matches and provide access to the actual matching details
+
+      var showDetails = new Element("span", {"class" : "tool show"}).update("Show matches...");
+      var hideDetails = new Element("span", {"class" : "tool hide"}).update("Hide matches...");
+      var matchSummary = this.displaySummary("Matches found for " + matchedFeatures + " out of " + this._data.featuresCount + " features. ", details).insert(showDetails).insert(hideDetails);
+      // var matchDigest = this._displayMatchDigest(this._data, r, matchedFeatures);
+      // details.insert(matchDigest);
+
+      // Generate the feature comparison table
+      var matchTable = this._displayMatchTable(this._data.query, r, resultUnmatchedFeatures);
+      details.insert(matchTable);
+
+      // Add behavior for showing/hiding the comparison table
+      matchTable.hide();
+      hideDetails.hide();
+      showDetails.observe('click', function(event) {
+        event.stop();
+        showDetails.hide();
+        hideDetails.show();
+        matchTable.show();
+      });
+      hideDetails.observe('click', function(event) {
+        event.stop();
+        showDetails.show();
+        hideDetails.hide();
+        matchTable.hide();
+      });
+      matchSummary.observe('click', function(event) {
+        event.stop();
+        showDetails.toggle();
+        hideDetails.toggle();
+        matchTable.toggle();
+      });
+      /*matchDigest.observe('click', function(event) {
+        event.stop();
+        showDetails.toggle();
+        hideDetails.toggle();
+        matchTable.toggle();
+      });*/
+      this._data.query.features.each(function(f){f.match = false});
+      return details;
+    },
+
+    _displayMatchDigest : function(data, result, matchedFeatures) {
+      var crtPatientBar = this.Utils.generateSegmentedBar(data.featuresCount, 1);
+      var otherPatientBar = this.Utils.generateSegmentedBar(result.featuresCount, 1);
+      var diffPatientBar = this.Utils.generateSegmentedBar(data.featuresCount - matchedFeatures, 0);
+      var container = new Element('div', {'class' : 'match-digest'}).insert(crtPatientBar).insert(diffPatientBar).insert(otherPatientBar);
+      crtPatientBar.addClassName('left-bar');
+      diffPatientBar.addClassName('diff-bar');
+      otherPatientBar.addClassName('right-bar');
+      return container;
+    },
+
+    _displayMatchDigestDeprecated : function(data, result, matchedFeatures) {
+      var unit = 24;
+      var diffQueryValue = data.featuresCount - matchedFeatures;
+      var diffResultValue = result.featuresCount - matchedFeatures;
+      var displayedDiffQueryValue = diffQueryValue + " feature" + (diffQueryValue != 1 ? "s" : "");
+      var displayedIntersectionValue = matchedFeatures + " feature" + (matchedFeatures != 1 ? "s" : "");
+      var displayedDiffResultValue = diffResultValue + " feature" + (diffResultValue != 1 ? "s" : "");
+      var diffQuery = new Element("span", {
+         "title" : displayedDiffQueryValue + " unmatched in the current parient",
+         "class" : "segment diff query",
+         "style" : "width: " + (diffQueryValue * unit) + "px; background-color: " + this.Utils.getColorForValue(0)
+      });
+      var intersection = new Element("span", {
+         "title" : displayedIntersectionValue + " matched",
+         "class" : "segment intersection",
+         "style" : "width: " + (matchedFeatures * unit) + "px; background-color: " + this.Utils.getColorForValue(1)
+      });
+      var diffResult = new Element("span", {
+         "title" : displayedDiffResultValue + " unmatched in the other patient",
+         "class" : "segment diff result",
+         "style" : "width: " + (diffResultValue * unit) + "px; background-color: " + this.Utils.getColorForValue(0)
+      });
+      return new Element("div", {"class" : "match-digest"}).insert(diffQuery).insert(intersection).insert(diffResult);
+    },
+
+    _displayMatchTable : function(query, r, resultUnmatchedFeatures) {
+      var matchTable = new Element('table');
+      var columns = {
+        "query" : {
+          "title" : "Current patient's features",
+        },
+        "match" : {
+          "title" : "",
+        },
+        "result" : {
+          "title" : "Other patient's features",
+        }
+      }
+      
+      this._displayTableHeader(columns, matchTable);
+      var _this = this;
+      
+      // The features in the query together with their matches
+      query.features.each(function(f) {
+        var row = _this._getEmptyTableRow(matchTable);
+        var qCell = new Element("td", {"class" : "query"}).insert(_this._displayFeature(f))
+        var mCell = new Element("td", {"class" : "match"}).insert(_this._displayMatchScore(f))
+        var rCell = new Element("td", {"class" : "result"}).insert(_this._displayMatch(f))
+        row.insert(qCell).insert(mCell).insert(rCell);
+      });
+      // The non-matched features in the result explicitely listed (public cases only)
+      resultUnmatchedFeatures.each(function(f) {
+        var row = _this._getEmptyTableRow(matchTable);
+        var qCell = new Element("td", {"class" : "query " + _this._NOMATCH_MARKER}).update(_this._NOMATCH_TEXT);
+        var mCell = new Element("td", {"class" : "match"}).update(_this._displayMatchScore({}))
+        var rCell = new Element("td", {"class" : "result"}).update(_this._displayFeature(f));
+        row.insert(qCell).insert(mCell).insert(rCell);
+      });
+      // The result features implicitely mentioned in the result data
+      // (because they don't match any of the query features and the data is not public)
+      for (var i = r.features.length; i &lt; r.featuresCount; ++i) {
+        var row = _this._getEmptyTableRow(matchTable);
+        var qCell = new Element("td", {"class" : "query " + _this._NOMATCH_MARKER}).update(_this._NOMATCH_TEXT);
+        var mCell = new Element("td", {"class" : "match"}).update(_this._displayMatchScore({}))
+        var rCell = new Element("td", {"class" : "result " + _this._UNKNOWN_INFO_MARKER}).update(_this._UNKNOWN_INFO_TEXT);
+        row.insert(qCell).insert(mCell).insert(rCell);
+      }
+      return new Element("div", {"class" : "match-details"}).insert(matchTable);
+    },
+
+   _displayFeature : function(f) {
+      var prefix = "", cssModifier = !f.name &amp;&amp; this._UNKNOWN_INFO_MARKER || "";
+      if (f.isPresent === false) {
+        prefix = "NO ";
+        cssModifier += " " + this._NEGATIVE_MARKER;
+      }
+      var container = new Element("div");
+      var name = new Element("span", {
+         "title" : (f.id || "") + " " + (f.name || ""), 
+         "class" : cssModifier
+      }).insert(f.name &amp;&amp; prefix + f.name || this._UNKNOWN_INFO_TEXT)
+        .insert(f.type &amp;&amp; new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
+      container.insert(name);
+      if (f.metadata) {
+        var metadata = new Element ("ul", {"class" : this._METADATA_MARKER});
+        container.insert(metadata);
+        f.metadata.each(function(m) {
+          if (m.name) {
+            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.name || ""), "class" : f.type || ""}).update(m.name || this._UNKNOWN_INFO_TEXT);
+            metadata.insert(entry);
+          }
+        });
+      }
+      return container;
+    },
+
+    _displayMatchScore : function(f) {
+      var score = 0;
+      if (f.match) {
+        score = f.match.score;
+      }
+      return new Element("div").insert(this.Utils.generateMatchBar(score));
+    },
+
+    _displayMatch : function(f) {
+      if (f.match) {
+        return this._displayFeature(f.match);
+      }
+      return new Element("span", {"class" : this._NOMATCH_MARKER}).update(this._NOMATCH_TEXT);
+    },
+
+    Utils : {
+      // HSV to RGB conversion
+      hsv2rgb : function(h,s,v) {
+        // Adapted from http://jsres.blogspot.ca/2008/01/convert-hsv-to-rgb-equivalent.html
+        // hsv values = 0 - 1, rgb values = 0 - 255
+        var r, g, b;
+        if (s == 0){
+          r = g = b = v;
+        } else {
+          // h must be &lt; 1
+          var var_h = h * 6;
+          if (var_h == 6) {
+            var_h = 0;
+          }
+          var var_i = Math.floor(var_h);
+          var var_1 = v * (1 - s);
+          var var_2 = v * (1 - s * (var_h - var_i));
+          var var_3 = v * (1 - s * (1 - (var_h - var_i)));
+          if (var_i == 0) {
+            r = v; 
+            g = var_3; 
+            b = var_1;
+          } else if (var_i == 1) { 
+            r = var_2;
+            g = v;
+            b = var_1;
+          } else if (var_i == 2) {
+            r = var_1;
+            g = v;
+            b = var_3
+          } else if (var_i == 3) {
+            r = var_1;
+            g = var_2;
+            b = v;
+          } else if (var_i == 4) {
+            r = var_3;
+            g = var_1;
+            b = v;
+          } else { 
+            r = v;
+            g = var_1;
+            b = var_2
+          }
+        }
+        return {r : Math.round(r * 255), g : Math.round(g * 255), b : Math.round(b * 255)};
+      },
+
+      _colorTranslation : {
+        h: {min : 0, max : 0.4},
+        s: {min : 0, max : 0.7},
+        v: {min : 0, max : 1},
+        neutralSpan: .2,
+
+        getHue : function (value) {
+           return this.h.min + (this.h.max - this.h.min) * value;
+        },
+
+        getSaturation : function (value, neutralMiddle) {
+           return this._getComponentValue(this.s, value, neutralMiddle ? this.neutralSpan : 0);
+        },
+
+        getValue : function (value, neutralMiddle) {
+           return this._getComponentValue(this.v, value, neutralMiddle ? this.neutralSpan : 0);
+        },
+
+        _getComponentValue : function(component, value, neutralSpan) {
+          if (value &gt; .5 - neutralSpan &amp;&amp; value &lt;  .5 + neutralSpan) {
+            return component.min + (component.max - component.min) * Math.abs(.5 - value)/.5
+          } else {
+            return ((value &gt; .5 + neutralSpan) ? component.min + (component.max - component.min) : 1);
+          } 
+        }
+      },
+
+      // For a value in [0, 1], generate a color from red to green, where low = red and high = green
+      // @param value the value in [0, 1] which is to be represented by a color
+      // @param neutralMiddle optional indicator of whether for middle values the color is yellow or gray (neutral); defaults to false
+      // @return an object with the fields r, g, b, holding integer values in [0, 255]
+      getRGBForValue : function(value, neutralMiddle) {
+        var neutralRange = neutralMiddle ? .2 : 0;
+        var h = 0.4 * value;
+        var s = (value &gt; .5 - neutralRange &amp;&amp; value &lt;  .5 + neutralRange) ? .9 * Math.abs(.5 - value)/.5 : ((value &gt; .5 + neutralRange) ? (1 - 0.0000025 * value) : 1);
+        var v = (value &gt; .5 - neutralRange &amp;&amp; value &lt;  .5 + neutralRange) ? (1 - neutralRange) + Math.abs(.5 - value) : ((value &gt; .5 + neutralRange) ? (1 - 0.2 * value) : 1);
+        var rgb = this.hsv2rgb(h, s, v);
+        return rgb;
+        /*var h = this._colorTranslation.getHue(value);
+        var s = this._colorTranslation.getSaturation(value);
+        var v = this._colorTranslation.getValue(value);
+        var rgb = this.hsv2rgb(h, s, v);*/
+        return rgb;
+      },
+
+      // For a value in [0, 1], generate the representation of a color from red to green, where low = red and high = green
+      // @param value the value in [0, 1] which is to be represented by a color
+      // @param neutralMiddle optional indicator of whether for middle values the color is yellow or gray (neutral); defaults to false
+      // @return an string "rgb(&lt;r&gt;, &lt;g&gt;, &lt;b&gt;)" where r, g, b are integer values in [0, 255]
+      getColorForValue : function(value, neutralMiddle) {
+        var rgb = this.getRGBForValue(value, neutralMiddle);
+        return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+      },
+
+      // For a value in [0, 1], generate the representation either white or black, whichever contrasts better with the color (between red and green) representing that value
+      // @param value the value in [0, 1] 
+      // @return an string "rgb(&lt;r&gt;, &lt;g&gt;, &lt;b&gt;)" where r, g, b are integer values in [0, 255]
+      getContrastColorForValue : function(value) {
+        var h = .4 * value;
+        var contrast = (h &lt; .1 || h &gt; .6) ? 1 : 0;
+        return "rgb(" + contrast * 255 + "," + contrast * 255 + "," + contrast * 255 + ")";
+      },
+
+      // For a value in [0, 1], generate a representation consisting of a coloured bar: low = red and empty,high = green and full
+      // @param value the value in [0, 1] which is to be represented by the bar
+      // @return an HTML element
+      generateValueBar : function(value) {
+        var color = this.getColorForValue(value);
+        var length = Math.round((value)*100);
+        var bar = new Element("span", {"class" : "value-bar", "style" : "border-color: " + color + ";"})
+        var fill = new Element ("span", {"class" : "value-bar-fill", "style" : "background-color: " + color + "; width: " + length + "%;"})
+        bar.insert(fill);
+        return bar;
+      },
+
+      generateSegmentedBar : function(count, value) {
+        var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
+        var valueUnit = 1 / count;
+        for (var i = 0; i &lt; count; ++i) {
+          var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
+          var segment = new Element('span', {'class' : 'segmented-unit'}).update(
+                        new Element('span', {
+                            'class' : 'segmented-unit-fill',
+                            'style' : "width: " + segmentFill + "%"
+                        })
+          );
+          bar.insert(segment);
+        }
+        return bar;
+      },
+
+      // For a value in [-1, 1], generate a representation consisting of a full coloured bar bidirectional arrow, where low = red, high = green, middle (zero) = gray
+      // @param value the value in [-1, 1] which is to be represented by the bar
+      // @return an HTML element
+      generateMatchBar : function(value) {
+        var normalizedValue = (value + 1) / 2;
+        var color = this.getColorForValue(normalizedValue, true);
+        var textColor = this.getContrastColorForValue(normalizedValue); 
+        var bar = new Element("span", {"class" : "match-bar", "style" : "border-color: " + color + "; color: " + color + "; background-color: " + color + ";"})
+        var text = new Element ("span", {"class" : "match-bar-value", "style" : "background-color: transparent; color: " + textColor + ";"}).update(Math.round(value * 100) + '%');
+        bar.insert(text);
+        return bar;
+      },
+
+      generateIcon : function (name, text, size) {
+         return PhenoTips.widgets.Icons.getIcon(name, text, size);
+      }
+    }
+  });
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>Similar cases suggestions code</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>1</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>39c4b7e0-9d72-40d7-8970-a5e1c78d88f9</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>document.observe("dom:loaded", function() {
+  var container = $('similarity-results-container');
+  var maxResults = $('max_results');
+  var minScore = $('min_score');
+  new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
+    enableRefresh: true,
+    maxResults: maxResults &amp;&amp; maxResults.value,
+    minScore: minScore &amp;&amp; minScore.value
+  });
+});</code>
+    </property>
+    <property>
+      <name>Similar cases suggestions activation</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>2</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c6c502ee-b4bb-4329-ba9f-db75d315a963</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function (PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.Icons = {
+    _sizes : ['large', '2x', '3x', '4x'],
+    _translation : {
+      'public' : 'unlock',
+      'private' : 'lock',
+      'matchable' : 'lock',
+      'contact': 'envelope',
+      'owned' : 'unlock',
+      'match' : 'lock'
+    },
+    getIcon : function (name, text, size) {
+      return new Element('i', {
+         "class" : this._translateName(name) + " " + this._translateSize(size),
+         "title" : text || ''
+      });
+    },
+    _translateSize : function(size) {
+      return this._sizes.indexOf(size) &gt;= 0 ? "icon-" + size : "";
+    },
+    _translateName : function(name) {
+      return "icon-" + (this._translation[name] || name);
+    }
+  };
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>FontAwesome icon utils</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>314a760a-1ec1-46d2-a262-b728dd8e61f9</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#template("colorThemeInit.vm")
+
+#similarity-results-container .similarity-results {
+  border: 0 none;
+  margin: 1em 0 0;
+  width: 100%;
+}
+.similarity-results th {
+  border: 0 none;
+  background: transparent
+}
+.similarity-results td {
+  border: 0 none;
+  border-top: 1px solid $theme.borderColor;
+  text-align: left;
+  vertical-align: baseline;
+}
+.similarity-results .unknown, .similarity-results .no-match , .similarity-results .metadata, .similarity-results .tool {
+  font-size: .8em;
+  font-style: italic;
+}
+.similarity-results .unknown {
+  opacity: .4;
+}
+.similarity-results .no-match {
+  color: $theme.notificationErrorColor;
+}
+.similarity-results td.access {
+  width: 16px;
+}
+.similarity-results td.contact {
+  opacity: 1;
+}
+.similarity-results td.contact .owner-info {
+  background: transparent none left top no-repeat;
+  display: inline-block;
+}
+.similarity-results td.contact .owner-info .metadata {
+  display: block;
+  opacity: .4;
+  padding-left: 1.6em;
+}
+.similarity-results td.diagnosis ul {
+  list-style-type: none;
+  margin: 0;
+}
+.similarity-results td.match {
+  padding-left: 3px;
+  padding-right: 3px;
+  text-align: center;
+}
+.similarity-results .details {
+  width: 60%;
+}
+.similarity-results .details .match-details {
+  background: #FFF;
+  border: 1px solid #DDD;
+  margin-top: 10px;
+  padding: 5px 1em;
+  position: relative;
+}
+.similarity-results .details .match-details:before, .similarity-results .details .match-details:after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  position: absolute;
+  top: -10.5px;
+  left: 9px;
+  border: 11px solid transparent;
+  border-top: 0 none;
+  border-bottom-color: #DDD;
+}
+.similarity-results .details .match-details:after {
+  top: -9.5px;
+  left: 10px;
+  border: 10px solid transparent;
+  border-top: 0 none;
+  border-bottom-color: #FFF;
+}
+.similarity-results .details table {
+  margin: 0;
+  width: 100%;
+}
+.similarity-results .details table tr:nth-child(2n) {
+  background-color: #F9F9F9;
+}
+.similarity-results .details table th {
+  border-bottom: 1px solid $theme.borderColor !important;
+  font-size: 0.8em;
+  text-transform: uppercase;
+}
+.similarity-results .details table td {
+  border: 0 none !important;
+  vertical-align: baseline !important;
+  padding: .5em;
+}
+.similarity-results .details .query, .similarity-results .details .result {
+  width: 40%;
+}
+.similarity-results .details .negative {
+  color: $theme.notificationErrorColor;
+}
+.similarity-results .details .query {
+  text-align: right;
+}
+.similarity-results .details .metadata {
+  color: $theme.notificationInfoColor;
+}
+.similarity-results .details ul.metadata {
+  margin: 0 2em;
+  list-style-type: none;
+}
+.similarity-results .details ul.metadata li {
+  line-height: 1.1em;
+}
+.similarity-results .details .tool {
+  color: $theme.linkColor;
+  float: right;
+  cursor: pointer;
+}
+.similarity-results .match-bar {
+  display: inline-block;
+  width: 4em;
+  height: 1.1em;
+  margin: 0 10px;
+  position: relative;
+  text-shadow: none !important;
+}
+.similarity-results .match-bar:before, .similarity-results .match-bar:after {
+  content: "";
+  display: block;
+  position: absolute;
+  border-top: .9em solid transparent;
+  border-bottom: .9em solid transparent;
+  top: -.3em;
+}
+.similarity-results .match-bar:before {
+  left: -9px;
+  border-right: 10px solid;
+}
+.similarity-results .match-bar:after {
+  right: -9px;
+  border-left: 10px solid;
+}
+.similarity-results .match-bar-text {
+  display: block;
+  width: 100%;
+  height: 1.1em;
+  line-height: 1.1em;
+  text-align: center;
+  font-size: .7em;
+  text-shadow: none;
+}
+.segmented-bar {
+  white-space: nowrap;
+  width: auto;
+}
+.segmented-bar .segmented-unit {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  margin: 0 1px;
+  border: 1px solid $theme.borderColor;
+  border-radius: 1px;
+}
+.segmented-bar .segmented-unit-fill {
+  width: 8px;
+  height: 8px;
+  display: block;
+  background-color: $theme.textColor;
+  border-radius: 1px;
+}</code>
+    </property>
+    <property>
+      <name>Similar cases suggestions style</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>1</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>06eebed5-da22-4d52-929c-22dc8d73c0a7</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.similarity-results-refresh {
+  float: right;
+}
+#similarity-results-container {
+  min-height: 20px;
+}</code>
+    </property>
+    <property>
+      <name>Similar cases container style</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <content>
+        <disabled>0</disabled>
+        <name>content</name>
+        <number>3</number>
+        <prettyName>Extension Content</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>1</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>2</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <disabled>0</disabled>
+        <name>parameters</name>
+        <number>4</number>
+        <prettyName>Extension Parameters</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>5</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>6319e3f0-cdcb-47fa-9563-19058b4bf336</guid>
+    <property>
+      <content>{{velocity}}
+#if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
+  #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
+  #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
+    $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
+    $xwiki.ssx.use('PhenoTips.SimilarCases')##
+    $xwiki.jsx.use($doc.fullName, {'minify' : false})##
+    #set ($max_results = "$!{suggestionsConfig.getProperty('max_results').value}")
+    #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
+    ##
+    (% class="clear clinical-info similarity-info chapter"%)(((##
+    == Similar cases available in the database ==
+    {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
+    (% id="similarity-results-container" %)((()))##
+    )))
+  #end## suggestions enabled
+#end## action == view
+{{/velocity}}</content>
+    </property>
+    <property>
+      <extensionPointId>org.phenotips.patientSheet.after</extensionPointId>
+    </property>
+    <property>
+      <name>org.phenotips.similarCases</name>
+    </property>
+    <property>
+      <parameters/>
+    </property>
+    <property>
+      <scope>wiki</scope>
+    </property>
+  </object>
+  <content>{{velocity output=false}}
+  #set ($patient = $services.patients.getPatientById("$!{request.query}"))
+  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
+{{/velocity}}
+
+{{velocity}}
+#if ($xcontext.action == 'get')
+  $response.setContentType('application/json')
+#end
+{
+  "query": $patient.toJSON(),
+  "resultsCount" : $matches.size(),
+  "results" : [
+#foreach ($p in $matches)
+  $p.toJSON()#if ($foreach.hasNext()),
+  #end
+
+#end
+  ]
+}
+{{/velocity}}</content>
+</xwikidoc>
