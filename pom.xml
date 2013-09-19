@@ -35,5 +35,6 @@
     <module>access-rules</module>
     <module>similarity-data</module>
     <module>similarity-search</module>
+    <module>ui</module>
   </modules>
 </project>
