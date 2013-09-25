@@ -516,7 +516,7 @@
           "title" : "Current patient's features",
         },
         "match" : {
-          "title" : "",
+          "title" : "Relevance",
         },
         "result" : {
           "title" : "Other patient's features",
@@ -588,7 +588,7 @@
         });
         score = Math.min(score, 100);
       }
-      return new Element("div").insert(this.Utils.generateMatchBar(score));
+      return new Element("div", {'title' : Math.round(score * 100) + "%"}).insert(score != 0 ? this.Utils.generateMatchBar(score) : '');
     },
 
     _displayMatch : function(f) {
@@ -1176,6 +1176,9 @@
 }
 .similarity-results .details .query {
   text-align: right;
+}
+.similarity-results .details .match {
+  text-align: center;
 }
 .similarity-results .details .metadata {
   color: $theme.notificationInfoColor;
