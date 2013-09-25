@@ -586,7 +586,7 @@
         f.match.each (function (m) {
           score += m.score;
         });
-        score = Math.min(score, 100);
+        score = Math.min(score, 1.0;
       }
       return new Element("div", {'title' : Math.round(score * 100) + "%"}).insert(score != 0 ? this.Utils.generateMatchBar(score) : '');
     },
