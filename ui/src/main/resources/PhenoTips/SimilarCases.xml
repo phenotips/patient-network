@@ -462,7 +462,10 @@
           if (qF) {
             ++matchedFeatures;
             // Here we assume there's at most one match pe query feature. TODO: make more flexible
-            qF.match = f;
+            if (!qF.match) {
+              qF.match = [];
+            }
+            qF.match.push(f);
           }
         } else {
           resultUnmatchedFeatures.push(f);
@@ -502,7 +505,7 @@
         hideDetails.toggle();
         matchTable.toggle();
       });
-      this._data.query.features.each(function(f){f.match = false});
+      this._data.query.features.each(function(f){f.match = []});
       return details;
     },
 
@@ -580,14 +583,22 @@
     _displayMatchScore : function(f) {
       var score = 0;
       if (f.match) {
-        score = f.match.score;
+        f.match.each (function (m) {
+          score += m.score;
+        });
+        score = Math.min(score, 100);
       }
       return new Element("div").insert(this.Utils.generateMatchBar(score));
     },
 
     _displayMatch : function(f) {
-      if (f.match) {
-        return this._displayFeature(f.match);
+      if (f.match &amp;&amp; f.match.length &gt; 0) {
+        var result = new Element('div');
+        var _this = this;
+        f.match.each (function (m) {
+          result.insert(_this._displayFeature(m));
+        });
+        return result;
       }
       return new Element("span", {"class" : this._NOMATCH_MARKER}).update(this._NOMATCH_TEXT);
     },
