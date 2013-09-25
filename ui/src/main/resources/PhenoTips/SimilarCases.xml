@@ -502,50 +502,8 @@
         hideDetails.toggle();
         matchTable.toggle();
       });
-      /*matchDigest.observe('click', function(event) {
-        event.stop();
-        showDetails.toggle();
-        hideDetails.toggle();
-        matchTable.toggle();
-      });*/
       this._data.query.features.each(function(f){f.match = false});
       return details;
-    },
-
-    _displayMatchDigest : function(data, result, matchedFeatures) {
-      var crtPatientBar = this.Utils.generateSegmentedBar(data.featuresCount, 1);
-      var otherPatientBar = this.Utils.generateSegmentedBar(result.featuresCount, 1);
-      var diffPatientBar = this.Utils.generateSegmentedBar(data.featuresCount - matchedFeatures, 0);
-      var container = new Element('div', {'class' : 'match-digest'}).insert(crtPatientBar).insert(diffPatientBar).insert(otherPatientBar);
-      crtPatientBar.addClassName('left-bar');
-      diffPatientBar.addClassName('diff-bar');
-      otherPatientBar.addClassName('right-bar');
-      return container;
-    },
-
-    _displayMatchDigestDeprecated : function(data, result, matchedFeatures) {
-      var unit = 24;
-      var diffQueryValue = data.featuresCount - matchedFeatures;
-      var diffResultValue = result.featuresCount - matchedFeatures;
-      var displayedDiffQueryValue = diffQueryValue + " feature" + (diffQueryValue != 1 ? "s" : "");
-      var displayedIntersectionValue = matchedFeatures + " feature" + (matchedFeatures != 1 ? "s" : "");
-      var displayedDiffResultValue = diffResultValue + " feature" + (diffResultValue != 1 ? "s" : "");
-      var diffQuery = new Element("span", {
-         "title" : displayedDiffQueryValue + " unmatched in the current parient",
-         "class" : "segment diff query",
-         "style" : "width: " + (diffQueryValue * unit) + "px; background-color: " + this.Utils.getColorForValue(0)
-      });
-      var intersection = new Element("span", {
-         "title" : displayedIntersectionValue + " matched",
-         "class" : "segment intersection",
-         "style" : "width: " + (matchedFeatures * unit) + "px; background-color: " + this.Utils.getColorForValue(1)
-      });
-      var diffResult = new Element("span", {
-         "title" : displayedDiffResultValue + " unmatched in the other patient",
-         "class" : "segment diff result",
-         "style" : "width: " + (diffResultValue * unit) + "px; background-color: " + this.Utils.getColorForValue(0)
-      });
-      return new Element("div", {"class" : "match-digest"}).insert(diffQuery).insert(intersection).insert(diffResult);
     },
 
     _displayMatchTable : function(query, r, resultUnmatchedFeatures) {
