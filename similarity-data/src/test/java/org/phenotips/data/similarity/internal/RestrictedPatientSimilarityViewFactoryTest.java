@@ -31,6 +31,7 @@ import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.data.similarity.configuration.SimilarityConfiguration;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
@@ -197,9 +198,12 @@ public class RestrictedPatientSimilarityViewFactoryTest
         OntologyManager om = mock(OntologyManager.class);
 
         // Setup the phenotype scorer
-        FeatureSimilarityScorer scorer = new DefaultFeatureSimilarityScorer();
-        ReflectionUtils.setFieldValue(scorer, "ontologyManager", om);
-        doReturn(scorer).when(cm).getInstance(FeatureSimilarityScorer.class);
+        FeatureSimilarityScorer featureScorer = new DefaultFeatureSimilarityScorer();
+        ReflectionUtils.setFieldValue(featureScorer, "ontologyManager", om);
+        doReturn(featureScorer).when(cm).getInstance(FeatureSimilarityScorer.class, "default");
+        SimilarityConfiguration config = mock(SimilarityConfiguration.class);
+        doReturn(config).when(cm).getInstance(SimilarityConfiguration.class);
+        when(config.getScorerType()).thenReturn("default");
 
         // Setup the metadata scorers
         when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "pace")).thenReturn(

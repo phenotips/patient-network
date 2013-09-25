@@ -26,8 +26,10 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.configuration.SimilarityConfiguration;
 
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -246,10 +248,8 @@ public class RestrictedFeatureSimilarityView implements FeatureSimilarityView
      */
     private double getRelativeScore()
     {
-        FeatureSimilarityScorer scorer;
-        try {
-            scorer = ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class);
-        } catch (ComponentLookupException e) {
+        FeatureSimilarityScorer scorer = getScorer();
+        if (scorer == null) {
             return Double.NaN;
         }
         return scorer.getScore(this.match, this.reference);
@@ -300,5 +300,27 @@ public class RestrictedFeatureSimilarityView implements FeatureSimilarityView
             return Math.signum(baseScore) * score;
         }
         return baseScore;
+    }
+
+    /**
+     * Get an instance of the configured scorer. This tries first to lookup the scorer type
+     * {@link SimilarityConfiguration#getScorerType() specified in the configuration}, falling back to the default
+     * scorer if that fails, and finally resorting to {@code null} if not even the default scorer can be retrieved.
+     * 
+     * @return a {@link FeatureSimilarityScorer} instance, or {@code null} if no scorer can be instantiated
+     */
+    static FeatureSimilarityScorer getScorer()
+    {
+        try {
+            ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
+            SimilarityConfiguration configuration = cm.getInstance(SimilarityConfiguration.class);
+            try {
+                return cm.getInstance(FeatureSimilarityScorer.class, configuration.getScorerType());
+            } catch (ComponentLookupException ex) {
+                return cm.getInstance(FeatureSimilarityScorer.class);
+            }
+        } catch (ComponentLookupException ex) {
+            return null;
+        }
     }
 }

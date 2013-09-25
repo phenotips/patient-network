@@ -19,7 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
@@ -30,7 +29,6 @@ import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Collections;
@@ -248,9 +246,8 @@ public class RestrictedPatientSimilarityView implements PatientSimilarityView
      */
     private Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
     {
-        try {
-            FeatureSimilarityScorer scorer =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class);
+        FeatureSimilarityScorer scorer = RestrictedFeatureSimilarityView.getScorer();
+        if (scorer != null) {
             double bestScore = 0;
             Feature bestMatch = null;
             for (Feature candidate : lookIn) {
@@ -261,7 +258,7 @@ public class RestrictedPatientSimilarityView implements PatientSimilarityView
                 }
             }
             return bestMatch;
-        } catch (ComponentLookupException e) {
+        } else {
             for (Feature candidate : lookIn) {
                 if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
                     return candidate;

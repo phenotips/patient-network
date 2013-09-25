@@ -26,6 +26,7 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.configuration.SimilarityConfiguration;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
 import org.phenotips.ontology.OntologyManager;
@@ -687,7 +688,8 @@ public class RestrictedFeatureSimilarityViewTest
         when(mockReference.isPresent()).thenReturn(false);
         Assert.assertTrue(Double.isNaN(o.getScore()));
 
-        when(ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class))
+        when(
+            ComponentManagerRegistry.getContextComponentManager().getInstance(FeatureSimilarityScorer.class, "default"))
             .thenThrow(new ComponentLookupException("No implementation"));
         when(mockMatch.getId()).thenReturn("HP:0011729");
         when(mockReference.getId()).thenReturn("HP:0001367");
@@ -932,7 +934,10 @@ public class RestrictedFeatureSimilarityViewTest
         // Setup the feature scorer
         FeatureSimilarityScorer featureScorer = new DefaultFeatureSimilarityScorer();
         ReflectionUtils.setFieldValue(featureScorer, "ontologyManager", om);
-        when(cm.getInstance(FeatureSimilarityScorer.class)).thenReturn(featureScorer);
+        when(cm.getInstance(FeatureSimilarityScorer.class, "default")).thenReturn(featureScorer);
+        SimilarityConfiguration config = mock(SimilarityConfiguration.class);
+        when(cm.getInstance(SimilarityConfiguration.class)).thenReturn(config);
+        when(config.getScorerType()).thenReturn("default");
 
         // Setup the metadata scorers
         when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "pace")).thenReturn(
