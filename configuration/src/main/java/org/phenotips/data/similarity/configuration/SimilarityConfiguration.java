@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
+/*
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -18,24 +16,26 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
--->
+ */
+package org.phenotips.data.similarity.configuration;
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.phenotips</groupId>
-    <artifactId>phenotips-components</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>patient-network</artifactId>
-  <packaging>pom</packaging>
-  <name>PhenoTips - Patient network</name>
+import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
-  <modules>
-    <module>access-rules</module>
-    <module>configuration</module>
-    <module>similarity-data</module>
-    <module>similarity-search</module>
-    <module>ui</module>
-  </modules>
-</project>
+/**
+ * Configuration for the patient similarity feature.
+ * 
+ * @version $Id$
+ */
+@Unstable
+@Role
+public interface SimilarityConfiguration
+{
+    /**
+     * The configured {@link FeatureSimilarityScorer feature scorer} to use.
+     * 
+     * @return the name (component implementation hint) of the selected feature scorer, or {@code default} if none is
+     *         configured
+     */
+    String getScorerType();
+}
