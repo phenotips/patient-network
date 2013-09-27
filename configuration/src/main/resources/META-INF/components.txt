@@ -1,1 +1,1 @@
-org.phenotips.data.similarity.internal.WikiSimilarityConfiguration
+org.phenotips.data.similarity.configuration.internal.WikiSimilarityConfiguration
