@@ -47,7 +47,6 @@ public class MockOntologyTerm implements OntologyTerm
     @Override
     public String getId()
     {
-
         return this.id;
     }
 
@@ -89,5 +88,12 @@ public class MockOntologyTerm implements OntologyTerm
     {
         // Not used
         return null;
+    }
+
+    @Override
+    public long getDistanceTo(OntologyTerm arg0)
+    {
+        // Not used
+        return 0;
     }
 }
