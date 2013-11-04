@@ -101,6 +101,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.getPatientById(name);
+            if (matchPatient == null) {
+                // Leftover patient in the index, should be removed
+                continue;
+            }
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
             if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
                 results.add(result);
