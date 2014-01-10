@@ -242,7 +242,7 @@ public class RestrictedPatientSimilarityView implements PatientSimilarityView
      * 
      * @param toMatch the feature to match
      * @param lookIn the list of features to look in, either the reference patient or the matched patient features
-     * @return one of the featuress from the list, if it matches the target feature, or {@code null} otherwise
+     * @return one of the features from the list, if it matches the target feature, or {@code null} otherwise
      */
     private Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
     {
