@@ -38,4 +38,35 @@
     <module>similarity-search</module>
     <module>ui</module>
   </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- API backwards compatibility check -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <!-- List of specific CLIRR excludes.
+               See http://mojo.codehaus.org/clirr-maven-plugin/examples/ignored-differences.html
+          -->
+          <ignored>
+            <!-- Remove the following ignores after we release the current version as final -->
+            <difference>
+              <className>**/similarity/PatientSimilarityView</className>
+              <differenceType>7006</differenceType>
+              <method>org.phenotips.data.similarity.AccessType getAccess()</method>
+              <to>org.phenotips.data.permissions.AccessLevel</to>
+            </difference>
+          </ignored>
+          <excludes>
+            <exclude>**/internal/**</exclude>
+            <exclude>**/test/**</exclude>
+            <!-- Remove the following excludes after we release the current version as final -->
+            <!-- The previous version was a temporary workaround while waiting for access rules to be added in the main PhenoTips code -->
+            <exclude>**/data/similarity/AccessType</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
