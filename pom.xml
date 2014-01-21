@@ -26,6 +26,7 @@
     <groupId>org.phenotips</groupId>
     <artifactId>phenotips-components</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../phenotips/components/</relativePath>
   </parent>
   <artifactId>patient-network</artifactId>
   <packaging>pom</packaging>
