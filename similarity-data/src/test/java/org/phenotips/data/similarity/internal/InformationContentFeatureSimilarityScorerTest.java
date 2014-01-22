@@ -19,7 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -78,7 +77,7 @@ public class InformationContentFeatureSimilarityScorerTest
         Feature reference = new MockFeature("HP:0001256", "Mild intelletual disability", "phenotype", true);
 
         double score = this.mocker.getComponentUnderTest().getScore(match, reference);
-        Assert.assertEquals(0.5, score, 0.3);
+        Assert.assertEquals(0.5, score, 0.4);
 
         double reversedScore = this.mocker.getComponentUnderTest().getScore(reference, match);
         Assert.assertEquals(score, reversedScore, 1.0E-5);
@@ -139,14 +138,18 @@ public class InformationContentFeatureSimilarityScorerTest
     {
         // Setup the ontology manager
         OntologyManager om = this.mocker.getInstance(OntologyManager.class);
-        OntologyService mim = Mockito.mock(OntologyService.class);
-        doReturn(mim).when(om).getOntology("MIM");
-        //TODO: mock mim.count, mim.size
-        long mimSize = 50;
-        when(mim.size()).thenReturn((long) mimSize);
-        when(mim.count(Mockito.anyMapOf(String.class, String.class))).thenReturn(Math.round(Math.random() * mimSize));
-        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
+        OntologyService hpo = Mockito.mock(OntologyService.class);
+        when(om.getOntology("HPO")).thenReturn(hpo);
 
+        OntologyService mim = Mockito.mock(OntologyService.class);
+        when(om.getOntology("MIM")).thenReturn(mim);
+        // TODO: mock mim.count, mim.size
+        long mimSize = 1000;
+        when(mim.size()).thenReturn((long) mimSize);
+        when(mim.count(Mockito.anyMapOf(String.class, String.class))).thenReturn(
+            Math.round(Math.random() * mimSize / 25));
+
+        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
         OntologyTerm all =
             new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm> emptySet(),
                 Collections.<OntologyTerm> emptySet());

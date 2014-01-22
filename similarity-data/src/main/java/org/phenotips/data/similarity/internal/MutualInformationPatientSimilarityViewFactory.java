@@ -298,7 +298,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         if (!ignoredSymptoms.isEmpty()) {
             logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
-        
+
         logger.error("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
         for (Map.Entry<OntologyTerm, Double> entry : termFreq.entrySet()) {

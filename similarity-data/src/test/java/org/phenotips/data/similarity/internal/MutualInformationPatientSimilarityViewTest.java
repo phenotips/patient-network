@@ -553,7 +553,7 @@ public class MutualInformationPatientSimilarityViewTest
         doReturn(mim).when(om).getOntology("MIM");
         // TODO: mock mim.count, mim.size
         long mimSize = 50;
-        when(mim.size()).thenReturn((long) mimSize);
+        when(mim.size()).thenReturn(mimSize);
         when(mim.count(Matchers.anyMapOf(String.class, String.class))).thenReturn(Math.round(Math.random() * mimSize));
 
         Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
