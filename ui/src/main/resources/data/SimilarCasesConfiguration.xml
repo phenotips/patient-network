@@ -119,6 +119,9 @@
     <property>
       <min_score/>
     </property>
+    <property>
+      <scorer/>
+    </property>
   </object>
   <object>
     <class>

@@ -772,7 +772,7 @@
       }
     }
   });
-  
+
   var init = function() {
     var container = $('similarity-results-container');
     var maxResults = $('max_results');

@@ -27,8 +27,6 @@ import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
-import org.xwiki.model.reference.DocumentReference;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,14 +37,13 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link PatientSimilarityView} that reveals the full patient information if the user has full access
- * to the patient, and only limited information for similar features if the patient is matchable; for use in public
- * scripts.
+ * Implementation of {@link PatientSimilarityView} that always reveals the full patient information; for use in trusted
+ * Java code.
  * 
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M10
  */
-public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityView implements PatientSimilarityView
+public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView implements PatientSimilarityView
 {
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -56,7 +53,7 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
      * @param access the access level the current user has on the matched patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
-    public RestrictedPatientSimilarityView(Patient match, Patient reference, AccessType access)
+    public DefaultPatientSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
     {
         super(match, reference, access);
@@ -67,35 +64,19 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     /**
      * Constructor that copies the data from another patient pair.
      * 
-     * @param openView the open patient pair to clone
+     * @param restrictedView the restricted patient pair to clone
      */
-    public RestrictedPatientSimilarityView(AbstractPatientSimilarityView openView)
+    public DefaultPatientSimilarityView(AbstractPatientSimilarityView restrictedView)
     {
-        this(openView.match, openView.reference, openView.access);
-    }
-
-    @Override
-    public DocumentReference getDocument()
-    {
-        return this.access.isOpenAccess() ? this.match.getDocument() : null;
-    }
-
-    @Override
-    public DocumentReference getReporter()
-    {
-        return this.access.isOpenAccess() ? this.match.getReporter() : null;
+        this(restrictedView.match, restrictedView.reference, restrictedView.access);
     }
 
     @Override
     public Set<? extends Feature> getFeatures()
     {
-        if (this.access.isPrivateAccess()) {
-            return Collections.emptySet();
-        }
-
         Set<Feature> result = new HashSet<Feature>();
         for (FeatureSimilarityView feature : this.matchedFeatures) {
-            if (feature.isMatchingPair() || this.access.isOpenAccess() && feature.getId() != null) {
+            if (feature.isMatchingPair() || feature.getId() != null) {
                 result.add(feature);
             }
         }
@@ -106,10 +87,6 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     @Override
     public Set<? extends Disorder> getDisorders()
     {
-        if (!this.access.isOpenAccess()) {
-            return Collections.emptySet();
-        }
-
         Set<Disorder> result = new HashSet<Disorder>();
         for (DisorderSimilarityView disorder : this.matchedDisorders) {
             if (disorder.getId() != null) {
@@ -123,16 +100,11 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     @Override
     public JSONObject toJSON()
     {
-        if (this.access.isPrivateAccess()) {
-            return new JSONObject(true);
-        }
         JSONObject result = new JSONObject();
 
-        if (this.access.isOpenAccess()) {
-            result.element("id", this.match.getDocument().getName());
-            result.element("token", getContactToken());
-            result.element("owner", this.match.getReporter().getName());
-        }
+        result.element("id", this.match.getDocument().getName());
+        result.element("token", getContactToken());
+        result.element("owner", this.match.getReporter().getName());
         result.element("access", this.access.toString());
         result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
         result.element("score", getScore());
@@ -168,12 +140,12 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         Set<FeatureSimilarityView> result = new HashSet<FeatureSimilarityView>();
         for (Feature feature : this.match.getFeatures()) {
             Feature matching = findMatchingFeature(feature, this.reference.getFeatures());
-            result.add(new RestrictedFeatureSimilarityView(feature, matching, this.access));
+            result.add(new DefaultFeatureSimilarityView(feature, matching));
         }
         for (Feature feature : this.reference.getFeatures()) {
             Feature matching = findMatchingFeature(feature, this.match.getFeatures());
             if (matching == null) {
-                result.add(new RestrictedFeatureSimilarityView(null, feature, this.access));
+                result.add(new DefaultFeatureSimilarityView(null, feature));
             }
         }
         this.matchedFeatures = Collections.unmodifiableSet(result);
@@ -187,12 +159,12 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     {
         Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
         for (Disorder disorder : this.match.getDisorders()) {
-            result.add(new RestrictedDisorderSimilarityView(disorder, findMatchingDisorder(disorder,
-                this.reference.getDisorders()), this.access));
+            result.add(new DefaultDisorderSimilarityView(disorder, findMatchingDisorder(disorder,
+                this.reference.getDisorders())));
         }
         for (Disorder disorder : this.reference.getDisorders()) {
             if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
-                result.add(new RestrictedDisorderSimilarityView(null, disorder, this.access));
+                result.add(new DefaultDisorderSimilarityView(null, disorder));
             }
         }
         this.matchedDisorders = Collections.unmodifiableSet(result);

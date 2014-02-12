@@ -33,15 +33,14 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- * Implementation of {@link PatientSimilarityViewFactory} which only allows access to public or shared information.
+ * Implementation of {@link PatientSimilarityViewFactory} which allows full access to the patient information.
  * 
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M10
  */
 @Component
-@Named("restricted")
 @Singleton
-public class RestrictedPatientSimilarityViewFactory implements PatientSimilarityViewFactory
+public class DefaultPatientSimilarityViewFactory implements PatientSimilarityViewFactory
 {
     /** Computes the real access level for a patient. */
     @Inject
@@ -63,18 +62,19 @@ public class RestrictedPatientSimilarityViewFactory implements PatientSimilarity
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
-        AccessType access = new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(),
-            this.viewAccess, this.matchAccess);
-        return new RestrictedPatientSimilarityView(match, reference, access);
+        AccessType access =
+            new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
+                this.matchAccess);
+        return new DefaultPatientSimilarityView(match, reference, access);
     }
 
     @Override
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
         if (patientPair instanceof AbstractPatientSimilarityView) {
-            return new RestrictedPatientSimilarityView((AbstractPatientSimilarityView) patientPair);
+            return new DefaultPatientSimilarityView((AbstractPatientSimilarityView) patientPair);
         }
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
-        return new RestrictedPatientSimilarityView(patientPair, patientPair.getReference(), access);
+        return new DefaultPatientSimilarityView(patientPair, patientPair.getReference(), access);
     }
 }
