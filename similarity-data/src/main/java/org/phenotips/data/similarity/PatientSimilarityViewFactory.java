@@ -46,4 +46,13 @@ public interface PatientSimilarityViewFactory
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
     PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException;
+
+    /**
+     * Converts a different type of {@link PatientSimilarityView} to the type managed by this factory. Useful for
+     * converting between restricted and open patient similarity views.
+     * 
+     * @param patientPair the patient similarity view to convert
+     * @return a clone of the passed patient pair, using this factory's type of view
+     */
+    PatientSimilarityView convert(PatientSimilarityView patientPair);
 }
