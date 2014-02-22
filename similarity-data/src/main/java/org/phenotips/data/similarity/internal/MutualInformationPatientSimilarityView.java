@@ -167,11 +167,12 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     }
     
     /**
-     * Return the number of times each term occurred in the patient's features (and their ancestors).
+     * Return the number of times each term occurs in the patient's features (and their ancestors).
      * 
      * @param patient
      * @return the count per term
      */
+    @SuppressWarnings("unused")
     private Map<OntologyTerm, Integer> countAncestors(Patient patient)
     {
         Map<OntologyTerm, Integer> counts = new HashMap<OntologyTerm, Integer>();
@@ -179,6 +180,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         for (OntologyTerm term : terms) {
             // Get all ancestors (includes term)
             Set<OntologyTerm> ancestors = term.getAncestors();
+            ancestors.add(term);
             for (OntologyTerm ancestor : ancestors) {
                 Integer oldCount = counts.get(ancestor);
                 if (oldCount == null) {
@@ -190,6 +192,26 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         return counts;
     }
 
+
+    /**
+     * Return the set of terms that occur in the patient's features (and their ancestors).
+     * 
+     * @param patient
+     * @return all OntologyTerms that are implied by the patient's phenotypes
+     */
+    private Set<OntologyTerm> getAncestors(Patient patient)
+    {
+        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
+        Collection<OntologyTerm> terms = getPresentPatientTerms(patient);
+        // Add directly-specified terms
+        ancestors.addAll(terms);
+        for (OntologyTerm term : terms) {
+            // Add all ancestors
+            ancestors.addAll(term.getAncestors());
+        }
+        return ancestors;
+    }
+    
     /**
      * Return the information content of term, falling back to parents as necessary.
      * 
@@ -197,6 +219,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @return the information content of the term, or null if the term was null, or 0.0 if the term had no information
      *         and no parents
      */
+    @SuppressWarnings("unused")
     private Double getTermIC(OntologyTerm term)
     {
         if (term == null) {
@@ -228,7 +251,10 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         logger.debug("Patient: " + patient.getDocument().getName());
         Collection<OntologyTerm> terms = getPresentPatientTerms(patient);
         for (OntologyTerm term : terms) {
-            Double ic = getTermIC(term);
+            Double ic = parentCondIC.get(term);
+            if (ic == null) {
+                ic = 0.0;
+            }
             logger.debug(String.format("  cost(%s) = %s", term.getId(), ic));
             cost += ic;
         }
@@ -257,19 +283,17 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         double p2Cost = getPatientCost(match);
 
         // Count ancestors for both patients
-        Map<OntologyTerm, Integer> refCounts = countAncestors(reference);
-        Map<OntologyTerm, Integer> matchCounts = countAncestors(match);
+        Set<OntologyTerm> sharedAncestors = getAncestors(reference);
+        sharedAncestors.removeAll(getAncestors(match));
 
         // Score overlapping (min) ancestors
-        Set<OntologyTerm> sharedTerms = refCounts.keySet();
-        sharedTerms.retainAll(matchCounts.keySet());
         double sharedCost = 0;
-        for (OntologyTerm term : sharedTerms) {
+        for (OntologyTerm term : sharedAncestors) {
             Double condIC = parentCondIC.get(term);
             if (condIC == null) {
                 condIC = 0.0;
             }
-            sharedCost += condIC * Math.min(refCounts.get(term), matchCounts.get(term));
+            sharedCost += condIC;
         }
 
         return Math.tanh(2 * sharedCost / (p1Cost + p2Cost));

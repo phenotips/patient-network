@@ -358,7 +358,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      * @param termIC the pre-computed IC of each term
      * @return the conditional IC of term, given its parents
      */
-    private double getTermCondProb(OntologyTerm term, Map<OntologyTerm, Double> termIC)
+    private double getTermCondIC(OntologyTerm term, Map<OntologyTerm, Double> termIC)
     {
         // Compute the max IC of parents of term
         double maxParentIC = 0;
@@ -382,11 +382,11 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      * @param termIC the pre-computed IC of each term
      * @return map of the conditional IC of each term, given its parents
      */
-    private Map<OntologyTerm, Double> getCondProbs(Map<OntologyTerm, Double> termIC)
+    private Map<OntologyTerm, Double> getCondICs(Map<OntologyTerm, Double> termIC)
     {
         Map<OntologyTerm, Double> parentCondIC = new HashMap<OntologyTerm, Double>();
         for (OntologyTerm term : termIC.keySet()) {
-            double condIC = getTermCondProb(term, termIC);
+            double condIC = getTermCondIC(term, termIC);
             // logger.error("Term: " + term.getId() + ", IC|parents: " + condIC);
             parentCondIC.put(term, condIC);
         }
@@ -411,9 +411,9 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
         Map<OntologyTerm, Double> termIC = getTermICs(termFreq, termDescendants);
 
-        logger.error("Calculating conditional probabilities...");
+        logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-        Map<OntologyTerm, Double> parentCondIC = getCondProbs(termIC);
+        Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC);
         assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
