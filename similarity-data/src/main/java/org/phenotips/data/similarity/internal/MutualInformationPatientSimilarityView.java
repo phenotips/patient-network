@@ -122,7 +122,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         this.ontologyManager = ontologyManager;
         this.logger = logger;
     }
-
+    
     /**
      * Set the static information content map for the class.
      * 

@@ -141,6 +141,13 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         return view;
     }
 
+    @Override
+    public PatientSimilarityView convert(PatientSimilarityView patientPair)
+    {
+        AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
+        return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access, ontologyManager, logger);
+    }
+    
     /**
      * Bound probability to between (0, 1) exclusive.
      * 
