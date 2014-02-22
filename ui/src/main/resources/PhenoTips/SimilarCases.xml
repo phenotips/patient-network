@@ -473,10 +473,11 @@
         if (f.queryType &amp;&amp; f.queryId &amp;&amp; queryFeaturesComparison[f.queryType]) {
           var qF = queryFeaturesComparison[f.queryType][f.queryId];
           if (qF) {
-            ++matchedFeatures;
-            // Here we assume there's at most one match pe query feature. TODO: make more flexible
             if (!qF.match) {
               qF.match = [];
+            }
+            if (qF.match.length == 0) {
+              ++matchedFeatures;
             }
             qF.match.push(f);
           }
@@ -772,7 +773,7 @@
       }
     }
   });
-  
+
   var init = function() {
     var container = $('similarity-results-container');
     var maxResults = $('max_results');

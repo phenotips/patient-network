@@ -26,16 +26,23 @@
     <groupId>org.phenotips</groupId>
     <artifactId>phenotips-components</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../phenotips/components/</relativePath>
   </parent>
   <artifactId>patient-network</artifactId>
   <packaging>pom</packaging>
   <name>PhenoTips - Patient network</name>
+
+  <properties>
+    <!-- Disable Clirr since this is the first version -->
+    <clirr.skip>true</clirr.skip>
+  </properties>
 
   <modules>
     <module>access-rules</module>
     <module>configuration</module>
     <module>similarity-data</module>
     <module>similarity-search</module>
+    <module>communication</module>
     <module>ui</module>
   </modules>
 
