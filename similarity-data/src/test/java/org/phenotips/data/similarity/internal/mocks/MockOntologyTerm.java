@@ -22,6 +22,7 @@ package org.phenotips.data.similarity.internal.mocks;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -68,6 +69,15 @@ public class MockOntologyTerm implements OntologyTerm
     public Set<OntologyTerm> getParents()
     {
         return this.parents;
+    }
+
+    @Override
+    public Set<OntologyTerm> getAncestorsAndSelf()
+    {
+        Set<OntologyTerm> result = new LinkedHashSet<OntologyTerm>();
+        result.add(this);
+        result.addAll(this.ancestors);
+        return result;
     }
 
     @Override

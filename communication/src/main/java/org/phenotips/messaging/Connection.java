@@ -80,9 +80,9 @@ public class Connection
         this.targetPatient = patientPair;
         this.referencePatient = patientPair.getReference();
         PatientAccess pa = getAccess(patientPair.getReference());
-        this.initiatingUser = new DocumentReference(pa.getOwner());
+        this.initiatingUser = new DocumentReference(pa.getOwner().getUser());
         pa = getAccess(patientPair);
-        this.contactedUser = new DocumentReference(pa.getOwner());
+        this.contactedUser = new DocumentReference(pa.getOwner().getUser());
     }
 
     /**

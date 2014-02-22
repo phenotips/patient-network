@@ -22,6 +22,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
@@ -118,6 +119,15 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         }
 
         return result;
+    }
+
+    @Override
+    public <T> PatientData<T> getData(String name)
+    {
+        if (this.access.isOpenAccess()) {
+            return this.match.getData(name);
+        }
+        return null;
     }
 
     @Override

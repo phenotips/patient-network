@@ -21,7 +21,7 @@ package org.phenotips.messaging;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
+import org.phenotips.data.PatientRepository;
 
 import org.xwiki.component.manager.ComponentLookupException;
 
@@ -135,7 +135,8 @@ public class PatientReferenceType implements UserType
     private Patient resolvePatient(String serializedReference)
     {
         try {
-            PatientData resolver = ComponentManagerRegistry.getContextComponentManager().getInstance(PatientData.class);
+            PatientRepository resolver =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(PatientRepository.class);
             return resolver.getPatientById(serializedReference);
         } catch (ComponentLookupException ex) {
             // This really shouldn't happen...
