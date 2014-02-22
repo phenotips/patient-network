@@ -21,7 +21,7 @@ package org.phenotips.similarity.internal;
 
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
@@ -67,7 +67,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     /** Provides access to patient data. */
     @Inject
-    private PatientData patients;
+    private PatientRepository patients;
 
     /** The minimal access level needed for including a patient in the result. */
     @Inject

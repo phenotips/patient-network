@@ -22,6 +22,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
@@ -87,6 +88,12 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     public DocumentReference getReporter()
     {
         return this.match.getReporter();
+    }
+
+    @Override
+    public <T> PatientData<T> getData(String name)
+    {
+        return this.match.getData(name);
     }
 
     @Override
