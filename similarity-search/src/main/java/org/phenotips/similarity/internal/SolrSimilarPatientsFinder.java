@@ -95,61 +95,13 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Override
     public List<PatientSimilarityView> findSimilarPatients(Patient referencePatient)
     {
-        SolrQuery query = generateQuery(referencePatient, false);
-        SolrDocumentList docs = search(query);
-        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
-        for (SolrDocument doc : docs) {
-            String name = (String) doc.getFieldValue("document");
-            Patient matchPatient = this.patients.getPatientById(name);
-            if (matchPatient == null) {
-                // Leftover patient in the index, should be removed
-                continue;
-            }
-            PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
-                results.add(result);
-            }
-        }
-
-        Collections.sort(results, new Comparator<PatientSimilarityView>()
-        {
-            @Override
-            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
-            {
-                return (int) Math.signum(o2.getScore() - o1.getScore());
-            }
-        });
-        return results;
+        return find(referencePatient, false);
     }
 
     @Override
     public List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient)
     {
-        SolrQuery query = generateQuery(referencePatient, true);
-        SolrDocumentList docs = search(query);
-        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
-        for (SolrDocument doc : docs) {
-            String name = (String) doc.getFieldValue("document");
-            Patient matchPatient = this.patients.getPatientById(name);
-            if (matchPatient == null) {
-                // Leftover patient in the index, should be removed
-                continue;
-            }
-            PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
-                results.add(result);
-            }
-        }
-
-        Collections.sort(results, new Comparator<PatientSimilarityView>()
-        {
-            @Override
-            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
-            {
-                return (int) Math.signum(o2.getScore() - o1.getScore());
-            }
-        });
-        return results;
+        return find(referencePatient, true);
     }
 
     @Override
@@ -157,6 +109,35 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     {
         SolrQuery query = generateQuery(referencePatient, false);
         return count(query);
+    }
+
+    private List<PatientSimilarityView> find(Patient referencePatient, boolean prototypes)
+    {
+        SolrQuery query = generateQuery(referencePatient, prototypes);
+        SolrDocumentList docs = search(query);
+        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
+        for (SolrDocument doc : docs) {
+            String name = (String) doc.getFieldValue("document");
+            Patient matchPatient = this.patients.getPatientById(name);
+            if (matchPatient == null) {
+                // Leftover patient in the index, should be removed
+                continue;
+            }
+            PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
+            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
+                results.add(result);
+            }
+        }
+
+        Collections.sort(results, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+            {
+                return (int) Math.signum(o2.getScore() - o1.getScore());
+            }
+        });
+        return results;
     }
 
     /**
