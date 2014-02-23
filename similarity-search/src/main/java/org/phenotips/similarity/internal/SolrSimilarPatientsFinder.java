@@ -123,7 +123,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     }
 
     @Override
-    public List<PatientSimilarityView> findSimilarTemplates(Patient referencePatient)
+    public List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient)
     {
         SolrQuery query = generateTemplateQuery(referencePatient);
         SolrDocumentList docs = search(query);

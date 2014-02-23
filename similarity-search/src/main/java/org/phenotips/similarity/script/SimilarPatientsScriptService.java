@@ -70,9 +70,9 @@ public class SimilarPatientsScriptService implements ScriptService
      * @return the similar patients found in the database, an empty list if no patients are found or if the reference
      *         patient is invalid
      */
-    public List<PatientSimilarityView> findSimilarTemplates(Patient referencePatient)
+    public List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient)
     {
-        return this.finder.findSimilarTemplates(referencePatient);
+        return this.finder.findSimilarPrototypes(referencePatient);
     }
 
     /**

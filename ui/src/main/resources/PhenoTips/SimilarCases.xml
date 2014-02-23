@@ -1416,7 +1416,7 @@
   <content>{{velocity output=false}}
   #set ($patient = $services.patients.getPatientById("$!{request.query}"))
   #if ("$!request.type" == 'prototype')
-    #set ($matches = $services.similarPatients.findSimilarTemplates($patient))
+    #set ($matches = $services.similarPatients.findSimilarPrototypes($patient))
   #else
     #set ($matches = $services.similarPatients.findSimilarPatients($patient))
   #end
