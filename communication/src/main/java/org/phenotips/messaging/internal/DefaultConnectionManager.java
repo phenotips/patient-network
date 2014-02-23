@@ -26,11 +26,15 @@ import org.phenotips.messaging.ConnectionManager;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Example;
 
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 
@@ -52,15 +56,22 @@ public class DefaultConnectionManager implements ConnectionManager
     private PatientSimilarityViewFactory publicPatientSimilarityViewFactory;
 
     @Override
-    public Connection innitiateConnection(PatientSimilarityView patientPair)
+    public Connection getConnection(PatientSimilarityView patientPair)
     {
-        Connection connection = new Connection(this.publicPatientSimilarityViewFactory.convert(patientPair));
         Session session = this.sessionFactory.getSessionFactory().openSession();
-        Transaction t = session.beginTransaction();
-        t.begin();
-        session.save(connection);
-        t.commit();
-        return connection;
+        Criteria c = session.createCriteria(Connection.class);
+        Connection connection = new Connection(this.publicPatientSimilarityViewFactory.convert(patientPair));
+        c.add(Example.create(connection).excludeProperty("id"));
+        @SuppressWarnings("unchecked")
+        List<Connection> foundEntries = c.list();
+        if (foundEntries.isEmpty()) {
+            Transaction t = session.beginTransaction();
+            t.begin();
+            session.save(connection);
+            t.commit();
+            return connection;
+        }
+        return foundEntries.get(0);
     }
 
     @Override
