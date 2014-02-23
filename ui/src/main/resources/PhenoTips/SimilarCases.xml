@@ -1377,7 +1377,7 @@
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
     #set ($patient = $services.patients.getPatientById($doc.name))
     #set ($patientAccess = $services.permissions.getPatientAccess($patient))
-    #if ($patientAccess.isOwner() &amp;&amp;  $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
+    #if (!$patient.features.isEmpty() &amp;&amp; $patientAccess.isOwner() &amp;&amp;  $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
       ## Can see similar cases for this patient
       $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
       $xwiki.ssx.use('PhenoTips.SimilarCases')##
