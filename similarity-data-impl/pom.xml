@@ -32,9 +32,14 @@
     <coverage.instructionRatio>0.15</coverage.instructionRatio>
   </properties>
 
-  <artifactId>patient-similarity-data</artifactId>
-  <name>PhenoTips - Patient network - Java APIs for accessing similar patients</name>
+  <artifactId>patient-similarity-data-impl</artifactId>
+  <name>PhenoTips - Patient network - Default implementation for the similar patients APIs</name>
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>patient-similarity-data-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-configuration</artifactId>
@@ -42,7 +47,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>anonymous-communication</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>component-registry</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>ontology-access-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

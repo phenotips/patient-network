@@ -29,6 +29,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 import org.hibernate.annotations.Type;
@@ -46,6 +47,7 @@ public class Connection
 {
     /** @see #getId() */
     @Id
+    @GeneratedValue
     private long id;
 
     /** @see #getInitiatingUser() */
