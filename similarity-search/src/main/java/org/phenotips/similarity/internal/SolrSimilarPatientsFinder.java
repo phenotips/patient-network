@@ -123,6 +123,36 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     }
 
     @Override
+    public List<PatientSimilarityView> findSimilarTemplates(Patient referencePatient)
+    {
+        SolrQuery query = generateTemplateQuery(referencePatient);
+        SolrDocumentList docs = search(query);
+        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
+        for (SolrDocument doc : docs) {
+            String name = (String) doc.getFieldValue("document");
+            Patient matchPatient = this.patients.getPatientById(name);
+            if (matchPatient == null) {
+                // Leftover patient in the index, should be removed
+                continue;
+            }
+            PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
+            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
+                results.add(result);
+            }
+        }
+
+        Collections.sort(results, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+            {
+                return (int) Math.signum(o2.getScore() - o1.getScore());
+            }
+        });
+        return results;
+    }
+
+    @Override
     public long countSimilarPatients(Patient referencePatient)
     {
         SolrQuery query = generateQuery(referencePatient);
@@ -145,6 +175,28 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         // Ignore the reference patient itself
         q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        q.append(" -document:xwiki\\:data.MIM*");
+        query.add(CommonParams.Q, q.toString());
+        return query;
+    }
+
+    /**
+     * Generates a Solr query that tries to match patients similar to the reference.
+     * 
+     * @param referencePatient the reference patient
+     * @return a query populated with terms from the patient phenotype
+     */
+    private SolrQuery generateTemplateQuery(Patient referencePatient)
+    {
+        SolrQuery query = new SolrQuery();
+        StringBuilder q = new StringBuilder();
+        // FIXME This is a very basic implementation, to be revisited
+        for (Feature phenotype : referencePatient.getFeatures()) {
+            q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
+        }
+        // Ignore the reference patient itself
+        q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        q.append(" +document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
         return query;
     }
