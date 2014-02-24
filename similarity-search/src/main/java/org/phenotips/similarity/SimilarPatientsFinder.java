@@ -55,7 +55,7 @@ public interface SimilarPatientsFinder
      * @return the similar patient templates found in the database, an empty list if no templates are found or if the
      *         reference patient is invalid
      */
-    List<PatientSimilarityView> findSimilarTemplates(Patient referencePatient);
+    List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient);
 
     /**
      * Checks how many patients similar to a reference patient exist, and returns their count. The reference patient

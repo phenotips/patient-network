@@ -68,11 +68,11 @@ public class DefaultActionManager implements ActionManager
             String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue("email");
             options.put("recipientName",
                 xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
-            options.put("matchCaseId", connection.getReferencePatient().getDocument().getName());
+            options.put("matchCaseId", connection.getTargetPatient().getDocument().getName());
             options.put("matchCaseAccessLink",
                 xwiki.getExternalURL("data.GrantMatchAccess", "view", "id=" + connection.getId(), context));
-            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", "noreply@phenomecentral.org", to, null, null, "",
-                options, context);
+            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", "PhenomeCentral <noreply@phenomecentral.org>", to,
+                null, null, "", options, context);
             return 0;
         } catch (Exception ex) {
             this.logger.error("Failed to send email: [{}]", ex.getMessage(), ex);
