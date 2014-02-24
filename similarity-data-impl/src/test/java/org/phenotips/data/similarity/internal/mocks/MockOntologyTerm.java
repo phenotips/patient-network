@@ -19,6 +19,10 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -38,11 +42,47 @@ public class MockOntologyTerm implements OntologyTerm
 
     private final Set<OntologyTerm> ancestors;
 
-    public MockOntologyTerm(String id, Set<OntologyTerm> parents, Set<OntologyTerm> ancestors)
+    /**
+     * Create a simple Mock OntologyTerm.
+     * 
+     * @param id the id of the term (e.g. "HP:0123456")
+     * @param parents the parents of the term (or null)
+     */
+    public MockOntologyTerm(String id, Collection<OntologyTerm> parents)
     {
         this.id = id;
-        this.parents = parents;
-        this.ancestors = ancestors;
+        this.parents = new HashSet<OntologyTerm>();
+        this.ancestors = new HashSet<OntologyTerm>();
+
+        if (parents != null) {
+            this.parents.addAll(parents);
+            // Add parents and ancestors of parents to get all ancestors
+            this.ancestors.addAll(parents);
+            for (OntologyTerm parent : this.parents) {
+                this.ancestors.addAll(parent.getAncestors());
+            }
+        }
+    }
+
+    /**
+     * Create a simple Mock OntologyTerm.
+     * 
+     * @param id the id of the term (e.g. "HP:0123456")
+     * @param parents the parents of the term (or null)
+     * @param ancestors the ancestors of the term (or null)
+     */
+    public MockOntologyTerm(String id, Collection<OntologyTerm> parents, Collection<OntologyTerm> ancestors)
+    {
+        this.id = id;
+        this.parents = new HashSet<OntologyTerm>();
+        this.ancestors = new HashSet<OntologyTerm>();
+
+        if (parents != null) {
+            this.parents.addAll(parents);
+        }
+        if (ancestors != null) {
+            this.ancestors.addAll(ancestors);
+        }
     }
 
     @Override
