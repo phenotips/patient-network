@@ -49,7 +49,7 @@ public interface ExternalToolJobManager
      * @return the similar patients found in the database, an empty list if no patients are found or if the reference
      *         patient is invalid
      */
-    int getStatus(String phenomeCentralId);
+    int getStatus(Patient p);
 
     /**
      * - non-blocking dispatch job (phenomecentral id)
@@ -59,5 +59,5 @@ public interface ExternalToolJobManager
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid
      */
-    void addJob(String phenomeCentralId);
+    void addJob(Patient p);
 }
