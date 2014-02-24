@@ -218,7 +218,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
         double sharedCost = getJointTermsCost(sharedAncestors);
         assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
-        
+
         double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
         return harmonicMeanIC;
