@@ -93,10 +93,10 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        logger.info("Creating view for " + reference.getDocument().getName() + " + " + match.getDocument().getName());
+        logger.error("Creating view for " + reference.getDocument().getName() + " + " + match.getDocument().getName());
         MutualInformationPatientSimilarityView view =
             new MutualInformationPatientSimilarityView(match, reference, access, ontologyManager, logger);
-        logger.info("  score:" + view.getScore());
+        logger.error("  score:" + view.getScore());
         return view;
     }
 
@@ -127,13 +127,13 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
-        logger.info("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        logger.info("  ... found " + results.size() + " entries.");
+        logger.error("  ... found " + results.size() + " entries.");
         return results;
     }
 
@@ -302,7 +302,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             }
 
             if (HP_ROOT.equals(term.getId())) {
-                logger.info(String.format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
+                logger.error(String.format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
             if (probMass > EPS) {
                 probMass = limitProb(probMass);
@@ -337,7 +337,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
 
         Double thisIC = 0.0;
         if (siblings == null) {
-            logger.info("Missing siblings for term: " + term.getId());
+            logger.error("Missing siblings for term: " + term.getId());
         } else {
             // Sum probability mass under all siblings
             Double siblingProbMass = 0.0;
@@ -399,13 +399,13 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
         Map<OntologyTerm, Double> termIC = getTermICs(termFreq, termDescendants);
 
-        logger.info("Calculating conditional ICs...");
+        logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
         Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC, termChildren);
         assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-        logger.info("Setting view globals...");
+        logger.error("Setting view globals...");
         // Give data to view to use
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
         MutualInformationPatientSimilarityView.setICs(termIC);

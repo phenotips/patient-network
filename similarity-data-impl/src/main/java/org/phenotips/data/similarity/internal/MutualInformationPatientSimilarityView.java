@@ -216,10 +216,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         // warning: Line below destructively modifies refAncestors
         sharedAncestors.retainAll(matchAncestors);
 
-        double sharedCost = getJointTermsCost(matchAncestors);
-        if (sharedCost > p1Cost || sharedCost > p2Cost) {
-            logger.error("Found sharedCost > individiual cost");
-        }
+        double sharedCost = getJointTermsCost(sharedAncestors);
+        assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
+        
         double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
         return harmonicMeanIC;
