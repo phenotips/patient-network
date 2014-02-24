@@ -36,6 +36,8 @@ import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
+import org.phenotips.messaging.Connection;
+import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -86,7 +88,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
 
     /** Basic tests for makeSimilarPatient. */
     @Test
-    public void testMakeSimilarPatient() throws ComponentLookupException
+    public void testMakeSimilarPatient() throws Exception
     {
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
@@ -97,12 +99,19 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
         PatientAccess pa = mock(PatientAccess.class);
         when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
-        when(pa.getAccessLevel()).thenReturn(this.mocker.<AccessLevel> getInstance(AccessLevel.class, "view"));
+        when(pa.getAccessLevel()).thenReturn(this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view"));
+
+        ConnectionManager cm = mock(ConnectionManager.class);
+        when(ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class)).thenReturn(cm);
+        Connection c = mock(Connection.class);
+        when(cm.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(c);
+        when(c.getId()).thenReturn(Long.valueOf(42));
 
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
         Assert.assertSame(PATIENT_1, result.getDocument());
         Assert.assertSame(mockReference, result.getReference());
+        Assert.assertEquals("42", result.getContactToken());
     }
 
     /** Pairing with a matchable patient does indeed restrict access to private information. */
@@ -118,10 +127,16 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
         PatientAccess pa = mock(PatientAccess.class);
         when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
-        AccessLevel match = this.mocker.<AccessLevel> getInstance(AccessLevel.class, "match");
-        AccessLevel view = this.mocker.<AccessLevel> getInstance(AccessLevel.class, "view");
+        AccessLevel match = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "match");
+        AccessLevel view = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view");
         when(pa.getAccessLevel()).thenReturn(match);
         when(match.compareTo(view)).thenReturn(-5);
+
+        ConnectionManager cm = mock(ConnectionManager.class);
+        when(ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class)).thenReturn(cm);
+        Connection c = mock(Connection.class);
+        when(cm.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(c);
+        when(c.getId()).thenReturn(Long.valueOf(42));
 
         Map<String, FeatureMetadatum> matchMeta = new HashMap<String, FeatureMetadatum>();
         matchMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
@@ -146,8 +161,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         referencePhenotypes.add(jhm);
         referencePhenotypes.add(mid);
         referencePhenotypes.add(cat);
-        Mockito.<Set<? extends Feature>> when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
-        Mockito.<Set<? extends Feature>> when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
+        Mockito.<Set<? extends Feature>>when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
+        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
 
         Disorder d1 = new MockDisorder("MIM:123", "Some disease");
         Disorder d2 = new MockDisorder("MIM:234", "Some other disease");
@@ -158,8 +173,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Set<Disorder> referenceDiseases = new HashSet<Disorder>();
         referenceDiseases.add(d1);
         referenceDiseases.add(d3);
-        Mockito.<Set<? extends Disorder>> when(mockMatch.getDisorders()).thenReturn(matchDiseases);
-        Mockito.<Set<? extends Disorder>> when(mockReference.getDisorders()).thenReturn(referenceDiseases);
+        Mockito.<Set<? extends Disorder>>when(mockMatch.getDisorders()).thenReturn(matchDiseases);
+        Mockito.<Set<? extends Disorder>>when(mockReference.getDisorders()).thenReturn(referenceDiseases);
 
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
@@ -222,8 +237,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
 
         OntologyTerm all =
-            new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm> emptySet(),
-                Collections.<OntologyTerm> emptySet());
+            new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm>emptySet(),
+                Collections.<OntologyTerm>emptySet());
         ancestors.add(all);
         OntologyTerm phenotypes =
             new MockOntologyTerm("HP:0000118", Collections.singleton(all), new HashSet<OntologyTerm>(ancestors));

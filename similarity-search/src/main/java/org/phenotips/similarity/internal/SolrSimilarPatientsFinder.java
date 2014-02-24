@@ -95,7 +95,25 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Override
     public List<PatientSimilarityView> findSimilarPatients(Patient referencePatient)
     {
-        SolrQuery query = generateQuery(referencePatient);
+        return find(referencePatient, false);
+    }
+
+    @Override
+    public List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient)
+    {
+        return find(referencePatient, true);
+    }
+
+    @Override
+    public long countSimilarPatients(Patient referencePatient)
+    {
+        SolrQuery query = generateQuery(referencePatient, false);
+        return count(query);
+    }
+
+    private List<PatientSimilarityView> find(Patient referencePatient, boolean prototypes)
+    {
+        SolrQuery query = generateQuery(referencePatient, prototypes);
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
         for (SolrDocument doc : docs) {
@@ -122,20 +140,13 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return results;
     }
 
-    @Override
-    public long countSimilarPatients(Patient referencePatient)
-    {
-        SolrQuery query = generateQuery(referencePatient);
-        return count(query);
-    }
-
     /**
      * Generates a Solr query that tries to match patients similar to the reference.
      * 
      * @param referencePatient the reference patient
      * @return a query populated with terms from the patient phenotype
      */
-    private SolrQuery generateQuery(Patient referencePatient)
+    private SolrQuery generateQuery(Patient referencePatient, boolean prototypes)
     {
         SolrQuery query = new SolrQuery();
         StringBuilder q = new StringBuilder();
@@ -145,6 +156,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         // Ignore the reference patient itself
         q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
         return query;
     }

@@ -19,12 +19,14 @@
  */
 package org.phenotips.messaging.script;
 
-import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.messaging.ActionManager;
 import org.phenotips.messaging.Connection;
 import org.phenotips.messaging.ConnectionManager;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
+
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -44,36 +46,45 @@ import javax.inject.Singleton;
 public class AnonymousCommunicationScriptService implements ScriptService
 {
     @Inject
-    private ConnectionManager manager;
+    private ConnectionManager connectionManager;
+
+    @Inject
+    private ActionManager actionManager;
 
     /**
-     * Create, store and return a new connection, with the data from the passed patient pair view.
+     * Send the initial email to the owner of the matched patient.
      * 
-     * @param patientPair the two patients and their owners that are involved in this connection
-     * @return a new connection object, already saved in the storage
+     * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
+     *            involved in this connection
+     * @param options the mail content options selected by the user
+     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
      */
-    public Connection innitiateConnection(PatientSimilarityView patientPair)
+    public int sendInitialMail(String connectionId, Map<String, Object> options)
     {
         try {
-            return this.manager.innitiateConnection(patientPair);
+            Connection c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
+            // FIXME! Add rights check: only the initiating user can do this
+            return this.actionManager.sendInitialMails(c, options);
         } catch (Exception ex) {
-            return null;
+            return -1;
         }
     }
 
     /**
-     * Retrieve an existing connection from the storage.
+     * Grant mutual view access on the two patients to the owners.
      * 
-     * @param id the identifier of the requested connection
-     * @return the requested connection, if it was found in the database, {@code null} otherwise
+     * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
+     *            involved in this connection
+     * @return {@code 0} if access was successfully granted, other numbers in case of errors
      */
-    public Connection getConnectionById(Long id)
+    public int grantAccess(String connectionId)
     {
         try {
-            return this.manager.getConnectionById(id);
+            Connection c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
+            // FIXME! Add rights check: only the contacted user can do this
+            return this.actionManager.grantAccess(c);
         } catch (Exception ex) {
-            return null;
+            return -1;
         }
     }
-
 }

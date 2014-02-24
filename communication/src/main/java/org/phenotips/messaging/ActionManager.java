@@ -19,33 +19,35 @@
  */
 package org.phenotips.messaging;
 
-import org.phenotips.data.similarity.PatientSimilarityView;
-
 import org.xwiki.component.annotation.Role;
 
+import java.util.Map;
+
 /**
- * Creates and retrieves {@link Connection}s.
+ * Performs actions on {@link Connection}s, such as sending emails and handling access granting.
  * 
  * @version $Id$
  * @since 1.0M1
  */
 @Role
-public interface ConnectionManager
+public interface ActionManager
 {
     /**
-     * Search for an existing connection for the patient pair view; if one exists, return it, otherwise create, store
-     * and return a new connection, with the data from the passed patient pair view.
+     * Send the initial email to the owner of the matched patient.
      * 
-     * @param patientPair the two patients and their owners that are involved in this connection
-     * @return a connection object, already saved in the storage
+     * @param connection the anonymous communication linking the two patients and their owners that are involved in this
+     *            connection
+     * @param options the mail content options selected by the user
+     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
      */
-    Connection getConnection(PatientSimilarityView patientPair);
+    int sendInitialMails(Connection connection, Map<String, Object> options);
 
     /**
-     * Retrieve an existing connection from the storage.
+     * Grant mutual view access on the two patients to the owners.
      * 
-     * @param id the identifier of the requested connection
-     * @return the requested connection, if it was found in the database, {@code null} otherwise
+     * @param connection the anonymous communication linking the two patients and their owners that are involved in this
+     *            connection
+     * @return {@code 0} if access was successfully granted, other numbers in case of errors
      */
-    Connection getConnectionById(Long id);
+    int grantAccess(Connection connection);
 }

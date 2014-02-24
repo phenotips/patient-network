@@ -140,9 +140,9 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
 
         if (this.access.isOpenAccess()) {
             result.element("id", this.match.getDocument().getName());
-            result.element("token", getContactToken());
             result.element("owner", this.match.getReporter().getName());
         }
+        result.element("token", getContactToken());
         result.element("access", this.access.toString());
         result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
         result.element("score", getScore());

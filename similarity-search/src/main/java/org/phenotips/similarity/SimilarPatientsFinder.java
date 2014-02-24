@@ -48,6 +48,16 @@ public interface SimilarPatientsFinder
     List<PatientSimilarityView> findSimilarPatients(Patient referencePatient);
 
     /**
+     * Returns a list of template patients similar to a reference patient. The reference patient must be owned by the
+     * current user (or one of their groups).
+     * 
+     * @param referencePatient the reference patient, must not be {@code null}
+     * @return the similar patient templates found in the database, an empty list if no templates are found or if the
+     *         reference patient is invalid
+     */
+    List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient);
+
+    /**
      * Checks how many patients similar to a reference patient exist, and returns their count. The reference patient
      * must be owned by the current user (or one of their groups). Only accessible patients are counted.
      * 

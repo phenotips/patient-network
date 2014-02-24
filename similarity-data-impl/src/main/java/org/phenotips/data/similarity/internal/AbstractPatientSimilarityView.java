@@ -19,6 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
@@ -29,7 +30,9 @@ import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.messaging.ConnectionManager;
 
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Set;
@@ -52,6 +55,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** The access level the user has to this patient. */
     protected final AccessType access;
+
+    protected final String contactToken;
 
     /** Links feature values from this patient to the reference. */
     protected Set<FeatureSimilarityView> matchedFeatures;
@@ -76,6 +81,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.match = match;
         this.reference = reference;
         this.access = access;
+        String token = "";
+        try {
+            ConnectionManager cm =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
+            token = String.valueOf(cm.getConnection(this).getId());
+        } catch (ComponentLookupException e) {
+            // This should not happen
+        }
+        this.contactToken = token;
     }
 
     @Override
@@ -99,8 +113,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     @Override
     public String getContactToken()
     {
-        // FIXME Implementation missing
-        return "";
+        return this.contactToken;
     }
 
     @Override
