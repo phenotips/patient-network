@@ -27,7 +27,6 @@ import java.util.Set;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
@@ -277,9 +276,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         // warning: Line below destructively modifies refAncestors
         sharedAncestors.retainAll(matchAncestors);
         double sharedCost = getJointTermsCost(matchAncestors);
-        double harmonic_mean_ic = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
+        double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
-        return harmonic_mean_ic;
+        return harmonicMeanIC;
     }
 
 }
