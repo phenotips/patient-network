@@ -20,7 +20,6 @@
 package org.phenotips.data.similarity.internal;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -277,9 +276,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         // warning: Line below destructively modifies refAncestors
         sharedAncestors.retainAll(matchAncestors);
         double sharedCost = getJointTermsCost(matchAncestors);
-        double harmonic_mean_ic = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
+        double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
-        return harmonic_mean_ic;
+        return harmonicMeanIC;
     }
 
 }
