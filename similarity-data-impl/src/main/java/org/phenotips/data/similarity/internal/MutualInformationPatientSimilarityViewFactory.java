@@ -19,6 +19,20 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyService;
+import org.phenotips.ontology.OntologyTerm;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,19 +45,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.params.CommonParams;
-import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 
 /**
  * Implementation of {@link PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
@@ -94,19 +96,24 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        logger.error("Creating view for " + reference.getDocument().getName() + " + " + match.getDocument().getName());
+        this.logger.error("Creating view for " + reference.getDocument().getName() + " + "
+            + match.getDocument().getName());
         MutualInformationPatientSimilarityView view =
-            new MutualInformationPatientSimilarityView(match, reference, access, ontologyManager, logger);
-        logger.error("  score:" + view.getScore());
+            new MutualInformationPatientSimilarityView(match, reference, access, this.ontologyManager);
+        this.logger.error("  score:" + view.getScore());
         return view;
     }
 
     @Override
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
+        if (patientPair instanceof AbstractPatientSimilarityView) {
+            return new MutualInformationPatientSimilarityView((AbstractPatientSimilarityView) patientPair,
+                this.ontologyManager);
+        }
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
         return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access,
-            ontologyManager, logger);
+            this.ontologyManager);
     }
 
     /**
@@ -128,13 +135,13 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
-        logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        this.logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        logger.error("  ... found " + results.size() + " entries.");
+        this.logger.error("  ... found " + results.size() + " entries.");
         return results;
     }
 
@@ -188,7 +195,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
                 if (childDescendants != null) {
                     descendants.addAll(childDescendants);
                 } else {
-                    logger.error("Descendants were null after recursion");
+                    this.logger.error("Descendants were null after recursion");
                 }
             }
         }
@@ -234,7 +241,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             // Get a Collection<String> of symptom HP IDs, or null
             Object symptomNames = disease.get("actual_symptom");
             if (symptomNames != null) {
-                if (symptomNames instanceof Collection< ? >) {
+                if (symptomNames instanceof Collection<?>) {
                     for (String symptomName : ((Collection<String>) symptomNames)) {
                         OntologyTerm symptom = hpo.getTerm(symptomName);
                         if (!allowedTerms.contains(symptom)) {
@@ -258,16 +265,16 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
                     }
                 } else {
                     String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
-                    logger.error(err);
+                    this.logger.error(err);
                     throw new RuntimeException(err);
                 }
             }
         }
         if (!ignoredSymptoms.isEmpty()) {
-            logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
+            this.logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
 
-        logger.error("Normalizing term frequency distribution...");
+        this.logger.error("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
         for (Map.Entry<OntologyTerm, Double> entry : termFreq.entrySet()) {
             entry.setValue(limitProb(entry.getValue() / freqDenom));
@@ -291,7 +298,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         for (OntologyTerm term : termFreq.keySet()) {
             Collection<OntologyTerm> descendants = termDescendants.get(term);
             if (descendants == null) {
-                logger.error("Found no descendants of term: " + term.getId());
+                this.logger.error("Found no descendants of term: " + term.getId());
             }
             // Sum up frequencies of all descendants
             double probMass = 0.0;
@@ -303,7 +310,8 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             }
 
             if (HP_ROOT.equals(term.getId())) {
-                logger.error(String.format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
+                this.logger.error(String
+                    .format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
             if (probMass > EPS) {
                 probMass = limitProb(probMass);
@@ -386,8 +394,8 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
     public void initialize() throws InitializationException
     {
         // Load the OMIM/HPO mappings
-        OntologyService mim = ontologyManager.getOntology("MIM");
-        OntologyService hpo = ontologyManager.getOntology("HPO");
+        OntologyService mim = this.ontologyManager.getOntology("MIM");
+        OntologyService hpo = this.ontologyManager.getOntology("HPO");
         OntologyTerm hpRoot = hpo.getTerm(HP_ROOT);
 
         // Pre-compute HPO descendant lookups
@@ -400,13 +408,13 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
         Map<OntologyTerm, Double> termIC = getTermICs(termFreq, termDescendants);
 
-        logger.error("Calculating conditional ICs...");
+        this.logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
         Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC, termChildren);
         assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-        logger.error("Setting view globals...");
+        this.logger.error("Setting view globals...");
         // Give data to view to use
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
     }
