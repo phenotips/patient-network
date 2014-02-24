@@ -145,9 +145,10 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
-        return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access, ontologyManager, logger);
+        return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access,
+            ontologyManager, logger);
     }
-    
+
     /**
      * Bound probability to between (0, 1) exclusive.
      * 
@@ -285,7 +286,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
                         Double freq = null;
                         if (freq == null) {
                             // Default frequency
-                            freq = 0.25;
+                            freq = 0.5;
                         }
                         freqDenom += freq;
                         // Add to accumulated term frequency
@@ -352,27 +353,42 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
 
     /**
      * Return the (approximate) conditional information content (IC) of a term, given its parents. Approximation is
-     * IC(term) - max(IC(parent) | parent in parents(term))
+     * IC(term) + log(sum_{sibling} probability mass under sibling)
      * 
      * @param term the OntologyTerm to compute the conditional IC
      * @param termIC the pre-computed IC of each term
-     * @return the conditional IC of term, given its parents
+     * @param termChildren the direct children of each OntologyTerm
+     * @return the approximate conditional IC of term, given its parents
      */
-    private double getTermCondIC(OntologyTerm term, Map<OntologyTerm, Double> termIC)
+    private double getTermCondIC(OntologyTerm term, Map<OntologyTerm, Double> termIC,
+        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
     {
-        // Compute the max IC of parents of term
-        double maxParentIC = 0;
+        // Find all terms with same set of parents
+        Collection<OntologyTerm> siblings = null;
         for (OntologyTerm parent : term.getParents()) {
-            Double parentIC = termIC.get(parent);
-            if (parentIC != null) {
-                maxParentIC = Math.max(maxParentIC, parentIC);
+            Collection<OntologyTerm> partialSiblings = termChildren.get(parent);
+            if (siblings == null) {
+                siblings = new HashSet<OntologyTerm>(partialSiblings);
+            } else {
+                siblings.retainAll(partialSiblings);
             }
         }
+
+        // Sum probability mass under all siblings
+        Double siblingProbMass = 0.0;
+        for (OntologyTerm sibling : siblings) {
+            Double siblingIC = termIC.get(sibling);
+            if (siblingIC != null) {
+                siblingProbMass += Math.exp(-siblingIC);
+            }
+        }
+        // Approximate conditional information content of term is information content of term less the overall
+        // information content of siblings
         Double thisIC = termIC.get(term);
         if (thisIC == null) {
             thisIC = 0.0;
         }
-        return thisIC - maxParentIC;
+        return thisIC + Math.log(siblingProbMass);
     }
 
     /**
@@ -380,13 +396,15 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      * IC(term) - max(IC(parent) | parent in parents(term))
      * 
      * @param termIC the pre-computed IC of each term
+     * @param termChildren the direct children of each OntologyTerm
      * @return map of the conditional IC of each term, given its parents
      */
-    private Map<OntologyTerm, Double> getCondICs(Map<OntologyTerm, Double> termIC)
+    private Map<OntologyTerm, Double> getCondICs(Map<OntologyTerm, Double> termIC,
+        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
     {
         Map<OntologyTerm, Double> parentCondIC = new HashMap<OntologyTerm, Double>();
         for (OntologyTerm term : termIC.keySet()) {
-            double condIC = getTermCondIC(term, termIC);
+            double condIC = getTermCondIC(term, termIC, termChildren);
             // logger.error("Term: " + term.getId() + ", IC|parents: " + condIC);
             parentCondIC.put(term, condIC);
         }
@@ -413,7 +431,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
 
         logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-        Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC);
+        Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC, termChildren);
         assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
