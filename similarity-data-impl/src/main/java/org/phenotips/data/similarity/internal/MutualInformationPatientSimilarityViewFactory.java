@@ -60,6 +60,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
     /** The root of the phenotypic abnormality portion of HPO. */
     private static final String HP_ROOT = "HP:0000118";
 
+    /** Small value used to round things too close to 0 or 1 */
     private static final double EPS = 1e-9;
 
     /** Logging helper object. */
@@ -408,6 +409,5 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         logger.error("Setting view globals...");
         // Give data to view to use
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
-        MutualInformationPatientSimilarityView.setICs(termIC);
     }
 }

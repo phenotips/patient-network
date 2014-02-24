@@ -52,9 +52,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
     private static Map<OntologyTerm, Double> parentCondIC;
 
-    /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
-    private static Map<OntologyTerm, Double> termIC;
-
     /** The matched patient to represent. */
     private final Patient match;
 
@@ -85,16 +82,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         this.reference = reference;
         this.ontologyManager = ontologyManager;
         this.logger = logger;
-    }
-
-    /**
-     * Set the static information content map for the class.
-     * 
-     * @param ics the information content of each term
-     */
-    public static void setICs(Map<OntologyTerm, Double> ics)
-    {
-        MutualInformationPatientSimilarityView.termIC = ics;
     }
 
     /**
@@ -148,33 +135,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
             ancestors.addAll(term.getAncestors());
         }
         return ancestors;
-    }
-
-    /**
-     * Return the information content of term, falling back to parents as necessary.
-     * 
-     * @param term the term to get the information content of
-     * @return the information content of the term, or null if the term was null, or 0.0 if the term had no information
-     *         and no parents
-     */
-    @SuppressWarnings("unused")
-    private Double getTermIC(OntologyTerm term)
-    {
-        if (term == null) {
-            return null;
-        }
-        Double ic = termIC.get(term);
-        if (ic == null) {
-            ic = 0.0;
-            Collection<OntologyTerm> parents = term.getParents();
-            if (!parents.isEmpty()) {
-                // Use max IC of parents
-                for (OntologyTerm parent : parents) {
-                    ic = Math.max(ic, getTermIC(parent));
-                }
-            }
-        }
-        return ic;
     }
 
     /**
