@@ -47,15 +47,13 @@
     <module>ui</module>
   </modules>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>exomizer</groupId>
-        <artifactId>exomizer</artifactId>
-        <version>0.1-SNAPSHOT</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>exomizer</groupId>
+      <artifactId>exomizer</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>
