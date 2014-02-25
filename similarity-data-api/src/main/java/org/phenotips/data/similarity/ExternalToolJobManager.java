@@ -19,45 +19,69 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.PatientSimilarityView;
+import java.io.File;
 
+import org.phenotips.data.Patient;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
-
-import java.util.List;
 
 /**
  * Allows submitting, querying, and managing tasks to run an external tool on patients.
  * 
  * @version $Id$
- * @since 
+ * @since
  */
 @Unstable
 @Role
 public interface ExternalToolJobManager
 {
     /**
-     *
-     * - exomizer: keep track of (and API for PC to query)
-     * -- no-vcf
-     * -- in-progress
-     * -- completed
-     * -- error
+     * Return whether job has been submitted (or results exist) for Patient.
      * 
-     * @param referencePatient the reference patient, must not be {@code null}
-     * @return the similar patients found in the database, an empty list if no patients are found or if the reference
-     *         patient is invalid
+     * @param patient the {@link Patient} being processed with the external tool.
+     * @return {@code true} if job has been submitted, else {@code false}.
      */
-    int getStatus(Patient p);
+    boolean hasJob(Patient patient);
 
     /**
-     * - non-blocking dispatch job (phenomecentral id)
-     * -- lookup vcf
-     * -- lookup patient phenotypes
+     * Return whether job for patient exists and is finished (due to success or error).
      * 
-     * @param referencePatient the reference patient, must not be {@code null}
-     * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid
+     * @param patient the {@link Patient} being processed with the external tool.
+     * @return {@code true} if job existed and is finished, {@code false} if job doesn't exist or is pending.
      */
-    void addJob(Patient p);
+    boolean hasFinished(Patient patient);
+
+    /**
+     * Return whether the patient job completed successfully and results for the patient are available.
+     * 
+     * @param patient the {@link Patient} being processed with the external tool.
+     * @return {@code true} if the patient is successfully processed, {@code false} if patient unprocessed or the job is
+     *         still pending or failed.
+     */
+    boolean wasSuccessful(Patient patient);
+
+    /**
+     * Return status message for patient job.
+     * 
+     * @param patient the {@link Patient} being processed by the external tool.
+     * @return string status/error message or null, e.g. "Submitted" "Pending", "Exomizer failed"
+     */
+    String getStatusMessage(Patient patient);
+
+    /**
+     * Get output file from the last successful run, if available.
+     * 
+     * @param patient the {@link Patient} being processed by the external tool.
+     * @return output file for last successful run, or null.
+     */
+    File getOutputFile(Patient patient);
+
+    /**
+     * Add the {@link Patient} to the processing queue for the tool. If the patient already has a job in the queue, move
+     * the job to the end of the queue. If the patient had a previously successful job, the results will be overwritten
+     * by the new job (but not until the job actually runs).
+     * 
+     * @param patient the {@link Patient} to process with the external tool.
+     */
+    void addJob(Patient patient);
 }
