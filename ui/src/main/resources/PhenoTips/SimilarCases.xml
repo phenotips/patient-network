@@ -31,8 +31,8 @@
   <author>xwiki:XWiki.Admin</author>
   <customClass/>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <creationDate>1379441485000</creationDate>
-  <date>1379609994000</date>
+  <creationDate>1393098154000</creationDate>
+  <date>1393100447000</date>
   <contentUpdateDate>1379609967000</contentUpdateDate>
   <version>1.1</version>
   <title/>
@@ -214,6 +214,7 @@
         }
         this._maxResults = options.maxResults || '';
         this._minScore = options.minScore || '';
+        this._resultsType = options.resultsType || '';
       }
       this.launchSearch();
 
@@ -231,6 +232,7 @@
           parameters: {
             'query' : this.query,
             'outputSyntax' : "plain",
+            'type' : this._resultsType,
             'maxResults' : this._maxResults,
             'minScore' : this._minScore
           },
@@ -292,11 +294,11 @@
            display: _this._displayResultDiagnosis.bind(_this),
            field  : "disorders"
         },
-        /*"contact" : {
+        "contact" : {
            title  : "Contact",
            display: _this._displayResultContactInfo.bind(_this),
            field  : "owner"
-        },*/
+        },
         "score"   : {
            title  : "Relevance",
            display: _this._displayResultRelevance.bind(_this),
@@ -427,7 +429,7 @@
              // TODO only update with the latest response
              form.select('input, textarea').invoke('observe', 'change', function (event) {
                new Ajax.Request(generateAction.value, {
-                 parameters : form.serialize(true),
+                 parameters : form.serialize({'hash': true, 'submit': false}),
                  onSuccess : function (response) {
                    userMessage.update(response.responseText)
                  }
@@ -435,8 +437,14 @@
              });
            }
            _this._contactContainer.select('input[name="cancel"]').invoke('observe', 'click', function(event) {_this._contactDialog.closeDialog();});
-           _this._contactContainer.select('form.preview').invoke('observe', 'submit', function(event) {
-             
+           form.observe('submit', function(event) {
+             event.stop();
+             new Ajax.Request(form.action, {
+               parameters : form.serialize({'hash': true, 'submit': 'send'}),
+               onSuccess : function (response) {
+                 _this._contactContainer.update('success!');
+               }
+             });
            });
         },
         onFailure : function(response) {
@@ -775,11 +783,17 @@
   });
 
   var init = function() {
-    var container = $('similarity-results-container');
     var maxResults = $('max_results');
     var minScore = $('min_score');
-    new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
+    new PhenoTips.widgets.Matcher(new XWiki.Document().page, $('similar-patients-container'), {
       enableRefresh: true,
+      resultsType: '',
+      maxResults: maxResults &amp;&amp; maxResults.value,
+      minScore: minScore &amp;&amp; minScore.value
+    });
+    new PhenoTips.widgets.Matcher(new XWiki.Document().page, $('similar-prototypes-container'), {
+      enableRefresh: true,
+      resultsType: 'prototype',
       maxResults: maxResults &amp;&amp; maxResults.value,
       minScore: minScore &amp;&amp; minScore.value
     });
@@ -1002,7 +1016,7 @@
     <property>
       <code>#template("colorThemeInit.vm")
 
-#similarity-results-container .similarity-results {
+.similarity-results-container .similarity-results {
   border: 0 none;
   margin: 1em 0 0;
   width: 100%;
@@ -1032,6 +1046,9 @@
 }
 .similarity-results td.contact {
   opacity: 1;
+}
+#similar-prototypes-container .contact {
+  display: none;
 }
 .similarity-results td.contact .owner-info {
   background: transparent none left top no-repeat;
@@ -1270,8 +1287,8 @@
       <code>.similarity-results-refresh {
   float: right;
 }
-#similarity-results-container {
-  min-height: 20px;
+.similarity-results-container {
+  min-height: 3em;
 }</code>
     </property>
     <property>
@@ -1358,17 +1375,27 @@
 #if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
-    $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
-    $xwiki.ssx.use('PhenoTips.SimilarCases')##
-    $xwiki.jsx.use($doc.fullName, {'minify' : false})##
-    #set ($max_results = "$!{suggestionsConfig.getProperty('max_results').value}")
-    #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
-    ##
-    (% class="clear clinical-info similarity-info chapter"%)(((##
-    == Similar cases available in the database ==
-    {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
-    (% id="similarity-results-container" %)((()))##
-    )))
+    #set ($patient = $services.patients.getPatientById($doc.name))
+    #set ($patientAccess = $services.permissions.getPatientAccess($patient))
+    #if (!$patient.features.isEmpty() &amp;&amp; $patientAccess.isOwner() &amp;&amp;  $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
+      ## Can see similar cases for this patient
+      $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
+      $xwiki.ssx.use('PhenoTips.SimilarCases')##
+      $xwiki.jsx.use($doc.fullName, {'minify' : false})##
+      #set ($max_results = "$!{suggestionsConfig.getProperty('max_results').value}")
+      #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
+      ##
+      (% class="clear clinical-info similarity-info chapter"%)(((##
+      == Similar cases available in the database ==
+      {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
+
+=== Patient profiles contributed by users ===
+      (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+
+=== OMIM disorder prototypes ===
+      (% class="similarity-results-container" id="similar-prototypes-container" %)((()))##
+      )))
+    #end## can see similar patients
   #end## suggestions enabled
 #end## action == view
 {{/velocity}}</content>
@@ -1388,7 +1415,14 @@
   </object>
   <content>{{velocity output=false}}
   #set ($patient = $services.patients.getPatientById("$!{request.query}"))
-  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
+  #if ("$!request.type" == 'prototype')
+    #set ($matches = $services.similarPatients.findSimilarPrototypes($patient))
+  #else
+    #set ($matches = $services.similarPatients.findSimilarPatients($patient))
+  #end
+  #if ("$!matches" == '')
+    #set ($matches = [])
+  #end
 {{/velocity}}
 
 {{velocity}}

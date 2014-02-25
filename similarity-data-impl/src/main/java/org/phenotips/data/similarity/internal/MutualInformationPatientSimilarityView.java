@@ -32,7 +32,7 @@ import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
 
 /**
- * Implementation of {@link FeatureSimilarityView} that uses a mutual information metric to score similar patients.
+ * Implementation of FeatureSimilarityView that uses a mutual information metric to score similar patients.
  * 
  * @version $Id$
  * @since
@@ -46,49 +46,11 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * PatientSimilarityView injected in similarity-search/.../internal/SolrSimilarPatientsFinder.java, 
      *   instantiated by RestPatSimViewFactory
      * 
-     * -x improves bound on cond prob
-     * code_to_term: mapping from HP id (str) to node.Term()
-     * Term() has .parents (Terms) and .children (Terms)
-     *   .dir_freq
-     *   .raw_freq - total number of annotations for a term, weighted by probs (+0.001 smoothing)
-     *   .freq
-     *   .get_ancestors (set of all ancestor nodes)
-     *   .patients - set of Patient objects
-     *   .inf (set in parse_diseases.compute_probs)
-     *     
-     * create phenotype.Patient() with list of HP terms (translated using code_to_term)
-     *   Patient() inherits from Phenotype():
-     *     contains .traits (list of HP terms), .disease (defaults to None)
-     *     .all_traits is the set of all traits the patient has (and their ancestors)
-     *     Patient object added to a.patients for all ancestors a
-     *     
-     * call sim.sim on (Patient(), Patient(), x)
-     *   get intersection of the sets of all ancestors of all terms for each patient
-     *   t.p1count, .p2count, number of terms in each patient that descend from t, with .mincount as min
-     *   get cost of each patient's traits
-     *     cost of list of Traits is sum_t(t.inf)
-     *   shared cost is sum of scaled (* mincount) t.cond_inf for each shared ancestor Term
-     *   return 2 * (sum of shared costs) / (sum of separate costs)
-     *   
-     * parse_diseases uses phenotype_annotation.tab (OMIM) to set Term() properties
-     *   OMIM line maps disease to phenotype with rough frequency (different for different dbs)
-     *   Disease().freqs(num)/traits(Term)/codes(str) appended
-     *   merge any redundant disease traits: append average (else 0.25 if no data) to Disease.freqs
-     *     add frequency to trait.raw_freq (aggr across diseases)
-     *   t.freq is normalized t.raw_freq, then bounded by [1e-9, 1-1e-9]
-     *   t.prob is sum of t.freq for t and all descendants, then bounded by [1e-9, 1-1e-9]
-     *   t.inf is -log(t.prob)
-     *   t.cond_inf is: t.inf - -logprob(sum of .freq for all common descendants of all strict ancestors of t)
-     *     worse approx: t.inf - max(p.inf for parent p of t)
-     *   
      * phenotips/resources/solr-configuration/src/main/resources/omim/conf/schema.xml
      */
 
     /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
     private static Map<OntologyTerm, Double> parentCondIC;
-
-    /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
-    private static Map<OntologyTerm, Double> termIC;
 
     /** The matched patient to represent. */
     private final Patient match;
@@ -120,16 +82,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         this.reference = reference;
         this.ontologyManager = ontologyManager;
         this.logger = logger;
-    }
-
-    /**
-     * Set the static information content map for the class.
-     * 
-     * @param ics the information content of each term
-     */
-    public static void setICs(Map<OntologyTerm, Double> ics)
-    {
-        MutualInformationPatientSimilarityView.termIC = ics;
     }
 
     /**
@@ -186,33 +138,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     }
 
     /**
-     * Return the information content of term, falling back to parents as necessary.
-     * 
-     * @param term the term to get the information content of
-     * @return the information content of the term, or null if the term was null, or 0.0 if the term had no information
-     *         and no parents
-     */
-    @SuppressWarnings("unused")
-    private Double getTermIC(OntologyTerm term)
-    {
-        if (term == null) {
-            return null;
-        }
-        Double ic = termIC.get(term);
-        if (ic == null) {
-            ic = 0.0;
-            Collection<OntologyTerm> parents = term.getParents();
-            if (!parents.isEmpty()) {
-                // Use max IC of parents
-                for (OntologyTerm parent : parents) {
-                    ic = Math.max(ic, getTermIC(parent));
-                }
-            }
-        }
-        return ic;
-    }
-
-    /**
      * Return the cost of encoding all the terms (and their ancestors) in a tree together.
      * 
      * @param all terms (and their ancestors) that are present in the patient
@@ -226,39 +151,14 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
             if (ic == null) {
                 ic = 0.0;
             }
-            logger.debug(String.format("  cost(%s) = %s", term.getId(), ic));
             cost += ic;
         }
         return cost;
     }
 
-    /**
-     * Return the cost of encoding all the present phenotypes in the patient.
-     * 
-     * @param patient
-     * @return the cost of the patient
-     */
-    @SuppressWarnings("unused")
-    private double getPatientCost(Patient patient)
-    {
-        logger.debug("Patient: " + patient.getDocument().getName());
-        Collection<OntologyTerm> terms = getAncestors(patient);
-        return getJointTermsCost(terms);
-    }
-
     @Override
     public double getScore()
     {
-        /* pseudocode:
-         *   get intersection of the sets of all ancestors of all terms for each patient
-         *   t.p1count, .p2count, number of terms in each patient that descend from t, with .mincount as min
-         *   get cost of each patient's traits
-         *     cost of list of Traits is sum_t(t.inf)
-         *   shared cost is sum of scaled (* mincount) t.cond_inf for each shared ancestor Term   
-         *   MI = 2 * (sum of shared costs) / (sum of separate costs)
-         *   MI [0, Inf] is large if shared cost is high relative to individual costs
-         *   tanh(MI) -> [-1, 1]
-         */
         if (match == null || reference == null) {
             return Double.NaN;
         }
@@ -275,7 +175,10 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         Set<OntologyTerm> sharedAncestors = refAncestors;
         // warning: Line below destructively modifies refAncestors
         sharedAncestors.retainAll(matchAncestors);
-        double sharedCost = getJointTermsCost(matchAncestors);
+
+        double sharedCost = getJointTermsCost(sharedAncestors);
+        assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
+
         double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
         return harmonicMeanIC;

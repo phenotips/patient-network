@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc>
+  <web>PhenoTips</web>
+  <name>MatchContact</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <parent>PhenoTips.SimilarCases</parent>
+  <creator>xwiki:XWiki.Admin</creator>
+  <author>xwiki:XWiki.Admin</author>
+  <customClass/>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <creationDate>1393098508000</creationDate>
+  <date>1393119686000</date>
+  <contentUpdateDate>1393118529000</contentUpdateDate>
+  <version>1.1</version>
+  <title>MatchContact</title>
+  <defaultTemplate/>
+  <validationScript/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <object>
+    <class>
+      <name>XWiki.Mail</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <html>
+        <disabled>0</disabled>
+        <name>html</name>
+        <number>4</number>
+        <prettyName>HTML</prettyName>
+        <rows>15</rows>
+        <size>80</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </html>
+      <language>
+        <disabled>0</disabled>
+        <name>language</name>
+        <number>2</number>
+        <prettyName>Language</prettyName>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </language>
+      <subject>
+        <disabled>0</disabled>
+        <name>subject</name>
+        <number>1</number>
+        <prettyName>Subject</prettyName>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </subject>
+      <text>
+        <disabled>0</disabled>
+        <name>text</name>
+        <number>3</number>
+        <prettyName>Text</prettyName>
+        <rows>15</rows>
+        <size>80</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </text>
+    </class>
+    <name>PhenoTips.MatchContact</name>
+    <number>0</number>
+    <className>XWiki.Mail</className>
+    <guid>e6be4785-605c-421d-a227-52c47ed7f63a</guid>
+    <property>
+      <html>#if ("$!{config.matchCaseId}" == '')
+    #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
+    #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
+    #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
+#end
+
+&lt;p&gt;Hello ${config.recipientName},&lt;/p&gt;
+
+&lt;p&gt;A ${platformName} user is interested in one of your non-public cases: ${config.matchCaseId}. Please see their message below.&lt;/p&gt;
+
+&lt;div id="user-message"&gt;
+&lt;p&gt;${platformName} has identified significant similarities between one of your cases and one of mine.&lt;/p&gt;
+
+
+#if ($!{config.diagnosis} || $!{config.summary})
+  My patient
+  #if ($!{config.diagnosis})
+    #if($patient.disorders.size() == 0)
+      is undiagnosed
+    #else
+      is diagnosed with
+      #set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
+      &lt;ul&gt;
+      #foreach ($d in $sortedDisorders)
+        &lt;li&gt;$d.name&lt;/li&gt;
+      #end
+      &lt;/ul&gt;
+      #if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+        and
+      #end
+    #end
+  #end
+  #if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+    #set($sortedFeatures = [])
+    #foreach ($f in $patient.features)
+      #set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
+    #end
+    #set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
+    presents the following phenotypic features:
+    &lt;ul&gt;
+    #foreach ($f in $sortedFeatures)
+      &lt;li&gt;#if (!$f.feature.isPresent())NO #end$f.name
+      #if ($f.feature.metadata.size() &gt; 0)
+        &lt;ul&gt;
+        #foreach ($m in $f.feature.metadata.keySet())
+          &lt;li&gt;$f.feature.metadata.get($m).name&lt;/li&gt;
+        #end
+        &lt;/ul&gt;
+      #end
+      &lt;/li&gt;
+    #end
+    &lt;/ul&gt;
+  #end
+#end
+
+#if ($!{config.share} || $!{config.reqcontact})
+&lt;p&gt;I would like
+#if ($!{config.share}) to grant you the rights to view my case and to obtain view access to your case#end#if ($config.share &amp;&amp; $config.reqcontact), and#end##
+#if ($config.reqcontact) to learn your contact information in order to further discuss these abnormalities with you#end.
+&lt;p&gt;
+#end
+
+#if ("$!{config.message.trim()}" != '')
+&lt;p&gt;$!config.message&lt;/p&gt;
+#end
+
+#if ("$!{config.name}$!{config.email}" != '')&lt;p&gt;
+Regards,&lt;br/&gt;
+$!{config.name}&lt;br/&gt;
+$!{config.email}&lt;br/&gt;
+$!{config.groups}
+&lt;/p&gt;#end
+&lt;/div&gt;
+
+#if ($!{config.share})&lt;p&gt;To accept view privileges from this user &lt;strong&gt;and&lt;/strong&gt; to grant them view access to ${config.matchCaseId}, follow this link: ${config.matchCaseAccessLink}.&lt;/p&gt;#end
+
+&lt;p&gt;Best wishes,&lt;br/&gt;
+The ${platformName} team&lt;/p&gt;</html>
+    </property>
+    <property>
+      <language/>
+    </property>
+    <property>
+      <subject>[${platformName}] $config.subject</subject>
+    </property>
+    <property>
+      <text>#if ("$!{config.matchCaseId}" == '')
+    #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
+    #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
+    #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
+#end
+
+Hello ${config.recipientName},
+
+A ${platformName} user is interested in one of your non-public cases: ${config.matchCaseId}. Please see their message below.
+
+-----------------------------------------------------------------------------
+${platformName} has identified significant similarities between one of your cases and one of mine.
+
+#if ($!{config.diagnosis} || $!{config.summary})
+My patient #if ($!{config.diagnosis})#if($patient.disorders.size() == 0)is undiagnosed #{else}is diagnosed with
+#set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
+#foreach ($d in $sortedDisorders)
+* $d.name
+#end
+#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+and ##
+#end
+#end
+#end
+#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+#set($sortedFeatures = [])#foreach ($f in $patient.features)#set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))#end
+#set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
+presents the following phenotypic features:
+#foreach ($f in $sortedFeatures)
+* #if (!$f.feature.isPresent())NO #end$f.name
+#if ($f.feature.metadata.size() &gt; 0)
+#foreach ($m in $f.feature.metadata.keySet())
+  - $f.feature.metadata.get($m).name
+#end
+#end
+#end
+#end
+#end
+
+#if ($!{config.share} || $!{config.reqcontact})
+I would like#if ($!{config.share}) to grant you the rights to view my case and to obtain view access to your case#end#if ($config.share &amp;&amp; $config.reqcontact), and#end#if ($config.reqcontact) to learn your contact information in order to further discuss these abnormalities with you#end.
+#end
+
+$!config.message
+#if ("$!{config.name}$!{config.email}" != '')
+
+Regards,
+$!{config.name}
+$!{config.email}
+$!{config.groups}
+#end
+-----------------------------------------------------------------------------
+
+#if ($!{config.share})To accept view privileges from this user &lt;strong&gt;and&lt;/strong&gt; to grant them view access to ${config.matchCaseId}, follow this link: ${config.matchCaseAccessLink}.#end
+
+
+Best wishes,
+The ${platformName} team</text>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenoTips.MatchContact</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>03e1a4b5-fa39-4bb2-a7f0-bef1cc1d3ee0</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#template("colorThemeInit.vm")
+
+.anonymous-contact {
+  overflow: hidden;
+}
+.anonymous-contact .contact-form-panel {
+  width: 48% !important;
+  margin: 0 1%;
+  float: left;
+}
+.anonymous-contact .contact-form-panel h2:before {
+  background-color: $theme.textColor;
+  border-radius: 50%;
+  color: $theme.pageContentBackgroundColor;
+  height: 1.2em;
+  line-height: 1.2em;
+  margin-right: .3em;
+  text-align: center;
+  text-shadow: none;
+  display: inline-block;
+  width: 1.2em;
+}
+.anonymous-contact .configure h2:before {
+  content: "1";
+}
+.anonymous-contact .message-preview h2:before {
+  content: "2";
+}
+
+.anonymous-contact .message-preview .message, .anonymous-contact .message-preview .subject {
+  background: $theme.highlightColor none no-repeat scroll left 0.9em;
+  border: 1px solid $theme.pageContentBackgroundColor;
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2) inset;
+  padding: 0 1em 0 28px;
+}
+.anonymous-contact .message-preview .subject {
+  padding: .3em;
+}
+.anonymous-contact .message-preview .message {
+  background-image: url("$xwiki.getSkinFile('icons/xwiki/lquo.gif')") 
+}
+.anonymous-contact .message-preview .message #user-message {
+  background: $theme.backgroundSecondaryColor;
+  padding: .3em;
+}
+.anonymous-contact .message-preview .message p {
+  margin: 1em 0;
+}
+.undisclosed {
+  font-size: .9;
+  font-style: italic;
+  opacity: .5;
+}
+
+.undisclosed:before {
+  content : "&lt;"
+}
+.undisclosed:after {
+  content : "&gt;"
+}
+.anonymous-contact .buttons {
+  clear: both;
+  text-align: right;
+}</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>always</use>
+    </property>
+  </object>
+  <content>{{velocity output="false"}}
+#macro (_prepareConfig $options)
+  #set ($email = $xwiki.getDocument($xcontext.user).getObject('XWiki.XWikiUsers').getProperty('email').value)
+  #set ($groups = '')
+  #set ($groupDocs = $xwiki.wrapDocs($xwiki.rightsmanager.getAllGroupsNamesForMember($xcontext.userReference)))
+  #foreach ($gDoc in $groupDocs)
+    #if ($gDoc.getObject('PhenoTips.PhenoTipsGroupClass'))
+      #set ($g = "#if ($gDoc.plainTitle != '')$gDoc.plainTitle#else${gDoc.name}#end")
+      #set ($groups = "$groups#if ($foreach.index &gt; 0) | #end$g")
+    #end
+  #end
+  #set ($config = {
+      'subject'  : "$!{options.subject}",
+
+      'name'     : "#if($options.name)$xwiki.getUserName($xcontext.user, false)#end",
+      'email'    : "#if($options.email)$!{email}#end",
+      'groups'   : "#if($options.groups)${groups}#end",
+
+      'summary'  : $options.summary,
+      'diagnosis': $options.diagnosis,
+
+      'share' : $options.share,
+      'reqcontact' : $options.reqcontact,
+      'message'  : "$!{options.message}",
+
+      'recipientName' : "$!{options.recipientName}",
+      'matchCaseId'   : "$!{options.matchCaseId}",
+      'matchCaseAccessLink': "$!{options.matchCaseAccessLink}"
+  })
+#end
+
+#macro (_generateMessage $options)
+  #_prepareConfig($options)
+  #set ($emailObj = $doc.getObject('XWiki.Mail'))
+  &lt;dl&gt;
+    &lt;dt&gt;&lt;label&gt;Subject&lt;/label&gt;&lt;/dt&gt;
+    &lt;dd class="subject"&gt;#evaluate($emailObj.getProperty('subject').value)&lt;/dd&gt;
+    &lt;dt&gt;&lt;label&gt;Message&lt;/label&gt;&lt;/dt&gt;
+    &lt;dd class="message"&gt;
+       #evaluate($emailObj.getProperty('html').value)
+    &lt;/dd&gt;
+  &lt;/dl&gt;
+#end
+
+#macro (_generateCheckbox $name $label)&lt;label&gt;&lt;input type="checkbox" name="$name" value="1" #if ($defaults.get($name)) checked="checked"#end&gt;$label&lt;/label&gt;#end
+
+#macro (_generateHidden $name $value)&lt;input type="hidden" name="$name" value="$value" /&gt;#end
+{{/velocity}}
+
+{{velocity}}
+#if ($request.patient &amp;&amp; $request.token)
+  #set ($patient = $services.patients.getPatientById("$!{request.patient}"))
+  #set ($discard = $xwiki.ssx.use($doc.fullName))
+  #set ($platformName = 'PhenomeCentral')## TODO: get this from a configuration
+  #if ($request.generate)
+    {{html}}#_generateMessage($request){{/html}}
+  #elseif ($request.send)
+    #_prepareConfig($request)
+    $services.anonymousCommunication.sendInitialMail($request.token, $config)
+  #else
+    #set ($defaults = {
+      'subject'   : 'Interested in one of your non-public cases',
+
+      'name'      : true,
+      'email'     : true,
+      'groups'    : true,
+
+      'summary'   : true,
+      'diagnosis' : true,
+
+      'share'     : true,
+      'reqcontact': true,
+
+      'message'   : '',
+
+      'recipientName' : '&lt;span class="undisclosed"&gt;undisclosed recipient name&lt;/span&gt;',
+      'matchCaseId'   : '&lt;span class="undisclosed"&gt;undisclosed case identifier&lt;/span&gt;',
+      'matchCaseAccessLink': '&lt;span class="undisclosed"&gt;undisclosed URL&lt;/span&gt;',
+      'matchCaseResponseLink': '&lt;span class="undisclosed"&gt;undisclosed URL&lt;/span&gt;'
+    })
+  {{html clean="false"}}
+    &lt;form class="xform" action="$doc.getURL('get')" method="post"&gt;
+      &lt;div class="contact-form-panel configure"&gt;
+        &lt;h2&gt;Configure your message&lt;/h2&gt;
+
+        &lt;dl&gt;
+          &lt;dt&gt;&lt;label for="anon-msg-subject"&gt;Subject&lt;/label&gt;&lt;/dt&gt;
+          &lt;dd&gt;&lt;input type="text" name="subject" id="anon-msg-subject" value="$!{defaults.subject}"/&gt;&lt;/dd&gt;
+        &lt;/dl&gt;
+
+        &lt;fieldset&gt;
+           &lt;legend&gt;Information about you:&lt;/legend&gt;&lt;dl&gt;
+           &lt;dt&gt;#_generateCheckbox('name', 'Disclose your name')&lt;/dt&gt;
+           &lt;dt&gt;#_generateCheckbox('email', 'Disclose your email')&lt;/dt&gt;
+           &lt;dt&gt;#_generateCheckbox('groups', "Disclose your membership to ${platformName} groups")&lt;/dt&gt;
+        &lt;/dl&gt;&lt;/fieldset&gt;
+
+        &lt;fieldset&gt;
+           &lt;legend&gt;Information about your case ($!{request.patient}):&lt;/legend&gt;&lt;dl&gt;
+           &lt;dt&gt;#_generateCheckbox('diagnosis', "Include diagnosis information")&lt;/dt&gt;
+           &lt;dt&gt;#_generateCheckbox('summary', "Include a phenotype summary")&lt;/dt&gt;
+        &lt;/dl&gt;&lt;/fieldset&gt;
+
+        &lt;fieldset&gt;
+           &lt;legend&gt;Your requests:&lt;/legend&gt;&lt;dl&gt;
+           &lt;dt&gt;#_generateCheckbox('share', "Request mutual view access to the two similar cases")&lt;/dt&gt;
+           &lt;dd class="xHint"&gt;If the recipient accepts, they gain view access to your case and you gain view access to theirs.&lt;/dd&gt;
+           &lt;dt&gt;#_generateCheckbox('reqcontact', "Request contact information")&lt;/dt&gt;
+           &lt;dt&gt;&lt;label for="anon-msg-message"&gt;Other information to include in your message&lt;/label&gt;&lt;/dt&gt;
+           &lt;dd&gt;&lt;textarea name="message" id="anon-msg-lessage" value="$!{defaults.message}"&gt;&lt;/textarea&gt;&lt;/dd&gt;
+        &lt;/dl&gt;&lt;/fieldset&gt;
+        &lt;input type="hidden" name="generateAction" value="$xwiki.getURL($doc.fullName, 'get', 'generate=1')" /&gt;
+        &lt;input type="hidden" name="patient" value="$!{request.patient}" /&gt;
+        &lt;input type="hidden" name="token" value="$!{request.token}" /&gt;
+        &lt;input type="hidden" name="recipientName" value="$!{escapetool.xml($defaults.recipientName)}" /&gt;
+        &lt;input type="hidden" name="matchCaseId" value="$!{escapetool.xml($defaults.matchCaseId)}" /&gt;
+        &lt;input type="hidden" name="matchCaseAccessLink" value="$!{escapetool.xml($defaults.matchCaseAccessLink)}" /&gt;
+        &lt;input type="hidden" name="matchCaseResponseLink" value="$!{escapetool.xml($defaults.matchCaseResponseLink)}" /&gt;
+      &lt;/div&gt;
+      &lt;div class="contact-form-panel message-preview" method="post"&gt;
+        &lt;h2&gt;Preview your message&lt;/h2&gt;
+        &lt;p class="xHint"&gt;This is the message the other user will receive:&lt;/p&gt;
+        &lt;div id="contact-message-preview"&gt;
+           #_generateMessage($defaults)
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="buttons"&gt;
+        &lt;span class="buttonwrapper"&gt;&lt;input type="submit" name="send" value="Send" class="button" /&gt;&lt;/span&gt;
+        &lt;span class="buttonwrapper"&gt;&lt;input type="button" name="cancel" value="cancel" class="button secondary" /&gt;&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/form&gt;
+  {{/html}}
+  #end## Generate form
+#end## Patient and token exist
+{{/velocity}}
+</content>
+</xwikidoc>

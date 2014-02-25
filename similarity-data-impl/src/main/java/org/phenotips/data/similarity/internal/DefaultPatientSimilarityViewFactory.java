@@ -71,7 +71,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @Override
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
-        if (patientPair instanceof AbstractPatientSimilarityView) {
+        if (patientPair instanceof DefaultPatientSimilarityView) {
+            return patientPair;
+        } else if (patientPair instanceof AbstractPatientSimilarityView) {
             return new DefaultPatientSimilarityView((AbstractPatientSimilarityView) patientPair);
         }
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);

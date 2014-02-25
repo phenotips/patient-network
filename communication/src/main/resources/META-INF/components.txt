@@ -1,3 +1,4 @@
+org.phenotips.messaging.internal.DefaultActionManager
 org.phenotips.messaging.internal.DefaultConnectionManager
 org.phenotips.messaging.internal.ORMRegistrationHandler
 org.phenotips.messaging.script.AnonymousCommunicationScriptService

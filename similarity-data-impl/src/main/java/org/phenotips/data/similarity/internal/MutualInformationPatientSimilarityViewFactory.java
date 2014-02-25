@@ -56,52 +56,12 @@ import org.xwiki.component.phase.InitializationException;
 @Singleton
 public class MutualInformationPatientSimilarityViewFactory implements PatientSimilarityViewFactory, Initializable
 {
-    /*
-     * Pseudo-code of algorithm:
-     * 
-     * create mapping from parent nodes to list of children
-     * root = "HP:0000118"
-     * eps = 1e-9
-     * freqDenom = 0
-     * for term in HPO:
-     *   termFreq[term] = 0
-     * 
-     * for disease in diseaseTraits:
-     *   for term in disease.symptoms:
-     *     occurrence = disease.getFrequency(term)
-     *     termFreq[term] += occurrence
-     *     freqDenom += occurrence
-     * put("id", "HP:*")
-     * put("id", "HP:*")
-     * for term in HPO:
-     *   termFreq[term] = min(max(termFreq[term] / freqDenom, eps), 1-eps)
-     * 
-     * def setInformation(node):
-     *   probMass = termFreq[node]
-     *   for child in children(node):
-     *     probMass += setInformation(child)
-     *     
-     *   probMass = min(max(probMass, eps), 1-eps)
-     *   termIC[node] = -log(probMass)
-     *   return probMass
-     * 
-     * setInformation(root)
-     * 
-     * for term in HPO:
-     *   parents = set(term.getParents())
-     *   sibling_prob_mass = 0
-     *   for parent in parents:
-     *     for poss_sibling in children(parent):
-     *       if poss_sibling.getParents().issupersetof(parents):
-     *         sibling_prob_mass += exp(-termIC(poss_sibling))
-     *         
-     *   sibling_prob_mass = min(max(sibling_prob_mass, eps), 1-eps)
-     *   probCondParents[term] = termIC(term) + log(sibling_prob_mass)
-     * 
-     */
 
     /** The root of the phenotypic abnormality portion of HPO. */
     private static final String HP_ROOT = "HP:0000118";
+
+    /** Small value used to round things too close to 0 or 1. */
+    private static final double EPS = 1e-9;
 
     /** Logging helper object. */
     @Inject
@@ -157,7 +117,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
      */
     private double limitProb(double prob)
     {
-        return Math.min(Math.max(prob, 1e-9), 1 - 1e-9);
+        return Math.min(Math.max(prob, EPS), 1 - EPS);
     }
 
     /**
@@ -174,7 +134,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        logger.error("  ... found " + results.size() + " entries");
+        logger.error("  ... found " + results.size() + " entries.");
         return results;
     }
 
@@ -345,8 +305,10 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             if (HP_ROOT.equals(term.getId())) {
                 logger.error(String.format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
-            probMass = limitProb(probMass);
-            termIC.put(term, -Math.log(probMass));
+            if (probMass > EPS) {
+                probMass = limitProb(probMass);
+                termIC.put(term, -Math.log(probMass));
+            }
         }
         return termIC;
     }
@@ -374,21 +336,30 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             }
         }
 
-        // Sum probability mass under all siblings
-        Double siblingProbMass = 0.0;
-        for (OntologyTerm sibling : siblings) {
-            Double siblingIC = termIC.get(sibling);
-            if (siblingIC != null) {
-                siblingProbMass += Math.exp(-siblingIC);
+        Double thisIC = 0.0;
+        if (siblings == null) {
+            logger.error("Missing siblings for term: " + term.getId());
+        } else {
+            // Sum probability mass under all siblings
+            Double siblingProbMass = 0.0;
+            for (OntologyTerm sibling : siblings) {
+                Double siblingIC = termIC.get(sibling);
+                if (siblingIC != null) {
+                    siblingProbMass += Math.exp(-siblingIC);
+                }
+            }
+
+            if (siblingProbMass > EPS) {
+                // Approximate conditional information content of term is information content of term less the overall
+                // information content of siblings
+                thisIC = termIC.get(term);
+                if (thisIC == null) {
+                    thisIC = 0.0;
+                }
+                thisIC += Math.log(siblingProbMass);
             }
         }
-        // Approximate conditional information content of term is information content of term less the overall
-        // information content of siblings
-        Double thisIC = termIC.get(term);
-        if (thisIC == null) {
-            thisIC = 0.0;
-        }
-        return thisIC + Math.log(siblingProbMass);
+        return thisIC;
     }
 
     /**
@@ -438,6 +409,5 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         logger.error("Setting view globals...");
         // Give data to view to use
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
-        MutualInformationPatientSimilarityView.setICs(termIC);
     }
 }
