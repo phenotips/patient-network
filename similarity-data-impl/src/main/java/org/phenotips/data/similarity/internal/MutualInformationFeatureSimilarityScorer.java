@@ -47,26 +47,25 @@ import org.xwiki.component.phase.InitializationException;
 @Named("mi")
 public class MutualInformationFeatureSimilarityScorer implements FeatureSimilarityScorer, Initializable
 {
-
+    
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
-    private static Map<OntologyTerm, Double> termICs;
+    private static Map<OntologyTerm, Double> termICs = null;
 
     /** The maximum information content score of any term. */
-    private static Double maxIC;
-
+    private static Double maxIC = null;
+    
     /** Provides access to the term ontology. */
     @Inject
     private OntologyManager ontologyManager;
-
+    
     @Override
     public void initialize() throws InitializationException
     {
-        termICs = null;
-        maxIC = null;
+        // Nothing needs to be done.
     }
-
+    
     /**
-     * Set the static term information content used the class.
+     * Set the static term information content used the class. Must be called before class is functional.
      * 
      * @param termIcs the information content of each term.
      */
@@ -128,4 +127,5 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
         }
         return bestInformationContent / this.maxIC;
     }
+
 }
