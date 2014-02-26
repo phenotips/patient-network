@@ -27,17 +27,20 @@ import java.util.Set;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of FeatureSimilarityView that uses a mutual information metric to score similar patients.
+ * Implementation of {@link PatientSimilarityView} that uses a mutual information metric to score similar patients.
  * 
  * @version $Id$
  * @since
  */
-public class MutualInformationPatientSimilarityView extends RestrictedPatientSimilarityView
+public class MutualInformationPatientSimilarityView extends RestrictedPatientSimilarityView implements
+    PatientSimilarityView
 {
     /*
      * (non-Javadoc)
@@ -62,7 +65,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     private final OntologyManager ontologyManager;
 
     /** Logging helper object. */
-    private final Logger logger;
+    private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -71,17 +74,27 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
      * @param ontologyManager the term ontology
-     * @param logger logging helper object
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
     public MutualInformationPatientSimilarityView(Patient match, Patient reference, AccessType access,
-        OntologyManager ontologyManager, Logger logger) throws IllegalArgumentException
+        OntologyManager ontologyManager) throws IllegalArgumentException
     {
         super(match, reference, access);
         this.match = match;
         this.reference = reference;
         this.ontologyManager = ontologyManager;
-        this.logger = logger;
+    }
+
+    /**
+     * Constructor that copies the data from another patient pair.
+     * 
+     * @param openView the open patient pair to clone
+     * @param ontologyManager the term ontology
+     */
+    public MutualInformationPatientSimilarityView(AbstractPatientSimilarityView openView,
+        OntologyManager ontologyManager)
+    {
+        this(openView.match, openView.reference, openView.access, ontologyManager);
     }
 
     /**
@@ -110,7 +123,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
             OntologyTerm term = this.ontologyManager.resolveTerm(feature.getId());
             if (term == null) {
-                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
+                this.logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
             } else {
                 terms.add(term);
             }
