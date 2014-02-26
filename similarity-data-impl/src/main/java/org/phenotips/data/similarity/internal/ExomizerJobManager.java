@@ -19,16 +19,16 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import jannovar.reference.Chromosome;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,10 +40,12 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.environment.Environment;
 
+import exomizer.Exomizer;
+import exomizer.exception.ExomizerException;
 
 /**
- * 
  * @version $Id$
  */
 @Component
@@ -51,97 +53,166 @@ import org.xwiki.component.phase.InitializationException;
 @Singleton
 public class ExomizerJobManager implements ExternalToolJobManager, Initializable
 {
-
-    /** The URL for the Exomizer postgresql server. */
-    private final String DB_URL = "jdbc:postgresql://localhost/nsfpalizer";
-    
-    /** The server file path for the serialized UCSC data. */
-    private final String UCSC_SER = "/data/Exomiser/ucsc.ser";
-    
-    private final HashMap<Byte, Chromosome> chromosomeMap;
-    
     /** Logging helper object. */
     @Inject
     private Logger logger;
 
-    private ExecutorService executor;
-    
-    private Map<Patient, Future<?>> submittedJobs;
+    /** Environment helper to get static directory on local filesystem. */
+    @Inject
+    private Environment environment;
 
-    private Map<Patient, Future<?>> completedJobs;
-    
-    private File dataDir;
-    
+    /** Threadpool manager. */
+    private ExecutorService executor;
+
+    /** A record of jobs that have been submitted since running. */
+    private Map<Patient, Future< ? >> submittedJobs;
+
+    /** A mapping of available results, from PhenomeCentral patient IDs to the output Files. */
+    private Map<String, File> completedJobs;
+
+    /** Static directory for output exomizer files. */
+    private File outDir;
+
+    /** The URL for the Exomizer postgresql server. */
+    private String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
+
+    /** The server file path for the serialized UCSC data. */
+    private String serializedDb = "/data/Exomiser/ucsc.ser";
+
+    /** Exomized gene data structure, loaded once and shared by all jobs. */
+    private HashMap<Byte, Chromosome> chromosomeMap;
+
     @Override
     public void initialize() throws InitializationException
     {
         // Get xwiki component permanent directory for Exomizer files
-        // Initialize record of existing jobs based upon files found there
-        chromosomeMap = Exomizer.getDeserializedUCSCdata(UCSC_SER);
-        dataDir = null;
-        
-        FilenameFilter exomizerFileFilter = new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".ezr");
+        File rootDir = environment.getPermanentDirectory();
+        outDir = new File(rootDir, "exomizer");
+        if (!outDir.isDirectory()) {
+            if (outDir.exists()) {
+                throw new InitializationException("file exists instead of data: " + outDir.getAbsolutePath());
+            } else {
+                boolean success = outDir.mkdirs();
+                if (!success) {
+                    throw new InitializationException("could not create exomizer data directory: "
+                        + outDir.getAbsolutePath());
+                }
+            }
+        }
+
+        // Process all already-completed files
+        FilenameFilter exomizerFileFilter = new FilenameFilter()
+        {
+            public boolean accept(File dir, String name)
+            {
+                return !name.endsWith(".temp") && (new File(dir, name)).isFile();
             }
         };
 
-        dataDir.listFiles(exomizerFileFilter);
-        
-        
-        executor = Executors.newFixedThreadPool(2);
-        submittedJobs = new HashMap<Patient, Future<?>>();
-    }
-    
-    @Override
-    public int getStatus(Patient p)
-    {
-        // TODO Auto-generated method stub
-        /**- exomizer: keep track of (and API for PC to query)
-         * -- no-vcf
-         * -- in-progress
-         * -- completed
-         * -- error
-         **/
-        Future<?> result = submittedJobs.get(p);
-        if (result == null) {
-            // Not in submittedJobs
-        } else if (result.isDone()) {
-            // Finished, due to success or failure
-            if (result.get() == null) {
-                // Success
-            } else {
-                // Error
+        for (File file : outDir.listFiles(exomizerFileFilter)) {
+            String patientId = file.getName();
+            if (!"".equals(patientId)) {
+                completedJobs.put(patientId, file);
             }
-        } else {
-            // Still in progress
         }
-        return 0;
+
+        executor = Executors.newFixedThreadPool(2);
+        submittedJobs = new HashMap<Patient, Future< ? >>();
+        completedJobs = new ConcurrentHashMap<String, File>();
+        chromosomeMap = null;
     }
-    
-    @Override
-    public void addJob(Patient p)
+
+    /**
+     * Get the patient's unique PhenomeCentral ID.
+     * 
+     * @param p the patient.
+     * @return the string PhenomeCentral ID of this patient.
+     */
+    private static String getPatientId(Patient p)
     {
-        // Look up filtered variants from PhenomeCentral-Medsavant API
-        /** - non-blocking dispatch job (phenomecentral id)
-         * -- lookup vcf
-         * -- lookup patient phenotypes
-         */
-        String vcfFilePath = null;
-        String outFilePath = null;
-        String hpo = null; // "HP:0123456,HP:0000118,..."
+        return p.getDocument().getName();
+    }
+
+    @Override
+    public void addJob(Patient patient)
+    {
+        if (chromosomeMap == null) {
+            try {
+                logger.error(" FIRST EXOMIZER JOB: initializing Exomizer with " + serializedDb);
+                chromosomeMap = Exomizer.getDeserializedUCSCdata(serializedDb);
+            } catch (ExomizerException e) {
+                logger.error(" initialization FAILED: " + e);
+                return;
+            }
+        }
         
-        logger.info("Adding Exomizer job to queue: " + vcfFilePath + " -> " + outFilePath);
-        Runnable worker = new ExomizerJob(this.chromosomeMap, this.DB_URL, hpo, vcfFilePath, outFilePath);
-        
-        Future<?> result = submittedJobs.get(p);
+        Future< ? > result = submittedJobs.get(patient);
         if (result != null) {
             // patient was already submitted
             result.cancel(false);
         }
-        
+
+        // Look up filtered variants from PhenomeCentral-Medsavant API
+        // XXX: String patientId = getPatientId(patient);
+        File inFile = new File("/Users/orion/projects/phenotips/NA20538_101600_AD_FGFR2.vcf");
+
+        Runnable worker = new ExomizerJob(patient, inFile, outDir, dbUrl, chromosomeMap, completedJobs);
+
         // Submit job and store future for status queries
+        logger.error(" submitting Exomizer job to threadpool: " + getPatientId(patient));
         result = executor.submit(worker);
-        submittedJobs.put(p, result);
+        submittedJobs.put(patient, result);
+    }
+
+    @Override
+    public boolean hasJob(Patient patient)
+    {
+        return submittedJobs.containsKey(patient) || completedJobs.containsKey(getPatientId(patient));
+    }
+
+    @Override
+    public boolean hasFinished(Patient patient)
+    {
+        if (wasSuccessful(patient)) {
+            return true;
+        } else {
+            // Check status of submitted job
+            Future< ? > result = submittedJobs.get(patient);
+            if (result != null && result.isDone()) {
+                // job submitted and finished
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean wasSuccessful(Patient patient)
+    {
+        return completedJobs.containsKey(getPatientId(patient));
+    }
+
+    @Override
+    public String getStatusMessage(Patient patient)
+    {
+        if (hasJob(patient)) {
+            if (hasFinished(patient)) {
+                if (wasSuccessful(patient)) {
+                    return "success";
+                } else {
+                    return "error encountered";
+                }
+            } else {
+                return "pending";
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public File getOutputFile(Patient patient)
+    {
+        return completedJobs.get(getPatientId(patient));
     }
 }

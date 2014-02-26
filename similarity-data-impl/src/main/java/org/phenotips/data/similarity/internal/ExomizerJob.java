@@ -19,26 +19,19 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import exomizer.ExomizerManager;
-import exomizer.exception.ExomizerException;
+import jannovar.reference.Chromosome;
 
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.apache.commons.lang.StringUtils;
+import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
 
-import org.phenotips.data.similarity.ExternalToolJobManager;
-import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
-
-import exomizer.ExomizerManager;
+import exomizer.Exomizer;
 import exomizer.exception.ExomizerException;
 
 /**
@@ -47,45 +40,80 @@ import exomizer.exception.ExomizerException;
 public class ExomizerJob implements Runnable
 {
 
-    private final String hpo;
+    /** The patient being run. */
+    private Patient patient;
 
-    private final String vcfFilePath;
+    /** Input (vcf) file. */
+    private File inFile;
 
-    private final String outFilePath;
+    /** Output file directory (used for temp and final file. */
+    private File outDir;
 
-    private final HashMap<Byte, Chromosome> chromosomeMap;
+    /** URL for the postgresql server. */
+    private String dbUrl;
 
-    private final String dbUrl;
-    
-    private Map<String, Integer> jobStatus;
+    /** The Exomizer gene data structure, shared across jobs. */
+    private HashMap<Byte, Chromosome> chromosomeMap;
 
-    public ExomizerJob(HashMap<Byte, Chromosome> chromosomeMap, String dbUrl, String hpo, String vcfFilePath, String outFilePath)
+    /** The shared data structure to record completed jobs. */
+    private Map<String, File> completedJobs;
+
+    /**
+     * Create Runnable exomizer job from ExomizerManager instance.
+     * 
+     * @param patient the patient to run.
+     * @param inFile the input (vcf) file for exomizer.
+     * @param chromosomeMap the shared Exomizer data structure.
+     * @param outDir the directory in which to store the output (and temp) file.
+     * @param completedJobs the shared data structure to record the job completion.
+     */
+    public ExomizerJob(Patient patient, File inFile, File outDir, String dbUrl,
+        HashMap<Byte, Chromosome> chromosomeMap, Map<String, File> completedJobs)
     {
-        this.hpo = hpo;
-        this.vcfFilePath = vcfFilePath;
-        this.outFilePath = outFilePath;
-        this.chromosomeMap = chromosomeMap;
+        this.patient = patient;
+        this.inFile = inFile;
+        this.outDir = outDir;
         this.dbUrl = dbUrl;
+        this.chromosomeMap = chromosomeMap;
+        this.completedJobs = completedJobs;
+    }
+
+    /**
+     * Return the comma-separated string of HPO terms present in a Patient, suitable for ExomizerManager.
+     * 
+     * @param patient the patient to get HPO terms for.
+     * @return the string of present HPO terms, comma-separated.
+     */
+    private static String getPatientHPOs(Patient patient)
+    {
+        List<String> hps = new LinkedList<String>();
+        for (Feature feature : patient.getFeatures()) {
+            if (feature.isPresent()) {
+                hps.add(feature.getId());
+            }
+        }
+
+        return StringUtils.join(hps, ",");
     }
 
     @Override
     public void run()
     {
-        if (this.chromosomeMap == null || this.dbUrl.isEmpty()) {
-            throw new RuntimeException("Exomizer job parameters not properly set before running");
-        }
+        String patientId = patient.getDocument().getName();
+        File outFile = new File(outDir, patientId);
+        File tempOutFile = new File(outDir, patientId + ".temp");
 
+        String hpoIDs = getPatientHPOs(patient); // "HP:0123456,HP:0000118,..."
         try {
-            // Set up Exomizer instance
             Exomizer exomizer = new Exomizer(this.chromosomeMap);
-            exomizer.setHPOids(this.hpo);
+            exomizer.setHPOids(hpoIDs);
             exomizer.setUsePathogenicityFilter(true);
             exomizer.setFrequencyThreshold("1");
-            exomizer.setVCFfile(this.vcfFilePath);
-            exomizer.setOutfile(this.outFilePath);
+            exomizer.setVCFfile(inFile.getAbsolutePath());
+            exomizer.setOutfile(tempOutFile.getAbsolutePath());
 
             // Connect to database and load VCF
-            exomizer.openNewDatabaseConnection(this.dbUrl);
+            exomizer.openNewDatabaseConnection(dbUrl);
             exomizer.parseVCFFile();
 
             // Process variants
@@ -96,8 +124,15 @@ public class ExomizerJob implements Runnable
             // Output results to file
             exomizer.outputVCF();
         } catch (ExomizerException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Exomizer error: " + e);
         }
+
+        // Successfully completed, so move from temp to final file and add to completed
+        boolean success = tempOutFile.renameTo(outFile);
+        if (!success) {
+            throw new RuntimeException("Unable to move temp exomizer file to final path:" + outFile.getAbsolutePath());
+        }
+        completedJobs.put(patientId, outFile);
     }
 
 }
