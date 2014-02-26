@@ -94,11 +94,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        logger.error("Creating view for " + reference.getDocument().getName() + " + " + match.getDocument().getName());
-        MutualInformationPatientSimilarityView view =
-            new MutualInformationPatientSimilarityView(match, reference, access, ontologyManager, logger);
-        logger.error("  score:" + view.getScore());
-        return view;
+        return new MutualInformationPatientSimilarityView(match, reference, access, ontologyManager, logger);
     }
 
     @Override
@@ -286,7 +282,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
     private Map<OntologyTerm, Double> getTermICs(Map<OntologyTerm, Double> termFreq,
         Map<OntologyTerm, Collection<OntologyTerm>> termDescendants)
     {
-        Map<OntologyTerm, Double> termIC = new HashMap<OntologyTerm, Double>();
+        Map<OntologyTerm, Double> termICs = new HashMap<OntologyTerm, Double>();
 
         for (OntologyTerm term : termFreq.keySet()) {
             Collection<OntologyTerm> descendants = termDescendants.get(term);
@@ -307,10 +303,10 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             }
             if (probMass > EPS) {
                 probMass = limitProb(probMass);
-                termIC.put(term, -Math.log(probMass));
+                termICs.put(term, -Math.log(probMass));
             }
         }
-        return termIC;
+        return termICs;
     }
 
     /**
@@ -398,16 +394,17 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         Map<OntologyTerm, Double> termFreq = getTermFrequencies(mim, hpo, termDescendants.keySet());
 
         // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
-        Map<OntologyTerm, Double> termIC = getTermICs(termFreq, termDescendants);
+        Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
         logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-        Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC, termChildren);
-        assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
+        Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
+        assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
         logger.error("Setting view globals...");
-        // Give data to view to use
+        // Give data to views to use
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
+        MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
     }
 }
