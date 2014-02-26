@@ -19,6 +19,20 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyService;
+import org.phenotips.ontology.OntologyTerm;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,19 +45,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.params.CommonParams;
-import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 
 /**
  * Implementation of {@link PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
@@ -80,14 +82,16 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        MutualInformationPatientSimilarityView view =
-            new MutualInformationPatientSimilarityView(match, reference, access, this.ontologyManager);
-        return view;
+        return new MutualInformationPatientSimilarityView(match, reference, access, this.ontologyManager);
     }
 
     @Override
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
+        if (patientPair instanceof AbstractPatientSimilarityView) {
+            return new MutualInformationPatientSimilarityView((AbstractPatientSimilarityView) patientPair,
+                this.ontologyManager);
+        }
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
         return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access,
             this.ontologyManager);
@@ -112,13 +116,13 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
-        logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        this.logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        logger.error("  ... found " + results.size() + " entries.");
+        this.logger.error("  ... found " + results.size() + " entries.");
         return results;
     }
 
@@ -172,7 +176,7 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
                 if (childDescendants != null) {
                     descendants.addAll(childDescendants);
                 } else {
-                    logger.error("Descendants were null after recursion");
+                    this.logger.error("Descendants were null after recursion");
                 }
             }
         }
@@ -218,7 +222,7 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
             // Get a Collection<String> of symptom HP IDs, or null
             Object symptomNames = disease.get("actual_symptom");
             if (symptomNames != null) {
-                if (symptomNames instanceof Collection< ? >) {
+                if (symptomNames instanceof Collection<?>) {
                     for (String symptomName : ((Collection<String>) symptomNames)) {
                         OntologyTerm symptom = hpo.getTerm(symptomName);
                         if (!allowedTerms.contains(symptom)) {
@@ -242,16 +246,16 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
                     }
                 } else {
                     String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
-                    logger.error(err);
+                    this.logger.error(err);
                     throw new RuntimeException(err);
                 }
             }
         }
         if (!ignoredSymptoms.isEmpty()) {
-            logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
+            this.logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
 
-        logger.error("Normalizing term frequency distribution...");
+        this.logger.error("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
         for (Map.Entry<OntologyTerm, Double> entry : termFreq.entrySet()) {
             entry.setValue(limitProb(entry.getValue() / freqDenom));
@@ -270,12 +274,12 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     private Map<OntologyTerm, Double> getTermICs(Map<OntologyTerm, Double> termFreq,
         Map<OntologyTerm, Collection<OntologyTerm>> termDescendants)
     {
-        Map<OntologyTerm, Double> termIC = new HashMap<OntologyTerm, Double>();
+        Map<OntologyTerm, Double> termICs = new HashMap<OntologyTerm, Double>();
 
         for (OntologyTerm term : termFreq.keySet()) {
             Collection<OntologyTerm> descendants = termDescendants.get(term);
             if (descendants == null) {
-                logger.error("Found no descendants of term: " + term.getId());
+                this.logger.error("Found no descendants of term: " + term.getId());
             }
             // Sum up frequencies of all descendants
             double probMass = 0.0;
@@ -287,14 +291,15 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
             }
 
             if (HP_ROOT.equals(term.getId())) {
-                logger.error(String.format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
+                this.logger.error(String
+                    .format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
             if (probMass > EPS) {
                 probMass = limitProb(probMass);
-                termIC.put(term, -Math.log(probMass));
+                termICs.put(term, -Math.log(probMass));
             }
         }
-        return termIC;
+        return termICs;
     }
 
     /**
@@ -370,8 +375,8 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     public void initialize() throws InitializationException
     {
         // Load the OMIM/HPO mappings
-        OntologyService mim = ontologyManager.getOntology("MIM");
-        OntologyService hpo = ontologyManager.getOntology("HPO");
+        OntologyService mim = this.ontologyManager.getOntology("MIM");
+        OntologyService hpo = this.ontologyManager.getOntology("HPO");
         OntologyTerm hpRoot = hpo.getTerm(HP_ROOT);
 
         // Pre-compute HPO descendant lookups
@@ -382,16 +387,17 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         Map<OntologyTerm, Double> termFreq = getTermFrequencies(mim, hpo, termDescendants.keySet());
 
         // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
-        Map<OntologyTerm, Double> termIC = getTermICs(termFreq, termDescendants);
+        Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
-        logger.error("Calculating conditional ICs...");
+        this.logger.error("Calculating conditional ICs...");
         // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-        Map<OntologyTerm, Double> parentCondIC = getCondICs(termIC, termChildren);
-        assert termIC.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
+        Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
+        assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-        logger.error("Setting view globals...");
-        // Give data to view to use
+		// Give data to views to use
+		this.logger.error("Setting view globals...");
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
+        MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
     }
 }
