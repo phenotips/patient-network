@@ -54,9 +54,9 @@ import org.xwiki.component.phase.InitializationException;
 @Component
 @Named("mi")
 @Singleton
-public class MutualInformationPatientSimilarityViewFactory implements PatientSimilarityViewFactory, Initializable
+public class MutualInformationPatientSimilarityViewFactory extends RestrictedPatientSimilarityViewFactory implements
+    Initializable
 {
-
     /** The root of the phenotypic abnormality portion of HPO. */
     private static final String HP_ROOT = "HP:0000118";
 
@@ -65,25 +65,11 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
 
     /** Logging helper object. */
     @Inject
-    private Logger logger;
-
-    /** Computes the real access level for a patient. */
-    @Inject
-    private PermissionsManager permissions;
-
-    /** Needed by {@link DefaultAccessType} for checking if a given access level provides read access to patients. */
-    @Inject
-    @Named("view")
-    private AccessLevel viewAccess;
-
-    /** Needed by {@link DefaultAccessType} for checking if a given access level provides limited access to patients. */
-    @Inject
-    @Named("match")
-    private AccessLevel matchAccess;
+    protected Logger logger;
 
     /** Provides access to the term ontology. */
     @Inject
-    private OntologyManager ontologyManager;
+    protected OntologyManager ontologyManager;
 
     @Override
     public PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException
@@ -94,10 +80,8 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        logger.error("Creating view for " + reference.getDocument().getName() + " + " + match.getDocument().getName());
         MutualInformationPatientSimilarityView view =
-            new MutualInformationPatientSimilarityView(match, reference, access, ontologyManager, logger);
-        logger.error("  score:" + view.getScore());
+            new MutualInformationPatientSimilarityView(match, reference, access, this.ontologyManager);
         return view;
     }
 
@@ -106,7 +90,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
     {
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
         return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access,
-            ontologyManager, logger);
+            this.ontologyManager);
     }
 
     /**

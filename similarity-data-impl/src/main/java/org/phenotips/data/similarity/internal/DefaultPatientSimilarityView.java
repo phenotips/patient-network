@@ -22,6 +22,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.CandidateGene;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
@@ -58,6 +59,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
     {
         super(match, reference, access);
         matchFeatures();
+        matchGenes();
         matchDisorders();
     }
 
@@ -72,7 +74,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
     }
 
     @Override
-    public Set<? extends Feature> getFeatures()
+    public Set< ? extends Feature> getFeatures()
     {
         Set<Feature> result = new HashSet<Feature>();
         for (FeatureSimilarityView feature : this.matchedFeatures) {
@@ -85,7 +87,14 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
     }
 
     @Override
-    public Set<? extends Disorder> getDisorders()
+    public Set< ? extends CandidateGene> getCandidateGenes()
+    {
+        Set<CandidateGene> result = new HashSet<CandidateGene>();
+        return result;
+    }
+    
+    @Override
+    public Set< ? extends Disorder> getDisorders()
     {
         Set<Disorder> result = new HashSet<Disorder>();
         for (DisorderSimilarityView disorder : this.matchedDisorders) {
@@ -110,7 +119,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
         result.element("score", getScore());
         result.element("featuresCount", this.match.getFeatures().size());
 
-        Set<? extends Feature> features = getFeatures();
+        Set< ? extends Feature> features = getFeatures();
         if (!features.isEmpty()) {
             JSONArray featuresJSON = new JSONArray();
             for (Feature feature : features) {
@@ -119,7 +128,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
             result.element("features", featuresJSON);
         }
 
-        Set<? extends Disorder> disorders = getDisorders();
+        Set< ? extends Disorder> disorders = getDisorders();
         if (!disorders.isEmpty()) {
             JSONArray disordersJSON = new JSONArray();
             for (Disorder disorder : disorders) {
@@ -152,6 +161,15 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
     }
 
     /**
+     * Create pairs of matching genes, one or more from the current patient and one or more from the reference patient.
+     * Unmatched values from either side are paired with a {@code null} value.
+     */
+    private void matchGenes()
+    {
+        this.matchedGenes = null;
+    }
+
+    /**
      * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      */
@@ -169,4 +187,5 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
         }
         this.matchedDisorders = Collections.unmodifiableSet(result);
     }
+
 }

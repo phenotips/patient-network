@@ -45,17 +45,17 @@ public class RestrictedPatientSimilarityViewFactory implements PatientSimilarity
 {
     /** Computes the real access level for a patient. */
     @Inject
-    private PermissionsManager permissions;
+    protected PermissionsManager permissions;
 
     /** Needed by {@link DefaultAccessType} for checking if a given access level provides read access to patients. */
     @Inject
     @Named("view")
-    private AccessLevel viewAccess;
+    protected AccessLevel viewAccess;
 
     /** Needed by {@link DefaultAccessType} for checking if a given access level provides limited access to patients. */
     @Inject
     @Named("match")
-    private AccessLevel matchAccess;
+    protected AccessLevel matchAccess;
 
     @Override
     public PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException

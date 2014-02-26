@@ -19,6 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.CandidateGene;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
@@ -27,7 +28,6 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
-
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Collections;
@@ -62,6 +62,7 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     {
         super(match, reference, access);
         matchFeatures();
+        matchGenes();
         matchDisorders();
     }
 
@@ -104,6 +105,13 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         return result;
     }
 
+    @Override
+    public Set< ? extends CandidateGene> getCandidateGenes()
+    {
+        Set<CandidateGene> result = new HashSet<CandidateGene>();
+        return result;
+    }
+    
     @Override
     public Set<? extends Disorder> getDisorders()
     {
@@ -190,6 +198,15 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     /**
+     * Create pairs of matching genes, one or more from the current patient and one or more from the reference patient.
+     * Unmatched values from either side are paired with a {@code null} value.
+     */
+    private void matchGenes()
+    {
+        this.matchedGenes = null;
+    }
+    
+    /**
      * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      */
@@ -207,4 +224,5 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         }
         this.matchedDisorders = Collections.unmodifiableSet(result);
     }
+
 }

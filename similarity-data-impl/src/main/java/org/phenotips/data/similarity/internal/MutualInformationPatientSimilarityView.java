@@ -30,6 +30,7 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of FeatureSimilarityView that uses a mutual information metric to score similar patients.
@@ -62,7 +63,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     private final OntologyManager ontologyManager;
 
     /** Logging helper object. */
-    private final Logger logger;
+    private Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -75,13 +76,12 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
     public MutualInformationPatientSimilarityView(Patient match, Patient reference, AccessType access,
-        OntologyManager ontologyManager, Logger logger) throws IllegalArgumentException
+        OntologyManager ontologyManager) throws IllegalArgumentException
     {
         super(match, reference, access);
         this.match = match;
         this.reference = reference;
         this.ontologyManager = ontologyManager;
-        this.logger = logger;
     }
 
     /**

@@ -29,9 +29,9 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
-
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
@@ -61,6 +61,9 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /** Links feature values from this patient to the reference. */
     protected Set<FeatureSimilarityView> matchedFeatures;
 
+    /** Links gene variants from this patient to the reference. */
+    protected Set<GenotypeSimilarityView> matchedGenes;
+    
     /** Links disorder values from this patient to the reference. */
     protected Set<DisorderSimilarityView> matchedDisorders;
 
