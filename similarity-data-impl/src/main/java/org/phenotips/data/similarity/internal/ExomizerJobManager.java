@@ -22,9 +22,12 @@ package org.phenotips.data.similarity.internal;
 import jannovar.reference.Chromosome;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +39,7 @@ import javax.inject.Singleton;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.ExternalToolJobManager;
+import org.phenotips.data.similarity.Genotype;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -51,7 +55,7 @@ import exomizer.exception.ExomizerException;
 @Component
 @Named("exomizer")
 @Singleton
-public class ExomizerJobManager implements ExternalToolJobManager, Initializable
+public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Initializable
 {
     /** Logging helper object. */
     @Inject
@@ -65,10 +69,10 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
     private ExecutorService executor;
 
     /** A record of jobs that have been submitted since running. */
-    private Map<Patient, Future< ? >> submittedJobs;
+    private Map<String, Future< ? >> submittedJobs;
 
-    /** A mapping of available results, from PhenomeCentral patient IDs to the output Files. */
-    private Map<String, File> completedJobs;
+    /** A mapping of available results, from PhenomeCentral patient IDs to the annotated Genotypes. */
+    private Map<String, Genotype> completedJobs;
 
     /** Static directory for output exomizer files. */
     private File outDir;
@@ -85,17 +89,26 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
     @Override
     public void initialize() throws InitializationException
     {
+        // Set up threadpool
+        this.executor = Executors.newFixedThreadPool(2);
+        this.submittedJobs = new ConcurrentHashMap<String, Future< ? >>();
+        this.completedJobs = new ConcurrentHashMap<String, Genotype>();
+        ExomizerJob.setManager(this);
+        
+        // Shared across threads
+        this.chromosomeMap = null;
+
         // Get xwiki component permanent directory for Exomizer files
-        File rootDir = environment.getPermanentDirectory();
-        outDir = new File(rootDir, "exomizer");
-        if (!outDir.isDirectory()) {
-            if (outDir.exists()) {
-                throw new InitializationException("file exists instead of data: " + outDir.getAbsolutePath());
+        File rootDir = this.environment.getPermanentDirectory();
+        this.outDir = new File(rootDir, "exomizer");
+        if (!this.outDir.isDirectory()) {
+            if (this.outDir.exists()) {
+                throw new InitializationException("file exists instead of data: " + this.outDir.getAbsolutePath());
             } else {
-                boolean success = outDir.mkdirs();
+                boolean success = this.outDir.mkdirs();
                 if (!success) {
                     throw new InitializationException("could not create exomizer data directory: "
-                        + outDir.getAbsolutePath());
+                        + this.outDir.getAbsolutePath());
                 }
             }
         }
@@ -108,18 +121,42 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
                 return !name.endsWith(".temp") && (new File(dir, name)).isFile();
             }
         };
-
-        for (File file : outDir.listFiles(exomizerFileFilter)) {
+        for (File file : this.outDir.listFiles(exomizerFileFilter)) {
             String patientId = file.getName();
             if (!"".equals(patientId)) {
-                completedJobs.put(patientId, file);
+                try {
+                    putResult(patientId, new ExomizerGenotype(file));
+                } catch (FileNotFoundException e) {
+                    logger.error("Unable to load genotype from file: " + file.getAbsolutePath());
+                }
             }
         }
+    }
 
-        executor = Executors.newFixedThreadPool(2);
-        submittedJobs = new HashMap<Patient, Future< ? >>();
-        completedJobs = new ConcurrentHashMap<String, File>();
-        chromosomeMap = null;
+    /**
+     * Get the shared exomizer chromosome map instance. Must be HashMap because Exomizer API requires it.
+     * 
+     * @return the shared map, or null if not yet set.
+     */
+    public HashMap<Byte, Chromosome> getChromosomeMap()
+    {
+        return this.chromosomeMap;
+    }
+
+    /**
+     * Get the postgresql database URL for exomizer.
+     * 
+     * @return the database url string
+     */
+    public String getDatabaseURL()
+    {
+        return this.dbUrl;
+    }
+
+    @Override
+    public void putResult(String patientId, Genotype result)
+    {
+        this.completedJobs.put(patientId, result);
     }
 
     /**
@@ -136,17 +173,17 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
     @Override
     public void addJob(Patient patient)
     {
-        if (chromosomeMap == null) {
+        if (this.chromosomeMap == null) {
             try {
-                logger.error(" FIRST EXOMIZER JOB: initializing Exomizer with " + serializedDb);
-                chromosomeMap = Exomizer.getDeserializedUCSCdata(serializedDb);
+                this.logger.error(" FIRST EXOMIZER JOB: initializing Exomizer with " + this.serializedDb);
+                this.chromosomeMap = Exomizer.getDeserializedUCSCdata(this.serializedDb);
             } catch (ExomizerException e) {
-                logger.error(" initialization FAILED: " + e);
+                this.logger.error(" initialization FAILED: " + e);
                 return;
             }
         }
-        
-        Future< ? > result = submittedJobs.get(patient);
+
+        Future< ? > result = this.submittedJobs.get(patient);
         if (result != null) {
             // patient was already submitted
             result.cancel(false);
@@ -156,18 +193,19 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
         // XXX: String patientId = getPatientId(patient);
         File inFile = new File("/Users/orion/projects/phenotips/NA20538_101600_AD_FGFR2.vcf");
 
-        Runnable worker = new ExomizerJob(patient, inFile, outDir, dbUrl, chromosomeMap, completedJobs);
+        Runnable worker = new ExomizerJob(patient, inFile, this.outDir);
 
         // Submit job and store future for status queries
-        logger.error(" submitting Exomizer job to threadpool: " + getPatientId(patient));
-        result = executor.submit(worker);
-        submittedJobs.put(patient, result);
+        this.logger.error(" submitting Exomizer job to threadpool: " + getPatientId(patient));
+        result = this.executor.submit(worker);
+        this.submittedJobs.put(getPatientId(patient), result);
     }
 
     @Override
     public boolean hasJob(Patient patient)
     {
-        return submittedJobs.containsKey(patient) || completedJobs.containsKey(getPatientId(patient));
+        String patientId = getPatientId(patient);
+        return this.submittedJobs.containsKey(patientId) || this.completedJobs.containsKey(patientId);
     }
 
     @Override
@@ -177,7 +215,7 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
             return true;
         } else {
             // Check status of submitted job
-            Future< ? > result = submittedJobs.get(patient);
+            Future< ? > result = this.submittedJobs.get(getPatientId(patient));
             if (result != null && result.isDone()) {
                 // job submitted and finished
                 return true;
@@ -211,8 +249,14 @@ public class ExomizerJobManager implements ExternalToolJobManager, Initializable
     }
 
     @Override
-    public File getOutputFile(Patient patient)
+    public Genotype getResult(String patientId)
     {
-        return completedJobs.get(getPatientId(patient));
+        return completedJobs.get(patientId);
+    }
+    
+    @Override
+    public Set<String> getAllCompleted()
+    {
+        return Collections.unmodifiableSet(this.completedJobs.keySet());
     }
 }

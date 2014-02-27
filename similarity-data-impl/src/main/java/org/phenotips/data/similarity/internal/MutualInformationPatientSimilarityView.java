@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
  * @version $Id$
  * @since
  */
-public class MutualInformationPatientSimilarityView extends RestrictedPatientSimilarityView implements
-    PatientSimilarityView
+public class MutualInformationPatientSimilarityView extends RestrictedPatientSimilarityView
 {
     /*
      * (non-Javadoc)
@@ -54,12 +53,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
     /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
     private static Map<OntologyTerm, Double> parentCondIC;
-
-    /** The matched patient to represent. */
-    private final Patient match;
-
-    /** The reference patient against which to compare. */
-    private final Patient reference;
 
     /** Provides access to the term ontology. */
     private final OntologyManager ontologyManager;
@@ -80,8 +73,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         OntologyManager ontologyManager) throws IllegalArgumentException
     {
         super(match, reference, access);
-        this.match = match;
-        this.reference = reference;
         this.ontologyManager = ontologyManager;
     }
 

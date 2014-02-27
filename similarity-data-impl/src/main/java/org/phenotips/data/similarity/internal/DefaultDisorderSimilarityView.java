@@ -20,8 +20,8 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Disorder;
+import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-
 import org.apache.commons.lang3.StringUtils;
 
 import net.sf.json.JSONObject;
@@ -41,8 +41,7 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
     private Disorder reference;
 
     /**
-     * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
-     * the {@link #access patient access type}.
+     * Simple constructor passing the {@link #match matched disorder} and the {@link #reference reference disorder}.
      * 
      * @param match the matched disorder to represent
      * @param reference the reference disorder against which to compare, can be {@code null}
@@ -52,7 +51,20 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
         this.match = match;
         this.reference = reference;
     }
-
+    
+    /**
+     * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
+     * the {@link #access patient access type}.
+     * 
+     * @param match the matched disorder to represent
+     * @param reference the reference disorder against which to compare, can be {@code null}
+     * @param access the access type, unused
+     */
+    public DefaultDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
+    {
+        this(match, reference);
+    }
+    
     @Override
     public String getId()
     {

@@ -22,10 +22,10 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.CandidateGene;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
 import java.util.Collections;
@@ -47,7 +47,8 @@ import net.sf.json.JSONObject;
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView implements PatientSimilarityView
 {
     /**
-     * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
+     * Simple constructor passing both {@link #match the patient}, the {@link #reference reference patient}, and the
+     * {@link #access patient access type}.
      * 
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
@@ -58,9 +59,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
         throws IllegalArgumentException
     {
         super(match, reference, access);
-        matchFeatures();
-        matchGenes();
-        matchDisorders();
     }
 
     /**
@@ -73,39 +71,17 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
         this(restrictedView.match, restrictedView.reference, restrictedView.access);
     }
 
-    @Override
-    public Set< ? extends Feature> getFeatures()
-    {
-        Set<Feature> result = new HashSet<Feature>();
-        for (FeatureSimilarityView feature : this.matchedFeatures) {
-            if (feature.isMatchingPair() || feature.getId() != null) {
-                result.add(feature);
-            }
-        }
 
-        return result;
+    @Override
+    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access) {
+        return new DefaultFeatureSimilarityView(match, reference);
     }
 
     @Override
-    public Set< ? extends CandidateGene> getCandidateGenes()
-    {
-        Set<CandidateGene> result = new HashSet<CandidateGene>();
-        return result;
+    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access) {
+        return new DefaultDisorderSimilarityView(match, reference, this.access);
     }
     
-    @Override
-    public Set< ? extends Disorder> getDisorders()
-    {
-        Set<Disorder> result = new HashSet<Disorder>();
-        for (DisorderSimilarityView disorder : this.matchedDisorders) {
-            if (disorder.getId() != null) {
-                result.add(disorder);
-            }
-        }
-
-        return result;
-    }
-
     @Override
     public JSONObject toJSON()
     {
@@ -140,52 +116,5 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView 
         return result;
     }
 
-    /**
-     * Create pairs of matching features, one from the current patient and one from the reference patient. Unmatched
-     * values from either side are paired with a {@code null} value.
-     */
-    private void matchFeatures()
-    {
-        Set<FeatureSimilarityView> result = new HashSet<FeatureSimilarityView>();
-        for (Feature feature : this.match.getFeatures()) {
-            Feature matching = findMatchingFeature(feature, this.reference.getFeatures());
-            result.add(new DefaultFeatureSimilarityView(feature, matching));
-        }
-        for (Feature feature : this.reference.getFeatures()) {
-            Feature matching = findMatchingFeature(feature, this.match.getFeatures());
-            if (matching == null) {
-                result.add(new DefaultFeatureSimilarityView(null, feature));
-            }
-        }
-        this.matchedFeatures = Collections.unmodifiableSet(result);
-    }
-
-    /**
-     * Create pairs of matching genes, one or more from the current patient and one or more from the reference patient.
-     * Unmatched values from either side are paired with a {@code null} value.
-     */
-    private void matchGenes()
-    {
-        this.matchedGenes = null;
-    }
-
-    /**
-     * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
-     * values from either side are paired with a {@code null} value.
-     */
-    private void matchDisorders()
-    {
-        Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
-        for (Disorder disorder : this.match.getDisorders()) {
-            result.add(new DefaultDisorderSimilarityView(disorder, findMatchingDisorder(disorder,
-                this.reference.getDisorders())));
-        }
-        for (Disorder disorder : this.reference.getDisorders()) {
-            if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
-                result.add(new DefaultDisorderSimilarityView(null, disorder));
-            }
-        }
-        this.matchedDisorders = Collections.unmodifiableSet(result);
-    }
 
 }
