@@ -82,6 +82,44 @@ public class DefaultActionManager implements ActionManager
     private Logger logger;
 
     @Override
+    public int sendInitialMails(Connection connection, Map<String, Object> options)
+    {
+        try {
+            XWikiContext context = Utils.getContext();
+            XWiki xwiki = context.getWiki();
+            MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
+            String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
+            options.put(RECIPIENT_NAME,
+                xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
+            options.put(MATCH_CASE_ID, connection.getTargetPatient().getDocument().getName());
+            options.put(MATCH_CASE_LINK,
+                xwiki.getExternalURL("data.GrantMatchAccess", EXTERNAL_LINK_MODE, "id=" + connection.getId(), context));
+            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", PHENOMECENTRAL_EMAIL, to,
+                null, null, "", options, context);
+            return 0;
+        } catch (Exception ex) {
+            this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
+            return 1;
+        }
+    }
+
+    @Override
+    public int grantAccess(Connection connection)
+    {
+        if (!this.permissionsManager.getPatientAccess(connection.getTargetPatient()).addCollaborator(
+            connection.getInitiatingUser(), this.defaultAccess))
+        {
+            return 1;
+        }
+        if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient()).addCollaborator(
+            connection.getContactedUser(), this.defaultAccess))
+        {
+            return 2;
+        }
+        return 0;
+    }
+
+    @Override
     public int sendSuccessMail(Connection connection)
     {
         try {
@@ -110,41 +148,5 @@ public class DefaultActionManager implements ActionManager
             this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
             return 1;
         }
-    }
-
-    @Override
-    public int sendInitialMails(Connection connection, Map<String, Object> options)
-    {
-        try {
-            XWikiContext context = Utils.getContext();
-            XWiki xwiki = context.getWiki();
-            MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
-            String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
-            options.put(RECIPIENT_NAME,
-                xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
-            options.put(MATCH_CASE_ID, connection.getTargetPatient().getDocument().getName());
-            options.put(MATCH_CASE_LINK,
-                xwiki.getExternalURL("data.GrantMatchAccess", EXTERNAL_LINK_MODE, "id=" + connection.getId(), context));
-            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", PHENOMECENTRAL_EMAIL, to,
-                null, null, "", options, context);
-            return 0;
-        } catch (Exception ex) {
-            this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
-            return 1;
-        }
-    }
-
-    @Override
-    public int grantAccess(Connection connection)
-    {
-        if (!this.permissionsManager.getPatientAccess(connection.getTargetPatient()).addCollaborator(
-            connection.getInitiatingUser(), this.defaultAccess)) {
-            return 1;
-        }
-        if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient()).addCollaborator(
-            connection.getContactedUser(), this.defaultAccess)) {
-            return 2;
-        }
-        return 0;
     }
 }

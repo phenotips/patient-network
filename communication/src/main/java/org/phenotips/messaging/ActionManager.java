@@ -33,15 +33,6 @@ import java.util.Map;
 public interface ActionManager
 {
     /**
-     * Send the followup email to the user requesting access.
-     * 
-     * @param connection the anonymous communication linking the two patients and their owners that are involved in this
-     *            connection
-     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
-     */
-    int sendSuccessMail(Connection connection);
-
-    /**
      * Send the initial email to the owner of the matched patient.
      *
      * @param connection the anonymous communication linking the two patients and their owners that are involved in this
@@ -59,4 +50,13 @@ public interface ActionManager
      * @return {@code 0} if access was successfully granted, other numbers in case of errors
      */
     int grantAccess(Connection connection);
+
+    /**
+     * Send the followup email to the user requesting access.
+     *
+     * @param connection the anonymous communication linking the two patients and their owners that are involved in this
+     *            connection
+     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
+     */
+    int sendSuccessMail(Connection connection);
 }
