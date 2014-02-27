@@ -33,8 +33,17 @@ import java.util.Map;
 public interface ActionManager
 {
     /**
-     * Send the initial email to the owner of the matched patient.
+     * Send the followup email to the user requesting access.
      * 
+     * @param connection the anonymous communication linking the two patients and their owners that are involved in this
+     *            connection
+     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
+     */
+    int sendSuccessMail(Connection connection);
+
+    /**
+     * Send the initial email to the owner of the matched patient.
+     *
      * @param connection the anonymous communication linking the two patients and their owners that are involved in this
      *            connection
      * @param options the mail content options selected by the user
