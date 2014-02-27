@@ -129,7 +129,7 @@
 #if ("$!{request.id}" != '')
   #set ($accessRequest = $services.anonymousCommunication.grantAccess($request.id))
   #set ($patient = $accessRequest.getTargetPatient().getDocument())
-  #if ($services.anonymousCommunication.grantAccess($request.id))
+  #if ($accessRequest)
     {{html}}You have granted user &lt;b&gt;$accessRequest.getInitiatingUser().getName()&lt;/b&gt; access to patient
     &lt;a href="$xwiki.getURL($patient)"&gt;$patient.getName()&lt;/a&gt;{{/html}}
   #else
