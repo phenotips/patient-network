@@ -442,7 +442,10 @@
              new Ajax.Request(form.action, {
                parameters : form.serialize({'hash': true, 'submit': 'send'}),
                onSuccess : function (response) {
-                 _this._contactContainer.update('success!');
+                 _this._contactContainer.update('Your email has been successfully sent. You will receive an email if the recipient chooses to grant you access.');
+               },
+               onFailure : function (response) {
+                 _this._contactContainer.update('There was an error processing your email. Please contact support at support@phenomecentral.org and try again later.');
                }
              });
            });

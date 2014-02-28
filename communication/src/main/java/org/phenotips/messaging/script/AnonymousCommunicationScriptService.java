@@ -77,14 +77,23 @@ public class AnonymousCommunicationScriptService implements ScriptService
      *            involved in this connection
      * @return {@code 0} if access was successfully granted, other numbers in case of errors
      */
-    public int grantAccess(String connectionId)
+    public Connection grantAccess(String connectionId)
     {
         try {
             Connection c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
             // FIXME! Add rights check: only the contacted user can do this
-            return this.actionManager.grantAccess(c);
+            if (this.actionManager.grantAccess(c) == 0) {
+                try {
+                    this.actionManager.sendSuccessMail(c);
+                } catch (Exception ex) {
+                    //Do nothing
+                }
+                return c;
+            } else {
+                return null;
+            }
         } catch (Exception ex) {
-            return -1;
+            return null;
         }
     }
 }
