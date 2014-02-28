@@ -412,6 +412,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
 		// Give data to views to use
 		this.logger.error("Setting view globals...");
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
+        MutualInformationPatientSimilarityView.setTermICs(termICs);
         MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
     }
 }

@@ -24,6 +24,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
@@ -52,6 +57,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * phenotips/resources/solr-configuration/src/main/resources/omim/conf/schema.xml
      */
 
+    /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
+    private static Map<OntologyTerm, Double> termICs;
+    
     /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
     private static Map<OntologyTerm, Double> parentCondIC;
 
@@ -107,6 +115,16 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         MutualInformationPatientSimilarityView.parentCondIC = condICs;
     }
 
+    /**
+     * Set the static term information content map for the class.
+     * 
+     * @param termICs the information content of each term
+     */
+    public static void setTermICs(Map<OntologyTerm, Double> termICs)
+    {
+        MutualInformationPatientSimilarityView.termICs = termICs;
+    }
+    
     /**
      * Return a (potentially empty) collection of terms present in the patient.
      * 
@@ -195,6 +213,50 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
         return harmonicMeanIC;
+    }
+
+    @Override
+    public JSONObject toJSON()
+    {
+        if (this.access.isPrivateAccess()) {
+            return new JSONObject(true);
+        }
+        JSONObject result = new JSONObject();
+
+        if (this.access.isOpenAccess()) {
+            result.element("id", this.match.getDocument().getName());
+            result.element("owner", this.match.getReporter().getName());
+        }
+        result.element("token", getContactToken());
+        result.element("access", this.access.toString());
+        result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
+        result.element("score", getScore());
+        result.element("featuresCount", this.match.getFeatures().size());
+
+        Set<? extends Feature> features = getFeatures();
+        if (!features.isEmpty()) {
+            JSONArray featuresJSON = new JSONArray();
+            for (Feature feature : features) {
+                featuresJSON.add(feature.toJSON());
+            }
+            result.element("features", featuresJSON);
+        }
+
+        Set<? extends Disorder> disorders = getDisorders();
+        if (!disorders.isEmpty()) {
+            JSONArray disordersJSON = new JSONArray();
+            for (Disorder disorder : disorders) {
+                disordersJSON.add(disorder.toJSON());
+            }
+            result.element("disorders", disordersJSON);
+        }
+
+        NO NEGATIVES
+        "featureMatches"
+        "category" {"id", "name"}
+        "query" [id, id, id]
+        "match" [id, id]
+        return result;
     }
 
 }
