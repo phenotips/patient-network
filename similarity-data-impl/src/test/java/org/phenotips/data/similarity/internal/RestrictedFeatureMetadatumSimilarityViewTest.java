@@ -19,28 +19,26 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.FeatureMetadatum;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
-
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.component.util.ReflectionUtils;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import javax.inject.Provider;
+
+import net.sf.json.JSONObject;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import net.sf.json.JSONObject;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.util.ReflectionUtils;
 
 /**
  * Tests for the "restricted" {@link FeatureMetadatumSimilarityView} implementation,

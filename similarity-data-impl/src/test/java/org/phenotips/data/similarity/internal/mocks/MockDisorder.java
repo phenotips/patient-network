@@ -19,9 +19,9 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.data.Disorder;
-
 import net.sf.json.JSONObject;
+
+import org.phenotips.data.Disorder;
 
 /**
  * Simple mock for a disorder, responding with pre-specified values.

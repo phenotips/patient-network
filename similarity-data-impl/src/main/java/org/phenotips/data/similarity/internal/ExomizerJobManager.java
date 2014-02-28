@@ -40,6 +40,7 @@ import javax.inject.Singleton;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
+import org.phenotips.integration.medsavant.MedSavantServer;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -65,6 +66,10 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Inject
     private Environment environment;
 
+    /** Connection to medsavant for patient genotypes. */
+    @Inject
+    private MedSavantServer medsavant;
+    
     /** Threadpool manager. */
     private ExecutorService executor;
 
@@ -190,6 +195,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
         }
 
         // Look up filtered variants from PhenomeCentral-Medsavant API
+        this.medsavant.getFilteredVariants(patient);
         // XXX: String patientId = getPatientId(patient);
         File inFile = new File("/Users/orion/projects/phenotips/NA20538_101600_AD_FGFR2.vcf");
 

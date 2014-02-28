@@ -19,6 +19,14 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.StringUtils;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
@@ -27,18 +35,8 @@ import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.configuration.SimilarityConfiguration;
-
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link FeatureSimilarityView} that reveals the full patient information if the user has full access

@@ -19,16 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Feature;
-import org.phenotips.data.similarity.FeatureSimilarityScorer;
-import org.phenotips.data.similarity.internal.DefaultFeatureSimilarityScorer;
-import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
-import org.phenotips.data.similarity.internal.mocks.MockFeature;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
-
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,8 +29,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static org.mockito.Mockito.when;
+import org.phenotips.data.Feature;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
+import org.phenotips.data.similarity.internal.mocks.MockFeature;
+import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyTerm;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 /**
  * Tests for the default {@link FeatureSimilarityScorer} {@link DefaultFeatureSimilarityScorer implementation}.

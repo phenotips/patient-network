@@ -34,7 +34,6 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.xwiki.model.reference.DocumentReference;
 

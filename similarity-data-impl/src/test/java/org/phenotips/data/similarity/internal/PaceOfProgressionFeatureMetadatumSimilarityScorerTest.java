@@ -19,17 +19,14 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.FeatureMetadatum;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.PaceOfProgressionFeatureMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
-
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 /**
  * Tests for the custom {@link FeatureMetadatumSimilarityScorer} implementation for

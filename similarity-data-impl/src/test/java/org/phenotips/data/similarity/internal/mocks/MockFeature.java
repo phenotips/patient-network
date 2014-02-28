@@ -19,13 +19,13 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.data.Feature;
-import org.phenotips.data.FeatureMetadatum;
-
 import java.util.Collections;
 import java.util.Map;
 
 import net.sf.json.JSONObject;
+
+import org.phenotips.data.Feature;
+import org.phenotips.data.FeatureMetadatum;
 
 /**
  * Simple mock for a patient feature, responding with pre-specified values.

@@ -19,18 +19,17 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-
 import org.xwiki.component.annotation.Component;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 /**
  * Implementation of {@link PatientSimilarityViewFactory} which only allows access to public or shared information.

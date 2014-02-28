@@ -21,13 +21,11 @@ package org.phenotips.data.similarity.internal.mocks;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * Simple mock for an ontology term, responding with pre-specified values.

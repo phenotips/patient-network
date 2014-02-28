@@ -28,12 +28,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
-import org.xwiki.component.manager.ComponentLookupException;
 
 import exomizer.Exomizer;
 import exomizer.exception.ExomizerException;

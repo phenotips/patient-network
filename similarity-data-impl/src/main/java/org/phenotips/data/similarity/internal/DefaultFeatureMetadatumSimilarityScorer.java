@@ -19,14 +19,12 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.FeatureMetadatum;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
-
-import org.xwiki.component.annotation.Component;
-
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.xwiki.component.annotation.Component;
 
 /**
  * Simple {@link FeatureMetadatumSimilarityScorer similarity scorer} that gives {@code 0} if any of the two values is

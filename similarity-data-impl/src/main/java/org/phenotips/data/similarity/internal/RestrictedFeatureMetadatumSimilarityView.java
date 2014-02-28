@@ -19,18 +19,16 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.StringUtils;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
 import org.phenotips.data.similarity.FeatureMetadatumSimilarityView;
-
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-
-import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link FeatureMetadatumSimilarityView} that only reveals information if the user has full access to

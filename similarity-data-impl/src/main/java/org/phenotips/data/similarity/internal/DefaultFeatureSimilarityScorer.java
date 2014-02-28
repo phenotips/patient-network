@@ -19,13 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Feature;
-import org.phenotips.data.similarity.FeatureSimilarityScorer;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
-
-import org.xwiki.component.annotation.Component;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +26,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.phenotips.data.Feature;
+import org.phenotips.data.similarity.FeatureSimilarityScorer;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyTerm;
+import org.xwiki.component.annotation.Component;
 
 /**
  * {@link FeatureSimilarityScorer Similarity scorer} for features, rewarding features that are closely related.

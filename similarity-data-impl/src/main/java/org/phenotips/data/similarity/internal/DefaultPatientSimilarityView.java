@@ -19,23 +19,19 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import java.util.Set;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
-import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.PatientSimilarityView;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang3.ObjectUtils;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link PatientSimilarityView} that always reveals the full patient information; for use in trusted

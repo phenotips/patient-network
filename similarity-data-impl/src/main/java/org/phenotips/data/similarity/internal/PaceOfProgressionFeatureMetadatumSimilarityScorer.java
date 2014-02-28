@@ -19,11 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.FeatureMetadatum;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
-
-import org.xwiki.component.annotation.Component;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +26,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
+import org.xwiki.component.annotation.Component;
 
 /**
  * {@link FeatureMetadatumSimilarityScorer Similarity scorer} for the Pace of Progression metaproperty, rewarding
