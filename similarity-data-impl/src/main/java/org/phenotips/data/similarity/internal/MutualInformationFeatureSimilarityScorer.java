@@ -19,6 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,27 +48,27 @@ import org.xwiki.component.phase.InitializationException;
 @Named("mi")
 public class MutualInformationFeatureSimilarityScorer implements FeatureSimilarityScorer, Initializable
 {
-    
+
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
-    private static Map<OntologyTerm, Double> termICs = null;
+    private static Map<OntologyTerm, Double> termICs;
 
     /** The maximum information content score of any term. */
-    private static Double maxIC = null;
-    
+    private static Double maxIC;
+
     /** Provides access to the term ontology. */
     @Inject
     private OntologyManager ontologyManager;
-    
+
     @Override
     public void initialize() throws InitializationException
     {
         // Nothing needs to be done.
     }
-    
+
     /**
      * Set the static term information content used the class. Must be called before class is functional.
      * 
-     * @param termIcs the information content of each term.
+     * @param termICs the information content of each term.
      */
     public static void setTermICs(Map<OntologyTerm, Double> termICs)
     {
@@ -85,6 +86,23 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
     }
 
     /**
+     * Get the largest IC from a set of terms.
+     * 
+     * @param terms the terms to get the IC of
+     * @return the largest IC for any of the terms
+     */
+    private double getMaxIC(Collection<OntologyTerm> terms) {
+        double bestIC = 0.0;
+        for (OntologyTerm term : terms) {
+            Double termIC = termICs.get(term);
+            if (termIC != null && termIC >= bestIC) {
+                bestIC = termIC;
+            }
+        }
+        return bestIC;
+    }
+    
+    /**
      * Compute the relevance of matching a pair of terms, which is a number between 0 and 1.
      * 
      * @param matchId The identifier of the query term
@@ -99,12 +117,13 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
         if (matchId == null || referenceId == null || termICs == null || maxIC == null) {
             return Double.NaN;
         }
+
         OntologyTerm matchTerm = this.ontologyManager.resolveTerm(matchId);
         OntologyTerm referenceTerm = this.ontologyManager.resolveTerm(referenceId);
-
         if (matchTerm == null || referenceTerm == null) {
             return Double.NaN;
         }
+
         // Get common ancestors (lowest only)
         // TODO: implement more efficiently!
         Set<OntologyTerm> commonAncestors = new HashSet<OntologyTerm>();
@@ -118,14 +137,8 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
         commonAncestors.removeAll(redundantAncestors);
 
         // Find the most informative one
-        double bestInformationContent = 0;
-        for (OntologyTerm ancestor : commonAncestors) {
-            Double informationContent = termICs.get(ancestor);
-            if (informationContent != null && informationContent >= bestInformationContent) {
-                bestInformationContent = informationContent;
-            }
-        }
-        return bestInformationContent / this.maxIC;
+        double bestInformationContent = getMaxIC(commonAncestors);
+        return bestInformationContent / MutualInformationFeatureSimilarityScorer.maxIC;
     }
 
 }

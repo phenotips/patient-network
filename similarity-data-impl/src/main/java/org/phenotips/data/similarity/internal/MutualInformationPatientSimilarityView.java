@@ -19,26 +19,24 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Disorder;
-import org.phenotips.data.Feature;
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyTerm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link PatientSimilarityView} that uses a mutual information metric to score similar patients.
@@ -49,14 +47,17 @@ import net.sf.json.JSONObject;
 public class MutualInformationPatientSimilarityView extends RestrictedPatientSimilarityView implements
     PatientSimilarityView
 {
-    /*
-     * (non-Javadoc) New components need to be declared in: src/main/resources/META-INF/components.txt
-     * PatientSimilarityView injected in similarity-search/.../internal/SolrSimilarPatientsFinder.java, instantiated by
-     * RestPatSimViewFactory phenotips/resources/solr-configuration/src/main/resources/omim/conf/schema.xml
-     */
+    /** The overall root of the HPO. */
+    private static final String HP_ROOT = "HP:0000001";
 
     /** The root of the phenotypic abnormality portion of HPO. */
-    private static final String HP_ROOT = "HP:0000118";
+    private static final String PHENOTYPE_ROOT = "HP:0000118";
+    
+    /** The name of the score field in JSON output. */
+    private static final String JSON_SCORE_FIELD = "score";
+    
+    /** The name of the ID field in JSON output. */
+    private static final String JSON_ID_FIELD = "id";
 
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
     private static Map<OntologyTerm, Double> termICs;
@@ -216,8 +217,8 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         double p2Cost = getJointTermsCost(matchAncestors);
 
         // Score overlapping (min) ancestors
-        Set<OntologyTerm> sharedAncestors = refAncestors;
-        // warning: Line below destructively modifies refAncestors
+        Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
+        sharedAncestors.addAll(refAncestors);
         sharedAncestors.retainAll(matchAncestors);
 
         double sharedCost = getJointTermsCost(sharedAncestors);
@@ -226,6 +227,142 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
 
         return harmonicMeanIC;
+    }
+
+    /**
+     * Construct JSON for this partial matching of terms from both patients, according to the access level.
+     * 
+     * @param ancestor the shared ancestor of the feature match (or null if no ancestor)
+     * @param ancestorScore the score of this shared ancestor (or 0.0 if no ancestor)
+     * @param refFeatures the bag of matched features in the reference
+     * @param matchFeatures the bag of matched features in the match
+     * @return a JSON object for the match
+     */
+    private JSONObject getFeatureMatchJSON(OntologyTerm ancestor, double ancestorScore,
+        Collection<OntologyTerm> refFeatures, Collection<OntologyTerm> matchFeatures)
+    {
+        String ancestorName;
+        String ancestorId;
+
+        if (ancestor == null) {
+            ancestorId = "";
+            ancestorName = "Unmatched";
+        } else {
+            ancestorId = ancestor.getId();
+            ancestorName = ancestor.getName();
+        }
+
+        // Add ancestor info
+        JSONObject featureMatchJSON = new JSONObject();
+        featureMatchJSON.element(JSON_SCORE_FIELD, ancestorScore);
+
+        JSONObject sharedParentJSON = new JSONObject();
+        sharedParentJSON.element(JSON_ID_FIELD, ancestorId);
+        sharedParentJSON.element("name", ancestorName);
+        featureMatchJSON.element("category", sharedParentJSON);
+
+        // Add reference features
+        JSONArray referenceJSON = new JSONArray();
+        for (OntologyTerm term : refFeatures) {
+            referenceJSON.add(term.getId());
+        }
+        featureMatchJSON.element("reference", referenceJSON);
+
+        // Add match features
+        JSONArray matchJSON = new JSONArray();
+        for (OntologyTerm term : matchFeatures) {
+            matchJSON.add(this.access.isOpenAccess() ? term.getId() : "");
+        }
+        featureMatchJSON.element("match", matchJSON);
+        return featureMatchJSON;
+    }
+
+    /**
+     * Find, remove, and return all terms with given ancestor.
+     * 
+     * @param terms the terms, modified by removing terms with given ancestor
+     * @param ancestor the ancestor to search for
+     * @return the terms with the given ancestor (removed from given terms)
+     */
+    private Collection<OntologyTerm> popTermsWithAncestor(Collection<OntologyTerm> terms, OntologyTerm ancestor)
+    {
+        Collection<OntologyTerm> matched = new HashSet<OntologyTerm>();
+        for (OntologyTerm term : terms) {
+            if (term.getAncestorsAndSelf().contains(ancestor)) {
+                matched.add(term);
+            }
+        }
+        terms.removeAll(matched);
+        return matched;
+    }
+
+    /**
+     * Finds the best term match, removes these terms, and return the JSON for that match.
+     * 
+     * @param refTerms the terms in the reference
+     * @param matchTerms the terms in the match
+     * @return the JSON representation of the best match (removes the matched terms from the passed lists) or null if
+     *         the terms are not a good match (the term collections are then unchanged)
+     */
+    private JSONObject popBestFeatureMatch(Collection<OntologyTerm> refTerms, Collection<OntologyTerm> matchTerms)
+    {
+        Collection<OntologyTerm> sharedAncestors = getAncestors(refTerms);
+        sharedAncestors.retainAll(getAncestors(matchTerms));
+
+        // Find ancestor with highest (normalized) information content
+        OntologyTerm ancestor = null;
+        double ancestorScore = Double.NEGATIVE_INFINITY;
+        for (OntologyTerm term : sharedAncestors) {
+            Double termIC = MutualInformationPatientSimilarityView.termICs.get(term);
+            if (termIC == null) {
+                termIC = 0.0;
+            }
+
+            double score = termIC / MutualInformationPatientSimilarityView.maxIC;
+            if (score > ancestorScore) {
+                ancestorScore = score;
+                ancestor = term;
+            }
+        }
+
+        // If the top-scoring ancestor is the root (or phenotype root), report everything remaining as unmatched
+        if (ancestor == null || HP_ROOT.equals(ancestor.getId()) || PHENOTYPE_ROOT.equals(ancestor.getId())) {
+            return null;
+        }
+
+        // Find, remove, and return all ref and match terms under the selected ancestor
+        Collection<OntologyTerm> refMatched = popTermsWithAncestor(refTerms, ancestor);
+        Collection<OntologyTerm> matchMatched = popTermsWithAncestor(matchTerms, ancestor);
+
+        // Return match json from matched terms
+        return getFeatureMatchJSON(ancestor, ancestorScore, refMatched, matchMatched);
+    }
+
+    /**
+     * Get nicely-grouped feature matching JSON for the reference and the match.
+     * 
+     * @return a JSON array of feature matches
+     */
+    private JSONArray getFeatureMatchesJSON()
+    {
+        // Compute nicer information-content phenotype cluster matching
+        JSONArray matchesJSON = new JSONArray();
+        Collection<OntologyTerm> refTerms = getPresentPatientTerms(this.reference);
+        Collection<OntologyTerm> matchTerms = getPresentPatientTerms(this.match);
+
+        // Keep removing most-related sets of terms until none match lower than HP roots
+        while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
+            JSONObject matched = popBestFeatureMatch(refTerms, matchTerms);
+            matchesJSON.add(matched);
+        }
+
+        // Add any unmatched terms
+        if (!refTerms.isEmpty() || !matchTerms.isEmpty()) {
+            JSONObject unmatched = getFeatureMatchJSON(null, 0.0, refTerms, matchTerms);
+            matchesJSON.add(unmatched);
+        }
+
+        return matchesJSON;
     }
 
     @Override
@@ -237,112 +374,30 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         JSONObject result = new JSONObject();
 
         if (this.access.isOpenAccess()) {
-            result.element("id", this.match.getDocument().getName());
+            result.element(JSON_ID_FIELD, this.match.getDocument().getName());
             result.element("owner", this.match.getReporter().getName());
         }
         result.element("token", getContactToken());
         result.element("access", this.access.toString());
         result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
-        result.element("score", getScore());
+        result.element(JSON_SCORE_FIELD, getScore());
         result.element("featuresCount", this.match.getFeatures().size());
 
-        Set<? extends Feature> features = getFeatures();
-        if (!features.isEmpty()) {
-            JSONArray featuresJSON = new JSONArray();
-            for (Feature feature : features) {
-                featuresJSON.add(feature.toJSON());
-            }
+        JSONArray featuresJSON = getFeaturesJSON();
+        if (!featuresJSON.isEmpty()) {
             result.element("features", featuresJSON);
         }
 
-        Set<? extends Disorder> disorders = getDisorders();
-        if (!disorders.isEmpty()) {
-            JSONArray disordersJSON = new JSONArray();
-            for (Disorder disorder : disorders) {
-                disordersJSON.add(disorder.toJSON());
-            }
+        JSONArray disordersJSON = getDisordersJSON();
+        if (!disordersJSON.isEmpty()) {
             result.element("disorders", disordersJSON);
         }
 
-        JSONArray matchesJSON = new JSONArray();
         // Compute nicer information-content phenotype cluster matching
-        Collection<OntologyTerm> refTerms = getPresentPatientTerms(this.reference);
-        Collection<OntologyTerm> matchTerms = getPresentPatientTerms(this.match);
+        JSONArray matchesJSON = getFeatureMatchesJSON();
 
-        while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
-            Collection<OntologyTerm> sharedAncestors = getAncestors(refTerms);
-            sharedAncestors.retainAll(getAncestors(matchTerms));
-
-            // Find ancestor with highest information content
-            OntologyTerm ancestor = null;
-            double ancestorScore = -1;
-            for (OntologyTerm term : sharedAncestors) {
-                Double termIC = MutualInformationPatientSimilarityView.termICs.get(term);
-                if (termIC == null) {
-                    termIC = 0.0;
-                }
-                termIC /= MutualInformationPatientSimilarityView.maxIC;
-
-                if (termIC > ancestorScore) {
-                    ancestorScore = termIC;
-                    ancestor = term;
-                }
-            }
-
-            // Find all ref and match terms under the selected ancestor
-            Collection<OntologyTerm> refMatched = new HashSet<OntologyTerm>();
-            for (OntologyTerm term : refTerms) {
-                if (term.getAncestorsAndSelf().contains(ancestor)) {
-                    refMatched.add(term);
-                }
-            }
-            Collection<OntologyTerm> matchMatched = new HashSet<OntologyTerm>();
-            for (OntologyTerm term : matchTerms) {
-                if (term.getAncestorsAndSelf().contains(ancestor)) {
-                    matchMatched.add(term);
-                }
-            }
-
-            // Get remaining, unaccounted for terms
-            refTerms.removeAll(refMatched);
-            matchTerms.removeAll(matchMatched);
-
-            String ancestorName = "unmatched";
-            String ancestorId = "";
-            if (ancestor == null) {
-                this.logger.error("NULL ancestor!");
-            } else if (!HP_ROOT.equals(ancestor.getId())) {
-                // If shared ancestor is root, use a special name.
-                ancestorName = ancestor.getName();
-                ancestorId = ancestor.getId();
-            }
-
-            // Construct JSON for this partial matching of terms
-            JSONObject match = new JSONObject();
-            match.element("score", ancestorScore);
-
-            getAncestors(refTerms);
-            JSONObject sharedParentJSON = new JSONObject();
-            sharedParentJSON.element("id", ancestorId);
-            sharedParentJSON.element("name", ancestorName);
-            match.element("category", sharedParentJSON);
-
-            JSONArray referenceJSON = new JSONArray();
-            for (OntologyTerm term : refMatched) {
-                referenceJSON.add(term.getId());
-            }
-            match.element("reference", referenceJSON);
-
-            JSONArray matchJSON = new JSONArray();
-            for (OntologyTerm term : matchMatched) {
-                matchJSON.add(term.getId());
-            }
-            match.element("match", matchJSON);
-            matchesJSON.add(match);
-        }
         result.element("featureMatches", matchesJSON);
 
         return result;
     }
-
 }

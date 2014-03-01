@@ -19,6 +19,11 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import java.util.Set;
+
+import net.sf.json.JSONArray;
+
+import org.apache.commons.lang3.StringUtils;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
@@ -31,13 +36,8 @@ import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
-
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
-
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -136,6 +136,42 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
+     * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
+     * features displayed.
+     * 
+     * @return the JSON for visible features
+     */
+    protected JSONArray getFeaturesJSON()
+    {
+        Set< ? extends Feature> features = getFeatures();
+        JSONArray featuresJSON = new JSONArray();
+        if (!features.isEmpty()) {
+            for (Feature feature : features) {
+                featuresJSON.add(feature.toJSON());
+            }
+        }
+        return featuresJSON;
+    }
+
+    /**
+     * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
+     * disorders displayed.
+     * 
+     * @return the JSON for visible disorders
+     */
+    protected JSONArray getDisordersJSON()
+    {
+        JSONArray disordersJSON = new JSONArray();
+        Set< ? extends Disorder> disorders = getDisorders();
+        if (!disorders.isEmpty()) {
+            for (Disorder disorder : disorders) {
+                disordersJSON.add(disorder.toJSON());
+            }
+        }
+        return disordersJSON;
+    }
+
+    /**
      * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
      * 
@@ -143,7 +179,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of features to look in, either the reference patient or the matched patient features
      * @return one of the features from the list, if it matches the target feature, or {@code null} otherwise
      */
-    protected Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
+    protected Feature findMatchingFeature(Feature toMatch, Set< ? extends Feature> lookIn)
     {
         FeatureSimilarityScorer scorer = RestrictedFeatureSimilarityView.getScorer();
         if (scorer != null) {
@@ -175,7 +211,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
      * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
      */
-    protected Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
+    protected Disorder findMatchingDisorder(Disorder toMatch, Set< ? extends Disorder> lookIn)
     {
         for (Disorder candidate : lookIn) {
             if (StringUtils.equals(candidate.getId(), toMatch.getId())) {

@@ -19,6 +19,14 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
@@ -27,17 +35,7 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
-
 import org.xwiki.model.reference.DocumentReference;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang3.ObjectUtils;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link PatientSimilarityView} that reveals the full patient information if the user has full access
@@ -88,7 +86,7 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    public Set<? extends Feature> getFeatures()
+    public Set< ? extends Feature> getFeatures()
     {
         if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
@@ -105,7 +103,7 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    public Set<? extends Disorder> getDisorders()
+    public Set< ? extends Disorder> getDisorders()
     {
         if (!this.access.isOpenAccess()) {
             return Collections.emptySet();
@@ -148,21 +146,13 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         result.element("score", getScore());
         result.element("featuresCount", this.match.getFeatures().size());
 
-        Set<? extends Feature> features = getFeatures();
-        if (!features.isEmpty()) {
-            JSONArray featuresJSON = new JSONArray();
-            for (Feature feature : features) {
-                featuresJSON.add(feature.toJSON());
-            }
+        JSONArray featuresJSON = getFeaturesJSON();
+        if (!featuresJSON.isEmpty()) {
             result.element("features", featuresJSON);
         }
 
-        Set<? extends Disorder> disorders = getDisorders();
-        if (!disorders.isEmpty()) {
-            JSONArray disordersJSON = new JSONArray();
-            for (Disorder disorder : disorders) {
-                disordersJSON.add(disorder.toJSON());
-            }
+        JSONArray disordersJSON = getDisordersJSON();
+        if (!disordersJSON.isEmpty()) {
             result.element("disorders", disordersJSON);
         }
 
