@@ -19,20 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
-
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +31,19 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.params.CommonParams;
+import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyService;
+import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 
 /**
  * Implementation of {@link PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
@@ -236,7 +234,7 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
             // Get a Collection<String> of symptom HP IDs, or null
             Object symptomNames = disease.get("actual_symptom");
             if (symptomNames != null) {
-                if (symptomNames instanceof Collection<?>) {
+                if (symptomNames instanceof Collection< ? >) {
                     for (String symptomName : ((Collection<String>) symptomNames)) {
                         OntologyTerm symptom = hpo.getTerm(symptomName);
                         if (!allowedTerms.contains(symptom)) {
@@ -409,9 +407,10 @@ public class MutualInformationPatientSimilarityViewFactory implements PatientSim
         assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-		// Give data to views to use
-		this.logger.error("Setting view globals...");
+        // Give data to views to use
+        this.logger.error("Setting view globals...");
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
+        MutualInformationPatientSimilarityView.setTermICs(termICs);
         MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
     }
 }
