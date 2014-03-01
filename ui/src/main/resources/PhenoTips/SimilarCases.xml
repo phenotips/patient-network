@@ -264,7 +264,7 @@
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
-   
+
       // Show result summary
       data.featuresCount = data.query.features.size();
       if (data.resultsCount &lt;= 0 || data.featuresCount &lt;= 0) {
@@ -405,7 +405,7 @@
            event.stop();
            _this._launchContactDialog(r.token);
         });
-      } 
+      }
       return contactInfo.insert({top: " "}).insert({top: icon});
     },
 
@@ -469,16 +469,16 @@
 
    _displayResultDetails : function (r) {
       var details = new Element("div");
-      
+
       // Prepare features comparison:
 
       // Count features matched in this result
       var matchedFeatures = 0;
 
       // Features not matched in the result
-      var resultUnmatchedFeatures = []; 
+      var resultUnmatchedFeatures = [];
 
-      // Create the matched pairs      
+      // Create the matched pairs
       var queryFeaturesComparison = Object.clone(this._queryFeatures);
       r.features.each(function(f) {
         if (f.queryType &amp;&amp; f.queryId &amp;&amp; queryFeaturesComparison[f.queryType]) {
@@ -547,10 +547,10 @@
           "title" : "Other patient's features",
         }
       }
-      
+
       this._displayTableHeader(columns, matchTable);
       var _this = this;
-      
+
       // The features in the query together with their matches
       query.features.each(function(f) {
         var row = _this._getEmptyTableRow(matchTable);
@@ -587,7 +587,7 @@
       }
       var container = new Element("div");
       var name = new Element("span", {
-         "title" : (f.id || "") + " " + (f.name || ""), 
+         "title" : (f.id || "") + " " + (f.name || ""),
          "class" : cssModifier
       }).insert(f.name &amp;&amp; prefix + f.name || this._UNKNOWN_INFO_TEXT)
         .insert(f.type &amp;&amp; new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
@@ -647,10 +647,10 @@
           var var_2 = v * (1 - s * (var_h - var_i));
           var var_3 = v * (1 - s * (1 - (var_h - var_i)));
           if (var_i == 0) {
-            r = v; 
-            g = var_3; 
+            r = v;
+            g = var_3;
             b = var_1;
-          } else if (var_i == 1) { 
+          } else if (var_i == 1) {
             r = var_2;
             g = v;
             b = var_1;
@@ -666,7 +666,7 @@
             r = var_3;
             g = var_1;
             b = v;
-          } else { 
+          } else {
             r = v;
             g = var_1;
             b = var_2
@@ -698,7 +698,7 @@
             return component.min + (component.max - component.min) * Math.abs(.5 - value)/.5
           } else {
             return ((value &gt; .5 + neutralSpan) ? component.min + (component.max - component.min) : 1);
-          } 
+          }
         }
       },
 
@@ -730,7 +730,7 @@
       },
 
       // For a value in [0, 1], generate the representation either white or black, whichever contrasts better with the color (between red and green) representing that value
-      // @param value the value in [0, 1] 
+      // @param value the value in [0, 1]
       // @return an string "rgb(&lt;r&gt;, &lt;g&gt;, &lt;b&gt;)" where r, g, b are integer values in [0, 255]
       getContrastColorForValue : function(value) {
         var h = .4 * value;
@@ -772,7 +772,7 @@
       generateMatchBar : function(value) {
         var normalizedValue = (value + 1) / 2;
         var color = this.getColorForValue(normalizedValue, true);
-        var textColor = this.getContrastColorForValue(normalizedValue); 
+        var textColor = this.getContrastColorForValue(normalizedValue);
         var bar = new Element("span", {"class" : "match-bar", "style" : "border-color: " + color + "; color: " + color + "; background-color: " + color + ";"})
         var text = new Element ("span", {"class" : "match-bar-value", "style" : "background-color: transparent; color: " + textColor + ";"}).update(Math.round(value * 100) + '%');
         bar.insert(text);
