@@ -52,10 +52,10 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
     /** The root of the phenotypic abnormality portion of HPO. */
     private static final String PHENOTYPE_ROOT = "HP:0000118";
-    
+
     /** The name of the score field in JSON output. */
     private static final String JSON_SCORE_FIELD = "score";
-    
+
     /** The name of the ID field in JSON output. */
     private static final String JSON_ID_FIELD = "id";
 
@@ -353,6 +353,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         // Keep removing most-related sets of terms until none match lower than HP roots
         while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
             JSONObject matched = popBestFeatureMatch(refTerms, matchTerms);
+            if (matched == null) {
+                break;
+            }
             matchesJSON.add(matched);
         }
 
@@ -395,7 +398,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
         // Compute nicer information-content phenotype cluster matching
         JSONArray matchesJSON = getFeatureMatchesJSON();
-
         result.element("featureMatches", matchesJSON);
 
         return result;

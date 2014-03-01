@@ -91,7 +91,8 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
      * @param terms the terms to get the IC of
      * @return the largest IC for any of the terms
      */
-    private double getMaxIC(Collection<OntologyTerm> terms) {
+    private double getMaxIC(Collection<OntologyTerm> terms)
+    {
         double bestIC = 0.0;
         for (OntologyTerm term : terms) {
             Double termIC = termICs.get(term);
@@ -101,7 +102,7 @@ public class MutualInformationFeatureSimilarityScorer implements FeatureSimilari
         }
         return bestIC;
     }
-    
+
     /**
      * Compute the relevance of matching a pair of terms, which is a number between 0 and 1.
      * 
