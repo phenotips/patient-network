@@ -124,7 +124,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
                 continue;
             }
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0) {
+            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0 && result.getScore() > 0) {
                 results.add(result);
             }
         }
