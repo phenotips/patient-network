@@ -20,22 +20,25 @@
 package org.phenotips.data.similarity.internal;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.Variant;
 import org.xwiki.component.manager.ComponentLookupException;
 
 /**
- * Implementation of {@link GenotypeSimilarityView}  that reveals the full patient information if the user has full access
- * to the patient, and only matching reference information if the patient is matchable.
+ * Implementation of {@link GenotypeSimilarityView} that reveals the full patient information if the user has full
+ * access to the patient, and only matching reference information if the patient is matchable.
  * 
  * @version $Id$
  * @since
@@ -44,16 +47,16 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 {
     /** Variant score threshold between non-frameshift and splicing. */
     private static final double KO_THRESHOLD = 0.87;
-    
+
     /** The matched genotype to represent. */
     private Genotype matchGenotype;
-    
+
     /** The reference genotype against which to compare. */
     private Genotype refGenotype;
 
     /** The access type the user has to the match patient. */
     private AccessType access;
-    
+
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
@@ -76,11 +79,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.matchGenotype = em.getResult(matchId);
         this.refGenotype = em.getResult(matchId);
         this.access = access;
-        
+
         if (this.matchGenotype == null && this.refGenotype == null) {
-            
+
         }
-        
+
         // Load genotypes for all other patients
         Set<String> otherGenotypedIds = em.getAllCompleted();
         Set<Genotype> otherGenotypes = new TreeSet<Genotype>();
@@ -92,7 +95,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 otherGenotypes.add(gt);
             }
         }
-        
+
     }
 
     @Override
@@ -101,7 +104,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         if (this.refGenotype == null || this.matchGenotype == null) {
             return Collections.emptySet();
         }
-        
+
         // Get union of genes mutated in both patients
         Set<String> shared = this.refGenotype.getGenes();
         shared.retainAll(this.matchGenotype.getGenes());
@@ -114,17 +117,38 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         // TODO Auto-generated method stub
         return 0;
     }
-    
+
     @Override
     public JSONObject toJSON()
     {
-        if (this.match == null || this.access.isPrivateAccess()) {
+        if (this.matchGenotype == null || this.access.isPrivateAccess()) {
             return new JSONObject(true);
         }
 
         JSONObject result = new JSONObject();
         result.element("score", getScore());
-        
+
         return result;
+    }
+
+    @Override
+    public void addGene(String gene, double score, List<Variant> variants)
+    {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Pair<Double, Double> getTopVariantScores(String gene)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public double getScore()
+    {
+        // TODO Auto-generated method stub
+        return 0;
     }
 }

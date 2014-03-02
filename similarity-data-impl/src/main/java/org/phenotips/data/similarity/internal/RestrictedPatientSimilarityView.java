@@ -21,12 +21,12 @@ package org.phenotips.data.similarity.internal;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
@@ -84,24 +84,25 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    public Set<? extends Feature> getFeatures()
+    public Set< ? extends Feature> getFeatures()
     {
         if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
-        }
-
-        Set<Feature> result = new HashSet<Feature>();
-        for (FeatureSimilarityView feature : this.matchedFeatures) {
-            if (feature.isMatchingPair() || this.access.isOpenAccess() && feature.getId() != null) {
-                result.add(feature);
+        } else if (this.access.isOpenAccess()) {
+            return super.getFeatures();
+        } else {
+            Set<Feature> result = new HashSet<Feature>();
+            for (FeatureSimilarityView feature : this.matchedFeatures) {
+                if (feature.isMatchingPair()) {
+                    result.add(feature);
+                }
             }
+            return result;
         }
-
-        return result;
     }
-    
+
     @Override
-    public Set<? extends Disorder> getDisorders()
+    public Set< ? extends Disorder> getDisorders()
     {
         if (!this.access.isOpenAccess()) {
             return Collections.emptySet();
@@ -111,15 +112,17 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access) {
+    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access)
+    {
         return new RestrictedFeatureSimilarityView(match, reference, this.access);
     }
-    
+
     @Override
-    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access) {
+    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
+    {
         return new RestrictedDisorderSimilarityView(match, reference, this.access);
     }
-    
+
     @Override
     public <T> PatientData<T> getData(String name)
     {
@@ -143,30 +146,22 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
         }
         result.element("token", getContactToken());
         result.element("access", this.access.toString());
-        result.element("myCase", ObjectUtils.equals(this.reference.getReporter(), this.match.getReporter()));
+        result.element("myCase", Objects.equals(this.reference.getReporter(), this.match.getReporter()));
         result.element("score", getScore());
         result.element("featuresCount", this.match.getFeatures().size());
 
-        Set<? extends Feature> features = getFeatures();
-        if (!features.isEmpty()) {
-            JSONArray featuresJSON = new JSONArray();
-            for (Feature feature : features) {
-                featuresJSON.add(feature.toJSON());
-            }
+        JSONArray featuresJSON = getFeaturesJSON();
+        if (!featuresJSON.isEmpty()) {
             result.element("features", featuresJSON);
         }
 
-        Set<? extends Disorder> disorders = getDisorders();
-        if (!disorders.isEmpty()) {
-            JSONArray disordersJSON = new JSONArray();
-            for (Disorder disorder : disorders) {
-                disordersJSON.add(disorder.toJSON());
-            }
+        JSONArray disordersJSON = getDisordersJSON();
+        if (!disordersJSON.isEmpty()) {
             result.element("disorders", disordersJSON);
         }
-        
+
         result.element("genes", this.matchedGenes.toJSON());
-        
+
         return result;
     }
 }

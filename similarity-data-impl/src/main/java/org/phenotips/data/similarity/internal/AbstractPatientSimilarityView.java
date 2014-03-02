@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.sf.json.JSONArray;
+
 import org.apache.commons.lang3.StringUtils;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
@@ -60,7 +62,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     protected final AccessType access;
 
     protected final ExternalToolJobManager<Genotype> exomizerManager;
-    
+
     protected final String contactToken;
 
     /** Links feature values from this patient to the reference. */
@@ -68,10 +70,10 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** Links gene variants from this patient to the reference. */
     protected GenotypeSimilarityView matchedGenes;
-    
+
     /** Links disorder values from this patient to the reference. */
     protected Set<DisorderSimilarityView> matchedDisorders;
-    
+
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
      * 
@@ -100,13 +102,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         ExternalToolJobManager<Genotype> em = null;
         try {
-            em = ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class, "exomizer");
+            em =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
+                    "exomizer");
         } catch (ComponentLookupException e) {
             assert false : "ExomizerJobManager could not be retrieved";
         }
         this.exomizerManager = em;
         this.contactToken = token;
-        
+
         matchFeatures();
         matchDisorders();
         matchGenes();
@@ -149,6 +153,42 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
+     * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
+     * features displayed.
+     * 
+     * @return the JSON for visible features
+     */
+    protected JSONArray getFeaturesJSON()
+    {
+        Set< ? extends Feature> features = getFeatures();
+        JSONArray featuresJSON = new JSONArray();
+        if (!features.isEmpty()) {
+            for (Feature feature : features) {
+                featuresJSON.add(feature.toJSON());
+            }
+        }
+        return featuresJSON;
+    }
+
+    /**
+     * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
+     * disorders displayed.
+     * 
+     * @return the JSON for visible disorders
+     */
+    protected JSONArray getDisordersJSON()
+    {
+        JSONArray disordersJSON = new JSONArray();
+        Set< ? extends Disorder> disorders = getDisorders();
+        if (!disorders.isEmpty()) {
+            for (Disorder disorder : disorders) {
+                disordersJSON.add(disorder.toJSON());
+            }
+        }
+        return disordersJSON;
+    }
+
+    /**
      * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
      * 
@@ -156,7 +196,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of features to look in, either the reference patient or the matched patient features
      * @return one of the features from the list, if it matches the target feature, or {@code null} otherwise
      */
-    protected Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
+    protected Feature findMatchingFeature(Feature toMatch, Set< ? extends Feature> lookIn)
     {
         FeatureSimilarityScorer scorer = RestrictedFeatureSimilarityView.getScorer();
         if (scorer != null) {
@@ -192,13 +232,13 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         return result;
     }
-    
+
     /** XXX: to do. */
     public GenotypeSimilarityView getGenotypeSimilarity()
     {
         return this.matchedGenes;
     }
-    
+
     @Override
     public Set< ? extends Disorder> getDisorders()
     {
@@ -211,7 +251,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         return result;
     }
-    
+
     /**
      * Searches for a similar disorder in the reference patient, matching one of the matched patient's disorders, or
      * vice-versa.
@@ -220,7 +260,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
      * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
      */
-    protected Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
+    protected Disorder findMatchingDisorder(Disorder toMatch, Set< ? extends Disorder> lookIn)
     {
         for (Disorder candidate : lookIn) {
             if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
@@ -229,17 +269,19 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         }
         return null;
     }
-    
+
     /** See {@link #RestrictedFeatureSimilarityView(Feature, Feature, AccessType)}. */
-    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access) {
+    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access)
+    {
         return new DefaultFeatureSimilarityView(match, reference);
     }
 
     /** See {@link #RestrictedDisorderSimilarityView(Patient, Patient, AccessType)}. */
-    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access) {
+    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
+    {
         return new DefaultDisorderSimilarityView(match, reference);
     }
-    
+
     /**
      * Create pairs of matching features, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
@@ -267,7 +309,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     {
         this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
     }
-    
+
     /**
      * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
@@ -276,8 +318,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     {
         Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
         for (Disorder disorder : this.match.getDisorders()) {
-            result.add(createDisorderSimilarityView(disorder, findMatchingDisorder(disorder,
-                this.reference.getDisorders()), this.access));
+            result.add(createDisorderSimilarityView(disorder,
+                findMatchingDisorder(disorder, this.reference.getDisorders()), this.access));
         }
         for (Disorder disorder : this.reference.getDisorders()) {
             if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {

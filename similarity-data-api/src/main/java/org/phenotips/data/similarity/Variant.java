@@ -37,14 +37,14 @@ public interface Variant extends Comparable<Variant>
      * 
      * @return the chromosome or null if not available
      */
-    public String getChrom();
+    String getChrom();
 
     /**
      * Get the position of the variant (1-indexed).
      * 
      * @return the (1-indexed) position or null if not available
      */
-    public Integer getPosition();
+    Integer getPosition();
 
     /**
      * Get the reference allele for the variant (e.g. "A", "CCT"). If the variant is a simple insertion, this might be
@@ -52,7 +52,7 @@ public interface Variant extends Comparable<Variant>
      * 
      * @return the reference genotype as a string
      */
-    public String getRef();
+    String getRef();
 
     /**
      * Get the alternate allele for the variant (e.g. "A", "CCT"). If the variant is a simple deletion, this might be
@@ -60,29 +60,29 @@ public interface Variant extends Comparable<Variant>
      * 
      * @return the alternate genotype as a string
      */
-    public String getAlt();
+    String getAlt();
 
     /**
      * Return whether the variant is homozygous or not.
      * 
      * @return true if the variant is homozygous, false otherwise
      */
-    public boolean isHomozygous();
+    boolean isHomozygous();
 
     /**
-     * Get the value associated with a particular annotation (such as the INFO field of a VCF file)
+     * Get the value associated with a particular annotation (such as the INFO field of a VCF file).
      * 
      * @param key the key to search for
      * @return the value, an empty string if the key exists without a value, and null if the key does not exist.
      */
-    public String getAnnotation(String key);
+    String getAnnotation(String key);
 
     /**
      * Get the harmfulness score of the variant.
      * 
      * @return the harmfulness score of the variant
      */
-    public double getScore();
+    double getScore();
 
     /**
      * Get the variant effect (e.g. "SPLICING", "FS_INSERTION"). If the variant falls into multiple classes, the most
@@ -90,7 +90,7 @@ public interface Variant extends Comparable<Variant>
      * 
      * @return the effect of the variant as a string
      */
-    public String getEffect();
+    String getEffect();
 
     /**
      * Retrieve a variant's information in a JSON format. For example:

@@ -218,7 +218,7 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
             // Get a Collection<String> of symptom HP IDs, or null
             Object symptomNames = disease.get("actual_symptom");
             if (symptomNames != null) {
-                if (symptomNames instanceof Collection<?>) {
+                if (symptomNames instanceof Collection< ? >) {
                     for (String symptomName : ((Collection<String>) symptomNames)) {
                         OntologyTerm symptom = hpo.getTerm(symptomName);
                         if (!allowedTerms.contains(symptom)) {
@@ -391,9 +391,10 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
         assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-		// Give data to views to use
-		this.logger.error("Setting view globals...");
+        // Give data to views to use
+        this.logger.error("Setting view globals...");
         MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
+        MutualInformationPatientSimilarityView.setTermICs(termICs);
         MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
     }
 }

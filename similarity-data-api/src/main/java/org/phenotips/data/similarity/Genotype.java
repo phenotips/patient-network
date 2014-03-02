@@ -37,9 +37,9 @@ import org.xwiki.stability.Unstable;
 public interface Genotype
 {
     
-    public void addGene(String gene, double score, List<Variant> variants);
+    void addGene(String gene, double score, List<Variant> variants);
     
-    public Set<String> getGenes();
+    Set<String> getGenes();
 
     /**
      * Return the score for a gene.
@@ -47,9 +47,9 @@ public interface Genotype
      * @param gene the gene in question
      * @return the score of the gene, between 0 and 1, where 1 is better
      */
-    public double getGeneScore(String gene);
+    double getGeneScore(String gene);
 
-    public Pair<Double, Double> getTopVariantScores(String gene);
+    Pair<Double, Double> getTopVariantScores(String gene);
     
     /**
      * Retrieve all variant information in a JSON format. For example:
