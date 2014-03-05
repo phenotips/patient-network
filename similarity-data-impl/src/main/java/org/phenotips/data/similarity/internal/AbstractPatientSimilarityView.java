@@ -45,7 +45,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -192,7 +191,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
-     * Get JSON for genotypic similarity between the patients according to the access level. See {@link #getGenotypeSimilarity()} for details.
+     * Get JSON for genotypic similarity between the patients according to the access level. See
+     * {@link #getGenotypeSimilarity()} for details.
      * 
      * @return the JSON for genotypic similarity
      */
@@ -200,7 +200,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     {
         return getGenotype().toJSON();
     }
-    
+
     /**
      * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
@@ -249,7 +249,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /**
      * Return the Genotype object containing the genes and variants between the two patients.
      * 
-     * @return A Genotype object, containing the relevant genes, variants, and scores for the patient matching. 
+     * @return A Genotype object, containing the relevant genes, variants, and scores for the patient matching.
      */
     public Genotype getGenotype()
     {

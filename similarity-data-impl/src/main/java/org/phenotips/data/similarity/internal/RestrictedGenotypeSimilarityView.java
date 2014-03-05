@@ -85,26 +85,41 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * @param match the matched patient to represent
      * @param reference the reference patient against which to compare
      * @param access the access type the user has to the match patient
+     * @throws IllegalArgumentException if one of the patients is {@code null}
      */
     public RestrictedGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
+        throws IllegalArgumentException
     {
+        if (match == null || reference == null) {
+            throw new IllegalArgumentException("Similar patients require both a match and a reference");
+        }
+
         ExternalToolJobManager<Genotype> em = null;
         try {
             em =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
                     "exomizer");
         } catch (ComponentLookupException e) {
-            assert false : "ExternalToolJobManager could not be retrieved";
+            // Should never happen
         }
 
-        String matchId = match.getDocument().getName();
-        String refId = reference.getDocument().getName();
+        String matchId = match.getDocument() == null ? null : match.getDocument().getName();
+        String refId = reference.getDocument() == null ? null : reference.getDocument().getName();
+        if (matchId == null || refId == null) {
+            // No genotype similarity possible if the patients don't have document IDs
+            return;
+        }
+
         this.matchGenotype = em.getResult(matchId);
         this.refGenotype = em.getResult(refId);
         this.access = access;
 
-        if (this.matchGenotype == null && this.refGenotype == null) {
+        this.geneScores = new HashMap<String, Double>();
+        this.geneVariants = new HashMap<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>>();
 
+        // Don't do a comparison unless both patients have genotypes
+        if (this.matchGenotype == null || this.refGenotype == null) {
+            return;
         }
 
         // Need patient repository for looking up patients by ID
@@ -119,8 +134,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         Set<String> otherGenotypedIds = new HashSet<String>(em.getAllCompleted());
         otherGenotypedIds.remove(matchId);
         otherGenotypedIds.remove(refId);
-        this.geneScores = new HashMap<String, Double>();
-        this.geneVariants = new HashMap<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>>();
 
         for (String gene : getGenes()) {
             Pair<Variant, Variant> refVariants = this.refGenotype.getTopVariants(gene);
@@ -180,20 +193,31 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     @Override
     public Double getGeneScore(String gene)
     {
-        return this.matchGenotype.getGeneScore(gene);
+        if (this.matchGenotype == null) {
+            return null;
+        } else {
+            return this.matchGenotype.getGeneScore(gene);
+        }
     }
 
     @Override
     public Pair<Variant, Variant> getTopVariants(String gene)
     {
-        // TODO Auto-generated method stub
-        return this.matchGenotype.getTopVariants(gene);
+        if (this.matchGenotype == null) {
+            return null;
+        } else {
+            return this.matchGenotype.getTopVariants(gene);
+        }
     }
 
     @Override
     public double getScore()
     {
-        return Collections.max(geneScores.values());
+        if (this.geneScores == null || this.geneScores.isEmpty()) {
+            return 0.0;
+        } else {
+            return Collections.max(this.geneScores.values());
+        }
     }
 
     private JSONArray getVariantPairJSON(Pair<Variant, Variant> vp)

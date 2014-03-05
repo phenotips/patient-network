@@ -69,7 +69,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     private Environment environment;
 
     /** Connection to medsavant for patient genotypes. */
-    @Inject
+    //@Inject
     private MedSavantServer medsavant;
 
     /** Threadpool manager. */
