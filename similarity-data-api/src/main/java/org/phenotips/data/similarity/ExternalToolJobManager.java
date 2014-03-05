@@ -19,13 +19,12 @@
  */
 package org.phenotips.data.similarity;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Set;
-
 import org.phenotips.data.Patient;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
+
+import java.util.Set;
 
 /**
  * Allows submitting, querying, and managing tasks to run an external tool on patients.
@@ -77,7 +76,7 @@ public interface ExternalToolJobManager<T>
      * @return result for last successful run, or null.
      */
     T getResult(String patientId);
-    
+
     /**
      * Mark the patient's job as being successfully completed and associate a result.
      * 
@@ -85,14 +84,14 @@ public interface ExternalToolJobManager<T>
      * @param result the result to store for the patient
      */
     public void putResult(String patientId, T result);
-    
+
     /**
      * Get all patient IDs for which there are output files.
      * 
-     * @return a set of all the patientIds with completed jobs.
+     * @return an unmodifiable set of all the patientIds with completed jobs.
      */
     public Set<String> getAllCompleted();
-    
+
     /**
      * Add the {@link Patient} to the processing queue for the tool. If the patient already has a job in the queue, move
      * the job to the end of the queue. If the patient had a previously successful job, the results will be overwritten

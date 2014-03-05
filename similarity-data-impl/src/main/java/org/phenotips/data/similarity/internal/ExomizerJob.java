@@ -19,53 +19,63 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import jannovar.reference.Chromosome;
+import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
+import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Variant;
+import org.phenotips.integration.medsavant.MedSavantServer;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.phenotips.data.Feature;
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.Genotype;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import exomizer.Exomizer;
 import exomizer.exception.ExomizerException;
+import jannovar.reference.Chromosome;
+import net.sf.json.JSONArray;
 
 /**
  * @version $Id$
  */
 public class ExomizerJob implements Runnable
 {
-    /** The manager component, set with {@link #setManager(ExomizerJobManager)}. */
-    private static ExomizerJobManager manager;
-    
+    /** Logging helper object. */
+    private final Logger logger;
+
+    /** The manager component, set with {@link #initialize(ExomizerJobManager, PatientRepository)}. */
+    private final ExomizerJobManager manager;
+
     /** The patient being run. */
     private Patient patient;
 
-    /** Input (vcf) file. */
-    private File inFile;
-
-    /** Output file directory (used for temp and final file. */
-    private File outDir;
+    /** Data directory (used for temp and final files). */
+    private File dataDir;
 
     /**
      * Create Runnable exomizer job from ExomizerManager instance.
      * 
+     * @param manager the job manager running this job
      * @param patient the patient to run.
-     * @param inFile the input (vcf) file for exomizer.
      * @param chromosomeMap the shared Exomizer data structure.
-     * @param outDir the directory in which to store the output (and temp) file.
+     * @param dataDir the directory in which to store the output (and temp) files.
      * @param completedJobs the shared data structure to record the job completion.
      */
-    public ExomizerJob(Patient patient, File inFile, File outDir)
+    public ExomizerJob(ExomizerJobManager manager, Patient patient, File dataDir)
     {
+        this.manager = manager;
         this.patient = patient;
-        this.inFile = inFile;
-        this.outDir = outDir;
+        this.dataDir = dataDir;
+        this.logger = LoggerFactory.getLogger(ExomizerJob.class);
     }
 
     /**
@@ -87,36 +97,86 @@ public class ExomizerJob implements Runnable
     }
 
     /**
-     * Set the ExomizerJobManager used by all ExomizerJob instances.
+     * Get the patient's unique PhenomeCentral ID.
      * 
-     * @param manager the job manager to use.
+     * @param p the patient.
+     * @return the string PhenomeCentral ID of this patient.
      */
-    public static void setManager(ExomizerJobManager manager) {
-        ExomizerJob.manager = manager;
+    private static String getPatientId(Patient p)
+    {
+        return p.getDocument().getName();
     }
-    
+
+    /**
+     * Write out the filtered variants for the patient to an output file.
+     * 
+     * @param outFile the output file to write the variants to
+     * @throws IOException if there is an error writing the variants to the file
+     */
+    private void writeVariantsToFile(File outFile) throws IOException
+    {
+        Patient patient = this.patient;
+        String patientId = getPatientId(patient);
+
+        this.logger.error("Writing variant from " + patientId + " to " + outFile.getAbsolutePath());
+        final long startTime = System.currentTimeMillis();
+
+        // Look up filtered variants from PhenomeCentral-Medsavant API
+        MedSavantServer medsavant = this.manager.getMedSavantManager();
+        List<JSONArray> variants = medsavant.getFilteredVariants(patient);
+
+        File tempOutFile = new File(outFile.getAbsolutePath() + ".temp");
+        BufferedWriter ofp = new BufferedWriter(new FileWriter(tempOutFile));
+
+        // Write VCF header
+        ofp.write("##fileFormat=VCF4.1\n");
+        ofp.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + getPatientId(patient));
+        for (JSONArray variant : variants) {
+            Variant v = new ExomizerVariant(variant);
+            ofp.write(v.toVCFLine() + "\n");
+        }
+        ofp.close();
+
+        boolean success = tempOutFile.renameTo(outFile);
+        if (!success) {
+            throw new IOException("Unable to move temp VCF file to final path:" + outFile.getAbsolutePath());
+        }
+
+        this.logger.error("Variants written to: " + outFile.getAbsolutePath());
+        this.logger.error("Took " + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds.");
+    }
+
     @Override
     public void run()
     {
-        ExomizerJobManager manager = ExomizerJob.manager;
-        if (manager == null) {
+        if (this.manager == null) {
             throw new NullPointerException("ExomizerJobManager has not been set.");
         }
+        String dbUrl = this.manager.getDatabaseURL();
+        HashMap<Byte, Chromosome> chromosomeMap = this.manager.getChromosomeMap();
+        String patientId = getPatientId(this.patient);
 
-        String dbUrl = manager.getDatabaseURL();
-        HashMap<Byte, Chromosome> chromosomeMap = manager.getChromosomeMap();
-        
-        String patientId = this.patient.getDocument().getName();
-        File outFile = new File(this.outDir, patientId);
-        File tempOutFile = new File(this.outDir, patientId + ".temp");
+        // Create a VCF file with filtered variants for Exomizer to process
+        File inFile = new File(this.dataDir, patientId + ".vcf");
+        // TODO: only do this if the genotype is updated
+        try {
+            writeVariantsToFile(inFile);
+        } catch (IOException e) {
+            // Set result to have error
+            throw new RuntimeException(e);
+        }
 
         String hpoIDs = getPatientHPOs(this.patient); // "HP:0123456,HP:0000118,..."
+
+        // Run Exomizer on VCF and HPO terms to generate outFile
+        File outFile = new File(this.dataDir, patientId + ".ezr");
+        File tempOutFile = new File(this.dataDir, patientId + ".temp");
         try {
             Exomizer exomizer = new Exomizer(chromosomeMap);
             exomizer.setHPOids(hpoIDs);
             exomizer.setUsePathogenicityFilter(true);
             exomizer.setFrequencyThreshold("1");
-            exomizer.setVCFfile(this.inFile.getAbsolutePath());
+            exomizer.setVCFfile(inFile.getAbsolutePath());
             exomizer.setOutfile(tempOutFile.getAbsolutePath());
 
             // Connect to database and load VCF
@@ -147,6 +207,6 @@ public class ExomizerJob implements Runnable
         } catch (FileNotFoundException e) {
             throw new RuntimeException("Unable to load genotype from file: " + outFile.getAbsolutePath());
         }
-        manager.putResult(patientId, result);
+        this.manager.putResult(patientId, result);
     }
 }

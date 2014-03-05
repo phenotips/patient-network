@@ -19,6 +19,13 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyTerm;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,17 +33,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.phenotips.data.Feature;
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link PatientSimilarityView} that uses a mutual information metric to score similar patients.
@@ -68,7 +69,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     private static Map<OntologyTerm, Double> parentCondIC;
 
     /** Provides access to the term ontology. */
-    private final OntologyManager ontologyManager;
+    private static OntologyManager ontologyManager;
 
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
@@ -81,12 +82,19 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @param access the access level the current user has on the matched patient
      * @param ontologyManager the term ontology
      * @throws IllegalArgumentException if one of the patients is {@code null}
+     * @throws NullPointerException if the class was not statically initialized with
+     *             {@link #initializeStaticData(Map, Map, OntologyManager)} before use
      */
-    public MutualInformationPatientSimilarityView(Patient match, Patient reference, AccessType access,
-        OntologyManager ontologyManager) throws IllegalArgumentException
+    public MutualInformationPatientSimilarityView(Patient match, Patient reference, AccessType access)
+        throws IllegalArgumentException
     {
         super(match, reference, access);
-        this.ontologyManager = ontologyManager;
+        if (MutualInformationPatientSimilarityView.termICs == null
+            || MutualInformationPatientSimilarityView.parentCondIC == null
+            || MutualInformationPatientSimilarityView.ontologyManager == null) {
+            throw new NullPointerException(
+                "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation");
+        }
     }
 
     /**
@@ -95,29 +103,22 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @param openView the open patient pair to clone
      * @param ontologyManager the term ontology
      */
-    public MutualInformationPatientSimilarityView(AbstractPatientSimilarityView openView,
-        OntologyManager ontologyManager)
+    public MutualInformationPatientSimilarityView(AbstractPatientSimilarityView openView)
     {
-        this(openView.match, openView.reference, openView.access, ontologyManager);
+        this(openView.match, openView.reference, openView.access);
     }
 
     /**
-     * Set the static conditional information content map for the class.
-     * 
-     * @param condICs the conditional information content of each term, given its parents
-     */
-    public static void setConditionalICs(Map<OntologyTerm, Double> condICs)
-    {
-        MutualInformationPatientSimilarityView.parentCondIC = condICs;
-    }
-
-    /**
-     * Set the static term information content map for the class.
+     * Set the static information for the class. Must be run before creating instances of this
      * 
      * @param termICs the information content of each term
+     * @param condICs the conditional information content of each term, given its parents
      */
-    public static void setTermICs(Map<OntologyTerm, Double> termICs)
+    public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
+        OntologyManager ontologyManager)
     {
+        MutualInformationPatientSimilarityView.ontologyManager = ontologyManager;
+        MutualInformationPatientSimilarityView.parentCondIC = condICs;
         MutualInformationPatientSimilarityView.termICs = termICs;
         MutualInformationPatientSimilarityView.maxIC = Collections.max(termICs.values());
     }
@@ -136,7 +137,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
                 continue;
             }
 
-            OntologyTerm term = this.ontologyManager.resolveTerm(feature.getId());
+            OntologyTerm term = MutualInformationPatientSimilarityView.ontologyManager.resolveTerm(feature.getId());
             if (term == null) {
                 this.logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
             } else {
@@ -385,6 +386,11 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         JSONArray disordersJSON = getDisordersJSON();
         if (!disordersJSON.isEmpty()) {
             result.element("disorders", disordersJSON);
+        }
+
+        JSONArray genesJSON = getGenotypeJSON();
+        if (!genesJSON.isEmpty()) {
+            result.element("genes", genesJSON);
         }
 
         // Compute nicer information-content phenotype cluster matching

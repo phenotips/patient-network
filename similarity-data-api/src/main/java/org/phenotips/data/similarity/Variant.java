@@ -80,7 +80,7 @@ public interface Variant extends Comparable<Variant>
     /**
      * Get the harmfulness score of the variant.
      * 
-     * @return the harmfulness score of the variant
+     * @return the harmfulness score of the variant, default 0.0
      */
     double getScore();
 
@@ -88,10 +88,17 @@ public interface Variant extends Comparable<Variant>
      * Get the variant effect (e.g. "SPLICING", "FS_INSERTION"). If the variant falls into multiple classes, the most
      * harmful should be provided, based upon a reasonable ordering such as Exomizer output.
      * 
-     * @return the effect of the variant as a string
+     * @return the effect of the variant as a string, potentially null
      */
     String getEffect();
 
+    /**
+     * Get the VCF-line equivalent of the variant.
+     * 
+     * @return the line of the VCF file without a terminal newline
+     */
+    String toVCFLine();
+    
     /**
      * Retrieve a variant's information in a JSON format. For example:
      * 

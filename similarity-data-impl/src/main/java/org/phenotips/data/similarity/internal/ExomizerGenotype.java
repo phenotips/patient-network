@@ -19,6 +19,9 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Variant;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -29,15 +32,14 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.phenotips.data.similarity.Genotype;
-import org.phenotips.data.similarity.Variant;
-
 /**
- * TODO
+ * This class represents the genotype information from an exomizer-annotated VCF file. Specifically, a collection of
+ * variants annotated with genes, phenotype scores, and harmfulness scores.
  * 
  * @version $Id$
  * @since
@@ -45,38 +47,38 @@ import org.phenotips.data.similarity.Variant;
 public class ExomizerGenotype implements Genotype
 {
     private Map<String, Double> geneScores;
+
     private Map<String, List<Variant>> variants;
-    
-    ExomizerGenotype() {
-        this.variants = new HashMap<String, List<Variant>>();
-        this.geneScores = new HashMap<String, Double>();
-    }
-    
+
     /**
      * Create a Genotype object from an Exomizer output file.
      * 
-     * @param exomizerOutput an exomizer-annotated VCF file 
+     * @param exomizerOutput an exomizer-annotated VCF file
      * @throws FileNotFoundException if the file does not exist
      */
     ExomizerGenotype(File exomizerOutput) throws FileNotFoundException
     {
-        this();
+        this.variants = new HashMap<String, List<Variant>>();
+        this.geneScores = new HashMap<String, Double>();
         Scanner fileScan = new Scanner(exomizerOutput);
         while (fileScan.hasNextLine()) {
             String line = fileScan.nextLine();
+            if (line.startsWith("#"))
+                continue;
+
             Variant variant = new ExomizerVariant(line);
-            
+
             String gene = variant.getAnnotation("GENE");
             Double geneScore = Double.parseDouble(variant.getAnnotation("PHENO_SCORE"));
             geneScores.put(gene, geneScore);
-            
+
             if (gene != null && !gene.isEmpty()) {
                 List<Variant> geneMutations = this.variants.get(gene);
                 if (geneMutations == null) {
                     geneMutations = new ArrayList<Variant>();
                     this.variants.put(gene, geneMutations);
                 }
-                
+
                 geneMutations.add(variant);
                 // Represent homozygous variants as two separate mutations
                 if (variant.isHomozygous()) {
@@ -85,71 +87,60 @@ public class ExomizerGenotype implements Genotype
             }
         }
         fileScan.close();
-        
+
         // Sort variants within each gene by harmfulness score
         // TODO: have lists maintain sorted order, instead of sorting at the end
         for (List<Variant> variants : this.variants.values()) {
             Collections.sort(variants);
         }
     }
-    
+
     @Override
-    public Set<String> getGenes() {
+    public Set<String> getGenes()
+    {
         return Collections.unmodifiableSet(this.variants.keySet());
-    }
-    
-    @Override
-    public double getGeneScore(String gene) {
-        Double geneScore = this.geneScores.get(gene);
-        if (geneScore == null) {
-            return 0.0;
-        } else {
-            return geneScore;
-        }
     }
 
     @Override
-    public Pair<Double, Double> getTopVariantScores(String gene) {
+    public Double getGeneScore(String gene)
+    {
+        return this.geneScores.get(gene);
+    }
+
+    @Override
+    public Pair<Variant, Variant> getTopVariants(String gene)
+    {
         List<Variant> variants = this.variants.get(gene);
-        double first = 0.0;
-        double second = 0.0;
+        Variant first = null;
+        Variant second = null;
         if (variants.size() >= 1) {
-            first = variants.get(0).getScore();
-        } 
+            first = variants.get(0);
+        }
         if (variants.size() >= 2) {
-            second = variants.get(1).getScore();
+            second = variants.get(1);
         }
         return Pair.of(first, second);
     }
-    
+
     @Override
-    public void addGene(String gene, double score, List<Variant> variants)
+    public JSONArray toJSON()
     {
-        this.geneScores.put(gene, score);
-        this.variants.put(gene, variants);
-    }
-    
-    @Override
-    public JSONObject toJSON()
-    {
-        JSONObject result = new JSONObject();
         JSONArray geneList = new JSONArray();
         for (String geneName : this.variants.keySet()) {
             JSONObject gene = new JSONObject();
             gene.element("gene", geneName);
             gene.element("score", getGeneScore(geneName));
-            
+
             JSONArray variantList = new JSONArray();
             List<Variant> variants = this.variants.get(geneName);
             for (Variant variant : variants) {
                 variantList.add(variant.toJSON());
             }
             gene.element("variants", variantList);
-            
+
             geneList.add(gene);
         }
-        result.element("genes", geneList);
-        return result;
+        return geneList;
     }
 
 }

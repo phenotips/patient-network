@@ -19,11 +19,9 @@
  */
 package org.phenotips.data.similarity;
 
-import net.sf.json.JSONObject;
-
-import org.phenotips.data.Feature;
-import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
+
+import net.sf.json.JSONArray;
 
 /**
  * View of a patient genotype as related to another reference genotype.
@@ -45,9 +43,7 @@ public interface GenotypeSimilarityView extends Genotype
      * Retrieve all genotype match information in a JSON format. For example:
      * 
      * <pre>
-     * {
-     *   "score" : <number>,
-     *   "genes" : [
+     *      [
      *         {
      *            "gene" : <gene name>,
      *            "reference" : {
@@ -81,10 +77,9 @@ public interface GenotypeSimilarityView extends Genotype
      *        },
      *        ...
      *     ]
-     * }
      * </pre>
      * 
      * @return the data about this value, using the json-lib classes
      */
-    JSONObject toJSON();
+    JSONArray toJSON();
 }

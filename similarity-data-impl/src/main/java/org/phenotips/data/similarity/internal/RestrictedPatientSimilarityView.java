@@ -160,8 +160,6 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
             result.element("disorders", disordersJSON);
         }
 
-        result.element("genes", this.matchedGenes.toJSON());
-
         return result;
     }
 }

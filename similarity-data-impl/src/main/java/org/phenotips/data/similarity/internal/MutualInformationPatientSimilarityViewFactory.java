@@ -19,6 +19,18 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyService;
+import org.phenotips.ontology.OntologyTerm;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,17 +43,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.params.CommonParams;
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
 import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 
 /**
  * Implementation of {@link PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
@@ -78,19 +80,17 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        return new MutualInformationPatientSimilarityView(match, reference, access, this.ontologyManager);
+        return new MutualInformationPatientSimilarityView(match, reference, access);
     }
 
     @Override
     public PatientSimilarityView convert(PatientSimilarityView patientPair)
     {
         if (patientPair instanceof AbstractPatientSimilarityView) {
-            return new MutualInformationPatientSimilarityView((AbstractPatientSimilarityView) patientPair,
-                this.ontologyManager);
+            return new MutualInformationPatientSimilarityView((AbstractPatientSimilarityView) patientPair);
         }
         AccessType access = new DefaultAccessType(patientPair.getAccess(), this.viewAccess, this.matchAccess);
-        return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access,
-            this.ontologyManager);
+        return new MutualInformationPatientSimilarityView(patientPair, patientPair.getReference(), access);
     }
 
     /**
@@ -218,7 +218,7 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
             // Get a Collection<String> of symptom HP IDs, or null
             Object symptomNames = disease.get("actual_symptom");
             if (symptomNames != null) {
-                if (symptomNames instanceof Collection< ? >) {
+                if (symptomNames instanceof Collection<?>) {
                     for (String symptomName : ((Collection<String>) symptomNames)) {
                         OntologyTerm symptom = hpo.getTerm(symptomName);
                         if (!allowedTerms.contains(symptom)) {
@@ -370,6 +370,8 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     @Override
     public void initialize() throws InitializationException
     {
+        this.logger.error("Initializing MutualInformationPatientSimilarityViewFactor...");
+        final long startTime = System.currentTimeMillis();
         // Load the OMIM/HPO mappings
         OntologyService mim = this.ontologyManager.getOntology("MIM");
         OntologyService hpo = this.ontologyManager.getOntology("HPO");
@@ -393,8 +395,9 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
 
         // Give data to views to use
         this.logger.error("Setting view globals...");
-        MutualInformationPatientSimilarityView.setConditionalICs(parentCondIC);
-        MutualInformationPatientSimilarityView.setTermICs(termICs);
+        MutualInformationPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager);
         MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
+        this.logger.error("MutualInformationPatientSimilarityViewFactor took "
+            + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds to initialize.");
     }
 }

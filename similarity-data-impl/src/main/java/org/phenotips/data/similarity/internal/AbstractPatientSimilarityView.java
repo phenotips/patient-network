@@ -19,13 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import net.sf.json.JSONArray;
-
-import org.apache.commons.lang3.StringUtils;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
@@ -41,8 +34,18 @@ import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
+
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -106,7 +109,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
                     "exomizer");
         } catch (ComponentLookupException e) {
-            assert false : "ExomizerJobManager could not be retrieved";
+            // This should not happen
         }
         this.exomizerManager = em;
         this.contactToken = token;
@@ -160,7 +163,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      */
     protected JSONArray getFeaturesJSON()
     {
-        Set< ? extends Feature> features = getFeatures();
+        Set<? extends Feature> features = getFeatures();
         JSONArray featuresJSON = new JSONArray();
         if (!features.isEmpty()) {
             for (Feature feature : features) {
@@ -179,7 +182,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     protected JSONArray getDisordersJSON()
     {
         JSONArray disordersJSON = new JSONArray();
-        Set< ? extends Disorder> disorders = getDisorders();
+        Set<? extends Disorder> disorders = getDisorders();
         if (!disorders.isEmpty()) {
             for (Disorder disorder : disorders) {
                 disordersJSON.add(disorder.toJSON());
@@ -189,6 +192,16 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
+     * Get JSON for genotypic similarity between the patients according to the access level. See {@link #getGenotypeSimilarity()} for details.
+     * 
+     * @return the JSON for genotypic similarity
+     */
+    protected JSONArray getGenotypeJSON()
+    {
+        return getGenotype().toJSON();
+    }
+    
+    /**
      * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
      * 
@@ -196,7 +209,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of features to look in, either the reference patient or the matched patient features
      * @return one of the features from the list, if it matches the target feature, or {@code null} otherwise
      */
-    protected Feature findMatchingFeature(Feature toMatch, Set< ? extends Feature> lookIn)
+    protected Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
     {
         FeatureSimilarityScorer scorer = RestrictedFeatureSimilarityView.getScorer();
         if (scorer != null) {
@@ -221,7 +234,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
-    public Set< ? extends Feature> getFeatures()
+    public Set<? extends Feature> getFeatures()
     {
         Set<Feature> result = new HashSet<Feature>();
         for (FeatureSimilarityView feature : this.matchedFeatures) {
@@ -233,14 +246,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return result;
     }
 
-    /** XXX: to do. */
-    public GenotypeSimilarityView getGenotypeSimilarity()
+    /**
+     * Return the Genotype object containing the genes and variants between the two patients.
+     * 
+     * @return A Genotype object, containing the relevant genes, variants, and scores for the patient matching. 
+     */
+    public Genotype getGenotype()
     {
         return this.matchedGenes;
     }
 
     @Override
-    public Set< ? extends Disorder> getDisorders()
+    public Set<? extends Disorder> getDisorders()
     {
         Set<Disorder> result = new HashSet<Disorder>();
         for (DisorderSimilarityView disorder : this.matchedDisorders) {
@@ -260,7 +277,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
      * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
      */
-    protected Disorder findMatchingDisorder(Disorder toMatch, Set< ? extends Disorder> lookIn)
+    protected Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
     {
         for (Disorder candidate : lookIn) {
             if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
@@ -303,14 +320,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
-     * Create a GenotypeSimilarityView for the pair of patients, if genotype information exists for both.
-     */
-    private void matchGenes()
-    {
-        this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
-    }
-
-    /**
      * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      */
@@ -327,6 +336,14 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             }
         }
         this.matchedDisorders = Collections.unmodifiableSet(result);
+    }
+
+    /**
+     * Create a GenotypeSimilarityView for the pair of patients, if genotype information exists for both.
+     */
+    private void matchGenes()
+    {
+        this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
     }
 
     @Override

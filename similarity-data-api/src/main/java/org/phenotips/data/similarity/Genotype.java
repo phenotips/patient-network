@@ -19,13 +19,13 @@
  */
 package org.phenotips.data.similarity;
 
-import java.util.List;
+import org.xwiki.stability.Unstable;
+
 import java.util.Set;
 
-import net.sf.json.JSONObject;
-
 import org.apache.commons.lang3.tuple.Pair;
-import org.xwiki.stability.Unstable;
+
+import net.sf.json.JSONArray;
 
 /**
  * TODO
@@ -36,45 +36,48 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public interface Genotype
 {
-    
-    void addGene(String gene, double score, List<Variant> variants);
-    
     Set<String> getGenes();
 
     /**
      * Return the score for a gene.
      * 
      * @param gene the gene in question
-     * @return the score of the gene, between 0 and 1, where 1 is better
+     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene)
      */
-    double getGeneScore(String gene);
+    Double getGeneScore(String gene);
 
-    Pair<Double, Double> getTopVariantScores(String gene);
-    
+    /**
+     * Get the two variants with the highest scores in the given gene.
+     * 
+     * @param gene the gene to return variants for
+     * @return the first and second-highest scoring variants, respectively (one or both may be none)
+     */
+    Pair<Variant, Variant> getTopVariants(String gene);
+
     /**
      * Retrieve all variant information in a JSON format. For example:
      * 
      * <pre>
-     * [ 
-     *   {
-     *     "gene": "SRCAP",
-     *     "score": 0.7, // phenotype score
-     *     "variants": [ // variants sorted by decreasing score
-     *       { 
-     *         "score": 0.8, // genotype score
-     *         "chrom": "1",
-     *         "position": 2014819,
-     *         "type": "SPLICING",
-     *         "ref": "A",
-     *         "alt": "T",
-     *       },
-     *       {...},
-     *      ]
-     *   }
-     * ]
+     *   [ 
+     *     {
+     *       "gene": "SRCAP",
+     *       "score": 0.7, // phenotype score
+     *       "variants": [ // variants sorted by decreasing score
+     *         { 
+     *           "score": 0.8, // genotype score
+     *           "chrom": "1",
+     *           "position": 2014819,
+     *           "type": "SPLICING",
+     *           "ref": "A",
+     *           "alt": "T",
+     *         },
+     *         {...},
+     *        ]
+     *     }
+     *   ]
      * </pre>
      * 
      * @return the data about this value, using the json-lib classes
      */
-    JSONObject toJSON();
+    JSONArray toJSON();
 }

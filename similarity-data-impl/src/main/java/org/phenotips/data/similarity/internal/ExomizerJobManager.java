@@ -19,7 +19,15 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import jannovar.reference.Chromosome;
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.ExternalToolJobManager;
+import org.phenotips.data.similarity.Genotype;
+import org.phenotips.integration.medsavant.MedSavantServer;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
+import org.xwiki.environment.Environment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,23 +45,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.ExternalToolJobManager;
-import org.phenotips.data.similarity.Genotype;
-import org.phenotips.integration.medsavant.MedSavantServer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
-import org.xwiki.environment.Environment;
 
 import exomizer.Exomizer;
 import exomizer.exception.ExomizerException;
+import jannovar.reference.Chromosome;
 
 /**
  * @version $Id$
  */
-@Component
+@Component(roles = { ExternalToolJobManager.class })
 @Named("exomizer")
 @Singleton
 public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Initializable
@@ -69,24 +71,24 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     /** Connection to medsavant for patient genotypes. */
     @Inject
     private MedSavantServer medsavant;
-    
+
     /** Threadpool manager. */
     private ExecutorService executor;
 
     /** A record of jobs that have been submitted since running. */
-    private Map<String, Future< ? >> submittedJobs;
+    private Map<String, Future<?>> submittedJobs;
 
     /** A mapping of available results, from PhenomeCentral patient IDs to the annotated Genotypes. */
     private Map<String, Genotype> completedJobs;
 
     /** Static directory for output exomizer files. */
-    private File outDir;
+    private File dataDir;
 
     /** The URL for the Exomizer postgresql server. */
     private String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
 
     /** The server file path for the serialized UCSC data. */
-    private String serializedDb = "/data/Exomiser/ucsc.ser";
+    private String serializedDb;
 
     /** Exomized gene data structure, loaded once and shared by all jobs. */
     private HashMap<Byte, Chromosome> chromosomeMap;
@@ -94,40 +96,52 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Override
     public void initialize() throws InitializationException
     {
+        logger.error("Intializing ExomizerJobManager...");
+
         // Set up threadpool
         this.executor = Executors.newFixedThreadPool(2);
-        this.submittedJobs = new ConcurrentHashMap<String, Future< ? >>();
+        this.submittedJobs = new ConcurrentHashMap<String, Future<?>>();
         this.completedJobs = new ConcurrentHashMap<String, Genotype>();
-        ExomizerJob.setManager(this);
-        
+
+        try {
+            this.chromosomeMap = Exomizer.getDeserializedUCSCdata(this.serializedDb);
+            this.logger.error("Loaded shared Exomizer chromosome map from: " + this.serializedDb);
+        } catch (ExomizerException e) {
+            String err = "Failed to load chromosome map: " + e;
+            this.logger.error(err);
+            throw new InitializationException(err);
+        }
+
         // Shared across threads
         this.chromosomeMap = null;
 
         // Get xwiki component permanent directory for Exomizer files
         File rootDir = this.environment.getPermanentDirectory();
-        this.outDir = new File(rootDir, "exomizer");
-        if (!this.outDir.isDirectory()) {
-            if (this.outDir.exists()) {
-                throw new InitializationException("file exists instead of data: " + this.outDir.getAbsolutePath());
+        this.dataDir = new File(rootDir, "exomizer");
+        if (!this.dataDir.isDirectory()) {
+            if (this.dataDir.exists()) {
+                throw new InitializationException("file exists instead of data: " + this.dataDir.getAbsolutePath());
             } else {
-                boolean success = this.outDir.mkdirs();
+                boolean success = this.dataDir.mkdirs();
                 if (!success) {
                     throw new InitializationException("could not create exomizer data directory: "
-                        + this.outDir.getAbsolutePath());
+                        + this.dataDir.getAbsolutePath());
                 }
             }
         }
+        logger.error("ExomizerJobManager data directory: " + this.dataDir.getAbsolutePath());
+        this.serializedDb = (new File(this.dataDir, "ucsc.ser")).getAbsolutePath();
 
         // Process all already-completed files
         FilenameFilter exomizerFileFilter = new FilenameFilter()
         {
             public boolean accept(File dir, String name)
             {
-                return !name.endsWith(".temp") && (new File(dir, name)).isFile();
+                return name.endsWith(".ezr") && (new File(dir, name)).isFile();
             }
         };
-        for (File file : this.outDir.listFiles(exomizerFileFilter)) {
-            String patientId = file.getName();
+        for (File file : this.dataDir.listFiles(exomizerFileFilter)) {
+            String patientId = StringUtils.split(file.getName(), '.')[0];
             if (!"".equals(patientId)) {
                 try {
                     putResult(patientId, new ExomizerGenotype(file));
@@ -158,6 +172,16 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
         return this.dbUrl;
     }
 
+    /**
+     * Get the medsavant manager.
+     * 
+     * @return the medsavant manager component.
+     */
+    public MedSavantServer getMedSavantManager()
+    {
+        return this.medsavant;
+    }
+
     @Override
     public void putResult(String patientId, Genotype result)
     {
@@ -178,32 +202,20 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Override
     public void addJob(Patient patient)
     {
-        if (this.chromosomeMap == null) {
-            try {
-                this.logger.error(" FIRST EXOMIZER JOB: initializing Exomizer with " + this.serializedDb);
-                this.chromosomeMap = Exomizer.getDeserializedUCSCdata(this.serializedDb);
-            } catch (ExomizerException e) {
-                this.logger.error(" initialization FAILED: " + e);
-                return;
-            }
-        }
 
-        Future< ? > result = this.submittedJobs.get(patient);
+        Future<?> result = this.submittedJobs.get(patient);
         if (result != null) {
-            // patient was already submitted
+            // cancel pending submission for same patient
             result.cancel(false);
         }
 
-        // Look up filtered variants from PhenomeCentral-Medsavant API
-        this.medsavant.getFilteredVariants(patient);
-        // XXX: String patientId = getPatientId(patient);
-        File inFile = new File("/Users/orion/projects/phenotips/NA20538_101600_AD_FGFR2.vcf");
-
-        Runnable worker = new ExomizerJob(patient, inFile, this.outDir);
+        Runnable worker = new ExomizerJob(this, patient, this.dataDir);
 
         // Submit job and store future for status queries
         this.logger.error(" submitting Exomizer job to threadpool: " + getPatientId(patient));
         result = this.executor.submit(worker);
+
+        // Add future (potentially-null/failed) result to submitted
         this.submittedJobs.put(getPatientId(patient), result);
     }
 
@@ -221,7 +233,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             return true;
         } else {
             // Check status of submitted job
-            Future< ? > result = this.submittedJobs.get(getPatientId(patient));
+            Future<?> result = this.submittedJobs.get(getPatientId(patient));
             if (result != null && result.isDone()) {
                 // job submitted and finished
                 return true;
@@ -233,7 +245,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Override
     public boolean wasSuccessful(Patient patient)
     {
-        return completedJobs.containsKey(getPatientId(patient));
+        return this.completedJobs.containsKey(getPatientId(patient));
     }
 
     @Override
@@ -257,9 +269,9 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Override
     public Genotype getResult(String patientId)
     {
-        return completedJobs.get(patientId);
+        return this.completedJobs.get(patientId);
     }
-    
+
     @Override
     public Set<String> getAllCompleted()
     {

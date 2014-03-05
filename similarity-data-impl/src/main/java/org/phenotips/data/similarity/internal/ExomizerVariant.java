@@ -19,13 +19,15 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.data.similarity.Variant;
+
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.sf.json.JSONObject;
-
 import org.bouncycastle.util.Strings;
-import org.phenotips.data.similarity.Variant;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * An annotated variant, as outputted by Exomizer.
@@ -39,7 +41,7 @@ public class ExomizerVariant implements Variant
     private String chrom;
 
     /** See {@link #getPosition()}. */
-    private int position;
+    private Integer position;
 
     /** See {@link #getRef()}. */
     private String ref;
@@ -59,10 +61,46 @@ public class ExomizerVariant implements Variant
     /** See {@link #getAnnotation(String)}. */
     private Map<String, String> info;
 
+    /** A string representation of the parsed info field, used to write to VCF. */
+    private String rawInfo;
+
+    /**
+     * Create a Variant from a line of an exomizer-annotated VCF file.
+     * 
+     * @param line the line of the VCF file
+     */
     ExomizerVariant(String line)
     {
         String[] tokens = Strings.split(line, '\t');
-        this.chrom = tokens[0].toUpperCase();
+        init(tokens[0], Integer.parseInt(tokens[1]), tokens[3], tokens[4], tokens[9], tokens[7], null);
+    }
+
+    /**
+     * Create a Variant from a MedSavant Row using the current database configuration. TODO: make this adapt to the
+     * database configuration, rather than use hard-coded column indices.
+     * 
+     * @param line the line of the VCF file
+     */
+    ExomizerVariant(JSONArray row)
+    {
+        init(row.getString(4), row.getInt(5), row.getString(8), row.getString(9),
+            Strings.split(row.getString(14), ':')[0], row.getString(15), 0.0);
+    }
+
+    /**
+     * Initialize a variant given a standard set of field values.
+     * 
+     * @param chrom the chromosome string
+     * @param position the variant position (1-indexed)
+     * @param ref the reference allele
+     * @param alt the alternate allele
+     * @param gt the genotype (e.g. "0/1")
+     * @param info the info field from a VCF line, may contain "EFFECT" annotation
+     * @param score the score (if null, will be parsed from "VARIANT_SCORE" annotation in info field
+     */
+    public void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
+    {
+        this.chrom = chrom.toUpperCase();
 
         // Standardize chromosome
         if (this.chrom.startsWith("CHR")) {
@@ -72,14 +110,15 @@ public class ExomizerVariant implements Variant
             this.chrom = "M";
         }
 
-        this.position = Integer.parseInt(tokens[1]);
-        this.ref = tokens[3];
-        this.alt = tokens[4];
-        this.gt = Strings.split(tokens[9], ':')[0];
+        this.position = position;
+        this.ref = ref;
+        this.alt = alt;
+        this.gt = gt;
 
         // Parse the INFO field into a dictionary
+        this.rawInfo = info;
         this.info = new TreeMap<String, String>();
-        String[] infoParts = Strings.split(tokens[7], ';');
+        String[] infoParts = Strings.split(info, ';');
         for (String part : infoParts) {
             int splitIndex = part.indexOf('=');
             if (splitIndex >= 0) {
@@ -88,9 +127,17 @@ public class ExomizerVariant implements Variant
                 this.info.put(part, "");
             }
         }
-
         this.effect = this.info.get("EFFECT");
-        this.score = Double.parseDouble(this.info.get("VARIANT_SCORE"));
+
+        if (score == null) {
+            // Try to read score from info field
+            String infoScore = this.info.get("VARIANT_SCORE");
+            if (infoScore != null) {
+                this.score = Double.parseDouble(infoScore);
+            }
+        } else {
+            this.score = score;
+        }
     }
 
     @Override
@@ -132,7 +179,7 @@ public class ExomizerVariant implements Variant
     @Override
     public boolean isHomozygous()
     {
-        return "1/1".equals(this.gt);
+        return "1/1".equals(this.gt) || "1|1".equals(this.gt);
     }
 
     @Override
@@ -146,6 +193,13 @@ public class ExomizerVariant implements Variant
     {
         // negative so that largest score comes first
         return -Double.compare(getScore(), o.getScore());
+    }
+
+    @Override
+    public String toVCFLine()
+    {
+        return String.format("%s\t%s\t.\t%s\t%s\t.\tPASS\t%s\tGT\t%s", this.chrom, this.position, this.ref, this.alt,
+            this.rawInfo, this.gt);
     }
 
     @Override
