@@ -26,6 +26,7 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -124,8 +125,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
         // Need patient repository for looking up patients by ID
         PatientRepository patientRepo = null;
+        PatientSimilarityViewFactory patientFactory = null;
         try {
             patientRepo = ComponentManagerRegistry.getContextComponentManager().getInstance(PatientRepository.class);
+            patientFactory =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(PatientSimilarityViewFactory.class,
+                    "mi");
         } catch (ComponentLookupException e) {
             // Should never happen.
         }
@@ -158,21 +163,26 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             for (String patientId : otherGenotypedIds) {
                 Genotype otherGt = em.getResult(patientId);
                 if (otherGt != null && otherGt.getGeneScore(gene) != null) {
-                    // Patient otherPatient = patientRepo.getPatientById(patientId);
-                    double otherPhenoScore = 0.5;
+                    //Patient otherPatient = patientRepo.getPatientById(patientId);
+                    //double otherSimScore = patientFactory.makeSimilarPatient(otherPatient, match).getScore() *
+                    //    patientFactory.makeSimilarPatient(otherPatient, reference).getScore();
+                    double otherSimScore = 0.8;
 
                     // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
                     Pair<Variant, Variant> otherVariants = otherGt.getTopVariants(gene);
                     if (getVariantScore(otherVariants.getLeft()) >= domThresh) {
-                        domScore *= 1 - otherPhenoScore;
+                        domScore *= otherSimScore;
                     }
                     if (getVariantScore(otherVariants.getRight()) >= recThresh) {
-                        recScore *= 1 - otherPhenoScore;
+                        recScore *= otherSimScore;
                     }
                 }
             }
-
-            geneScores.put(gene, Math.max(domScore, recScore));
+            geneScore = Math.max(domScore, recScore);
+            if (geneScore < 0.01) {
+                continue;
+            }
+            geneScores.put(gene, geneScore);
             geneVariants.put(gene, Pair.of(refVariants, matchVariants));
         }
     }
@@ -252,15 +262,25 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 return Double.compare(e2.getValue(), e1.getValue());
             }
         });
+        int iGene = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
+            // Include at most top 10 genes
+            if (iGene >= 10) {
+                break;
+            }
             String gene = geneEntry.getKey();
+            double score = geneEntry.getValue();
+            double refScore = this.refGenotype.getGeneScore(gene);
+            double matchScore = this.matchGenotype.getGeneScore(gene);
+            score /= Math.min(refScore, matchScore);
+
             JSONObject geneObject = new JSONObject();
             geneObject.element("gene", gene);
 
             Pair<Pair<Variant, Variant>, Pair<Variant, Variant>> variants = this.geneVariants.get(gene);
 
             JSONObject refJSON = new JSONObject();
-            refJSON.element("score", this.refGenotype.getGeneScore(gene));
+            refJSON.element("score", score * refScore);
             JSONArray refVarJSON = getVariantPairJSON(variants.getLeft());
             if (refVarJSON != null) {
                 refJSON.element("variants", refVarJSON);
@@ -268,7 +288,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             geneObject.element("reference", refJSON);
 
             JSONObject matchJSON = new JSONObject();
-            matchJSON.element("score", this.matchGenotype.getGeneScore(gene));
+            matchJSON.element("score", score * matchScore);
             JSONArray matchVarJSON = getVariantPairJSON(variants.getRight());
             if (matchVarJSON != null) {
                 matchJSON.element("variants", matchVarJSON);
@@ -276,6 +296,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             geneObject.element("match", matchJSON);
 
             genesJSON.add(geneObject);
+            iGene++;
         }
 
         return genesJSON;

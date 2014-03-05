@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
-import org.phenotips.integration.medsavant.MedSavantServer;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -68,10 +67,6 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Inject
     private Environment environment;
 
-    /** Connection to medsavant for patient genotypes. */
-    //@Inject
-    private MedSavantServer medsavant;
-
     /** Threadpool manager. */
     private ExecutorService executor;
 
@@ -83,12 +78,6 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
 
     /** Static directory for output exomizer files. */
     private File dataDir;
-
-    /** The URL for the Exomizer postgresql server. */
-    private String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
-
-    /** The server file path for the serialized UCSC data. */
-    private String serializedDb;
 
     /** Exomized gene data structure, loaded once and shared by all jobs. */
     private HashMap<Byte, Chromosome> chromosomeMap;
@@ -102,18 +91,6 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
         this.executor = Executors.newFixedThreadPool(2);
         this.submittedJobs = new ConcurrentHashMap<String, Future<?>>();
         this.completedJobs = new ConcurrentHashMap<String, Genotype>();
-
-        try {
-            this.chromosomeMap = Exomizer.getDeserializedUCSCdata(this.serializedDb);
-            this.logger.error("Loaded shared Exomizer chromosome map from: " + this.serializedDb);
-        } catch (ExomizerException e) {
-            String err = "Failed to load chromosome map: " + e;
-            this.logger.error(err);
-            throw new InitializationException(err);
-        }
-
-        // Shared across threads
-        this.chromosomeMap = null;
 
         // Get xwiki component permanent directory for Exomizer files
         File rootDir = this.environment.getPermanentDirectory();
@@ -130,7 +107,17 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             }
         }
         logger.error("ExomizerJobManager data directory: " + this.dataDir.getAbsolutePath());
-        this.serializedDb = (new File(this.dataDir, "ucsc.ser")).getAbsolutePath();
+        String serializedDb = (new File(this.dataDir, "ucsc.ser")).getAbsolutePath();
+
+        // Load shared chromosome map
+        try {
+            this.chromosomeMap = Exomizer.getDeserializedUCSCdata(serializedDb);
+            this.logger.error("Loaded shared Exomizer chromosome map from: " + serializedDb);
+        } catch (ExomizerException e) {
+            String err = "Failed to load chromosome map: " + e;
+            this.logger.error(err);
+            throw new InitializationException(err);
+        }
 
         // Process all already-completed files
         FilenameFilter exomizerFileFilter = new FilenameFilter()
@@ -150,36 +137,6 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
                 }
             }
         }
-    }
-
-    /**
-     * Get the shared exomizer chromosome map instance. Must be HashMap because Exomizer API requires it.
-     * 
-     * @return the shared map, or null if not yet set.
-     */
-    public HashMap<Byte, Chromosome> getChromosomeMap()
-    {
-        return this.chromosomeMap;
-    }
-
-    /**
-     * Get the postgresql database URL for exomizer.
-     * 
-     * @return the database url string
-     */
-    public String getDatabaseURL()
-    {
-        return this.dbUrl;
-    }
-
-    /**
-     * Get the medsavant manager.
-     * 
-     * @return the medsavant manager component.
-     */
-    public MedSavantServer getMedSavantManager()
-    {
-        return this.medsavant;
     }
 
     @Override
@@ -209,7 +166,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             result.cancel(false);
         }
 
-        Runnable worker = new ExomizerJob(this, patient, this.dataDir);
+        Runnable worker = new ExomizerJob(this, this.chromosomeMap, patient, this.dataDir);
 
         // Submit job and store future for status queries
         this.logger.error(" submitting Exomizer job to threadpool: " + getPatientId(patient));

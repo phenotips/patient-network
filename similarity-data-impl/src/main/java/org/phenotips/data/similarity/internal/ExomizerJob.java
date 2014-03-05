@@ -19,12 +19,15 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.Variant;
 import org.phenotips.integration.medsavant.MedSavantServer;
+
+import org.xwiki.component.manager.ComponentLookupException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -49,11 +52,17 @@ import net.sf.json.JSONArray;
  */
 public class ExomizerJob implements Runnable
 {
+    /** The URL for the Exomizer postgresql server. */
+    private final String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
+
     /** Logging helper object. */
     private final Logger logger;
 
     /** The manager component, set with {@link #initialize(ExomizerJobManager, PatientRepository)}. */
     private final ExomizerJobManager manager;
+
+    /** Exomized gene data structure, likely shared by other ExomizerJob instances. */
+    private HashMap<Byte, Chromosome> chromosomeMap;
 
     /** The patient being run. */
     private Patient patient;
@@ -70,9 +79,11 @@ public class ExomizerJob implements Runnable
      * @param dataDir the directory in which to store the output (and temp) files.
      * @param completedJobs the shared data structure to record the job completion.
      */
-    public ExomizerJob(ExomizerJobManager manager, Patient patient, File dataDir)
+    public ExomizerJob(ExomizerJobManager manager, HashMap<Byte, Chromosome> chromosomeMap, Patient patient,
+        File dataDir)
     {
         this.manager = manager;
+        this.chromosomeMap = chromosomeMap;
         this.patient = patient;
         this.dataDir = dataDir;
         this.logger = LoggerFactory.getLogger(ExomizerJob.class);
@@ -100,11 +111,16 @@ public class ExomizerJob implements Runnable
      * Get the patient's unique PhenomeCentral ID.
      * 
      * @param p the patient.
-     * @return the string PhenomeCentral ID of this patient.
+     * @return the string PhenomeCentral ID of this patient, or null if the patient is null or the name cannot be looked
+     *         up.
      */
     private static String getPatientId(Patient p)
     {
-        return p.getDocument().getName();
+        if (p == null || p.getDocument() == null) {
+            return null;
+        } else {
+            return p.getDocument().getName();
+        }
     }
 
     /**
@@ -122,7 +138,13 @@ public class ExomizerJob implements Runnable
         final long startTime = System.currentTimeMillis();
 
         // Look up filtered variants from PhenomeCentral-Medsavant API
-        MedSavantServer medsavant = this.manager.getMedSavantManager();
+        MedSavantServer medsavant = null;
+        try {
+            medsavant =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(MedSavantServer.class);
+        } catch (ComponentLookupException e) {
+            // Should never happen
+        }
         List<JSONArray> variants = medsavant.getFilteredVariants(patient);
 
         File tempOutFile = new File(outFile.getAbsolutePath() + ".temp");
@@ -149,11 +171,9 @@ public class ExomizerJob implements Runnable
     @Override
     public void run()
     {
-        if (this.manager == null) {
-            throw new NullPointerException("ExomizerJobManager has not been set.");
+        if (this.manager == null || this.chromosomeMap == null) {
+            throw new NullPointerException("ExomizerJob not properly initialized.");
         }
-        String dbUrl = this.manager.getDatabaseURL();
-        HashMap<Byte, Chromosome> chromosomeMap = this.manager.getChromosomeMap();
         String patientId = getPatientId(this.patient);
 
         // Create a VCF file with filtered variants for Exomizer to process
@@ -172,7 +192,7 @@ public class ExomizerJob implements Runnable
         File outFile = new File(this.dataDir, patientId + ".ezr");
         File tempOutFile = new File(this.dataDir, patientId + ".temp");
         try {
-            Exomizer exomizer = new Exomizer(chromosomeMap);
+            Exomizer exomizer = new Exomizer(this.chromosomeMap);
             exomizer.setHPOids(hpoIDs);
             exomizer.setUsePathogenicityFilter(true);
             exomizer.setFrequencyThreshold("1");
@@ -180,7 +200,7 @@ public class ExomizerJob implements Runnable
             exomizer.setOutfile(tempOutFile.getAbsolutePath());
 
             // Connect to database and load VCF
-            exomizer.openNewDatabaseConnection(dbUrl);
+            exomizer.openNewDatabaseConnection(this.dbUrl);
             exomizer.parseVCFFile();
 
             // Process variants
