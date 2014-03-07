@@ -106,18 +106,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     @Override
     public String getExternalId()
     {
-        try {
-            for (ImmutablePair<String, String> identifier : this
-                .<ImmutablePair<String, String>>getData("identifiers"))
-            {
-                if (identifier.getKey().equalsIgnoreCase("external_id")) {
-                    return identifier.getValue();
-                }
-            }
-        } catch (Exception ex) {
-            return null;
-        }
-        return null;
+        return this.match.getExternalId();
     }
 
     @Override
