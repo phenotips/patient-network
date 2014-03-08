@@ -1071,6 +1071,10 @@
     <property>
       <code>#template("colorThemeInit.vm")
 
+.chapter.similarity-info .action-edit {
+  display: none !important;
+}
+
 .similarity-results-container .similarity-results {
   border: 0 none;
   margin: 1em 0 0;
