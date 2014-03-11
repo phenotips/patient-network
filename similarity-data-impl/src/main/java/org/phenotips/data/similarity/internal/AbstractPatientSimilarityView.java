@@ -119,6 +119,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
+    public String getId()
+    {
+        return this.match.getId();
+    }
+
+    @Override
+    public String getExternalId()
+    {
+        return this.match.getExternalId();
+    }
+
+    @Override
     public DocumentReference getDocument()
     {
         return this.match.getDocument();
