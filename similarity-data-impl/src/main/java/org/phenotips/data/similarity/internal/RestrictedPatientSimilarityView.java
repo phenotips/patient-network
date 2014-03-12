@@ -34,11 +34,10 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityView;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
- * Implementation of {@link PatientSimilarityView} that reveals the full patient information if the user has full access
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that reveals the full patient information if the user has full access
  * to the patient, and only limited information for similar features if the patient is matchable; for use in public
  * scripts.
  * 

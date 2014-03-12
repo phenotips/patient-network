@@ -29,6 +29,7 @@ import java.util.Set;
 /**
  * Allows submitting, querying, and managing tasks to run an external tool on patients.
  * 
+ * @param <T> The result type of the external tool, with one result object associated with each patient.
  * @version $Id$
  * @since
  */
@@ -83,14 +84,14 @@ public interface ExternalToolJobManager<T>
      * @param patientId the id of the patient whose job completed
      * @param result the result to store for the patient
      */
-    public void putResult(String patientId, T result);
+    void putResult(String patientId, T result);
 
     /**
      * Get all patient IDs for which there are output files.
      * 
      * @return an unmodifiable set of all the patientIds with completed jobs.
      */
-    public Set<String> getAllCompleted();
+    Set<String> getAllCompleted();
 
     /**
      * Add the {@link Patient} to the processing queue for the tool. If the patient already has a job in the queue, move

@@ -106,7 +106,7 @@ public class ExomizerVariant implements Variant
         if (this.chrom.startsWith("CHR")) {
             this.chrom = this.chrom.substring(3);
         }
-        if (this.chrom == "MT") {
+        if ("MT".equals(this.chrom)) {
             this.chrom = "M";
         }
 

@@ -28,7 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import net.sf.json.JSONArray;
 
 /**
- * TODO
+ * A basic representation of a genotype of a patient, with scored Variant objects in scored genes.
  * 
  * @version $Id$
  * @since 1.0M8
@@ -36,6 +36,11 @@ import net.sf.json.JSONArray;
 @Unstable
 public interface Genotype
 {
+    /**
+     * Get the names of all genes with variants in the patient.
+     * 
+     * @return an unmodifiable set of gene names with variants in the patient
+     */
     Set<String> getGenes();
 
     /**

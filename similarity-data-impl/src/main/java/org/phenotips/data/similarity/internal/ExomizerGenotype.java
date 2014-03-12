@@ -46,8 +46,10 @@ import net.sf.json.JSONObject;
  */
 public class ExomizerGenotype implements Genotype
 {
+    /** The phenotype score for each gene with a variant. */
     private Map<String, Double> geneScores;
 
+    /** The variants in each gene. */
     private Map<String, List<Variant>> variants;
 
     /**
@@ -63,8 +65,9 @@ public class ExomizerGenotype implements Genotype
         Scanner fileScan = new Scanner(exomizerOutput);
         while (fileScan.hasNextLine()) {
             String line = fileScan.nextLine();
-            if (line.startsWith("#"))
+            if (line.startsWith("#")) {
                 continue;
+            }
 
             Variant variant = new ExomizerVariant(line);
 
@@ -90,8 +93,8 @@ public class ExomizerGenotype implements Genotype
 
         // Sort variants within each gene by harmfulness score
         // TODO: have lists maintain sorted order, instead of sorting at the end
-        for (List<Variant> variants : this.variants.values()) {
-            Collections.sort(variants);
+        for (List<Variant> vs : this.variants.values()) {
+            Collections.sort(vs);
         }
     }
 
@@ -110,14 +113,14 @@ public class ExomizerGenotype implements Genotype
     @Override
     public Pair<Variant, Variant> getTopVariants(String gene)
     {
-        List<Variant> variants = this.variants.get(gene);
+        List<Variant> vs = this.variants.get(gene);
         Variant first = null;
         Variant second = null;
-        if (variants.size() >= 1) {
-            first = variants.get(0);
+        if (vs.size() >= 1) {
+            first = vs.get(0);
         }
-        if (variants.size() >= 2) {
-            second = variants.get(1);
+        if (vs.size() >= 2) {
+            second = vs.get(1);
         }
         return Pair.of(first, second);
     }
@@ -132,9 +135,9 @@ public class ExomizerGenotype implements Genotype
             gene.element("score", getGeneScore(geneName));
 
             JSONArray variantList = new JSONArray();
-            List<Variant> variants = this.variants.get(geneName);
-            for (Variant variant : variants) {
-                variantList.add(variant.toJSON());
+            List<Variant> vs = this.variants.get(geneName);
+            for (Variant v : vs) {
+                variantList.add(v.toJSON());
             }
             gene.element("variants", variantList);
 
