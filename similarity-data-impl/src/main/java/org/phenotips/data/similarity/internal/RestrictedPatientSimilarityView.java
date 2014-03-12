@@ -72,6 +72,18 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
+    public String getId()
+    {
+        return this.access.isOpenAccess() ? this.match.getId() : null;
+    }
+
+    @Override
+    public String getExternalId()
+    {
+        return this.access.isOpenAccess() ? this.match.getExternalId() : null;
+    }
+
+    @Override
     public DocumentReference getDocument()
     {
         return this.access.isOpenAccess() ? this.match.getDocument() : null;
