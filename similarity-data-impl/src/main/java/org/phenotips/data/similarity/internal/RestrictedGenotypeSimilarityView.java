@@ -21,12 +21,10 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -57,6 +55,9 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /** Variant score threshold between non-frameshift and splicing. */
     private static final double KO_THRESHOLD = 0.87;
 
+    /** The number of genes to show in the JSON output. */
+    private static final int MAX_GENES_SHOWN = 5;
+    
     /** The matched genotype to represent. */
     private Genotype matchGenotype;
 
@@ -66,18 +67,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /** The access type the user has to the match patient. */
     private AccessType access;
 
+    /** The similarity score for all genes. */
     private Map<String, Double> geneScores;
 
+    /** The top variants in each patient for all shared genes. */
     private Map<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>> geneVariants;
-
-    private double getVariantScore(Variant v)
-    {
-        if (v == null) {
-            return 0.0;
-        } else {
-            return v.getScore();
-        }
-    }
 
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
@@ -104,8 +98,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             // Should never happen
         }
 
-        String matchId = match.getDocument() == null ? null : match.getDocument().getName();
-        String refId = reference.getDocument() == null ? null : reference.getDocument().getName();
+        String matchId = match.getId();
+        String refId = reference.getId();
         if (matchId == null || refId == null) {
             // No genotype similarity possible if the patients don't have document IDs
             return;
@@ -114,26 +108,23 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.matchGenotype = em.getResult(matchId);
         this.refGenotype = em.getResult(refId);
         this.access = access;
+        
+        // Score the gene-wise similarity if both patients have genotypes
+        if (this.matchGenotype != null && this.refGenotype != null) {
+            matchGenes(em, matchId, refId);
+        }
+    }
 
+    /**
+     * Score genes with variants in both patients, and sets 'geneScores' and 'geneVariants' fields accordingly.
+     * 
+     * @param em the ExomizerJobManager instance
+     * @param matchId the ID of the match patient
+     * @param refId the ID of the reference patient
+     */
+    private void matchGenes(ExternalToolJobManager<Genotype> em, String matchId, String refId) {
         this.geneScores = new HashMap<String, Double>();
         this.geneVariants = new HashMap<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>>();
-
-        // Don't do a comparison unless both patients have genotypes
-        if (this.matchGenotype == null || this.refGenotype == null) {
-            return;
-        }
-
-        // Need patient repository for looking up patients by ID
-        PatientRepository patientRepo = null;
-        PatientSimilarityViewFactory patientFactory = null;
-        try {
-            patientRepo = ComponentManagerRegistry.getContextComponentManager().getInstance(PatientRepository.class);
-            patientFactory =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(PatientSimilarityViewFactory.class,
-                    "mi");
-        } catch (ComponentLookupException e) {
-            // Should never happen.
-        }
 
         // Load genotypes for all other patients
         Set<String> otherGenotypedIds = new HashSet<String>(em.getAllCompleted());
@@ -163,9 +154,9 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             for (String patientId : otherGenotypedIds) {
                 Genotype otherGt = em.getResult(patientId);
                 if (otherGt != null && otherGt.getGeneScore(gene) != null) {
-                    //Patient otherPatient = patientRepo.getPatientById(patientId);
-                    //double otherSimScore = patientFactory.makeSimilarPatient(otherPatient, match).getScore() *
-                    //    patientFactory.makeSimilarPatient(otherPatient, reference).getScore();
+                    // Patient otherPatient = patientRepo.getPatientById(patientId);
+                    // double otherSimScore = patientFactory.makeSimilarPatient(otherPatient, match).getScore() *
+                    // patientFactory.makeSimilarPatient(otherPatient, reference).getScore();
                     double otherSimScore = 0.8;
 
                     // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
@@ -182,8 +173,23 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             if (geneScore < 0.01) {
                 continue;
             }
-            geneScores.put(gene, geneScore);
-            geneVariants.put(gene, Pair.of(refVariants, matchVariants));
+            this.geneScores.put(gene, geneScore);
+            this.geneVariants.put(gene, Pair.of(refVariants, matchVariants));
+        }
+    }
+    
+    /**
+     * Get the score of a variant.
+     * 
+     * @param v the variant (or null)
+     * @return the score of the variant (or 0.0 if v is null)
+     */
+    private double getVariantScore(Variant v)
+    {
+        if (v == null) {
+            return 0.0;
+        } else {
+            return v.getScore();
         }
     }
 
@@ -230,16 +236,24 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         }
     }
 
+    /**
+     * Get the JSON for a pair of variants.
+     * 
+     * @param vp a Pair of Variant objects
+     * @return JSON for the variants
+     */
     private JSONArray getVariantPairJSON(Pair<Variant, Variant> vp)
     {
         if (vp == null) {
             return null;
         } else {
             JSONArray varJSON = new JSONArray();
-            if (vp.getLeft() != null)
+            if (vp.getLeft() != null) {
                 varJSON.add(vp.getLeft().toJSON());
-            if (vp.getRight() != null)
+            }
+            if (vp.getRight() != null) {
                 varJSON.add(vp.getRight().toJSON());
+            }
             return varJSON;
         }
     }
@@ -264,8 +278,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         });
         int iGene = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
-            // Include at most top 10 genes
-            if (iGene >= 10) {
+            // Include at most top 5 genes
+            if (iGene >= MAX_GENES_SHOWN) {
                 break;
             }
             String gene = geneEntry.getKey();

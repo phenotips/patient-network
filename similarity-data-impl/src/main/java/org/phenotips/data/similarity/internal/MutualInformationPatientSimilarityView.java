@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -40,7 +39,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link PatientSimilarityView} that uses a mutual information metric to score similar patients.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric to score similar patients.
  * 
  * @version $Id$
  * @since
@@ -52,12 +51,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
     /** The root of the phenotypic abnormality portion of HPO. */
     private static final String PHENOTYPE_ROOT = "HP:0000118";
-
-    /** The name of the score field in JSON output. */
-    private static final String JSON_SCORE_FIELD = "score";
-
-    /** The name of the ID field in JSON output. */
-    private static final String JSON_ID_FIELD = "id";
 
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
     private static Map<OntologyTerm, Double> termICs;
@@ -80,7 +73,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
-     * @param ontologyManager the term ontology
      * @throws IllegalArgumentException if one of the patients is {@code null}
      * @throws NullPointerException if the class was not statically initialized with
      *             {@link #initializeStaticData(Map, Map, OntologyManager)} before use
@@ -101,7 +93,6 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * Constructor that copies the data from another patient pair.
      * 
      * @param openView the open patient pair to clone
-     * @param ontologyManager the term ontology
      */
     public MutualInformationPatientSimilarityView(AbstractPatientSimilarityView openView)
     {
@@ -113,6 +104,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
      * 
      * @param termICs the information content of each term
      * @param condICs the conditional information content of each term, given its parents
+     * @param ontologyManager the ontology manager
      */
     public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
         OntologyManager ontologyManager)
@@ -246,10 +238,10 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
         // Add ancestor info
         JSONObject featureMatchJSON = new JSONObject();
-        featureMatchJSON.element(JSON_SCORE_FIELD, ancestorScore);
+        featureMatchJSON.element("score", ancestorScore);
 
         JSONObject sharedParentJSON = new JSONObject();
-        sharedParentJSON.element(JSON_ID_FIELD, ancestorId);
+        sharedParentJSON.element("id", ancestorId);
         sharedParentJSON.element("name", ancestorName);
         featureMatchJSON.element("category", sharedParentJSON);
 
@@ -369,13 +361,13 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         JSONObject result = new JSONObject();
 
         if (this.access.isOpenAccess()) {
-            result.element(JSON_ID_FIELD, this.match.getDocument().getName());
+            result.element("id", this.match.getDocument().getName());
             result.element("owner", this.match.getReporter().getName());
         }
         result.element("token", getContactToken());
         result.element("access", this.access.toString());
         result.element("myCase", Objects.equals(this.reference.getReporter(), this.match.getReporter()));
-        result.element(JSON_SCORE_FIELD, getScore());
+        result.element("score", getScore());
         result.element("featuresCount", this.match.getFeatures().size());
 
         JSONArray featuresJSON = getFeaturesJSON();

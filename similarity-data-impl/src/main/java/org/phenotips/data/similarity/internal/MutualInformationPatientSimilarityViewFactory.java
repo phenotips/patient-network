@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
@@ -46,7 +45,7 @@ import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 
 /**
- * Implementation of {@link PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
  * 
  * @version $Id$
  * @since

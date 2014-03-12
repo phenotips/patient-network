@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.Variant;
 import org.phenotips.integration.medsavant.MedSavantServer;
@@ -48,10 +47,15 @@ import jannovar.reference.Chromosome;
 import net.sf.json.JSONArray;
 
 /**
+ * A runnable exomizer job instance, suitable for a ThreadPool, and managed by an ExomizerJobManager instance.
+ * 
  * @version $Id$
  */
 public class ExomizerJob implements Runnable
 {
+    /** Suffix for an in-progress exomizer job. */
+    private static final String TEMP_SUFFIX = ".temp";
+    
     /** The URL for the Exomizer postgresql server. */
     private final String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
 
@@ -74,10 +78,9 @@ public class ExomizerJob implements Runnable
      * Create Runnable exomizer job from ExomizerManager instance.
      * 
      * @param manager the job manager running this job
-     * @param patient the patient to run.
      * @param chromosomeMap the shared Exomizer data structure.
+     * @param patient the patient to run.
      * @param dataDir the directory in which to store the output (and temp) files.
-     * @param completedJobs the shared data structure to record the job completion.
      */
     public ExomizerJob(ExomizerJobManager manager, HashMap<Byte, Chromosome> chromosomeMap, Patient patient,
         File dataDir)
@@ -108,22 +111,6 @@ public class ExomizerJob implements Runnable
     }
 
     /**
-     * Get the patient's unique PhenomeCentral ID.
-     * 
-     * @param p the patient.
-     * @return the string PhenomeCentral ID of this patient, or null if the patient is null or the name cannot be looked
-     *         up.
-     */
-    private static String getPatientId(Patient p)
-    {
-        if (p == null || p.getDocument() == null) {
-            return null;
-        } else {
-            return p.getDocument().getName();
-        }
-    }
-
-    /**
      * Write out the filtered variants for the patient to an output file.
      * 
      * @param outFile the output file to write the variants to
@@ -131,8 +118,7 @@ public class ExomizerJob implements Runnable
      */
     private void writeVariantsToFile(File outFile) throws IOException
     {
-        Patient patient = this.patient;
-        String patientId = getPatientId(patient);
+        String patientId = this.patient.getId();
 
         this.logger.error("Writing variant from " + patientId + " to " + outFile.getAbsolutePath());
         final long startTime = System.currentTimeMillis();
@@ -145,14 +131,14 @@ public class ExomizerJob implements Runnable
         } catch (ComponentLookupException e) {
             // Should never happen
         }
-        List<JSONArray> variants = medsavant.getFilteredVariants(patient);
+        List<JSONArray> variants = medsavant.getFilteredVariants(this.patient);
 
-        File tempOutFile = new File(outFile.getAbsolutePath() + ".temp");
+        File tempOutFile = new File(outFile.getAbsolutePath() + TEMP_SUFFIX);
         BufferedWriter ofp = new BufferedWriter(new FileWriter(tempOutFile));
 
         // Write VCF header
         ofp.write("##fileFormat=VCF4.1\n");
-        ofp.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + getPatientId(patient));
+        ofp.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + patientId);
         for (JSONArray variant : variants) {
             Variant v = new ExomizerVariant(variant);
             ofp.write(v.toVCFLine() + "\n");
@@ -174,7 +160,7 @@ public class ExomizerJob implements Runnable
         if (this.manager == null || this.chromosomeMap == null) {
             throw new NullPointerException("ExomizerJob not properly initialized.");
         }
-        String patientId = getPatientId(this.patient);
+        String patientId = this.patient.getId();
 
         // Create a VCF file with filtered variants for Exomizer to process
         File inFile = new File(this.dataDir, patientId + ".vcf");
@@ -186,11 +172,12 @@ public class ExomizerJob implements Runnable
             throw new RuntimeException(e);
         }
 
-        String hpoIDs = getPatientHPOs(this.patient); // "HP:0123456,HP:0000118,..."
+        // e.g. "HP:0123456,HP:0000118,..."
+        String hpoIDs = getPatientHPOs(this.patient); 
 
         // Run Exomizer on VCF and HPO terms to generate outFile
         File outFile = new File(this.dataDir, patientId + ".ezr");
-        File tempOutFile = new File(this.dataDir, patientId + ".temp");
+        File tempOutFile = new File(this.dataDir, patientId + TEMP_SUFFIX);
         try {
             Exomizer exomizer = new Exomizer(this.chromosomeMap);
             exomizer.setHPOids(hpoIDs);

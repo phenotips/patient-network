@@ -94,22 +94,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.reference = reference;
         this.access = access;
         String token = "";
+        ExternalToolJobManager<Genotype> em = null;
         try {
             ConnectionManager cm =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
             token = String.valueOf(cm.getConnection(this).getId());
-        } catch (ComponentLookupException e) {
-            // This should not happen
-        }
-
-        ExternalToolJobManager<Genotype> em = null;
-        try {
             em =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
                     "exomizer");
         } catch (ComponentLookupException e) {
             // This should not happen
         }
+
         this.exomizerManager = em;
         this.contactToken = token;
 
