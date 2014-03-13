@@ -39,7 +39,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric to score similar patients.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
+ * to score similar patients.
  * 
  * @version $Id$
  * @since
@@ -66,6 +67,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
 
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
+
+    /** Memoized match score. */
+    private Double score;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -188,29 +192,32 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     @Override
     public double getScore()
     {
-        if (this.match == null || this.reference == null) {
-            return Double.NaN;
+        if (this.score == null) {
+            if (this.match == null || this.reference == null) {
+                this.score = Double.NaN;
+            } else {
+                // Get ancestors for both patients
+                Set<OntologyTerm> refAncestors = getAncestors(this.reference);
+                Set<OntologyTerm> matchAncestors = getAncestors(this.match);
+
+                // Compute costs of each patient separately
+                double p1Cost = getJointTermsCost(refAncestors);
+                double p2Cost = getJointTermsCost(matchAncestors);
+
+                // Score overlapping (min) ancestors
+                Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
+                sharedAncestors.addAll(refAncestors);
+                sharedAncestors.retainAll(matchAncestors);
+
+                double sharedCost = getJointTermsCost(sharedAncestors);
+                assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
+
+                double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
+
+                this.score = harmonicMeanIC;
+            }
         }
-
-        // Get ancestors for both patients
-        Set<OntologyTerm> refAncestors = getAncestors(this.reference);
-        Set<OntologyTerm> matchAncestors = getAncestors(this.match);
-
-        // Compute costs of each patient separately
-        double p1Cost = getJointTermsCost(refAncestors);
-        double p2Cost = getJointTermsCost(matchAncestors);
-
-        // Score overlapping (min) ancestors
-        Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
-        sharedAncestors.addAll(refAncestors);
-        sharedAncestors.retainAll(matchAncestors);
-
-        double sharedCost = getJointTermsCost(sharedAncestors);
-        assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
-
-        double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
-
-        return harmonicMeanIC;
+        return this.score;
     }
 
     /**
@@ -302,9 +309,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
                 termIC = 0.0;
             }
 
-            double score = termIC / MutualInformationPatientSimilarityView.maxIC;
-            if (score > ancestorScore) {
-                ancestorScore = score;
+            double termScore = termIC / MutualInformationPatientSimilarityView.maxIC;
+            if (termScore > ancestorScore) {
+                ancestorScore = termScore;
                 ancestor = term;
             }
         }

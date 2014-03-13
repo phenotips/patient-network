@@ -63,6 +63,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /** The access level the user has to this patient. */
     protected final AccessType access;
 
+    /** The exomizer manager object to handle genetic comparisons. */
     protected final ExternalToolJobManager<Genotype> exomizerManager;
 
     protected final String contactToken;
