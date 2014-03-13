@@ -147,7 +147,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         JSONArray featuresJSON = new JSONArray();
         if (this.access.isOpenAccess()) {
             for (Feature f : this.match.getFeatures()) {
-                featuresJSON.add(f.toJSON());
+                if (f.isPresent()) {
+                    featuresJSON.add(f.toJSON());
+                }
             }
         }
         return featuresJSON;

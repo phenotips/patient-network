@@ -29,6 +29,10 @@ import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
+import org.xwiki.cache.Cache;
+import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.environment.Environment;
@@ -72,6 +76,9 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * mutations).
      */
     private static Map<String, int[]> controlDamage;
+
+    /** Cache for storing symmetric pairwise patient similarity scores. */
+    private static Cache<Double> similarityScoreCache;
 
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
@@ -125,15 +132,22 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.reference = reference;
         this.access = access;
 
+        // Load components
         try {
-            // Get ExomizerJobManager
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
-            this.exomizerManager = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
+            if (similarityScoreCache == null) {
+                CacheManager cacheManager = componentManager.getInstance(CacheManager.class);
+                similarityScoreCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+            }
 
             this.patientRepo = componentManager.getInstance(PatientRepository.class);
             this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "mi");
+
+            this.exomizerManager = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
         } catch (ComponentLookupException e) {
             this.logger.error("Unable to load component: " + e.toString());
+        } catch (CacheException e) {
+            this.logger.error("Unable to create patient similarity score cache: " + e.toString());
         }
 
         String matchId = match.getId();
@@ -192,6 +206,31 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     }
 
     /**
+     * Get the phenotype similarity between two patients in a cached manner.
+     * 
+     * @param p1 the first patient
+     * @param p2 the second patient
+     * @return the symmetric similarity score between them, potentially cached
+     */
+    private double getPatientSimilarity(Patient p1, Patient p2)
+    {
+        String id1 = p1.getId();
+        String id2 = p2.getId();
+        if (id1.compareTo(id2) > 0) {
+            String temp = id1;
+            id1 = id2;
+            id2 = temp;
+        }
+        String key = id1 + '|' + id2;
+        Double score = similarityScoreCache.get(key);
+        if (score == null) {
+            score = this.patientViewFactory.makeSimilarPatient(p1, p2).getScore();
+            similarityScoreCache.set(key, score);
+        }
+        return score;
+    }
+
+    /**
      * Get the similarity score for another patient, relative to the pair of patients being matched.
      * 
      * @param patientId the String id of the other patient
@@ -209,8 +248,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 otherSimScore = 0.1;
             } else {
                 otherSimScore =
-                    Math.min(this.patientViewFactory.makeSimilarPatient(otherPatient, this.match).getScore(),
-                        this.patientViewFactory.makeSimilarPatient(otherPatient, this.reference).getScore());
+                    Math.min(getPatientSimilarity(otherPatient, this.match),
+                        getPatientSimilarity(otherPatient, this.reference));
             }
             otherSimScores.put(patientId, otherSimScore);
         }

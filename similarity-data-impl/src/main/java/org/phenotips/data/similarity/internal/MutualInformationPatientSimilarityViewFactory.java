@@ -101,10 +101,10 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
 
         // Get potentially-cached patient similarity view
         String cacheKey = match.getId() + '|' + reference.getId() + '|' + access.getAccessLevel().getName();
-        PatientSimilarityView result = viewCache.get(cacheKey);
+        PatientSimilarityView result = this.viewCache.get(cacheKey);
         if (result == null) {
             result = new MutualInformationPatientSimilarityView(match, reference, access);
-            viewCache.set(cacheKey, result);
+            this.viewCache.set(cacheKey, result);
         }
         return result;
     }
