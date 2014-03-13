@@ -161,7 +161,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         StringBuilder q = new StringBuilder();
         // FIXME This is a very basic implementation, to be revisited
         for (Feature phenotype : referencePatient.getFeatures()) {
-            q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
+            if (StringUtils.isNotBlank(phenotype.getId())) {
+                q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
+            }
         }
         // Ignore the reference patient itself
         q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
