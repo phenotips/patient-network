@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -111,18 +109,14 @@ public class ExomizerGenotype implements Genotype
     }
 
     @Override
-    public Pair<Variant, Variant> getTopVariants(String gene)
+    public Variant getTopVariant(String gene, int k)
     {
         List<Variant> vs = this.variants.get(gene);
-        Variant first = null;
-        Variant second = null;
-        if (vs.size() >= 1) {
-            first = vs.get(0);
+        if (k < vs.size()) {
+            return vs.get(k);
+        } else {
+            return null;
         }
-        if (vs.size() >= 2) {
-            second = vs.get(1);
-        }
-        return Pair.of(first, second);
     }
 
     @Override
