@@ -21,13 +21,16 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +66,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
 
+    /** The matched patient to represent. */
+    private Patient match;
+
+    /** The reference patient against which to compare. */
+    private Patient reference;
+
     /** The matched genotype to represent. */
     private Genotype matchGenotype;
 
@@ -71,6 +80,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /** The access type the user has to the match patient. */
     private AccessType access;
+
+    /** Access to the patient repository for looking up other patients by id. */
+    private PatientRepository patientRepo;
+
+    /** Access to the patient view factory to get other patient phenotypic similarities. */
+    private PatientSimilarityViewFactory patientViewFactory;
 
     /** The similarity score for all genes. */
     private Map<String, Double> geneScores;
@@ -93,15 +108,20 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
+        this.match = match;
+        this.reference = reference;
         this.access = access;
 
         ExternalToolJobManager<Genotype> em = null;
         try {
-            em =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
-                    "exomizer");
+            // Get ExomizerJobManager
+            ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
+            em = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
+
+            this.patientRepo = componentManager.getInstance(PatientRepository.class);
+            this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "mi");
         } catch (ComponentLookupException e) {
-            this.logger.error("Unable to load ExomizerJobManager");
+            this.logger.error("Unable to load component: " + e.toString());
         }
 
         String matchId = match.getId();
@@ -115,7 +135,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.refGenotype = em.getResult(refId);
         // Score the gene-wise similarity if both patients have genotypes
         if (this.matchGenotype != null && this.refGenotype != null) {
-            matchGenes(em, matchId, refId);
+            matchGenes(em);
         }
     }
 
@@ -123,18 +143,16 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * Score genes with variants in both patients, and sets 'geneScores' and 'geneVariants' fields accordingly.
      * 
      * @param em the ExomizerJobManager instance
-     * @param matchId the ID of the match patient
-     * @param refId the ID of the reference patient
      */
-    private void matchGenes(ExternalToolJobManager<Genotype> em, String matchId, String refId)
+    private void matchGenes(ExternalToolJobManager<Genotype> em)
     {
         this.geneScores = new HashMap<String, Double>();
         this.geneVariants = new HashMap<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>>();
 
         // Load genotypes for all other patients
         Set<String> otherGenotypedIds = new HashSet<String>(em.getAllCompleted());
-        otherGenotypedIds.remove(matchId);
-        otherGenotypedIds.remove(refId);
+        otherGenotypedIds.remove(this.match.getId());
+        otherGenotypedIds.remove(this.reference.getId());
 
         for (String gene : getGenes()) {
             Pair<Variant, Variant> refVariants = this.refGenotype.getTopVariants(gene);
@@ -159,10 +177,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             for (String patientId : otherGenotypedIds) {
                 Genotype otherGt = em.getResult(patientId);
                 if (otherGt != null && otherGt.getGeneScore(gene) != null) {
-                    // Patient otherPatient = patientRepo.getPatientById(patientId);
-                    // double otherSimScore = patientFactory.makeSimilarPatient(otherPatient, match).getScore() *
-                    // patientFactory.makeSimilarPatient(otherPatient, reference).getScore();
-                    double otherSimScore = 0.8;
+                    Patient otherPatient = this.patientRepo.getPatientById(patientId);
+                    double otherSimScore =
+                        Math.min(this.patientViewFactory.makeSimilarPatient(otherPatient, this.match).getScore(),
+                            this.patientViewFactory.makeSimilarPatient(otherPatient, this.reference).getScore());
 
                     // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
                     Pair<Variant, Variant> otherVariants = otherGt.getTopVariants(gene);
