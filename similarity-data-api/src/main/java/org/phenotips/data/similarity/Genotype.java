@@ -23,8 +23,6 @@ import org.xwiki.stability.Unstable;
 
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import net.sf.json.JSONArray;
 
 /**
@@ -52,12 +50,13 @@ public interface Genotype
     Double getGeneScore(String gene);
 
     /**
-     * Get the two variants with the highest scores in the given gene.
+     * Get the kth highest scoring variant in the given gene.
      * 
      * @param gene the gene to return variants for
-     * @return the first and second-highest scoring variants, respectively (one or both may be none)
+     * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc)
+     * @return get the kth highest scoring variant (or null)
      */
-    Pair<Variant, Variant> getTopVariants(String gene);
+    Variant getTopVariant(String gene, int k);
 
     /**
      * Retrieve all variant information in a JSON format. For example:
