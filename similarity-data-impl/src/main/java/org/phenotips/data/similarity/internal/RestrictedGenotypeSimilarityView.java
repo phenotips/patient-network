@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -57,7 +59,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /** The number of genes to show in the JSON output. */
     private static final int MAX_GENES_SHOWN = 5;
-    
+
+    /** Logging helper object. */
+    private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
+
     /** The matched genotype to represent. */
     private Genotype matchGenotype;
 
@@ -88,6 +93,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
+        this.access = access;
 
         ExternalToolJobManager<Genotype> em = null;
         try {
@@ -95,20 +101,18 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
                     "exomizer");
         } catch (ComponentLookupException e) {
-            // Should never happen
+            this.logger.error("Unable to load ExomizerJobManager");
         }
 
         String matchId = match.getId();
         String refId = reference.getId();
-        if (matchId == null || refId == null) {
-            // No genotype similarity possible if the patients don't have document IDs
+        if (matchId == null || refId == null || em == null) {
+            // No genotype similarity possible if the patients don't have IDs or no ExomizerManager
             return;
         }
 
         this.matchGenotype = em.getResult(matchId);
         this.refGenotype = em.getResult(refId);
-        this.access = access;
-        
         // Score the gene-wise similarity if both patients have genotypes
         if (this.matchGenotype != null && this.refGenotype != null) {
             matchGenes(em, matchId, refId);
@@ -122,7 +126,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * @param matchId the ID of the match patient
      * @param refId the ID of the reference patient
      */
-    private void matchGenes(ExternalToolJobManager<Genotype> em, String matchId, String refId) {
+    private void matchGenes(ExternalToolJobManager<Genotype> em, String matchId, String refId)
+    {
         this.geneScores = new HashMap<String, Double>();
         this.geneVariants = new HashMap<String, Pair<Pair<Variant, Variant>, Pair<Variant, Variant>>>();
 
@@ -177,7 +182,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             this.geneVariants.put(gene, Pair.of(refVariants, matchVariants));
         }
     }
-    
+
     /**
      * Get the score of a variant.
      * 

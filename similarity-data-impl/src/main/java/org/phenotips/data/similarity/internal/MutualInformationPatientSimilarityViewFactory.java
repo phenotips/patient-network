@@ -19,14 +19,18 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.ExternalToolJobManager;
+import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
@@ -45,7 +49,8 @@ import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which uses the mutual information to score pairs of patients.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which uses the mutual
+ * information to score pairs of patients.
  * 
  * @version $Id$
  * @since
@@ -69,6 +74,11 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     /** Provides access to the term ontology. */
     @Inject
     protected OntologyManager ontologyManager;
+
+    /** The exomizer manager object to handle genetic comparisons. */
+    // @Inject
+    // @Named("exomizer")
+    private ExternalToolJobManager<Genotype> exomizerManager;
 
     @Override
     public PatientSimilarityView makeSimilarPatient(Patient match, Patient reference) throws IllegalArgumentException
@@ -371,6 +381,15 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     {
         this.logger.error("Initializing MutualInformationPatientSimilarityViewFactor...");
         final long startTime = System.currentTimeMillis();
+
+        try {
+            this.exomizerManager =
+                ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
+                    "exomizer");
+        } catch (ComponentLookupException e) {
+            this.logger.error("Error loading ExomizerJobManager component");
+        }
+
         // Load the OMIM/HPO mappings
         OntologyService mim = this.ontologyManager.getOntology("MIM");
         OntologyService hpo = this.ontologyManager.getOntology("HPO");
@@ -394,7 +413,8 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
 
         // Give data to views to use
         this.logger.error("Setting view globals...");
-        MutualInformationPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager);
+        MutualInformationPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager,
+            this.exomizerManager);
         MutualInformationFeatureSimilarityScorer.setTermICs(termICs);
         this.logger.error("MutualInformationPatientSimilarityViewFactor took "
             + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds to initialize.");

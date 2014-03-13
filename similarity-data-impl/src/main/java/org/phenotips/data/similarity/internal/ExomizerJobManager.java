@@ -63,13 +63,13 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
 {
     /** The name of the data subdirectory used by this job manager. */
     private static final String DATA_SUBDIR = "exomizer";
-    
+
     /** Suffix for successfully completed patient exomizer file. */
     private static final String EXOMIZER_SUFFIX = ".ezr";
 
     /** Filename of serialized UCSC data, used by exomizer. */
     private static final String SERIALIZED_UCSC = "ucsc.ser";
-    
+
     /** Logging helper object. */
     @Inject
     private Logger logger;
@@ -90,13 +90,14 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     /** Static directory for output exomizer files. */
     private File dataDir;
 
-    /** Exomized gene data structure, loaded once and shared by all jobs. */
+    /** Exomizer gene data structure, loaded once and shared by all jobs. */
     private HashMap<Byte, Chromosome> chromosomeMap;
 
     @Override
     public void initialize() throws InitializationException
     {
         logger.error("Intializing ExomizerJobManager...");
+        this.chromosomeMap = null;
 
         // Set up threadpool
         this.executor = Executors.newFixedThreadPool(2);
@@ -117,18 +118,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
                 }
             }
         }
-        logger.error("ExomizerJobManager data directory: " + this.dataDir.getAbsolutePath());
-        String serializedDb = (new File(this.dataDir, SERIALIZED_UCSC)).getAbsolutePath();
-
-        // Load shared chromosome map
-        try {
-            this.chromosomeMap = Exomizer.getDeserializedUCSCdata(serializedDb);
-            this.logger.error("Loaded shared Exomizer chromosome map from: " + serializedDb);
-        } catch (ExomizerException e) {
-            String err = "Failed to load chromosome map: " + e;
-            this.logger.error(err);
-            throw new InitializationException(err);
-        }
+        this.logger.error("ExomizerJobManager data directory: " + this.dataDir.getAbsolutePath());
 
         // Process all already-completed files
         FilenameFilter exomizerFileFilter = new FilenameFilter()
@@ -144,10 +134,30 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
                 try {
                     putResult(patientId, new ExomizerGenotype(file));
                 } catch (FileNotFoundException e) {
-                    logger.error("Unable to load genotype from file: " + file.getAbsolutePath());
+                    this.logger.error("Unable to load genotype from file: " + file.getAbsolutePath());
                 }
             }
         }
+    }
+
+    /**
+     * Get the chromosomeMap lazily, memoizing once it's loaded.
+     * 
+     * @return the chromosomeMap for exomizer to use
+     */
+    private HashMap<Byte, Chromosome> getChromosomeMap()
+    {
+        if (this.chromosomeMap == null) {
+            String serializedDb = (new File(this.dataDir, SERIALIZED_UCSC)).getAbsolutePath();
+            try {
+                this.chromosomeMap = Exomizer.getDeserializedUCSCdata(serializedDb);
+                this.logger.error("Loaded shared Exomizer chromosome map from: " + serializedDb);
+            } catch (ExomizerException e) {
+                String err = "Failed to load chromosome map: " + e;
+                this.logger.error(err);
+            }
+        }
+        return this.chromosomeMap;
     }
 
     @Override
@@ -166,7 +176,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             result.cancel(false);
         }
 
-        Runnable worker = new ExomizerJob(this, this.chromosomeMap, patient, this.dataDir);
+        Runnable worker = new ExomizerJob(this, getChromosomeMap(), patient, this.dataDir);
 
         // Submit job and store future for status queries
         this.logger.error(" submitting Exomizer job to threadpool: " + patient.getId());

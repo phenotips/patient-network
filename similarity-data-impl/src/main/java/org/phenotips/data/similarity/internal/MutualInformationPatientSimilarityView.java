@@ -22,6 +22,9 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.ExternalToolJobManager;
+import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -65,11 +68,17 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     /** Provides access to the term ontology. */
     private static OntologyManager ontologyManager;
 
+    /** The exomizer manager object to handle genetic comparisons. */
+    private static ExternalToolJobManager<Genotype> exomizerManager;
+
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
 
     /** Memoized match score. */
     private Double score;
+
+    /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
+    private GenotypeSimilarityView matchedGenes;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -87,9 +96,12 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         super(match, reference, access);
         if (MutualInformationPatientSimilarityView.termICs == null
             || MutualInformationPatientSimilarityView.parentCondIC == null
-            || MutualInformationPatientSimilarityView.ontologyManager == null) {
-            throw new NullPointerException(
-                "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation");
+            || MutualInformationPatientSimilarityView.ontologyManager == null
+            || MutualInformationPatientSimilarityView.exomizerManager == null) {
+            String error =
+                "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation";
+            this.logger.error(error);
+            throw new NullPointerException(error);
         }
     }
 
@@ -104,19 +116,41 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     }
 
     /**
-     * Set the static information for the class. Must be run before creating instances of this
+     * Set the static information for the class. Must be run before creating instances of this class.
      * 
      * @param termICs the information content of each term
      * @param condICs the conditional information content of each term, given its parents
      * @param ontologyManager the ontology manager
+     * @param exomizerManager the exomizer job manager
      */
     public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
-        OntologyManager ontologyManager)
+        OntologyManager ontologyManager, ExternalToolJobManager<Genotype> exomizerManager)
     {
         MutualInformationPatientSimilarityView.ontologyManager = ontologyManager;
         MutualInformationPatientSimilarityView.parentCondIC = condICs;
         MutualInformationPatientSimilarityView.termICs = termICs;
         MutualInformationPatientSimilarityView.maxIC = Collections.max(termICs.values());
+        MutualInformationPatientSimilarityView.exomizerManager = exomizerManager;
+    }
+
+    @Override
+    protected void matchFeatures()
+    {
+        // Features aren't directly matched to each other in this Patient similarity implementation.
+        this.matchedFeatures = null;
+    }
+
+    @Override
+    protected JSONArray getFeaturesJSON()
+    {
+        // Just return a simple array of the features in the match patient
+        JSONArray featuresJSON = new JSONArray();
+        if (this.access.isOpenAccess()) {
+            for (Feature f : this.match.getFeatures()) {
+                featuresJSON.add(f.toJSON());
+            }
+        }
+        return featuresJSON;
     }
 
     /**
@@ -133,7 +167,7 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
                 continue;
             }
 
-            OntologyTerm term = MutualInformationPatientSimilarityView.ontologyManager.resolveTerm(feature.getId());
+            OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
             if (term == null) {
                 this.logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
             } else {
@@ -221,6 +255,19 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
     }
 
     /**
+     * Get the genotype similarity view for this pair of patients, lazily evaluated and memoized.
+     * 
+     * @return the genotype similarity view for this pair of patients
+     */
+    private GenotypeSimilarityView getGenotypeSimilarity()
+    {
+        if (this.matchedGenes == null) {
+            this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
+        }
+        return this.matchedGenes;
+    }
+
+    /**
      * Construct JSON for this partial matching of terms from both patients, according to the access level.
      * 
      * @param ancestor the shared ancestor of the feature match (or null if no ancestor)
@@ -304,12 +351,12 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
         OntologyTerm ancestor = null;
         double ancestorScore = Double.NEGATIVE_INFINITY;
         for (OntologyTerm term : sharedAncestors) {
-            Double termIC = MutualInformationPatientSimilarityView.termICs.get(term);
+            Double termIC = termICs.get(term);
             if (termIC == null) {
                 termIC = 0.0;
             }
 
-            double termScore = termIC / MutualInformationPatientSimilarityView.maxIC;
+            double termScore = termIC / maxIC;
             if (termScore > ancestorScore) {
                 ancestorScore = termScore;
                 ancestor = term;
@@ -387,7 +434,9 @@ public class MutualInformationPatientSimilarityView extends RestrictedPatientSim
             result.element("disorders", disordersJSON);
         }
 
-        JSONArray genesJSON = getGenotypeJSON();
+        // Create genotype similarity view right when we need it
+        GenotypeSimilarityView genes = getGenotypeSimilarity();
+        JSONArray genesJSON = genes.toJSON();
         if (!genesJSON.isEmpty()) {
             result.element("genes", genesJSON);
         }

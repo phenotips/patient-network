@@ -27,11 +27,8 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.FeatureSimilarityView;
-import org.phenotips.data.similarity.Genotype;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
 
@@ -63,16 +60,10 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /** The access level the user has to this patient. */
     protected final AccessType access;
 
-    /** The exomizer manager object to handle genetic comparisons. */
-    protected final ExternalToolJobManager<Genotype> exomizerManager;
-
     protected final String contactToken;
 
     /** Links feature values from this patient to the reference. */
     protected Set<FeatureSimilarityView> matchedFeatures;
-
-    /** Links gene variants from this patient to the reference. */
-    protected GenotypeSimilarityView matchedGenes;
 
     /** Links disorder values from this patient to the reference. */
     protected Set<DisorderSimilarityView> matchedDisorders;
@@ -95,24 +86,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.reference = reference;
         this.access = access;
         String token = "";
-        ExternalToolJobManager<Genotype> em = null;
         try {
             ConnectionManager cm =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
             token = String.valueOf(cm.getConnection(this).getId());
-            em =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
-                    "exomizer");
         } catch (ComponentLookupException e) {
             // This should not happen
         }
 
-        this.exomizerManager = em;
         this.contactToken = token;
 
         matchFeatures();
         matchDisorders();
-        matchGenes();
     }
 
     @Override
@@ -200,17 +185,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
-     * Get JSON for genotypic similarity between the patients according to the access level. See
-     * {@link #getGenotypeSimilarity()} for details.
-     * 
-     * @return the JSON for genotypic similarity
-     */
-    protected JSONArray getGenotypeJSON()
-    {
-        return getGenotype().toJSON();
-    }
-
-    /**
      * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
      * vice-versa.
      * 
@@ -253,16 +227,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         }
 
         return result;
-    }
-
-    /**
-     * Return the Genotype object containing the genes and variants between the two patients.
-     * 
-     * @return A Genotype object, containing the relevant genes, variants, and scores for the patient matching.
-     */
-    public Genotype getGenotype()
-    {
-        return this.matchedGenes;
     }
 
     @Override
@@ -345,14 +309,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             }
         }
         this.matchedDisorders = Collections.unmodifiableSet(result);
-    }
-
-    /**
-     * Create a GenotypeSimilarityView for the pair of patients, if genotype information exists for both.
-     */
-    private void matchGenes()
-    {
-        this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
     }
 
     @Override
