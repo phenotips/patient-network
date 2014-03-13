@@ -648,7 +648,7 @@
       var _this = this;
       var hRow = _this._getEmptyTableRow(result);
       hRow.insert(new Element('th').update('Variant'));
-      hRow.insert(new Element('th').update('Estimated harmfullness'));
+      hRow.insert(new Element('th').update('Estimated harmfulness'));
       variants.each(function (v) {
          var vRow = _this._getEmptyTableRow(result);
          var position = new Element('span', {'class' : 'hint'}).update("Undisclosed position");
@@ -675,7 +675,7 @@
                                                      .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
                                        )
          );
-         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || 'Unknown harmfullness'));
+         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || 'Unknown harmfulness'));
       });
       return result;
    },
