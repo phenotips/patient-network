@@ -30,4 +30,7 @@
   <suppress checks="MultipleStringLiterals" files="MutualInformationPatientSimilarityView.java"/>
   <suppress checks="MultipleStringLiterals" files="RestrictedGenotypeSimilarityView.java"/>
   <suppress checks="ClassFanOutComplexity" files="AbstractPatientSimilarityView.java"/>
+  <suppress checks="ClassFanOutComplexity" files="MutualInformationPatientSimilarityViewFactory.java"/>
+  <suppress checks="ClassFanOutComplexity" files="RestrictedGenotypeSimilarityView.java"/>
+  <suppress checks="CyclomaticComplexity" files="RestrictedGenotypeSimilarityView.java"/>
 </suppressions>

@@ -29,6 +29,10 @@ import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
+import org.xwiki.cache.Cache;
+import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.phase.Initializable;
@@ -75,9 +79,14 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
     @Inject
     protected OntologyManager ontologyManager;
 
+    /** Provides access to the cache manager. */
+    @Inject
+    private CacheManager cacheManager;
+
+    /** Cache for patient similarity views. */
+    private Cache<PatientSimilarityView> viewCache;
+
     /** The exomizer manager object to handle genetic comparisons. */
-    // @Inject
-    // @Named("exomizer")
     private ExternalToolJobManager<Genotype> exomizerManager;
 
     @Override
@@ -89,7 +98,15 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         AccessType access =
             new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(), this.viewAccess,
                 this.matchAccess);
-        return new MutualInformationPatientSimilarityView(match, reference, access);
+
+        // Get potentially-cached patient similarity view
+        String cacheKey = match.getId() + '|' + reference.getId() + '|' + access.getAccessLevel().getName();
+        PatientSimilarityView result = viewCache.get(cacheKey);
+        if (result == null) {
+            result = new MutualInformationPatientSimilarityView(match, reference, access);
+            viewCache.set(cacheKey, result);
+        }
+        return result;
     }
 
     @Override
@@ -383,11 +400,14 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
         final long startTime = System.currentTimeMillis();
 
         try {
+            this.viewCache = cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
             this.exomizerManager =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(ExternalToolJobManager.class,
                     "exomizer");
         } catch (ComponentLookupException e) {
             this.logger.error("Error loading ExomizerJobManager component");
+        } catch (CacheException e) {
+            this.logger.error("Unable to create cache for PatientSimilarityViews");
         }
 
         // Load the OMIM/HPO mappings
