@@ -335,8 +335,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             Variant[][] topVariants = new Variant[2][2];
             topVariants[0][0] = this.refGenotype.getTopVariant(gene, 0);
             topVariants[0][1] = this.refGenotype.getTopVariant(gene, 1);
-            topVariants[1][0] = this.refGenotype.getTopVariant(gene, 0);
-            topVariants[1][1] = this.refGenotype.getTopVariant(gene, 1);
+            topVariants[1][0] = this.matchGenotype.getTopVariant(gene, 0);
+            topVariants[1][1] = this.matchGenotype.getTopVariant(gene, 1);
 
             double domThresh = Math.min(getVariantScore(topVariants[0][0]), getVariantScore(topVariants[1][0]));
             double recThresh = Math.min(getVariantScore(topVariants[0][1]), getVariantScore(topVariants[1][1]));
