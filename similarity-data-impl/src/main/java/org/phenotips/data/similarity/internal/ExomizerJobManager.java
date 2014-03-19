@@ -19,20 +19,28 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
+import org.phenotips.integration.medsavant.MedSavantServer;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.environment.Environment;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +52,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import exomizer.Exomizer;
@@ -120,21 +127,45 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
         }
         this.logger.error("ExomizerJobManager data directory: " + this.dataDir.getAbsolutePath());
 
-        // Process all already-completed files
-        FilenameFilter exomizerFileFilter = new FilenameFilter()
-        {
-            public boolean accept(File dir, String name)
-            {
-                return name.endsWith(EXOMIZER_SUFFIX) && (new File(dir, name)).isFile();
-            }
-        };
-        for (File file : this.dataDir.listFiles(exomizerFileFilter)) {
-            String patientId = StringUtils.split(file.getName(), '.')[0];
-            if (!"".equals(patientId)) {
-                try {
-                    putResult(patientId, new ExomizerGenotype(file));
-                } catch (FileNotFoundException e) {
-                    this.logger.error("Unable to load genotype from file: " + file.getAbsolutePath());
+        initializeData();
+    }
+
+    private void initializeData()
+    {
+        this.logger.error("Looking for available genotype jobs to start...");
+        MedSavantServer medsavant = null;
+        PatientRepository patients = null;
+        QueryManager qm = null;
+        try {
+            ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
+            patients = cm.getInstance(PatientRepository.class);
+            medsavant = cm.getInstance(MedSavantServer.class);
+            qm = cm.getInstance(QueryManager.class);
+        } catch (ComponentLookupException e) {
+            this.logger.error("Could not load component, no jobs will be started.");
+            return;
+        }
+
+        List<String> patientDocs;
+        try {
+            patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
+        } catch (QueryException e) {
+            this.logger.error("query error: " + e.toString());
+            return;
+        }
+        for (String patientDoc : patientDocs) {
+            Patient p = patients.getPatientById(patientDoc);
+            if (p != null) {
+                String patientId = p.getId();
+                File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
+                if (results.exists()) {
+                    try {
+                        putResult(patientId, new ExomizerGenotype(results));
+                    } catch (FileNotFoundException e) {
+                        this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
+                    }
+                } else if (!hasJob(p) && medsavant.hasVCF(p)) {
+                    addJob(p);
                 }
             }
         }

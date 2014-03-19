@@ -32,5 +32,7 @@
   <suppress checks="ClassFanOutComplexity" files="AbstractPatientSimilarityView.java"/>
   <suppress checks="ClassFanOutComplexity" files="MutualInformationPatientSimilarityViewFactory.java"/>
   <suppress checks="ClassFanOutComplexity" files="RestrictedGenotypeSimilarityView.java"/>
+  <suppress checks="ClassFanOutComplexity" files="ExomizerJobManager.java"/>
   <suppress checks="CyclomaticComplexity" files="RestrictedGenotypeSimilarityView.java"/>
+  <suppress checks="NPathComplexity" files="RestrictedGenotypeSimilarityView.java"/>
 </suppressions>

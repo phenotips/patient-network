@@ -138,13 +138,15 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
+        final double startTime = System.currentTimeMillis();
         this.logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        this.logger.error("  ... found " + results.size() + " entries.");
+        this.logger.error(String.format("  ... found %d entries in %.2fs.", results.size(),
+            (System.currentTimeMillis() - startTime) / 1000.0));
         return results;
     }
 
@@ -156,6 +158,7 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
      */
     private Map<OntologyTerm, Collection<OntologyTerm>> getChildrenMap(OntologyService ontology)
     {
+        final double startTime = System.currentTimeMillis();
         Map<OntologyTerm, Collection<OntologyTerm>> children = new HashMap<OntologyTerm, Collection<OntologyTerm>>();
 
         Collection<OntologyTerm> terms = queryAllTerms(ontology);
@@ -170,6 +173,8 @@ public class MutualInformationPatientSimilarityViewFactory extends RestrictedPat
                 parentChildren.add(term);
             }
         }
+        this.logger.error(String.format(" found children for all terms in %.2fs",
+            (System.currentTimeMillis() - startTime) / 1000.0));
         return children;
     }
 

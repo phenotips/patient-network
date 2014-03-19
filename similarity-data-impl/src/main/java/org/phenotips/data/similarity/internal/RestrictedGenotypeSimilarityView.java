@@ -161,8 +161,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.refGenotype = this.exomizerManager.getResult(refId);
         // Score the gene-wise similarity if both patients have genotypes
         if (this.matchGenotype != null && this.refGenotype != null) {
+            final long startTime = System.currentTimeMillis();
+            this.logger.error(String.format("Matching genes for %s, %s", refId, matchId));
             loadControlData();
             matchGenes();
+            this.logger.error(String.format("Gene matching took %.2fs and added %d views to cache",
+                (System.currentTimeMillis() - startTime) / 1000.0));
         }
     }
 
@@ -248,7 +252,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 otherSimScore = 0.1;
             } else {
                 otherSimScore =
-                    Math.min(getPatientSimilarity(otherPatient, this.match),
+                    Math.max(getPatientSimilarity(otherPatient, this.match),
                         getPatientSimilarity(otherPatient, this.reference));
             }
             otherSimScores.put(patientId, otherSimScore);
@@ -277,28 +281,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         // Adjust upwards the starting phenotype score to account for exomizer bias (almost all scores are < 0.7)
         geneScore = Math.min(geneScore / 0.7, 1);
 
-        double domScore = geneScore;
-        double recScore = geneScore;
-        for (String patientId : otherGenotypedIds) {
-            Genotype otherGt = this.exomizerManager.getResult(patientId);
-            if (otherGt != null && otherGt.getGeneScore(gene) != null) {
-                double otherSimScore = getOtherPatientSimilarity(patientId, otherSimScores);
-
-                // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
-                double penalty = otherSimScore + 0.001;
-                if (getVariantScore(otherGt.getTopVariant(gene, 0)) + 0.01 >= domThresh) {
-                    domScore *= penalty;
-                }
-                if (getVariantScore(otherGt.getTopVariant(gene, 1)) + 0.01 >= recThresh) {
-                    recScore *= penalty;
-                }
-            }
-
-            // Quit early if things are going poorly
-            if (Math.max(domScore, recScore) < 0.0001) {
-                return 0.0;
-            }
-        }
+        double domScore = geneScore * domThresh;
+        double recScore = geneScore * recThresh;
 
         // Incorporate 1000 Genomes gene damage statistics
         int[] geneControlDamage = controlDamage.get(gene);
@@ -310,6 +294,36 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             recScore /= geneControlDamage[0] + 1;
             if (recThresh < KO_THRESHOLD) {
                 recScore /= geneControlDamage[2] + 1;
+            }
+        }
+
+        // Quit early if things are going poorly
+        if (Math.max(domScore, recScore) < 0.001) {
+            return 0.0;
+        }
+        
+        for (String patientId : otherGenotypedIds) {
+            Genotype otherGt = this.exomizerManager.getResult(patientId);
+            if (otherGt != null && otherGt.getGeneScore(gene) != null) {
+                double otherDomScore = getVariantScore(otherGt.getTopVariant(gene, 0)) + 0.01;
+                double otherRecScore = getVariantScore(otherGt.getTopVariant(gene, 1)) + 0.01;
+                if (otherDomScore >= domThresh || otherRecScore >= recThresh) {
+                    // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
+                    double otherSimScore = getOtherPatientSimilarity(patientId, otherSimScores);
+                    double penalty = otherSimScore + 0.001;
+
+                    if (otherDomScore >= domThresh) {
+                        domScore *= penalty;
+                    }
+                    if (otherRecScore >= recThresh) {
+                        recScore *= penalty;
+                    }
+                }
+            }
+
+            // Quit early if things are going poorly
+            if (Math.max(domScore, recScore) < 0.0001) {
+                return 0.0;
             }
         }
 
