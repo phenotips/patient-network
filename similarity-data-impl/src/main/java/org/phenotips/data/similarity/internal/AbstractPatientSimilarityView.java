@@ -20,28 +20,20 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.Disorder;
-import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.FeatureSimilarityScorer;
-import org.phenotips.data.similarity.FeatureSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -60,13 +52,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /** The access level the user has to this patient. */
     protected final AccessType access;
 
-    protected final String contactToken;
-
-    /** Links feature values from this patient to the reference. */
-    protected Set<FeatureSimilarityView> matchedFeatures;
-
-    /** Links disorder values from this patient to the reference. */
-    protected Set<DisorderSimilarityView> matchedDisorders;
+    /** The token for contacting the owner of a patient. */
+    protected String contactToken;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -85,19 +72,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.match = match;
         this.reference = reference;
         this.access = access;
-        String token = "";
-        try {
-            ConnectionManager cm =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
-            token = String.valueOf(cm.getConnection(this).getId());
-        } catch (ComponentLookupException e) {
-            // This should not happen
-        }
 
-        this.contactToken = token;
-
-        matchFeatures();
-        matchDisorders();
+        // Lazily load contact token.
     }
 
     @Override
@@ -133,6 +109,17 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     @Override
     public String getContactToken()
     {
+        if (this.contactToken == null) {
+            String token = "";
+            try {
+                ConnectionManager cm =
+                    ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
+                token = String.valueOf(cm.getConnection(this).getId());
+            } catch (ComponentLookupException e) {
+                // This should not happen
+            }
+            this.contactToken = token;
+        }
         return this.contactToken;
     }
 
@@ -152,241 +139,62 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
      * features displayed.
      * 
-     * @return the JSON for visible features
+     * @return the JSON for visible features, or null if no features to display.
      */
-    protected JSONArray getFeaturesJSON()
-    {
-        Set<? extends Feature> features = getFeatures();
-        JSONArray featuresJSON = new JSONArray();
-        if (!features.isEmpty()) {
-            for (Feature feature : features) {
-                featuresJSON.add(feature.toJSON());
-            }
-        }
-        return featuresJSON;
-    }
+    abstract protected JSONArray getFeaturesJSON();
 
     /**
      * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
      * disorders displayed.
      * 
-     * @return the JSON for visible disorders
+     * @return the JSON for visible disorders, or null if no disorders to display.
      */
-    protected JSONArray getDisordersJSON()
-    {
-        JSONArray disordersJSON = new JSONArray();
-        Set<? extends Disorder> disorders = getDisorders();
-        if (!disorders.isEmpty()) {
-            for (Disorder disorder : disorders) {
-                disordersJSON.add(disorder.toJSON());
-            }
-        }
-        return disordersJSON;
-    }
+    abstract protected JSONArray getDisordersJSON();
 
     /**
-     * Searches for a similar feature in the reference patient, matching one of the matched patient's features, or
-     * vice-versa.
+     * Get JSON for many-to-many feature matches between the reference and the match.
      * 
-     * @param toMatch the feature to match
-     * @param lookIn the list of features to look in, either the reference patient or the matched patient features
-     * @return one of the features from the list, if it matches the target feature, or {@code null} otherwise
+     * @return a JSON array of feature matches, or null if none to display
      */
-    protected Feature findMatchingFeature(Feature toMatch, Set<? extends Feature> lookIn)
-    {
-        FeatureSimilarityScorer scorer = RestrictedFeatureSimilarityView.getScorer();
-        if (scorer != null) {
-            double bestScore = 0;
-            Feature bestMatch = null;
-            for (Feature candidate : lookIn) {
-                double score = scorer.getScore(candidate, toMatch);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMatch = candidate;
-                }
-            }
-            return bestMatch;
-        } else {
-            for (Feature candidate : lookIn) {
-                if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
-                    return candidate;
-                }
-            }
-        }
-        return null;
-    }
+    abstract protected JSONArray getFeatureMatchesJSON();
 
-    @Override
-    public Set<? extends Feature> getFeatures()
+    /**
+     * Get JSON for gene matches between the reference and the match.
+     * 
+     * @return a JSON array of gene, or null if none to display
+     */
+    abstract protected JSONArray getGenesJSON();
+    
+    /**
+     * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()},
+     * {@link #getContactToken()}, etc.
+     * 
+     * @see org.phenotips.data.Patient#toJSON()
+     */
+    public JSONObject toJSON()
     {
-        Set<Feature> result = new HashSet<Feature>();
-        for (FeatureSimilarityView feature : this.matchedFeatures) {
-            if (feature.isMatchingPair() || feature.getId() != null) {
-                result.add(feature);
-            }
-        }
+        JSONObject result = new JSONObject();
 
+        result.element("id", getId());
+        result.element("token", getContactToken());
+        if (getReporter() != null) {
+            result.element("owner", getReporter().getName());
+        }
+        if (this.access != null) {
+            result.element("access", this.access.toString());
+        }
+        result.element("myCase", Objects.equals(this.reference.getReporter(), getReporter()));
+        result.element("score", getScore());
+        result.element("featuresCount", getFeatures().size());
+        // Features visible in the match
+        result.element("features", getFeaturesJSON());
+        // Feature matching
+        result.element("featureMatches", getFeatureMatchesJSON());
+        // Disorder matching
+        result.element("disorders", getDisordersJSON());
+        // Gene variant matching
+        result.element("genes", getGenesJSON());
+        
         return result;
     }
-
-    @Override
-    public Set<? extends Disorder> getDisorders()
-    {
-        Set<Disorder> result = new HashSet<Disorder>();
-        for (DisorderSimilarityView disorder : this.matchedDisorders) {
-            if (disorder.getId() != null) {
-                result.add(disorder);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Searches for a similar disorder in the reference patient, matching one of the matched patient's disorders, or
-     * vice-versa.
-     * 
-     * @param toMatch the disorder to match
-     * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
-     * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
-     */
-    protected Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
-    {
-        for (Disorder candidate : lookIn) {
-            if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
-                return candidate;
-            }
-        }
-        return null;
-    }
-
-    /** See {@link #RestrictedFeatureSimilarityView(Feature, Feature, AccessType)}. */
-    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access)
-    {
-        return new DefaultFeatureSimilarityView(match, reference);
-    }
-
-    /** See {@link #RestrictedDisorderSimilarityView(Patient, Patient, AccessType)}. */
-    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
-    {
-        return new DefaultDisorderSimilarityView(match, reference);
-    }
-
-    /**
-     * Create pairs of matching features, one from the current patient and one from the reference patient. Unmatched
-     * values from either side are paired with a {@code null} value.
-     */
-    protected void matchFeatures()
-    {
-        Set<FeatureSimilarityView> result = new HashSet<FeatureSimilarityView>();
-        for (Feature feature : this.match.getFeatures()) {
-            Feature matching = findMatchingFeature(feature, this.reference.getFeatures());
-            result.add(createFeatureSimilarityView(feature, matching, this.access));
-        }
-        for (Feature feature : this.reference.getFeatures()) {
-            Feature matching = findMatchingFeature(feature, this.match.getFeatures());
-            if (matching == null) {
-                result.add(createFeatureSimilarityView(null, feature, this.access));
-            }
-        }
-        this.matchedFeatures = Collections.unmodifiableSet(result);
-    }
-
-    /**
-     * Create pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
-     * values from either side are paired with a {@code null} value.
-     */
-    protected void matchDisorders()
-    {
-        Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
-        for (Disorder disorder : this.match.getDisorders()) {
-            result.add(createDisorderSimilarityView(disorder,
-                findMatchingDisorder(disorder, this.reference.getDisorders()), this.access));
-        }
-        for (Disorder disorder : this.reference.getDisorders()) {
-            if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
-                result.add(createDisorderSimilarityView(null, disorder, this.access));
-            }
-        }
-        this.matchedDisorders = Collections.unmodifiableSet(result);
-    }
-
-    @Override
-    public double getScore()
-    {
-        double featuresScore = getFeaturesScore();
-        return adjustScoreWithDisordersScore(featuresScore);
-    }
-
-    /**
-     * Compute the patient's score as given by the phenotypic similarity with the reference patient.
-     * 
-     * @return a similarity score, between {@code -1} for opposite patient descriptions and {@code 1} for an exact
-     *         match, with {@code 0} for patients with no similarities
-     * @see #getScore()
-     */
-    protected double getFeaturesScore()
-    {
-        if (this.matchedFeatures.isEmpty()) {
-            return 0;
-        }
-        double featureScore;
-        // Lower bias means that positive values are far more important ("heavy") than negative ones
-        // Higher bias means that the score is closer to an arithmetic mean
-        double bias = 3.0;
-        double squareSum = 0;
-        double sum = 0;
-        int matchingFeaturePairs = 0;
-        int unmatchedFeaturePairs = 0;
-
-        for (FeatureSimilarityView feature : this.matchedFeatures) {
-            double elementScore = feature.getScore();
-            if (Double.isNaN(elementScore)) {
-                ++unmatchedFeaturePairs;
-                continue;
-            }
-            squareSum += (bias + elementScore) * (bias + elementScore);
-            sum += bias + elementScore;
-            ++matchingFeaturePairs;
-        }
-        if (matchingFeaturePairs == 0) {
-            return 0;
-        }
-        featureScore = squareSum / sum - bias;
-
-        if (unmatchedFeaturePairs > 0 && featureScore > 0) {
-            // When there are many unmatched features, lower the score towards 0 (irrelevant patient pair score)
-            featureScore *=
-                Math.pow(0.9, Math.max(0, unmatchedFeaturePairs - Math.ceil(Math.log(matchingFeaturePairs))));
-        }
-        return featureScore;
-    }
-
-    /**
-     * Adjust the similarity score by taking into account common disorders. Matching disorders will boost the base score
-     * given by the phenotypic similarity, while unmatched disorders don't affect the score at all. If the base score is
-     * negative, no boost is awarded.
-     * 
-     * @param baseScore the score given by features alone, a number between {@code -1} and {@code 1}
-     * @return the adjusted similarity score, boosted closer to {@code 1} if there are common disorders between this
-     *         patient and the reference patient, or the unmodified base score otherwise; the score is never lowered,
-     *         and never goes above {@code 1}
-     * @see #getScore()
-     */
-    protected double adjustScoreWithDisordersScore(double baseScore)
-    {
-        if (this.matchedDisorders.isEmpty() || baseScore <= 0) {
-            return baseScore;
-        }
-        double score = baseScore;
-        double bias = 3;
-        for (DisorderSimilarityView disorder : this.matchedDisorders) {
-            if (disorder.isMatchingPair()) {
-                // For each disorder match, reduce the distance between the current score to 1 by 1/3
-                score = score + (1 - score) / bias;
-            }
-        }
-        return score;
-    }
-
 }

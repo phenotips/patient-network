@@ -19,32 +19,32 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.FeatureSimilarityView;
+import org.phenotips.data.similarity.FeatureClusterView;
+import org.phenotips.ontology.OntologyTerm;
+
 import org.xwiki.model.reference.DocumentReference;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
+import net.sf.json.JSONObject;
+
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that reveals the full patient information if the user has full access
- * to the patient, and only limited information for similar features if the patient is matchable; for use in public
- * scripts.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that reveals the full patient
+ * information if the user has full access to the patient, and only limited information for similar features if the
+ * patient is matchable; for use in public scripts.
  * 
  * @version $Id$
  * @since 1.0M8
  */
-public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityView
+public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityView
 {
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -95,25 +95,18 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    public Set< ? extends Feature> getFeatures()
+    public Set<? extends Feature> getFeatures()
     {
         if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
-        } else if (this.access.isOpenAccess()) {
-            return super.getFeatures();
         } else {
-            Set<Feature> result = new HashSet<Feature>();
-            for (FeatureSimilarityView feature : this.matchedFeatures) {
-                if (feature.isMatchingPair()) {
-                    result.add(feature);
-                }
-            }
-            return result;
+            // Uses RestrictedFeatureSimilarityView, so features are individual access-protected
+            return super.getFeatures();
         }
     }
 
     @Override
-    public Set< ? extends Disorder> getDisorders()
+    public Set<? extends Disorder> getDisorders()
     {
         if (!this.access.isOpenAccess()) {
             return Collections.emptySet();
@@ -123,9 +116,11 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     }
 
     @Override
-    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access)
+    protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
+        AccessType access,
+        OntologyTerm root, double score)
     {
-        return new RestrictedFeatureSimilarityView(match, reference, this.access);
+        return new RestrictedFeatureClusterView(match, reference, access, root, score);
     }
 
     @Override
@@ -148,29 +143,8 @@ public class RestrictedPatientSimilarityView extends AbstractPatientSimilarityVi
     {
         if (this.access.isPrivateAccess()) {
             return new JSONObject(true);
+        } else {
+            return super.toJSON();
         }
-        JSONObject result = new JSONObject();
-
-        if (this.access.isOpenAccess()) {
-            result.element("id", this.match.getDocument().getName());
-            result.element("owner", this.match.getReporter().getName());
-        }
-        result.element("token", getContactToken());
-        result.element("access", this.access.toString());
-        result.element("myCase", Objects.equals(this.reference.getReporter(), this.match.getReporter()));
-        result.element("score", getScore());
-        result.element("featuresCount", this.match.getFeatures().size());
-
-        JSONArray featuresJSON = getFeaturesJSON();
-        if (!featuresJSON.isEmpty()) {
-            result.element("features", featuresJSON);
-        }
-
-        JSONArray disordersJSON = getDisordersJSON();
-        if (!disordersJSON.isEmpty()) {
-            result.element("disorders", disordersJSON);
-        }
-
-        return result;
     }
 }

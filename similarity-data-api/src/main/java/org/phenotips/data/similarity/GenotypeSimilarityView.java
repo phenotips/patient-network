@@ -79,7 +79,7 @@ public interface GenotypeSimilarityView extends Genotype
      *     ]
      * </pre>
      * 
-     * @return the data about this value, using the json-lib classes
+     * @return the data about this value, using the json-lib classes, or null if no information is visible
      */
     JSONArray toJSON();
 }

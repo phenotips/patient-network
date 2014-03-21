@@ -133,26 +133,31 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     private void initializeData()
     {
         this.logger.error("Looking for available genotype jobs to start...");
-        MedSavantServer medsavant = null;
+
         PatientRepository patients = null;
         QueryManager qm = null;
+        MedSavantServer medsavant = null;
+        List<String> patientDocs = null;
         try {
             ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
             patients = cm.getInstance(PatientRepository.class);
-            medsavant = cm.getInstance(MedSavantServer.class);
             qm = cm.getInstance(QueryManager.class);
+            patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
+
+            // Handle MedSavantServer component more carefully, since it *will* likely crash
+            try {
+                medsavant = cm.getInstance(MedSavantServer.class);
+            } catch (ComponentLookupException e) {
+                this.logger.error("Could not load medsavant, no jobs will be started.");
+            }
         } catch (ComponentLookupException e) {
-            this.logger.error("Could not load component, no jobs will be started.");
+            this.logger.error("Could not load components for patient lookup.");
+            return;
+        } catch (QueryException e) {
+            this.logger.error("Query error: " + e.toString());
             return;
         }
 
-        List<String> patientDocs;
-        try {
-            patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
-        } catch (QueryException e) {
-            this.logger.error("query error: " + e.toString());
-            return;
-        }
         for (String patientDoc : patientDocs) {
             Patient p = patients.getPatientById(patientDoc);
             if (p != null) {
@@ -160,11 +165,12 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
                 File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
                 if (results.exists()) {
                     try {
+                        this.logger.error("Loading genetics for " + patientId);
                         putResult(patientId, new ExomizerGenotype(results));
                     } catch (FileNotFoundException e) {
                         this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
                     }
-                } else if (!hasJob(p) && medsavant.hasVCF(p)) {
+                } else if (medsavant != null && !hasJob(p) && medsavant.hasVCF(p)) {
                     addJob(p);
                 }
             }

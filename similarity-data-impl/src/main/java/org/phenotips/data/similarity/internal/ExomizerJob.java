@@ -55,7 +55,7 @@ public class ExomizerJob implements Runnable
 {
     /** Suffix for an in-progress exomizer job. */
     private static final String TEMP_SUFFIX = ".temp";
-    
+
     /** The URL for the Exomizer postgresql server. */
     private final String dbUrl = "jdbc:postgresql://localhost/nsfpalizer";
 
@@ -119,9 +119,7 @@ public class ExomizerJob implements Runnable
     private void writeVariantsToFile(File outFile) throws IOException
     {
         String patientId = this.patient.getId();
-
-        this.logger.error("Writing variant from " + patientId + " to " + outFile.getAbsolutePath());
-        final long startTime = System.currentTimeMillis();
+        this.logger.error("Getting variants from MedSavant for: " + patientId);
 
         // Look up filtered variants from PhenomeCentral-Medsavant API
         MedSavantServer medsavant = null;
@@ -136,6 +134,7 @@ public class ExomizerJob implements Runnable
         File tempOutFile = new File(outFile.getAbsolutePath() + TEMP_SUFFIX);
         BufferedWriter ofp = new BufferedWriter(new FileWriter(tempOutFile));
 
+        this.logger.error("Dumping variants to: " + tempOutFile.getAbsolutePath());
         // Write VCF header
         ofp.write("##fileFormat=VCF4.1\n");
         ofp.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + patientId);
@@ -151,7 +150,6 @@ public class ExomizerJob implements Runnable
         }
 
         this.logger.error("Variants written to: " + outFile.getAbsolutePath());
-        this.logger.error("Took " + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds.");
     }
 
     @Override
@@ -173,7 +171,7 @@ public class ExomizerJob implements Runnable
         }
 
         // e.g. "HP:0123456,HP:0000118,..."
-        String hpoIDs = getPatientHPOs(this.patient); 
+        String hpoIDs = getPatientHPOs(this.patient);
 
         // Run Exomizer on VCF and HPO terms to generate outFile
         File outFile = new File(this.dataDir, patientId + ".ezr");

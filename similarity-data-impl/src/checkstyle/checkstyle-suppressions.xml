@@ -34,5 +34,6 @@
   <suppress checks="ClassFanOutComplexity" files="RestrictedGenotypeSimilarityView.java"/>
   <suppress checks="ClassFanOutComplexity" files="ExomizerJobManager.java"/>
   <suppress checks="CyclomaticComplexity" files="RestrictedGenotypeSimilarityView.java"/>
+  <suppress checks="CyclomaticComplexity" files="ExomizerJobManager.java"/>
   <suppress checks="NPathComplexity" files="RestrictedGenotypeSimilarityView.java"/>
 </suppressions>

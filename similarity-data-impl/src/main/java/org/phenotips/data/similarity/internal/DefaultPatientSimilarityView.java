@@ -19,89 +19,501 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import java.util.Objects;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.FeatureSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.FeatureClusterView;
+import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.ontology.OntologyManager;
+import org.phenotips.ontology.OntologyTerm;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+
+import net.sf.json.JSONArray;
 
 /**
- * Implementation of {@link PatientSimilarityView} that always reveals the full patient information; for use in trusted
- * Java code.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
+ * to score similar patients.
  * 
  * @version $Id$
- * @since 1.0M10
+ * @since
  */
-public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView implements PatientSimilarityView
+public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {
+    /** The overall root of the HPO. */
+    private static final String HP_ROOT = "HP:0000001";
+
+    /** The root of the phenotypic abnormality portion of HPO. */
+    private static final String PHENOTYPE_ROOT = "HP:0000118";
+
+    /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
+    private static Map<OntologyTerm, Double> termICs;
+
+    /** The largest IC found, for normalizing. */
+    private static Double maxIC;
+
+    /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
+    private static Map<OntologyTerm, Double> parentCondIC;
+
+    /** Provides access to the term ontology. */
+    private static OntologyManager ontologyManager;
+
+    /** Logging helper object. */
+    private static Logger logger;
+
+    /** Memoized match score. */
+    private Double score;
+
+    /** Links disorder values from this patient to the reference. */
+    protected Set<DisorderSimilarityView> matchedDisorders;
+
+    /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
+    private GenotypeSimilarityView matchedGenes;
+
     /**
-     * Simple constructor passing both {@link #match the patient}, the {@link #reference reference patient}, and the
-     * {@link #access patient access type}.
+     * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
      * 
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
+     * @throws NullPointerException if the class was not statically initialized with
+     *             {@link #initializeStaticData(Map, Map, OntologyManager, Logger)} before use
      */
     public DefaultPatientSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
     {
         super(match, reference, access);
+        if (termICs == null || parentCondIC == null || ontologyManager == null) {
+            String error =
+                "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation";
+            throw new NullPointerException(error);
+        }
     }
 
     /**
-     * Constructor that copies the data from another patient pair.
+     * Set the static information for the class. Must be run before creating instances of this class.
      * 
-     * @param restrictedView the restricted patient pair to clone
+     * @param termICs the information content of each term
+     * @param condICs the conditional information content of each term, given its parents
+     * @param ontologyManager the ontology manager
+     * @param logger the logging component
      */
-    public DefaultPatientSimilarityView(AbstractPatientSimilarityView restrictedView)
+    public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
+        OntologyManager ontologyManager, Logger logger)
     {
-        this(restrictedView.match, restrictedView.reference, restrictedView.access);
+        DefaultPatientSimilarityView.ontologyManager = ontologyManager;
+        DefaultPatientSimilarityView.parentCondIC = condICs;
+        DefaultPatientSimilarityView.termICs = termICs;
+        DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
+        DefaultPatientSimilarityView.logger = logger;
     }
 
-    @Override
-    protected FeatureSimilarityView createFeatureSimilarityView(Feature match, Feature reference, AccessType access)
+    /**
+     * Create an instance of the FeatureClusterView for this PatientSimilarityView.
+     * 
+     * @param match the features in the matched patient
+     * @param reference the features in the reference patient
+     * @param access the access level of the match
+     * @param root the root/shared ancestor for the cluster
+     * @param score the score of the feature matching
+     */
+    protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
+        AccessType access,
+        OntologyTerm root, double score)
     {
-        return new DefaultFeatureSimilarityView(match, reference);
+        return new DefaultFeatureClusterView(match, reference, access, root, score);
     }
 
-    @Override
+    /**
+     * Create an instance of the DisorderSimilarityView for this PatientSimilarityView.
+     * 
+     * @param match the disorder in the match patient
+     * @param reference the disorder in the reference patient
+     * @param access the access level
+     * @return the DisorderSimilarityView for the pair of disorders
+     */
     protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
     {
-        return new DefaultDisorderSimilarityView(match, reference, this.access);
+        return new DefaultDisorderSimilarityView(match, reference);
     }
 
-    @Override
-    public JSONObject toJSON()
+    /**
+     * Searches for a similar disorder in the reference patient, matching one of the matched patient's disorders, or
+     * vice-versa.
+     * 
+     * @param toMatch the disorder to match
+     * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
+     * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
+     */
+    protected Disorder findMatchingDisorder(Disorder toMatch, Set<? extends Disorder> lookIn)
     {
-        JSONObject result = new JSONObject();
-
-        result.element("id", this.match.getDocument().getName());
-        result.element("token", getContactToken());
-        result.element("owner", this.match.getReporter().getName());
-        result.element("access", this.access.toString());
-        result.element("myCase", Objects.equals(this.reference.getReporter(), this.match.getReporter()));
-        result.element("score", getScore());
-        result.element("featuresCount", this.match.getFeatures().size());
-
-        JSONArray featuresJSON = getFeaturesJSON();
-        if (!featuresJSON.isEmpty()) {
-            result.element("features", featuresJSON);
+        for (Disorder candidate : lookIn) {
+            if (StringUtils.equals(candidate.getId(), toMatch.getId())) {
+                return candidate;
+            }
         }
+        return null;
+    }
 
-        JSONArray disordersJSON = getDisordersJSON();
-        if (!disordersJSON.isEmpty()) {
-            result.element("disorders", disordersJSON);
+    /**
+     * Return the displayable set of matched disorders, retrieved from {@link #getMatchedDisorders()}. {@inheritDoc}
+     * 
+     * @see org.phenotips.data.Patient#getDisorders()
+     */
+    public Set<? extends Disorder> getDisorders()
+    {
+        Set<Disorder> result = new HashSet<Disorder>();
+        for (DisorderSimilarityView disorder : getMatchedDisorders()) {
+            if (disorder.getId() != null) {
+                result.add(disorder);
+            }
         }
 
         return result;
     }
 
+    /**
+     * Get pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
+     * values from either side are paired with a {@code null} value.
+     * 
+     * @return an unmodifiable collection of matched disorders.
+     */
+    protected Collection<DisorderSimilarityView> getMatchedDisorders()
+    {
+        if (this.matchedDisorders == null) {
+            Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
+            for (Disorder disorder : this.match.getDisorders()) {
+                result.add(createDisorderSimilarityView(disorder,
+                    findMatchingDisorder(disorder, this.reference.getDisorders()), this.access));
+            }
+            for (Disorder disorder : this.reference.getDisorders()) {
+                if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
+                    result.add(createDisorderSimilarityView(null, disorder, this.access));
+                }
+            }
+            this.matchedDisorders = Collections.unmodifiableSet(result);
+        }
+        return this.matchedDisorders;
+    }
+
+    /**
+     * Return a (potentially empty) collection of terms present in the patient.
+     * 
+     * @param patient
+     * @return a collection of terms present in the patient
+     */
+    private Collection<OntologyTerm> getPresentPatientTerms(Patient patient)
+    {
+        Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
+        for (Feature feature : patient.getFeatures()) {
+            if (!feature.isPresent()) {
+                continue;
+            }
+
+            OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
+            if (term == null) {
+                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
+            } else {
+                terms.add(term);
+            }
+        }
+        return terms;
+    }
+
+    /**
+     * Return a (potentially empty) mapping from OntologyTerms back to features in the patient for present features.
+     * Un-mappable features or negative features are not included.
+     * 
+     * @param patient
+     * @return a mapping from terms to features in the patient
+     */
+    private Map<OntologyTerm, Feature> getPresentTermLookup(Patient patient)
+    {
+        Map<OntologyTerm, Feature> lookup = new HashMap<OntologyTerm, Feature>();
+        for (Feature feature : patient.getFeatures()) {
+            if (!feature.isPresent()) {
+                continue;
+            }
+
+            OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
+            if (term == null) {
+                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
+            } else {
+                lookup.put(term, feature);
+            }
+        }
+        return lookup;
+    }
+
+    /**
+     * Return the set of terms implied by a collection of features in the ontology.
+     * 
+     * @param terms a collection of terms
+     * @return all provided OntologyTerm terms and their ancestors
+     */
+    private Set<OntologyTerm> getAncestors(Collection<OntologyTerm> terms)
+    {
+        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>(terms);
+        for (OntologyTerm term : terms) {
+            // Add all ancestors
+            ancestors.addAll(term.getAncestorsAndSelf());
+        }
+        return ancestors;
+    }
+
+    /**
+     * Return the cost of encoding all the terms (and their ancestors) in a tree together.
+     * 
+     * @param all terms (and their ancestors) that are present in the patient
+     * @return the cost of the encoding all the terms
+     */
+    private double getJointTermsCost(Collection<OntologyTerm> ancestors)
+    {
+        double cost = 0;
+        for (OntologyTerm term : ancestors) {
+            Double ic = parentCondIC.get(term);
+            if (ic == null) {
+                ic = 0.0;
+            }
+            cost += ic;
+        }
+        return cost;
+    }
+
+    @Override
+    public double getScore()
+    {
+        if (this.score == null) {
+            if (this.match == null || this.reference == null) {
+                this.score = Double.NaN;
+            } else {
+                // Get ancestors for both patients
+                Set<OntologyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
+                Set<OntologyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
+
+                // Compute costs of each patient separately
+                double p1Cost = getJointTermsCost(refAncestors);
+                double p2Cost = getJointTermsCost(matchAncestors);
+
+                // Score overlapping (min) ancestors
+                Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
+                sharedAncestors.addAll(refAncestors);
+                sharedAncestors.retainAll(matchAncestors);
+
+                double sharedCost = getJointTermsCost(sharedAncestors);
+                assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
+
+                double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
+                this.score = harmonicMeanIC;
+            }
+        }
+        return this.score;
+    }
+
+    /**
+     * Get the genotype similarity view for this pair of patients, lazily evaluated and memoized.
+     * 
+     * @return the genotype similarity view for this pair of patients
+     */
+    private GenotypeSimilarityView getGenotypeSimilarity()
+    {
+        if (this.matchedGenes == null) {
+            this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
+        }
+        return this.matchedGenes;
+    }
+
+    @Override
+    public JSONArray getGenesJSON()
+    {
+        return getGenotypeSimilarity().toJSON();
+    }
+
+    /**
+     * Return the features present in the match patient, as appropriate for the access level.
+     * 
+     * @see org.phenotips.data.Patient#getFeatures()
+     */
+    @Override
+    public Set<? extends Feature> getFeatures()
+    {
+        return this.match.getFeatures();
+    }
+
+    @Override
+    protected JSONArray getFeaturesJSON()
+    {
+        // Just return a simple array of the features in the match patient
+        JSONArray featuresJSON = new JSONArray();
+        for (Feature f : getFeatures()) {
+            if (f.isPresent()) {
+                featuresJSON.add(f.toJSON());
+            }
+        }
+        if (!featuresJSON.isEmpty()) {
+            return featuresJSON;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    protected JSONArray getDisordersJSON()
+    {
+        Set<? extends Disorder> disorders = getDisorders();
+        if (disorders.isEmpty()) {
+            return null;
+        } else {
+            JSONArray disordersJSON = new JSONArray();
+            for (Disorder disorder : disorders) {
+                disordersJSON.add(disorder.toJSON());
+            }
+            return disordersJSON;
+        }
+    }
+
+    /**
+     * Find, remove, and return all terms with given ancestor.
+     * 
+     * @param terms the terms, modified by removing terms with given ancestor
+     * @param ancestor the ancestor to search for
+     * @return the terms with the given ancestor (removed from given terms)
+     */
+    private Collection<OntologyTerm> popTermsWithAncestor(Collection<OntologyTerm> terms, OntologyTerm ancestor)
+    {
+        Collection<OntologyTerm> matched = new HashSet<OntologyTerm>();
+        for (OntologyTerm term : terms) {
+            if (term.getAncestorsAndSelf().contains(ancestor)) {
+                matched.add(term);
+            }
+        }
+        terms.removeAll(matched);
+        return matched;
+    }
+
+    /**
+     * Finds the best term match, removes these terms, and return the JSON for that match.
+     * 
+     * @param refTerms the terms in the reference
+     * @param matchTerms the terms in the match
+     * @param matchFeatureLookup a mapping from OntologyTerms back to the original Features in the match patient
+     * @param refFeatureLookup a mapping from OntologyTerms back to the original Features in the reference patient
+     * @return the FeatureClusterView of the best-matching features from refTerms and matchTerms (removes the matched
+     *         terms from the passed lists) or null if the terms are not a good match (the term collections are then
+     *         unchanged)
+     */
+    private FeatureClusterView popBestFeatureCluster(Collection<OntologyTerm> matchTerms,
+        Collection<OntologyTerm> refTerms, Map<OntologyTerm, Feature> matchFeatureLookup,
+        Map<OntologyTerm, Feature> refFeatureLookup)
+    {
+        Collection<OntologyTerm> sharedAncestors = getAncestors(refTerms);
+        sharedAncestors.retainAll(getAncestors(matchTerms));
+
+        // Find ancestor with highest (normalized) information content
+        OntologyTerm ancestor = null;
+        double ancestorScore = Double.NEGATIVE_INFINITY;
+        for (OntologyTerm term : sharedAncestors) {
+            Double termIC = termICs.get(term);
+            if (termIC == null) {
+                termIC = 0.0;
+            }
+
+            double termScore = termIC / maxIC;
+            if (termScore > ancestorScore) {
+                ancestorScore = termScore;
+                ancestor = term;
+            }
+        }
+
+        // If the top-scoring ancestor is the root (or phenotype root), report everything remaining as unmatched
+        if (ancestor == null || HP_ROOT.equals(ancestor.getId()) || PHENOTYPE_ROOT.equals(ancestor.getId())) {
+            return null;
+        }
+
+        // Find, remove, and return all ref and match terms under the selected ancestor
+        Collection<OntologyTerm> matchMatched = popTermsWithAncestor(matchTerms, ancestor);
+        Collection<OntologyTerm> refMatched = popTermsWithAncestor(refTerms, ancestor);
+
+        // Return match json from matched terms
+        FeatureClusterView cluster = createFeatureClusterView(termsToFeatures(matchMatched, matchFeatureLookup),
+            termsToFeatures(refMatched, refFeatureLookup), this.access, ancestor, ancestorScore);
+        return cluster;
+    }
+
+    private Collection<FeatureClusterView> getMatchedFeatures()
+    {
+        Collection<FeatureClusterView> clusters = new LinkedList<FeatureClusterView>();
+
+        // Get term -> feature lookups for creating cluster views
+        Map<OntologyTerm, Feature> matchFeatureLookup = getPresentTermLookup(this.match);
+        Map<OntologyTerm, Feature> refFeatureLookup = getPresentTermLookup(this.reference);
+
+        // Get the present ontology terms from the lookups
+        Collection<OntologyTerm> matchTerms = matchFeatureLookup.keySet();
+        Collection<OntologyTerm> refTerms = refFeatureLookup.keySet();
+
+        // Keep removing most-related sets of terms until none match lower than HP roots
+        while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
+            FeatureClusterView cluster =
+                popBestFeatureCluster(matchTerms, refTerms, matchFeatureLookup, refFeatureLookup);
+            if (cluster == null) {
+                break;
+            }
+            clusters.add(cluster);
+        }
+
+        // Add any unmatched terms
+        if (!refTerms.isEmpty() || !matchTerms.isEmpty()) {
+            FeatureClusterView cluster = createFeatureClusterView(termsToFeatures(matchTerms, matchFeatureLookup),
+                termsToFeatures(refTerms, refFeatureLookup), this.access, null, 0.0);
+            clusters.add(cluster);
+        }
+        return clusters;
+    }
+
+    /**
+     * Return the original patient features for a set of OntologyTerms.
+     * 
+     * @param terms the terms to look up features for
+     * @param termLookup a mapping from terms to features in the patient
+     * @return a Collection of features in the patients corresponding to the given terms
+     */
+    private Collection<Feature> termsToFeatures(Collection<OntologyTerm> terms,
+        Map<OntologyTerm, Feature> termLookup)
+    {
+        Collection<Feature> features = new ArrayList<Feature>();
+        for (OntologyTerm term : terms) {
+            features.add(termLookup.get(term));
+        }
+        return features;
+    }
+
+    @Override
+    protected JSONArray getFeatureMatchesJSON()
+    {
+        // Get list of clusters and convert to JSON
+        Collection<FeatureClusterView> clusters = getMatchedFeatures();
+        if (clusters == null || clusters.isEmpty()) {
+            return null;
+        } else {
+            JSONArray matchesJSON = new JSONArray();
+            for (FeatureClusterView cluster : clusters) {
+                matchesJSON.add(cluster.toJSON());
+            }
+            return matchesJSON;
+        }
+    }
 }

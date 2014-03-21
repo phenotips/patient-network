@@ -81,7 +81,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     private static Cache<Double> similarityScoreCache;
 
     /** Logging helper object. */
-    private final Logger logger = LoggerFactory.getLogger(MutualInformationPatientSimilarityView.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultPatientSimilarityView.class);
 
     /** The matched patient to represent. */
     private Patient match;
@@ -161,12 +161,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.refGenotype = this.exomizerManager.getResult(refId);
         // Score the gene-wise similarity if both patients have genotypes
         if (this.matchGenotype != null && this.refGenotype != null) {
-            final long startTime = System.currentTimeMillis();
-            this.logger.error(String.format("Matching genes for %s, %s", refId, matchId));
+            this.logger.error(String.format("Matching genes for %s, %s...", refId, matchId));
             loadControlData();
             matchGenes();
-            this.logger.error(String.format("Gene matching took %.2fs and added %d views to cache",
-                (System.currentTimeMillis() - startTime) / 1000.0));
+            this.logger.error("genes matched.");
         }
     }
 
@@ -228,8 +226,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         String key = id1 + '|' + id2;
         Double score = similarityScoreCache.get(key);
         if (score == null) {
+            this.logger.error("    Making similar patient: " + id1 + ", " + id2);
             score = this.patientViewFactory.makeSimilarPatient(p1, p2).getScore();
+            this.logger.error(String.format("    Got score: %.2f", score));
             similarityScoreCache.set(key, score);
+            this.logger.error("    Added to cache");
         }
         return score;
     }
@@ -301,7 +302,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         if (Math.max(domScore, recScore) < 0.001) {
             return 0.0;
         }
-        
+
         for (String patientId : otherGenotypedIds) {
             Genotype otherGt = this.exomizerManager.getResult(patientId);
             if (otherGt != null && otherGt.getGeneScore(gene) != null) {
@@ -322,7 +323,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             }
 
             // Quit early if things are going poorly
-            if (Math.max(domScore, recScore) < 0.0001) {
+            if (Math.max(domScore, recScore) < 0.001) {
                 return 0.0;
             }
         }
@@ -346,6 +347,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
         for (String gene : getGenes()) {
             // Set the variant harmfulness threshold at the min of the two patients'
+            this.logger.error(String.format("Scoring gene %s...", gene));
             Variant[][] topVariants = new Variant[2][2];
             topVariants[0][0] = this.refGenotype.getTopVariant(gene, 0);
             topVariants[0][1] = this.refGenotype.getTopVariant(gene, 1);
@@ -354,9 +356,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
             double domThresh = Math.min(getVariantScore(topVariants[0][0]), getVariantScore(topVariants[1][0]));
             double recThresh = Math.min(getVariantScore(topVariants[0][1]), getVariantScore(topVariants[1][1]));
-
             double geneScore = scoreGene(gene, domThresh, recThresh, otherGenotypedIds, otherSimScores);
-            if (geneScore < 0.0001) {
+            this.logger.error(String.format("    gene score: %.2f...", geneScore));
+            // Only show things that would round to 1% relevance.
+            if (geneScore < 0.005) {
                 continue;
             }
             this.geneScores.put(gene, geneScore);
@@ -436,7 +439,13 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             JSONArray varJSON = new JSONArray();
             for (Variant v : vs) {
                 if (v != null) {
-                    varJSON.add(v.toJSON());
+                    if (this.access.isOpenAccess()) {
+                        varJSON.add(v.toJSON());
+                    } else if (this.access.isLimitedAccess()) {
+                        JSONObject variantJSON = new JSONObject();
+                        variantJSON.element("score", v.getScore());
+                        varJSON.add(variantJSON);
+                    }
                 }
             }
             return varJSON;
@@ -446,11 +455,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     @Override
     public JSONArray toJSON()
     {
-        JSONArray genesJSON = new JSONArray();
         if (this.refGenotype == null || this.matchGenotype == null || this.access.isPrivateAccess()) {
-            return genesJSON;
+            return null;
         }
 
+        JSONArray genesJSON = new JSONArray();
         // Gene genes, in order of decreasing score
         List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
         Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()

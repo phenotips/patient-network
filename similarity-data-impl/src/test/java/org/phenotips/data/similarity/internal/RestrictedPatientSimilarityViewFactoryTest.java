@@ -19,23 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.inject.Provider;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
@@ -44,24 +27,37 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.FeatureMetadatumSimilarityScorer;
-import org.phenotips.data.similarity.FeatureSimilarityScorer;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.data.similarity.configuration.SimilarityConfiguration;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
-import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
 import org.phenotips.messaging.Connection;
 import org.phenotips.messaging.ConnectionManager;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
+
+import org.xwiki.cache.Cache;
+import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheFactory;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the "restricted" {@link PatientSimilarityViewFactory} implementation,
@@ -91,6 +87,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
         when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_1);
 
@@ -119,6 +116,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
         when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_2);
 
@@ -197,96 +195,16 @@ public class RestrictedPatientSimilarityViewFactoryTest
     }
 
     @Before
-    public void setupComponents() throws ComponentLookupException
+    @SuppressWarnings("unchecked")
+    public void setupComponents() throws ComponentLookupException, CacheException
     {
-        ComponentManager cm = mock(ComponentManager.class);
+        CacheManager cacheManager = this.mocker.getInstance(CacheManager.class);
 
-        @SuppressWarnings("unchecked")
-        Provider<ComponentManager> mockProvider = mock(Provider.class);
-        // This is a bit fragile, let's hope the field name doesn't change
-        ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
-        when(mockProvider.get()).thenReturn(cm);
-        // when(cm.getInstance(Mockito.any(Class.class))).thenThrow(
-        // new ComponentLookupException("No implementation for this role"));
-        OntologyManager om = mock(OntologyManager.class);
+        CacheFactory cacheFactory = mock(CacheFactory.class);
+        when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        // Setup the phenotype scorer
-        FeatureSimilarityScorer featureScorer = new DefaultFeatureSimilarityScorer();
-        ReflectionUtils.setFieldValue(featureScorer, "ontologyManager", om);
-        doReturn(featureScorer).when(cm).getInstance(FeatureSimilarityScorer.class, "default");
-        SimilarityConfiguration config = mock(SimilarityConfiguration.class);
-        doReturn(config).when(cm).getInstance(SimilarityConfiguration.class);
-        when(config.getScorerType()).thenReturn("default");
-
-        // Setup the metadata scorers
-        when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "pace")).thenReturn(
-            new PaceOfProgressionFeatureMetadatumSimilarityScorer());
-        when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "age_of_onset")).thenReturn(
-            new AgeOfOnsetFeatureMetadatumSimilarityScorer());
-        when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "speed_of_onset")).thenThrow(
-            new ComponentLookupException("No implementation for this role"));
-        when(cm.getInstance(FeatureMetadatumSimilarityScorer.class, "death")).thenThrow(
-            new ComponentLookupException("No implementation for this role"));
-        doReturn(new DefaultFeatureMetadatumSimilarityScorer()).when(cm).getInstance(
-            FeatureMetadatumSimilarityScorer.class);
-
-        // Setup the ontology manager
-        doReturn(om).when(cm).getInstance(OntologyManager.class);
-        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
-
-        OntologyTerm all =
-            new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm>emptySet(),
-                Collections.<OntologyTerm>emptySet());
-        ancestors.add(all);
-        OntologyTerm phenotypes =
-            new MockOntologyTerm("HP:0000118", Collections.singleton(all), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(phenotypes);
-        OntologyTerm abnormalNS =
-            new MockOntologyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(abnormalNS);
-        OntologyTerm abnormalCNS =
-            new MockOntologyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(abnormalCNS);
-        OntologyTerm abnormalHMF =
-            new MockOntologyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(abnormalHMF);
-        OntologyTerm cognImp =
-            new MockOntologyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(cognImp);
-        OntologyTerm intDis =
-            new MockOntologyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(intDis);
-        OntologyTerm mildIntDis =
-            new MockOntologyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(mildIntDis);
-        for (OntologyTerm term : ancestors) {
-            when(om.resolveTerm(term.getId())).thenReturn(term);
-        }
-
-        ancestors.clear();
-        ancestors.add(all);
-        ancestors.add(phenotypes);
-        OntologyTerm abnormalSkelS =
-            new MockOntologyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
-        ancestors.add(abnormalSkelS);
-        OntologyTerm abnormalSkelM =
-            new MockOntologyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<OntologyTerm>(
-                ancestors));
-        ancestors.add(abnormalSkelM);
-        OntologyTerm abnormalJointMorph =
-            new MockOntologyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<OntologyTerm>(
-                ancestors));
-        ancestors.add(abnormalJointMorph);
-        OntologyTerm abnormalJointMob =
-            new MockOntologyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<OntologyTerm>(
-                ancestors));
-        ancestors.add(abnormalJointMob);
-        OntologyTerm jointHyperm =
-            new MockOntologyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<OntologyTerm>(
-                ancestors));
-        ancestors.add(jointHyperm);
-        for (OntologyTerm term : ancestors) {
-            when(om.resolveTerm(term.getId())).thenReturn(term);
-        }
+        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
+        doReturn(null).when(cache).get(Mockito.anyString());
     }
 }
