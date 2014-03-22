@@ -77,7 +77,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private Double score;
 
     /** Links disorder values from this patient to the reference. */
-    protected Set<DisorderSimilarityView> matchedDisorders;
+    private Set<DisorderSimilarityView> matchedDisorders;
 
     /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
     private GenotypeSimilarityView matchedGenes;
@@ -114,11 +114,11 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
         OntologyManager ontologyManager, Logger logger)
     {
-        DefaultPatientSimilarityView.ontologyManager = ontologyManager;
-        DefaultPatientSimilarityView.parentCondIC = condICs;
         DefaultPatientSimilarityView.termICs = termICs;
-        DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
+        DefaultPatientSimilarityView.parentCondIC = condICs;
+        DefaultPatientSimilarityView.ontologyManager = ontologyManager;
         DefaultPatientSimilarityView.logger = logger;
+        DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
     }
 
     /**

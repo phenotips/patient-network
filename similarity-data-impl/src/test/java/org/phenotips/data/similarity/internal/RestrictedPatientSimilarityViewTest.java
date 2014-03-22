@@ -19,7 +19,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
@@ -31,14 +30,12 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
-import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.logging.Logger;
 import org.xwiki.model.reference.DocumentReference;
 
@@ -48,8 +45,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Provider;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -57,7 +52,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import net.sf.json.JSONObject;
-import static org.mockito.Mockito.doReturn;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -471,7 +466,7 @@ public class RestrictedPatientSimilarityViewTest
         OntologyManager om = mock(OntologyManager.class);
         Logger logger = mock(Logger.class);
         Map<OntologyTerm, Double> termScores = new HashMap<OntologyTerm, Double>();
-        
+
         RestrictedPatientSimilarityView.initializeStaticData(termScores, termScores, om, logger);
     }
 }

@@ -474,6 +474,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         this.logger.error("Setting view globals...");
         DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager,
             this.logger);
-        this.logger.error("MutualInformationPatientSimilarityViewFactor initialized.");
+        this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
     }
 }

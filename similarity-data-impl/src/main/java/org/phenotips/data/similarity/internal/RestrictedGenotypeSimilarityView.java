@@ -141,8 +141,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             }
 
             this.patientRepo = componentManager.getInstance(PatientRepository.class);
-            this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "mi");
-
+            this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "restricted");
             this.exomizerManager = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
         } catch (ComponentLookupException e) {
             this.logger.error("Unable to load component: " + e.toString());

@@ -81,7 +81,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     /** Allows to make a secure pair of patients. */
     @Inject
-    @Named("mi")
+    @Named("restricted")
     private PatientSimilarityViewFactory factory;
 
     @Inject

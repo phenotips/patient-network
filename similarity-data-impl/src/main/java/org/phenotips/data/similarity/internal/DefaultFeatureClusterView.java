@@ -57,8 +57,8 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     /**
      * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
      * 
-     * @param match the features in the matched patient, can be {@code null}
-     * @param reference the features in the reference patient, can be {@code null}
+     * @param match the features in the matched patient, can be empty
+     * @param reference the features in the reference patient, can be empty
      * @param access the access level of the match
      * @param root the root/shared ancestor for the cluster, can be {@code null} to represent unmatched features
      * @param score the score of the feature matching, or 0.0 if unmatched
