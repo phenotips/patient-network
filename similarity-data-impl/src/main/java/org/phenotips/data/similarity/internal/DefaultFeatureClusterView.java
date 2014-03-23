@@ -42,17 +42,17 @@ import net.sf.json.JSONObject;
 public class DefaultFeatureClusterView implements FeatureClusterView
 {
     /** The features in the matched patient. */
-    protected Collection<Feature> match;
+    protected final Collection<Feature> match;
 
     /** The features in the reference patient. */
-    protected Collection<Feature> reference;
+    protected final Collection<Feature> reference;
 
     /** The access level the user has to the patient. */
     protected final AccessType access;
 
-    protected OntologyTerm ancestor;
+    protected final OntologyTerm ancestor;
 
-    protected double score;
+    protected final double score;
 
     /**
      * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
@@ -153,7 +153,11 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         // Add reference features
         JSONArray referenceJSON = new JSONArray();
         for (Feature term : this.reference) {
-            referenceJSON.add(term.getId());
+            String termId = "";
+            if (term != null) {
+                termId = term.getId();
+            }
+            referenceJSON.add(termId);
         }
         if (!referenceJSON.isEmpty()) {
             featureMatchJSON.element("reference", referenceJSON);
@@ -171,7 +175,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         if (!matchJSON.isEmpty()) {
             featureMatchJSON.element("match", matchJSON);
         }
-        
+
         return featureMatchJSON;
     }
 }
