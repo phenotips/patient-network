@@ -160,10 +160,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.refGenotype = this.exomizerManager.getResult(refId);
         // Score the gene-wise similarity if both patients have genotypes
         if (this.matchGenotype != null && this.refGenotype != null) {
-            this.logger.error(String.format("Matching genes for %s, %s...", refId, matchId));
             loadControlData();
             matchGenes();
-            this.logger.error("genes matched.");
         }
     }
 
@@ -225,11 +223,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         String key = id1 + '|' + id2;
         Double score = similarityScoreCache.get(key);
         if (score == null) {
-            this.logger.error("    Making similar patient: " + id1 + ", " + id2);
             score = this.patientViewFactory.makeSimilarPatient(p1, p2).getScore();
-            this.logger.error(String.format("    Got score: %.2f", score));
             similarityScoreCache.set(key, score);
-            this.logger.error("    Added to cache");
         }
         return score;
     }
@@ -346,7 +341,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
         for (String gene : getGenes()) {
             // Set the variant harmfulness threshold at the min of the two patients'
-            this.logger.error(String.format("Scoring gene %s...", gene));
             Variant[][] topVariants = new Variant[2][2];
             topVariants[0][0] = this.refGenotype.getTopVariant(gene, 0);
             topVariants[0][1] = this.refGenotype.getTopVariant(gene, 1);
@@ -356,7 +350,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             double domThresh = Math.min(getVariantScore(topVariants[0][0]), getVariantScore(topVariants[1][0]));
             double recThresh = Math.min(getVariantScore(topVariants[0][1]), getVariantScore(topVariants[1][1]));
             double geneScore = scoreGene(gene, domThresh, recThresh, otherGenotypedIds, otherSimScores);
-            this.logger.error(String.format("    gene score: %.2f...", geneScore));
             // Only show things that would round to 1% relevance.
             if (geneScore < 0.005) {
                 continue;
@@ -428,9 +421,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * Get the JSON for an array of variants.
      * 
      * @param vs an array of Variant objects
+     * @param restricted if false, the variants are displayed regardless of the current accessType  
      * @return JSON for the variants, an empty array if there are no variants
      */
-    private JSONArray getVariantsJSON(Variant[] vs)
+    private JSONArray getVariantsJSON(Variant[] vs, boolean restricted)
     {
         JSONArray varJSON = new JSONArray();
         if (vs == null) {
@@ -438,7 +432,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         }
         for (Variant v : vs) {
             if (v != null) {
-                if (this.access.isOpenAccess()) {
+                if (!restricted || this.access.isOpenAccess()) {
                     varJSON.add(v.toJSON());
                 } else if (this.access.isLimitedAccess()) {
                     // Only show score if limited access
@@ -454,10 +448,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     @Override
     public JSONArray toJSON()
     {
-        JSONArray genesJSON = new JSONArray();
         if (this.refGenotype == null || this.matchGenotype == null || this.access.isPrivateAccess()) {
-            return genesJSON;
+            return null;
         }
+        JSONArray genesJSON = new JSONArray();
         // Gene genes, in order of decreasing score
         List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
         Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
@@ -487,7 +481,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
             JSONObject refJSON = new JSONObject();
             refJSON.element("score", score * refScore);
-            JSONArray refVarJSON = getVariantsJSON(variants[0]);
+            JSONArray refVarJSON = getVariantsJSON(variants[0], false);
             if (!refVarJSON.isEmpty()) {
                 refJSON.element("variants", refVarJSON);
             }
@@ -495,7 +489,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
             JSONObject matchJSON = new JSONObject();
             matchJSON.element("score", score * matchScore);
-            JSONArray matchVarJSON = getVariantsJSON(variants[1]);
+            JSONArray matchVarJSON = getVariantsJSON(variants[1], true);
             if (!matchVarJSON.isEmpty()) {
                 matchJSON.element("variants", matchVarJSON);
             }

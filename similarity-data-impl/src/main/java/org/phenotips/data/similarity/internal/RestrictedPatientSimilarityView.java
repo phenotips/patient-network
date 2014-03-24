@@ -97,21 +97,20 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public Set<? extends Feature> getFeatures()
     {
-        if (this.access.isPrivateAccess()) {
-            return Collections.emptySet();
-        } else {
-            // Uses RestrictedFeatureSimilarityView, so features are individual access-protected
+        if (this.access.isOpenAccess()) {
             return super.getFeatures();
+        } else {
+            return Collections.emptySet();
         }
     }
 
     @Override
     public Set<? extends Disorder> getDisorders()
     {
-        if (!this.access.isOpenAccess()) {
-            return Collections.emptySet();
-        } else {
+        if (this.access.isOpenAccess()) {
             return super.getDisorders();
+        } else {
+            return Collections.emptySet();
         }
     }
 

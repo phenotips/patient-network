@@ -79,7 +79,8 @@ public interface GenotypeSimilarityView extends Genotype
      *     ]
      * </pre>
      * 
-     * @return the data about this value, using the json-lib classes
+     * @return the data about this value, using the json-lib classes, empty if there are no matches and null if the
+     *         necessary genetic information is not available or visible
      */
     JSONArray toJSON();
 }

@@ -56,36 +56,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     protected String contactToken;
 
     /**
-     * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
-     * features displayed.
-     * 
-     * @return the JSON for visible features, empty if no features to display.
-     */
-    abstract protected JSONArray getFeaturesJSON();
-
-    /**
-     * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
-     * disorders displayed.
-     * 
-     * @return the JSON for visible disorders, empty if no disorders to display.
-     */
-    abstract protected JSONArray getDisordersJSON();
-
-    /**
-     * Get JSON for many-to-many feature matches between the reference and the match.
-     * 
-     * @return a JSON array of feature matches, empty if none to display
-     */
-    abstract protected JSONArray getFeatureMatchesJSON();
-
-    /**
-     * Get JSON for gene matches between the reference and the match.
-     * 
-     * @return a JSON array of gene, empty if none to display
-     */
-    abstract protected JSONArray getGenesJSON();
-
-    /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
      * 
      * @param match the matched patient to represent, must not be {@code null}
@@ -105,6 +75,36 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         // Lazily load contact token.
     }
+
+    /**
+     * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
+     * features displayed.
+     * 
+     * @return the JSON for visible features, empty if no features to display.
+     */
+    protected abstract JSONArray getFeaturesJSON();
+
+    /**
+     * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
+     * disorders displayed.
+     * 
+     * @return the JSON for visible disorders, empty if no disorders to display.
+     */
+    protected abstract JSONArray getDisordersJSON();
+
+    /**
+     * Get JSON for many-to-many feature matches between the reference and the match.
+     * 
+     * @return a JSON array of feature matches, empty if none to display
+     */
+    protected abstract JSONArray getFeatureMatchesJSON();
+
+    /**
+     * Get JSON for gene matches between the reference and the match.
+     * 
+     * @return a JSON array of gene, empty if none to display, or null if no data is available
+     */
+    protected abstract JSONArray getGenesJSON();
 
     @Override
     public String getId()
@@ -202,10 +202,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             result.element("disorders", disorderJSON);
         }
         // Gene variant matching
-        JSONArray geneJSON = getGenesJSON();
-        if (!geneJSON.isEmpty()) {
-            result.element("genes", geneJSON);
-        }
+        result.elementOpt("genes", getGenesJSON());
 
         return result;
     }

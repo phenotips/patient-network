@@ -21,7 +21,6 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.ontology.OntologyTerm;
 
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Implementation of {@link FeatureClusterView} that reveals the full patient information if the user has full access to
+ * Implementation of {@link org.phenotips.data.similarity.FeatureClusterView} that reveals the full patient information if the user has full access to
  * the patient, and only matching reference information for similar features if the patient is matchable.
  * 
  * @version $Id$
@@ -39,7 +38,14 @@ import java.util.List;
 public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
 {
     /**
-     * See DefaultFeatureClusterView(Collection<Feature >, Collection<Feature>, AccessType, OntologyTerm, double)
+     * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
+     * 
+     * @param match the features in the matched patient, can be empty
+     * @param reference the features in the reference patient, can be empty
+     * @param access the access level of the match
+     * @param root the root/shared ancestor for the cluster, can be {@code null} to represent unmatched features
+     * @param score the score of the feature matching, or 0.0 if unmatched
+     * @throws IllegalArgumentException if match or reference are null
      */
     public RestrictedFeatureClusterView(Collection<Feature> match, Collection<Feature> reference, AccessType access,
         OntologyTerm root, double score) throws IllegalArgumentException

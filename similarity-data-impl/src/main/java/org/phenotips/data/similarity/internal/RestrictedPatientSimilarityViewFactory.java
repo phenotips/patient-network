@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 
 import org.xwiki.component.annotation.Component;
 
@@ -30,7 +29,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- * Implementation of {@link PatientSimilarityViewFactory} which only allows access to public or shared information.
+ * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which only allows access to public or shared information.
  * 
  * @version $Id$
  * @since 1.0M8

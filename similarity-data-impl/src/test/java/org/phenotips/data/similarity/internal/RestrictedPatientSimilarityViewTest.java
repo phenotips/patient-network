@@ -19,6 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
@@ -30,12 +31,21 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
+import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
+import org.phenotips.messaging.Connection;
+import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
+import org.xwiki.cache.Cache;
+import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheFactory;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.logging.Logger;
 import org.xwiki.model.reference.DocumentReference;
 
@@ -45,14 +55,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Provider;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import static org.mockito.Mockito.doReturn;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,9 +90,6 @@ public class RestrictedPatientSimilarityViewTest
     private static AccessType limited;
 
     private static AccessType priv;
-
-    /** Mocked component manager. */
-    private ComponentManager cm;
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -133,14 +143,23 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertEquals("match", o.getAccess().getName());
     }
 
+    /** Get empty match patient. */
+    private Patient getEmptyMockMatch()
+    {
+        Patient mockPatient = mock(Patient.class);
+        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
+        when(mockPatient.getReporter()).thenReturn(USER_1);
+
+        return mockPatient;
+    }
+
     /** The document is disclosed for public patients. */
     @Test
     public void testGetDocumentWithPublicAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Assert.assertSame(PATIENT_1, o.getDocument());
@@ -150,10 +169,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetDocumentWithMatchAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Assert.assertNull(o.getDocument());
@@ -163,10 +180,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetDocumentWithNoAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
         Assert.assertNull(o.getDocument());
@@ -176,11 +191,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetReporterWithPublicAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-        when(mockMatch.getReporter()).thenReturn(USER_1);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Assert.assertSame(USER_1, o.getReporter());
@@ -190,11 +202,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetReporterWithMatchAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-        when(mockMatch.getReporter()).thenReturn(USER_1);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Assert.assertNull(o.getReporter());
@@ -204,11 +213,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetReporterWithNoAccess()
     {
-        Patient mockMatch = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-        when(mockMatch.getReporter()).thenReturn(USER_1);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
         Assert.assertNull(o.getReporter());
@@ -224,109 +230,100 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertSame(mockReference, o.getReference());
     }
 
-    /** All the patient's phenotypes are disclosed for public patients. */
-    @Test
-    public void testGetPhenotypesWithPublicAccess() throws ComponentLookupException
+    /** Get simple match patient. */
+    private Patient getBasicMockMatch()
     {
-        setupComponents();
+        Patient mockPatient = getEmptyMockMatch();
 
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
+        Map<String, FeatureMetadatum> metadata = new HashMap<String, FeatureMetadatum>();
+        metadata.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
+        metadata.put("speed_of_onset", new MockFeatureMetadatum("HP:0011010", "Chronic", "speed_of_onset"));
+        metadata.put("pace", new MockFeatureMetadatum("HP:0003677", "Slow", "pace"));
 
         Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
         Feature od = new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true);
         Feature cat = new MockFeature("HP:0000518", "Cataract", "phenotype", true);
-        Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false);
-        Feature mid = new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true);
-        Set<Feature> matchPhenotypes = new HashSet<Feature>();
-        Set<Feature> referencePhenotypes = new HashSet<Feature>();
-        Mockito.<Set<? extends Feature>>when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
-        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
+        Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", metadata, false);
 
-        matchPhenotypes.add(jhm);
-        matchPhenotypes.add(id);
-        matchPhenotypes.add(od);
-        referencePhenotypes.add(jhm);
-        referencePhenotypes.add(mid);
-        referencePhenotypes.add(cat);
+        Set<Feature> phenotypes = new HashSet<Feature>();
+        Mockito.<Set<? extends Feature>>when(mockPatient.getFeatures()).thenReturn(phenotypes);
+
+        phenotypes.add(jhm);
+        phenotypes.add(cat);
+        phenotypes.add(id);
+        phenotypes.add(od);
+
+        Set<Disorder> diseases = new HashSet<Disorder>();
+        diseases.add(new MockDisorder("MIM:123", "Some disease"));
+        diseases.add(new MockDisorder("MIM:234", "Some other disease"));
+        Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
+
+        return mockPatient;
+    }
+
+    /** Get simple reference patient. */
+    private Patient getBasicMockReference()
+    {
+        Patient mockPatient = mock(Patient.class);
+        when(mockPatient.getReporter()).thenReturn(null);
+
+        Map<String, FeatureMetadatum> metadata = new HashMap<String, FeatureMetadatum>();
+        metadata.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
+        metadata.put("speed_of_onset", new MockFeatureMetadatum("HP:0011009", "Acute", "speed_of_onset"));
+        metadata.put("death", new MockFeatureMetadatum("HP:0003826", "Stillbirth", "death"));
+
+        Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
+        Feature cat = new MockFeature("HP:0000518", "Cataract", "phenotype", true);
+        Feature mid = new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", metadata, true);
+
+        Set<Feature> phenotypes = new HashSet<Feature>();
+        Mockito.<Set<? extends Feature>>when(mockPatient.getFeatures()).thenReturn(phenotypes);
+
+        phenotypes.add(jhm);
+        phenotypes.add(mid);
+        phenotypes.add(cat);
+
+        Set<Disorder> diseases = new HashSet<Disorder>();
+        diseases.add(new MockDisorder("MIM:123", "Some disease"));
+        diseases.add(new MockDisorder("MIM:345", "Some new disease"));
+        Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
+
+        return mockPatient;
+    }
+
+    /** All the patient's phenotypes are disclosed for public patients. */
+    @Test
+    public void testGetPhenotypesWithPublicAccess() throws ComponentLookupException
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Set<? extends Feature> phenotypes = o.getFeatures();
-        Assert.assertEquals(3, phenotypes.size());
+        Assert.assertEquals(4, phenotypes.size());
         for (Feature p : phenotypes) {
             Assert.assertNotNull(p.getId());
         }
     }
 
-    /** Only matching phenotypes are disclosed for matchable patients. */
+    /** No phenotypes are directly disclosed for matchable patients. */
     @Test
     public void testGetPhenotypesWithMatchAccess() throws ComponentLookupException
     {
-        setupComponents();
-
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-
-        Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
-        Feature od = new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true);
-        Feature cat = new MockFeature("HP:0000518", "Cataract", "phenotype", true);
-        Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false);
-        Feature mid = new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true);
-        Set<Feature> matchPhenotypes = new HashSet<Feature>();
-        Set<Feature> referencePhenotypes = new HashSet<Feature>();
-        Mockito.<Set<? extends Feature>>when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
-        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
-
-        matchPhenotypes.add(jhm);
-        matchPhenotypes.add(id);
-        matchPhenotypes.add(od);
-        referencePhenotypes.add(jhm);
-        referencePhenotypes.add(mid);
-        referencePhenotypes.add(cat);
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Set<? extends Feature> phenotypes = o.getFeatures();
-        Assert.assertEquals(2, phenotypes.size());
-        for (Feature p : phenotypes) {
-            Assert.assertNull(p.getId());
-        }
+        Assert.assertEquals(0, phenotypes.size());
     }
 
     /** No phenotypes are disclosed for private patients. */
     @Test
     public void testGetPhenotypesWithPrivateAccess() throws ComponentLookupException
     {
-        setupComponents();
-
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-
-        // Define phenotypes for later use
-        Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
-        Feature od = new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true);
-        Feature cat = new MockFeature("HP:0000518", "Cataract", "phenotype", true);
-        Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false);
-        Feature mid = new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true);
-        Set<Feature> matchPhenotypes = new HashSet<Feature>();
-        Set<Feature> referencePhenotypes = new HashSet<Feature>();
-        Mockito.<Set<? extends Feature>>when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
-        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
-
-        matchPhenotypes.add(jhm);
-        matchPhenotypes.add(id);
-        matchPhenotypes.add(od);
-        referencePhenotypes.add(jhm);
-        referencePhenotypes.add(mid);
-        referencePhenotypes.add(cat);
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
         Set<? extends Feature> phenotypes = o.getFeatures();
@@ -337,20 +334,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetDiseasesWithPublicAccess()
     {
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-
-        Set<Disorder> matchDiseases = new HashSet<Disorder>();
-        matchDiseases.add(new MockDisorder("MIM:123", "Some disease"));
-        matchDiseases.add(new MockDisorder("MIM:234", "Some other disease"));
-        Mockito.<Set<? extends Disorder>>when(mockMatch.getDisorders()).thenReturn(matchDiseases);
-        Set<Disorder> referenceDiseases = new HashSet<Disorder>();
-        referenceDiseases.add(new MockDisorder("MIM:123", "Some disease"));
-        referenceDiseases.add(new MockDisorder("MIM:345", "Some new disease"));
-        Mockito.<Set<? extends Disorder>>when(mockReference.getDisorders()).thenReturn(referenceDiseases);
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
@@ -361,20 +346,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testGetDiseasesWithMatchAccess()
     {
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-
-        Set<Disorder> matchDiseases = new HashSet<Disorder>();
-        matchDiseases.add(new MockDisorder("MIM:123", "Some disease"));
-        matchDiseases.add(new MockDisorder("MIM:234", "Some other disease"));
-        Mockito.<Set<? extends Disorder>>when(mockMatch.getDisorders()).thenReturn(matchDiseases);
-        Set<Disorder> referenceDiseases = new HashSet<Disorder>();
-        referenceDiseases.add(new MockDisorder("MIM:123", "Some disease"));
-        referenceDiseases.add(new MockDisorder("MIM:345", "Some new disease"));
-        Mockito.<Set<? extends Disorder>>when(mockReference.getDisorders()).thenReturn(referenceDiseases);
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
@@ -385,50 +358,8 @@ public class RestrictedPatientSimilarityViewTest
     @Test
     public void testToJSONWithPrivateAccess() throws ComponentLookupException
     {
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
-        when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
-        when(mockMatch.getReporter()).thenReturn(USER_1);
-        when(mockReference.getReporter()).thenReturn(null);
-
-        Map<String, FeatureMetadatum> matchMeta = new HashMap<String, FeatureMetadatum>();
-        matchMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
-        matchMeta.put("speed_of_onset", new MockFeatureMetadatum("HP:0011010", "Chronic", "speed_of_onset"));
-        matchMeta.put("pace", new MockFeatureMetadatum("HP:0003677", "Slow", "pace"));
-        Map<String, FeatureMetadatum> referenceMeta = new HashMap<String, FeatureMetadatum>();
-        referenceMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
-        referenceMeta.put("speed_of_onset", new MockFeatureMetadatum("HP:0011009", "Acute", "speed_of_onset"));
-        referenceMeta.put("death", new MockFeatureMetadatum("HP:0003826", "Stillbirth", "death"));
-
-        Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
-        Feature od = new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true);
-        Feature cat = new MockFeature("HP:0000518", "Cataract", "phenotype", true);
-        Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", matchMeta, false);
-        Feature mid = new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", referenceMeta, true);
-        Set<Feature> matchPhenotypes = new HashSet<Feature>();
-        Set<Feature> referencePhenotypes = new HashSet<Feature>();
-        matchPhenotypes.add(jhm);
-        matchPhenotypes.add(od);
-        matchPhenotypes.add(id);
-        referencePhenotypes.add(jhm);
-        referencePhenotypes.add(mid);
-        referencePhenotypes.add(cat);
-        Mockito.<Set<? extends Feature>>when(mockMatch.getFeatures()).thenReturn(matchPhenotypes);
-        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(referencePhenotypes);
-
-        Disorder d1 = new MockDisorder("MIM:123", "Some disease");
-        Disorder d2 = new MockDisorder("MIM:234", "Some other disease");
-        Disorder d3 = new MockDisorder("MIM:345", "Yet another disease");
-        Set<Disorder> matchDiseases = new HashSet<Disorder>();
-        matchDiseases.add(d1);
-        matchDiseases.add(d2);
-        Set<Disorder> referenceDiseases = new HashSet<Disorder>();
-        referenceDiseases.add(d1);
-        referenceDiseases.add(d3);
-        Mockito.<Set<? extends Disorder>>when(mockMatch.getDisorders()).thenReturn(matchDiseases);
-        Mockito.<Set<? extends Disorder>>when(mockReference.getDisorders()).thenReturn(referenceDiseases);
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
 
@@ -436,22 +367,70 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertTrue(o.toJSON().isNullObject());
     }
 
+    /** Direct phenotype information is disclosed for public access. */
+    @Test
+    public void testToJSONWithPublicAccess() throws ComponentLookupException
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+
+        JSONObject result = o.toJSON();
+        JSONArray clusters = result.getJSONArray("featureMatches");
+        Assert.assertTrue(clusters.size() >= 2);
+        for (int i = 0; i < clusters.size(); i++) {
+            JSONObject cluster = clusters.getJSONObject(i);
+            JSONArray match = cluster.getJSONArray("match");
+            for (int j = 0; i < match.size(); i++) {
+                String id = match.getString(j);
+                Assert.assertEquals("HP:", id.substring(0, 3));
+            }
+            JSONArray reference = cluster.getJSONArray("reference");
+            for (int j = 0; i < reference.size(); i++) {
+                String id = reference.getString(j);
+                Assert.assertEquals("HP:", id.substring(0, 3));
+            }
+        }
+    }
+
+    /** No direct phenotype information is disclosed for match access. */
+    @Test
+    public void testToJSONWithMatchAccess() throws ComponentLookupException
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+
+        JSONObject result = o.toJSON();
+        JSONArray clusters = result.getJSONArray("featureMatches");
+        Assert.assertTrue(clusters.size() >= 2);
+        for (int i = 0; i < clusters.size(); i++) {
+            JSONObject cluster = clusters.getJSONObject(i);
+            JSONArray match = cluster.getJSONArray("match");
+            for (int j = 0; i < match.size(); i++) {
+                String id = match.getString(j);
+                Assert.assertEquals("", id);
+            }
+            JSONArray reference = cluster.getJSONArray("reference");
+            for (int j = 0; i < reference.size(); i++) {
+                String id = reference.getString(j);
+                Assert.assertEquals("HP:", id.substring(0, 3));
+            }
+        }
+    }
+
     /** No "features" or "disorders" empty arrays are included when none are available. */
     @Test
     public void testToJSONWithNoPhenotypesOrDiseases() throws ComponentLookupException
     {
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
+        Patient mockMatch = getEmptyMockMatch();
+        Patient mockReference = getBasicMockReference();
 
         when(mockMatch.getDocument()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
-        when(mockReference.getReporter()).thenReturn(USER_1);
-
-        Feature jhm = new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true);
-        Disorder d = new MockDisorder("MIM:234", "Some other disease");
-        Mockito.<Set<? extends Feature>>when(mockReference.getFeatures()).thenReturn(Collections.singleton(jhm));
-        Mockito.<Set<? extends Disorder>>when(mockReference.getDisorders()).thenReturn(Collections.singleton(d));
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
 
@@ -461,12 +440,119 @@ public class RestrictedPatientSimilarityViewTest
     }
 
     @Before
-    private void setupComponents() throws ComponentLookupException
+    @SuppressWarnings("unchecked")
+    public void setupComponents() throws ComponentLookupException, CacheException
     {
-        OntologyManager om = mock(OntologyManager.class);
-        Logger logger = mock(Logger.class);
-        Map<OntologyTerm, Double> termScores = new HashMap<OntologyTerm, Double>();
+        ComponentManager componentManager = mock(ComponentManager.class);
+        Provider<ComponentManager> mockProvider = mock(Provider.class);
+        // This is a bit fragile, let's hope the field name doesn't change
+        ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
+        when(mockProvider.get()).thenReturn(componentManager);
 
-        RestrictedPatientSimilarityView.initializeStaticData(termScores, termScores, om, logger);
+        Logger logger = mock(Logger.class);
+
+        CacheManager cacheManager = mock(CacheManager.class);
+        when(componentManager.getInstance(CacheManager.class)).thenReturn(cacheManager);
+
+        CacheFactory cacheFactory = mock(CacheFactory.class);
+        when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
+
+        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
+        doReturn(null).when(cache).get(Mockito.anyString());
+
+        // Mock up the contact token
+        ConnectionManager connManager = mock(ConnectionManager.class);
+        when(componentManager.getInstance(ConnectionManager.class)).thenReturn(connManager);
+        Connection c = mock(Connection.class);
+        when(connManager.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(c);
+        when(c.getId()).thenReturn(Long.valueOf(42));
+        
+
+        // Setup the ontology manager
+        OntologyManager ontologyManager = mock(OntologyManager.class);
+        Map<OntologyTerm, Double> termICs = new HashMap<OntologyTerm, Double>();
+        Map<OntologyTerm, Double> condICs = new HashMap<OntologyTerm, Double>();
+        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
+
+        OntologyTerm all = new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm>emptySet(),
+            Collections.<OntologyTerm>emptySet());
+        ancestors.add(all);
+        OntologyTerm phenotypes =
+            new MockOntologyTerm("HP:0000118", Collections.singleton(all), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(phenotypes);
+        termICs.put(phenotypes, 0.000001);
+        condICs.put(phenotypes, 0.0);
+        OntologyTerm abnormalNS =
+            new MockOntologyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(abnormalNS);
+        termICs.put(abnormalNS, 0.00001);
+        condICs.put(abnormalNS, 3.0);
+        OntologyTerm abnormalCNS =
+            new MockOntologyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(abnormalCNS);
+        termICs.put(abnormalCNS, 0.0001);
+        condICs.put(abnormalCNS, 3.0);
+        OntologyTerm abnormalHMF =
+            new MockOntologyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(abnormalHMF);
+        termICs.put(abnormalHMF, 0.001);
+        condICs.put(abnormalHMF, 3.0);
+        OntologyTerm cognImp =
+            new MockOntologyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(cognImp);
+        termICs.put(cognImp, 0.005);
+        condICs.put(cognImp, 2.0);
+        OntologyTerm intDis =
+            new MockOntologyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(intDis);
+        termICs.put(intDis, 0.005);
+        condICs.put(intDis, 0.0);
+        OntologyTerm mildIntDis =
+            new MockOntologyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(mildIntDis);
+        termICs.put(intDis, 0.01);
+        condICs.put(intDis, 3.0);
+        for (OntologyTerm term : ancestors) {
+            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+        }
+
+        ancestors.clear();
+        ancestors.add(all);
+        ancestors.add(phenotypes);
+        OntologyTerm abnormalSkelS =
+            new MockOntologyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
+        ancestors.add(abnormalSkelS);
+        termICs.put(abnormalSkelS, 0.00001);
+        condICs.put(abnormalSkelS, 3.0);
+        OntologyTerm abnormalSkelM =
+            new MockOntologyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<OntologyTerm>(
+                ancestors));
+        ancestors.add(abnormalSkelM);
+        termICs.put(abnormalSkelM, 0.0001);
+        condICs.put(abnormalSkelM, 3.0);
+        OntologyTerm abnormalJointMorph =
+            new MockOntologyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<OntologyTerm>(
+                ancestors));
+        ancestors.add(abnormalJointMorph);
+        termICs.put(abnormalJointMorph, 0.001);
+        condICs.put(abnormalJointMorph, 3.0);
+        OntologyTerm abnormalJointMob =
+            new MockOntologyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<OntologyTerm>(
+                ancestors));
+        ancestors.add(abnormalJointMob);
+        termICs.put(abnormalJointMob, 0.005);
+        condICs.put(abnormalJointMob, 2.0);
+        OntologyTerm jointHyperm =
+            new MockOntologyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<OntologyTerm>(
+                ancestors));
+        ancestors.add(jointHyperm);
+        termICs.put(jointHyperm, 0.005);
+        condICs.put(jointHyperm, 0.0);
+        for (OntologyTerm term : ancestors) {
+            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+        }
+
+        DefaultPatientSimilarityView.initializeStaticData(termICs, condICs, ontologyManager, logger);
     }
 }

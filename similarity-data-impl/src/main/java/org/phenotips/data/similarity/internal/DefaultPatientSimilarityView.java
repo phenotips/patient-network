@@ -302,26 +302,30 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     {
         if (this.score == null) {
             if (this.match == null || this.reference == null) {
-                this.score = Double.NaN;
+                this.score = 0.0;
             } else {
                 // Get ancestors for both patients
                 Set<OntologyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
                 Set<OntologyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
 
-                // Compute costs of each patient separately
-                double p1Cost = getJointTermsCost(refAncestors);
-                double p2Cost = getJointTermsCost(matchAncestors);
+                if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
+                    this.score = 0.0;
+                } else {
+                    // Compute costs of each patient separately
+                    double p1Cost = getJointTermsCost(refAncestors);
+                    double p2Cost = getJointTermsCost(matchAncestors);
 
-                // Score overlapping (min) ancestors
-                Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
-                sharedAncestors.addAll(refAncestors);
-                sharedAncestors.retainAll(matchAncestors);
+                    // Score overlapping (min) ancestors
+                    Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
+                    sharedAncestors.addAll(refAncestors);
+                    sharedAncestors.retainAll(matchAncestors);
 
-                double sharedCost = getJointTermsCost(sharedAncestors);
-                assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
+                    double sharedCost = getJointTermsCost(sharedAncestors);
+                    assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
 
-                double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
-                this.score = harmonicMeanIC;
+                    double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
+                    this.score = harmonicMeanIC;
+                }
             }
         }
         return this.score;
@@ -347,7 +351,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return the features present in the match patient, as appropriate for the access level.
+     * {@inheritDoc} Return the features present in the match patient. If the features in the match are not visible at
+     * the current access level, an empty set will be returned.
      * 
      * @see org.phenotips.data.Patient#getFeatures()
      */
