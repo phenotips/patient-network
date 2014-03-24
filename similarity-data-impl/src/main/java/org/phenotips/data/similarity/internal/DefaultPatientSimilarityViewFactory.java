@@ -441,39 +441,42 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     public void initialize() throws InitializationException
     {
         this.logger.error("Initializing DefaultPatientSimilarityViewFactory...");
-        try {
-            this.viewCache = cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
-        } catch (ComponentLookupException e) {
-            this.logger.error("Error getting local cache factory");
-        } catch (CacheException e) {
-            this.logger.error("Unable to create cache for PatientSimilarityViews");
+        if (this.viewCache == null) {
+            try {
+                this.viewCache = cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
+            } catch (ComponentLookupException e) {
+                this.logger.error("Error getting local cache factory");
+            } catch (CacheException e) {
+                this.logger.error("Unable to create cache for PatientSimilarityViews");
+            }
         }
+        if (!DefaultPatientSimilarityView.isInitialized()) {
+            // Load the OMIM/HPO mappings
+            OntologyService mim = this.ontologyManager.getOntology("MIM");
+            OntologyService hpo = this.ontologyManager.getOntology("HPO");
+            OntologyTerm hpRoot = hpo.getTerm(HP_ROOT);
 
-        // Load the OMIM/HPO mappings
-        OntologyService mim = this.ontologyManager.getOntology("MIM");
-        OntologyService hpo = this.ontologyManager.getOntology("HPO");
-        OntologyTerm hpRoot = hpo.getTerm(HP_ROOT);
+            // Pre-compute HPO descendant lookups
+            Map<OntologyTerm, Collection<OntologyTerm>> termChildren = getChildrenMap(hpo);
+            Map<OntologyTerm, Collection<OntologyTerm>> termDescendants = getDescendantsMap(hpRoot, termChildren);
 
-        // Pre-compute HPO descendant lookups
-        Map<OntologyTerm, Collection<OntologyTerm>> termChildren = getChildrenMap(hpo);
-        Map<OntologyTerm, Collection<OntologyTerm>> termDescendants = getDescendantsMap(hpRoot, termChildren);
+            // Compute prior frequencies of phenotypes (based on disease frequencies and phenotype prevalence)
+            Map<OntologyTerm, Double> termFreq = getTermFrequencies(mim, hpo, termDescendants.keySet());
 
-        // Compute prior frequencies of phenotypes (based on disease frequencies and phenotype prevalence)
-        Map<OntologyTerm, Double> termFreq = getTermFrequencies(mim, hpo, termDescendants.keySet());
+            // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
+            Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
-        // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
-        Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
+            this.logger.error("Calculating conditional ICs...");
+            // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
+            Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
+            assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
+            assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
 
-        this.logger.error("Calculating conditional ICs...");
-        // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-        Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
-        assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
-        assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
-
-        // Give data to views to use
-        this.logger.error("Setting view globals...");
-        DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager,
-            this.logger);
+            // Give data to views to use
+            this.logger.error("Setting view globals...");
+            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager,
+                this.logger);
+        }
         this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
     }
 }

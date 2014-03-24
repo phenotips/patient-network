@@ -117,8 +117,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 
     @Override
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access,
-        OntologyTerm root, double score)
+        AccessType access, OntologyTerm root, double score)
     {
         return new RestrictedFeatureClusterView(match, reference, access, root, score);
     }

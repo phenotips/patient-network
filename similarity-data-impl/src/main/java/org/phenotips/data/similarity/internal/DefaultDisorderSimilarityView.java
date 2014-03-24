@@ -51,7 +51,7 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
         this.match = match;
         this.reference = reference;
     }
-    
+
     /**
      * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
      * the {@link #access patient access type}.
@@ -64,7 +64,7 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
     {
         this(match, reference);
     }
-    
+
     @Override
     public String getId()
     {

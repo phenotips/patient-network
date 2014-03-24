@@ -59,7 +59,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
      * features displayed.
      * 
-     * @return the JSON for visible features, or null if no features to display.
+     * @return the JSON for visible features, empty if no features to display.
      */
     abstract protected JSONArray getFeaturesJSON();
 
@@ -67,21 +67,21 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
      * disorders displayed.
      * 
-     * @return the JSON for visible disorders, or null if no disorders to display.
+     * @return the JSON for visible disorders, empty if no disorders to display.
      */
     abstract protected JSONArray getDisordersJSON();
 
     /**
      * Get JSON for many-to-many feature matches between the reference and the match.
      * 
-     * @return a JSON array of feature matches, or null if none to display
+     * @return a JSON array of feature matches, empty if none to display
      */
     abstract protected JSONArray getFeatureMatchesJSON();
 
     /**
      * Get JSON for gene matches between the reference and the match.
      * 
-     * @return a JSON array of gene, or null if none to display
+     * @return a JSON array of gene, empty if none to display
      */
     abstract protected JSONArray getGenesJSON();
 
@@ -187,13 +187,25 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.element("score", getScore());
         result.element("featuresCount", getFeatures().size());
         // Features visible in the match
-        result.element("features", getFeaturesJSON());
+        JSONArray featuresJSON = getFeaturesJSON();
+        if (!featuresJSON.isEmpty()) {
+            result.element("features", featuresJSON);
+        }
         // Feature matching
-        result.element("featureMatches", getFeatureMatchesJSON());
+        JSONArray featureMatchesJSON = getFeatureMatchesJSON();
+        if (!featureMatchesJSON.isEmpty()) {
+            result.element("featureMatches", featureMatchesJSON);
+        }
         // Disorder matching
-        result.element("disorders", getDisordersJSON());
+        JSONArray disorderJSON = getDisordersJSON();
+        if (!disorderJSON.isEmpty()) {
+            result.element("disorders", disorderJSON);
+        }
         // Gene variant matching
-        result.element("genes", getGenesJSON());
+        JSONArray geneJSON = getGenesJSON();
+        if (!geneJSON.isEmpty()) {
+            result.element("genes", geneJSON);
+        }
 
         return result;
     }

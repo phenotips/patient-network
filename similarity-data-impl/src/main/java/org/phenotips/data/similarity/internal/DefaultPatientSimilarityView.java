@@ -96,11 +96,21 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         throws IllegalArgumentException
     {
         super(match, reference, access);
-        if (termICs == null || parentCondIC == null || ontologyManager == null) {
+        if (!isInitialized()) {
             String error =
                 "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation";
             throw new NullPointerException(error);
         }
+    }
+
+    /**
+     * Return whether the class has been initialized with static data.
+     * 
+     * @return true iff the class has been initialized with static data
+     */
+    public static boolean isInitialized()
+    {
+        return termICs != null && parentCondIC != null && ontologyManager != null;
     }
 
     /**
@@ -234,25 +244,19 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return a (potentially empty) mapping from OntologyTerms back to features in the patient for present features.
-     * Un-mappable features or negative features are not included.
+     * Return a (potentially empty) mapping from OntologyTerm IDs back to features in the patient. Un-mappable features
+     * are not included.
      * 
      * @param patient
-     * @return a mapping from terms to features in the patient
+     * @return a mapping from term IDs to features in the patient
      */
-    private Map<OntologyTerm, Feature> getPresentTermLookup(Patient patient)
+    private Map<String, Feature> getTermLookup(Patient patient)
     {
-        Map<OntologyTerm, Feature> lookup = new HashMap<OntologyTerm, Feature>();
+        Map<String, Feature> lookup = new HashMap<String, Feature>();
         for (Feature feature : patient.getFeatures()) {
-            if (!feature.isPresent()) {
-                continue;
-            }
-
-            OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
-            if (term == null) {
-                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
-            } else {
-                lookup.put(term, feature);
+            String id = feature.getId();
+            if (!id.isEmpty()) {
+                lookup.put(id, feature);
             }
         }
         return lookup;
@@ -363,26 +367,17 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
                 featuresJSON.add(f.toJSON());
             }
         }
-        if (!featuresJSON.isEmpty()) {
-            return featuresJSON;
-        } else {
-            return null;
-        }
+        return featuresJSON;
     }
 
     @Override
     protected JSONArray getDisordersJSON()
     {
-        Set<? extends Disorder> disorders = getDisorders();
-        if (disorders.isEmpty()) {
-            return null;
-        } else {
-            JSONArray disordersJSON = new JSONArray();
-            for (Disorder disorder : disorders) {
-                disordersJSON.add(disorder.toJSON());
-            }
-            return disordersJSON;
+        JSONArray disordersJSON = new JSONArray();
+        for (Disorder disorder : getDisorders()) {
+            disordersJSON.add(disorder.toJSON());
         }
+        return disordersJSON;
     }
 
     /**
@@ -409,15 +404,15 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * 
      * @param refTerms the terms in the reference
      * @param matchTerms the terms in the match
-     * @param matchFeatureLookup a mapping from OntologyTerms back to the original Features in the match patient
-     * @param refFeatureLookup a mapping from OntologyTerms back to the original Features in the reference patient
+     * @param matchFeatureLookup a mapping from OntologyTerm IDs back to the original Features in the match patient
+     * @param refFeatureLookup a mapping from OntologyTerm IDs back to the original Features in the reference patient
      * @return the FeatureClusterView of the best-matching features from refTerms and matchTerms (removes the matched
      *         terms from the passed lists) or null if the terms are not a good match (the term collections are then
      *         unchanged)
      */
     private FeatureClusterView popBestFeatureCluster(Collection<OntologyTerm> matchTerms,
-        Collection<OntologyTerm> refTerms, Map<OntologyTerm, Feature> matchFeatureLookup,
-        Map<OntologyTerm, Feature> refFeatureLookup)
+        Collection<OntologyTerm> refTerms, Map<String, Feature> matchFeatureLookup,
+        Map<String, Feature> refFeatureLookup)
     {
         Collection<OntologyTerm> sharedAncestors = getAncestors(refTerms);
         sharedAncestors.retainAll(getAncestors(matchTerms));
@@ -458,12 +453,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         Collection<FeatureClusterView> clusters = new LinkedList<FeatureClusterView>();
 
         // Get term -> feature lookups for creating cluster views
-        Map<OntologyTerm, Feature> matchFeatureLookup = getPresentTermLookup(this.match);
-        Map<OntologyTerm, Feature> refFeatureLookup = getPresentTermLookup(this.reference);
+        Map<String, Feature> matchFeatureLookup = getTermLookup(this.match);
+        Map<String, Feature> refFeatureLookup = getTermLookup(this.reference);
 
-        // Get the present ontology terms from the lookups
-        Collection<OntologyTerm> matchTerms = matchFeatureLookup.keySet();
-        Collection<OntologyTerm> refTerms = refFeatureLookup.keySet();
+        // Get the present ontology terms
+        Collection<OntologyTerm> matchTerms = getPresentPatientTerms(this.match);
+        Collection<OntologyTerm> refTerms = getPresentPatientTerms(this.reference);
 
         // Keep removing most-related sets of terms until none match lower than HP roots
         while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
@@ -488,15 +483,21 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Return the original patient features for a set of OntologyTerms.
      * 
      * @param terms the terms to look up features for
-     * @param termLookup a mapping from terms to features in the patient
+     * @param termLookup a mapping from term IDs to features in the patient
      * @return a Collection of features in the patients corresponding to the given terms
      */
     private Collection<Feature> termsToFeatures(Collection<OntologyTerm> terms,
-        Map<OntologyTerm, Feature> termLookup)
+        Map<String, Feature> termLookup)
     {
         Collection<Feature> features = new ArrayList<Feature>();
         for (OntologyTerm term : terms) {
-            features.add(termLookup.get(term));
+            String id = term.getId();
+            if (id != null) {
+                Feature feature = termLookup.get(id);
+                if (feature != null) {
+                    features.add(feature);
+                }
+            }
         }
         return features;
     }
@@ -505,15 +506,11 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     protected JSONArray getFeatureMatchesJSON()
     {
         // Get list of clusters and convert to JSON
+        JSONArray matchesJSON = new JSONArray();
         Collection<FeatureClusterView> clusters = getMatchedFeatures();
-        if (clusters == null || clusters.isEmpty()) {
-            return null;
-        } else {
-            JSONArray matchesJSON = new JSONArray();
-            for (FeatureClusterView cluster : clusters) {
-                matchesJSON.add(cluster.toJSON());
-            }
-            return matchesJSON;
+        for (FeatureClusterView cluster : clusters) {
+            matchesJSON.add(cluster.toJSON());
         }
+        return matchesJSON;
     }
 }

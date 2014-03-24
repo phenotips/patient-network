@@ -428,37 +428,36 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * Get the JSON for an array of variants.
      * 
      * @param vs an array of Variant objects
-     * @return JSON for the variants
+     * @return JSON for the variants, an empty array if there are no variants
      */
     private JSONArray getVariantsJSON(Variant[] vs)
     {
+        JSONArray varJSON = new JSONArray();
         if (vs == null) {
-            return null;
-        } else {
-            JSONArray varJSON = new JSONArray();
-            for (Variant v : vs) {
-                if (v != null) {
-                    if (this.access.isOpenAccess()) {
-                        varJSON.add(v.toJSON());
-                    } else if (this.access.isLimitedAccess()) {
-                        JSONObject variantJSON = new JSONObject();
-                        variantJSON.element("score", v.getScore());
-                        varJSON.add(variantJSON);
-                    }
-                }
-            }
             return varJSON;
         }
+        for (Variant v : vs) {
+            if (v != null) {
+                if (this.access.isOpenAccess()) {
+                    varJSON.add(v.toJSON());
+                } else if (this.access.isLimitedAccess()) {
+                    // Only show score if limited access
+                    JSONObject variantJSON = new JSONObject();
+                    variantJSON.element("score", v.getScore());
+                    varJSON.add(variantJSON);
+                }
+            }
+        }
+        return varJSON;
     }
 
     @Override
     public JSONArray toJSON()
     {
-        if (this.refGenotype == null || this.matchGenotype == null || this.access.isPrivateAccess()) {
-            return null;
-        }
-
         JSONArray genesJSON = new JSONArray();
+        if (this.refGenotype == null || this.matchGenotype == null || this.access.isPrivateAccess()) {
+            return genesJSON;
+        }
         // Gene genes, in order of decreasing score
         List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
         Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
@@ -489,7 +488,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             JSONObject refJSON = new JSONObject();
             refJSON.element("score", score * refScore);
             JSONArray refVarJSON = getVariantsJSON(variants[0]);
-            if (refVarJSON != null) {
+            if (!refVarJSON.isEmpty()) {
                 refJSON.element("variants", refVarJSON);
             }
             geneObject.element("reference", refJSON);
@@ -497,7 +496,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             JSONObject matchJSON = new JSONObject();
             matchJSON.element("score", score * matchScore);
             JSONArray matchVarJSON = getVariantsJSON(variants[1]);
-            if (matchVarJSON != null) {
+            if (!matchVarJSON.isEmpty()) {
                 matchJSON.element("variants", matchVarJSON);
             }
             geneObject.element("match", matchJSON);
@@ -505,7 +504,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             genesJSON.add(geneObject);
             iGene++;
         }
-
         return genesJSON;
     }
 
