@@ -941,7 +941,7 @@
       <code>var PhenoTips = (function (PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.Icons = {
-    _sizes : ['large', '2x', '3x', '4x'],
+    _sizes : ['lg', '2x', '3x', '4x'],
     _translation : {
       'public' : 'unlock',
       'private' : 'lock',
@@ -951,16 +951,16 @@
       'match' : 'lock'
     },
     getIcon : function (name, text, size) {
-      return new Element('i', {
+      return new Element('span', {
          "class" : this._translateName(name) + " " + this._translateSize(size),
          "title" : text || ''
-      });
+      }).update(' ');
     },
     _translateSize : function(size) {
-      return this._sizes.indexOf(size) &gt;= 0 ? "icon-" + size : "";
+      return this._sizes.indexOf(size) &gt;= 0 ? "fa-" + size : "";
     },
     _translateName : function(name) {
-      return "icon-" + (this._translation[name] || name);
+      return "fa fa-" + (this._translation[name] || name);
     }
   };
   return PhenoTips;
