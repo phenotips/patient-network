@@ -124,9 +124,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     {
         // Get potentially-cached patient similarity view
         String cacheKey = match.getId() + '|' + reference.getId() + '|' + access.getAccessLevel().getName();
-        // TODO: reimplement caching
-        //PatientSimilarityView result = this.viewCache.get(cacheKey);
-        PatientSimilarityView result = null;
+        PatientSimilarityView result = this.viewCache.get(cacheKey);
         if (result == null) {
             result = createPatientSimilarityView(match, reference, access);
             this.viewCache.set(cacheKey, result);
