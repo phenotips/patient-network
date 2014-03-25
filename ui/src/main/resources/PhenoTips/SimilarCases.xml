@@ -314,12 +314,14 @@
 
     _createFeatureIndex : function(features) {
       var featureIndex = {};
-      features.each(function (f) {
-        if (f.type &amp;&amp; f.id) {
-          featureIndex[f.type] = featureIndex[f.type] || {};
-          featureIndex[f.type][f.id] = f;
-        }
-      });
+      if (features) {
+        features.each(function (f) {
+          if (f.type &amp;&amp; f.id) {
+            featureIndex[f.type] = featureIndex[f.type] || {};
+            featureIndex[f.type][f.id] = f;
+          }
+        });
+      }
       return featureIndex;
     },
 
