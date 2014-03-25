@@ -312,6 +312,13 @@
       return summary;
     },
 
+    _getDisplayedQueryId : function (capitalize) {
+      return (capitalize ? 'T' : 't') + 'he current patient' + (this._data &amp;&amp; this._data.query &amp;&amp; this._data.query.id &amp;&amp; (' (' + this._data.query.id + ')') || '');
+    },
+    _getDisplayedResultId : function (r, capitalize) {
+      return (capitalize ? 'T' : 't') + 'he matched patient' + (r &amp;&amp; r.id &amp;&amp; (' (' + r.id + ')') || '');
+    },
+
     _createFeatureIndex : function(features) {
       var featureIndex = {};
       if (features) {
@@ -347,6 +354,8 @@
            "title" : columns[c].title
         }).update(columns[c].display(result)));
       }
+      var detailsRow =  this._getEmptyTableRow(table);
+      detailsRow.insert(row.down('.match-details').wrap('td', {'class' : 'details-only details', 'colspan' : row.childElements().size()}));
       return row;
     },
 
@@ -456,7 +465,7 @@
       return new Element("div").insert(new Element("p")).insert(this.Utils.generateSegmentedBar(5, r.score));
     },
 
-   _displayResultDetails : function (r) {
+    _displayResultDetails : function (r) {
       var details = new Element("div");
 
       // Provide access to the actual matching details
@@ -466,51 +475,51 @@
       var matchSummary = this.displaySummary("", details).insert(new Element('span', {"class" : "buttonwrapper"}).insert(showDetails).insert(hideDetails));
 
       // Generate the feature/variant comparison table
-      var matchTable = this._displayMatchData(this._data.query, r);
-      details.insert(matchTable);
+      var matchBreakdown = this._displayMatchData(this._data.query, r);
+      details.insert(matchBreakdown);
 
       // Add behavior for showing/hiding the comparison table
-      matchTable.hide();
+      matchBreakdown.hide();
       hideDetails.hide();
       showDetails.observe('click', function(event) {
         event.stop();
         showDetails.hide();
         hideDetails.show();
-        matchTable.show();
+        matchBreakdown.show();
       });
       hideDetails.observe('click', function(event) {
         event.stop();
         showDetails.show();
         hideDetails.hide();
-        matchTable.hide();
+        matchBreakdown.hide();
       });
-      matchSummary.observe('click', function(event) {
-        event.stop();
-        showDetails.toggle();
-        hideDetails.toggle();
-        matchTable.toggle();
-      });
+
       this._data.query.features.each(function(f){f.match = []});
       return details;
     },
 
     _displayMatchData : function(query, r) {
       var result = new Element("div", {"class" : "match-details"});
-      this._displayFeatureMatches(r, result);
-      this._displayGeneMatches(r, result);
+      result.insert(this._displayFeatureMatches(r));
+      result.insert(this._displayGeneMatches(r));
       return result;
     },
 
-    _displayFeatureMatches : function (r, container) {
-      if (!r.featureMatches) { return; }
+    _displayFeatureMatches : function (r) {
+      var container = new Element('div', {'class' : 'match-type features'})
+      container.insert(new Element('h3').update('Phenotypic features breakdown'))
+      if (!r.featureMatches) {
+        container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'))
+        return container;
+      }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
       var _this = this;
       var columns = {
         "query" : {
-          "title" : "Current patient's features",
+          "title" : '&lt;strong&gt;' + this._getDisplayedQueryId(true) + "&lt;/strong&gt; presented with:",
         },
         "result" : {
-          "title" : "Other patient's features",
+          "title" : '&lt;strong&gt;' + this._getDisplayedResultId(r, true) + "&lt;/strong&gt; presented with:",
         }
       }
       var resultFeatures = _this._createFeatureIndex(r.features);
@@ -518,10 +527,10 @@
            var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
            categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category &amp;&amp; featureMatch.category.name || "Unknown pehnotype category"));
            categoryRow.insert(new Element('th', {'class' : 'phenotype-category-score'}).update(featureMatch.score &amp;&amp; _this.Utils.generateSegmentedBar(5, featureMatch.score) || ''));
-           if (!featureMatch.category.id) {
-              categoryRow.addClassName(_this._NOMATCH_MARKER)
-           }
-           _this._displayTableHeader(columns, phenotypeMatchTable);
+
+           var labelsRow = _this._getEmptyTableRow(phenotypeMatchTable);
+           labelsRow.insert(new Element('td', {'class' : 'hint query'}).update(columns.query.title));
+           labelsRow.insert(new Element('td', {'class' : 'hint result'}).update(columns.result.title));
            var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
            var crtPFeatures = new Element('td', {'class' : 'phenotypes query'})
            var otherPFeatures = new Element('td', {'class' : 'phenotypes result'})
@@ -543,14 +552,15 @@
                }
              });
              if (undisclosedCount &gt; 0) {
-               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER}).update(undisclosedCount + ' undisclused feature' + (undisclosedCount &gt; 1 ? 's' : '')));
+               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER}).update(undisclosedCount + ' undisclosed feature' + (undisclosedCount &gt; 1 ? 's' : '')));
              }
            } else {
              otherPFeatures.insert("-");
            }
       });
 
-      container.insert(new Element('h3').update('Phenotypic features breakdown')).insert(phenotypeMatchTable);
+      container.insert(phenotypeMatchTable);
+      return container;
     },
 
    _displayFeature : function(f) {
@@ -581,8 +591,17 @@
     },
 
     _displayGeneMatches : function(r, container) {
+      var container = new Element('div', {'class' : 'match-type genes'})
+      container.insert(new Element('h3').update('Gene matching breakdown'))
       var _this = this;
-      if (r.genes &amp;&amp; r.genes.length &gt; 0) {
+      if (!r.genes) {
+        // The 'genes' field is absent when there is no genetic information in one of the two patients
+        container.insert(new Element('p', {'class' : 'hint'}).update('No genetic information available'))
+      } else if (r.genes.length == 0) {
+        // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
+        container.insert(new Element('p', {'class' : 'hint'}).update('No genotype matches found'))
+      } else {
+        // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
         r.genes.each(function (geneInfo) {
           var titleRow = _this._getEmptyTableRow(genotypeMatchTable);
@@ -593,19 +612,17 @@
           ).insert(new Element('th', {'class' : 'variants-toggle'}));
           if (geneInfo.reference || geneInfo.match) {
             var scoreRow = _this._getEmptyTableRow(genotypeMatchTable);
-            scoreRow.insert(new Element('td', {'class' : 'relevance'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in the ').insert(new Element('strong').update('current patient')).insert(":")).insert(geneInfo.reference &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.reference.score) || '-'));
-            scoreRow.insert(new Element('td', {'class' : 'relevance'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in the ').insert(new Element('strong').update('other patient')).insert(":")).insert(geneInfo.match &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.match.score) || '-'));
+            scoreRow.insert(new Element('td', {'class' : 'relevance query'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in ').insert(new Element('strong').update(_this._getDisplayedQueryId())).insert(":")).insert(geneInfo.reference &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.reference.score) || '-'));
+            scoreRow.insert(new Element('td', {'class' : 'relevance result'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in ').insert(new Element('strong').update(_this._getDisplayedResultId(r))).insert(":")).insert(geneInfo.match &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.match.score) || '-'));
             if (geneInfo.reference &amp;&amp; geneInfo.reference.variants || geneInfo.match &amp;&amp; geneInfo.match.variants) {
-              //var variantToggleRow = _this._getEmptyTableRow(genotypeMatchTable);
-
               var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("Show variants...");
               var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("Hide variants...");
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
               titleRow.down('th.variants-toggle').insert(variantToggle);
               var variantsRow = _this._getEmptyTableRow(genotypeMatchTable);
-              variantsRow.insert(new Element('td').insert(geneInfo.reference &amp;&amp; geneInfo.reference.variants &amp;&amp; _this._displayVariants(geneInfo.reference.variants) || 'No variant information available'));
-              variantsRow.insert(new Element('td').insert(geneInfo.match &amp;&amp; geneInfo.match.variants &amp;&amp; _this._displayVariants(geneInfo.match.variants) || 'No variant information available'));
+              variantsRow.insert(new Element('td', {'class' : 'query'}).insert(geneInfo.reference &amp;&amp; geneInfo.reference.variants &amp;&amp; _this._displayVariants(geneInfo.reference.variants) || 'No variant information available'));
+              variantsRow.insert(new Element('td', {'class' : 'result'}).insert(geneInfo.match &amp;&amp; geneInfo.match.variants &amp;&amp; _this._displayVariants(geneInfo.match.variants) || 'No variant information available'));
 
               // Add behavior for showing/hiding the variants
               variantsRow.hide();
@@ -625,8 +642,9 @@
             }
           }
         });
-        container.insert(new Element('h3').update('Gene matching breakdown')).insert(genotypeMatchTable);
+        container.insert(genotypeMatchTable);
       }
+      return container;
     },
 
    _displayVariants : function (variants) {
@@ -645,7 +663,7 @@
          if (v.chrom &amp;&amp; (v.position || (v.start_position &amp;&amp; v.end_position))) {
             var start = v.position || v.start_position;
             var end = v.position &amp;&amp; (v.position + (v.ref &amp;&amp; (v.ref.length - 1) || 0)) || v.end_position;
-            position = "chr" + v.chrom.toUpperCase() + ":" + start + "-" + end;
+            position = "chr" + v.chrom.toUpperCase() + ": " + start + " - " + end;
             var positionURLFragment = "chr" + v.chrom.toUpperCase()[0] + ":" + start + "-" + end;
             var assembly = v.assembly || "hg19";
             position = new Element('a', {
@@ -1068,6 +1086,7 @@
   border: 0 none;
   margin: 1em 0 0;
   width: 100%;
+  position: relative;
 }
 .similarity-results th {
   border: 0 none;
@@ -1078,6 +1097,17 @@
   border-top: 1px solid $theme.borderColor;
   text-align: left;
   vertical-align: baseline;
+}
+.similarity-results &gt; tr &gt; td {
+  padding-bottom: 0;
+}
+.similarity-results &gt; tr &gt; td.details {
+  ##vertical-align: bottom;
+}
+.similarity-results &gt; tr &gt; td.details-only {
+  border-top: 0 none;
+  padding-bottom: 0.3em;
+  padding-top: 0;
 }
 .similarity-results .unknown, .similarity-results .no-match , .similarity-results .metadata, .similarity-results .tool {
   font-size: .8em;
@@ -1100,7 +1130,6 @@
 }
 .similarity-results td.contact .owner-info {
   background: transparent none left top no-repeat;
-  display: inline-block;
 }
 .similarity-results td.contact .owner-info .metadata {
   display: block;
@@ -1116,8 +1145,14 @@
   padding-right: 3px;
   text-align: center;
 }
-.similarity-results .details {
-  width: 60%;
+.similarity-results .details .summary {
+  text-align: right;
+}
+.similarity-results .details .summary .buttonwrapper {
+  margin: 0;
+}
+.similarity-results .details .summary .button {
+  white-space: nowrap;
 }
 .similarity-results .details .match-details {
   background: #FFF;
@@ -1125,6 +1160,11 @@
   margin-top: 10px;
   padding: 5px 1em;
   position: relative;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+  -moz-column-count: 2;
+  -webkit-column-count: 2;
+  column-count: 2;
 }
 .similarity-results .details .match-details:before, .similarity-results .details .match-details:after {
   content: "";
@@ -1133,20 +1173,24 @@
   height: 0;
   position: absolute;
   top: -10.5px;
-  left: 9px;
+  right: 9px;
   border: 11px solid transparent;
   border-top: 0 none;
   border-bottom-color: #DDD;
 }
 .similarity-results .details .match-details:after {
   top: -9.5px;
-  left: 10px;
+  right: 10px;
   border: 10px solid transparent;
   border-top: 0 none;
   border-bottom-color: #FFF;
 }
 .similarity-results .details table {
   margin: 0;
+  width: 100%;
+}
+.similarity-results .details .match-type {
+  display: inline-block;
   width: 100%;
 }
 .similarity-results .details table tr:nth-child(2n) {
@@ -1162,17 +1206,8 @@
   vertical-align: baseline !important;
   padding: .5em;
 }
-.similarity-results .details .query, .similarity-results .details .result {
-  width: 40%;
-}
 .similarity-results .details .negative {
   color: $theme.notificationErrorColor;
-}
-.similarity-results .details .query {
-  text-align: right;
-}
-.similarity-results .details .match {
-  text-align: center;
 }
 .similarity-results .details .metadata {
   color: $theme.notificationInfoColor;
@@ -1443,12 +1478,18 @@
 }
 .match-details table.gene-matches&gt;tr:nth-child(3n+2),
 .match-details table.phenotype-matches&gt;tr:nth-child(3n+2) {
-  background-color: #F9F9F9;
+  background-color: transparent;
 }
-.match-details table.phenotype-matches&gt;tr.no-match {
-  font-style: italic;
+.match-details table.phenotype-matches&gt;tr:nth-child(3n+2)&gt;td {
+  padding-bottom: 0;
+}
+.match-details table.phenotype-matches&gt;tr:nth-child(3n)&gt;td {
+  padding-top: 0;
 }
 
+.match-details table &gt; tr &gt; td.result {
+  background: $theme.highlightColor;
+}
 
 .match-details .gene-matches .gene, .match-details .gene-matches .variants-toggle {
   text-align: left;
