@@ -194,7 +194,7 @@
       this.container.addClassName(this._RESULTS_CONTAINER_MARKER);
       if (options) {
         if (options.enableRefresh) {
-          var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).update('Refresh'));
+          var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(' Refresh'));
           this.container.insert({before : refreshButton});
           this.launchSearch = this.launchSearch.bindAsEventListener(this);
           refreshButton.observe('click', this.launchSearch);
