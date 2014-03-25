@@ -825,19 +825,6 @@
         return bar.insert(' ' + Math.round(value * 100) + '%');
       },
 
-      // For a value in [-1, 1], generate a representation consisting of a full coloured bar bidirectional arrow, where low = red, high = green, middle (zero) = gray
-      // @param value the value in [-1, 1] which is to be represented by the bar
-      // @return an HTML element
-      generateMatchBar : function(value) {
-        var normalizedValue = (value + 1) / 2;
-        var color = this.getColorForValue(normalizedValue, true);
-        var textColor = this.getContrastColorForValue(normalizedValue);
-        var bar = new Element("span", {"class" : "match-bar", "style" : "border-color: " + color + "; color: " + color + "; background-color: " + color + ";"})
-        var text = new Element ("span", {"class" : "match-bar-value", "style" : "background-color: transparent; color: " + textColor + ";"}).update(Math.round(value * 100) + '%');
-        bar.insert(text);
-        return bar;
-      },
-
       generateIcon : function (name, text, size) {
          return PhenoTips.widgets.Icons.getIcon(name, text, size);
       }
@@ -1222,39 +1209,6 @@
 .similarity-results .details .tool {
   color: $theme.linkColor;
   cursor: pointer;
-}
-.similarity-results .match-bar {
-  display: inline-block;
-  width: 4em;
-  height: 1.1em;
-  margin: 0 10px;
-  position: relative;
-  text-shadow: none !important;
-}
-.similarity-results .match-bar:before, .similarity-results .match-bar:after {
-  content: "";
-  display: block;
-  position: absolute;
-  border-top: .9em solid transparent;
-  border-bottom: .9em solid transparent;
-  top: -.3em;
-}
-.similarity-results .match-bar:before {
-  left: -9px;
-  border-right: 10px solid;
-}
-.similarity-results .match-bar:after {
-  right: -9px;
-  border-left: 10px solid;
-}
-.similarity-results .match-bar-text {
-  display: block;
-  width: 100%;
-  height: 1.1em;
-  line-height: 1.1em;
-  text-align: center;
-  font-size: .7em;
-  text-shadow: none;
 }
 .segmented-bar {
   white-space: nowrap;
