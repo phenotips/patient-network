@@ -41,7 +41,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <class>
     <name>PhenoTips.SimilarCases</name>
     <customClass/>
@@ -179,7 +179,6 @@
     matchContactURL : "${xwiki.getURL('PhenoTips.MatchContact', 'get')}",
     _UNKNOWN_INFO_MARKER : "unknown",
     _UNKNOWN_INFO_TEXT : "Undisclosed information",
-    _RESULTS_CONTAINER_MARKER : "similarity-results-container",
     _RESULTS_TABLE_MARKER : "similarity-results",
     _SUMMARY_MARKER : "summary",
     _METADATA_MARKER : "metadata",
@@ -191,7 +190,7 @@
       if (!query || !resultsContainer) {return;}
       this.query = query;
       this.container = resultsContainer;
-      this.container.addClassName(this._RESULTS_CONTAINER_MARKER);
+
       if (options) {
         if (options.enableRefresh) {
           var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(' Refresh'));
@@ -199,9 +198,9 @@
           this.launchSearch = this.launchSearch.bindAsEventListener(this);
           refreshButton.observe('click', this.launchSearch);
         }
+        this.matchServiceURL = options.serviceURL || this.matchServiceURL;
         this._maxResults = options.maxResults || '';
         this._minScore = options.minScore || '';
-        this._resultsType = options.resultsType || '';
       }
       this.launchSearch();
 
@@ -219,7 +218,6 @@
           parameters: {
             'query' : this.query,
             'outputSyntax' : "plain",
-            'type' : this._resultsType,
             'maxResults' : this._maxResults,
             'minScore' : this._minScore
           },
@@ -832,19 +830,16 @@
   });
 
   var init = function() {
-    var maxResults = $('max_results');
-    var minScore = $('min_score');
-    new PhenoTips.widgets.Matcher(new XWiki.Document().page, $('similar-patients-container'), {
-      enableRefresh: true,
-      resultsType: '',
-      maxResults: maxResults &amp;&amp; maxResults.value,
-      minScore: minScore &amp;&amp; minScore.value
-    });
-    new PhenoTips.widgets.Matcher(new XWiki.Document().page, $('similar-prototypes-container'), {
-      enableRefresh: true,
-      resultsType: 'prototype',
-      maxResults: maxResults &amp;&amp; maxResults.value,
-      minScore: minScore &amp;&amp; minScore.value
+    var maxResults = $('similarity_results__max_results');
+    var minScore = $('similarity_results__min_score');
+    $$('.similarity-results-container').each(function (container) {
+      var serviceInfo = container.down('input[name="service"]');
+      new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
+        enableRefresh: true,
+        serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
+        maxResults: maxResults &amp;&amp; maxResults.value,
+        minScore: minScore &amp;&amp; minScore.value
+      });
     });
   };
 
@@ -1592,14 +1587,15 @@
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
       == Similar cases available in the database ==
-      {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
+      {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
 
 === Patient profiles contributed by users ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
 
-=== OMIM disorder prototypes ===
-      (% class="similarity-results-container" id="similar-prototypes-container" %)((()))##
-      )))
+## Allow to plug in other data sources
+#foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
+ {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
+#end
     #end## can see similar patients
   #end## suggestions enabled
 #end## action == view
@@ -1609,7 +1605,7 @@
       <extensionPointId>org.phenotips.patientSheet.after</extensionPointId>
     </property>
     <property>
-      <name>org.phenotips.similarCases</name>
+      <name>org.phenotips.patientSheet.similarCases</name>
     </property>
     <property>
       <parameters/>
@@ -1620,11 +1616,7 @@
   </object>
   <content>{{velocity output=false}}
   #set ($patient = $services.patients.getPatientById("$!{request.query}"))
-  #if ("$!request.type" == 'prototype')
-    #set ($matches = $services.similarPatients.findSimilarPrototypes($patient))
-  #else
-    #set ($matches = $services.similarPatients.findSimilarPatients($patient))
-  #end
+  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
   #if ("$!matches" == '')
     #set ($matches = [])
   #end
