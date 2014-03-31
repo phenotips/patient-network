@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -131,6 +133,12 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     public String getName()
     {
         return this.ancestor == null ? "Unmatched" : this.ancestor.getName();
+    }
+
+    @Override
+    public String getValue()
+    {
+        return StringUtils.isNotBlank(getId()) ? getId() : getName();
     }
 
     /**

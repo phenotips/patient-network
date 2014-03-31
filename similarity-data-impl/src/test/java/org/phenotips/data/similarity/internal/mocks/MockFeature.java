@@ -19,13 +19,15 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
+import org.phenotips.data.Feature;
+import org.phenotips.data.FeatureMetadatum;
+
 import java.util.Collections;
 import java.util.Map;
 
-import net.sf.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
-import org.phenotips.data.Feature;
-import org.phenotips.data.FeatureMetadatum;
+import net.sf.json.JSONObject;
 
 /**
  * Simple mock for a patient feature, responding with pre-specified values.
@@ -92,5 +94,11 @@ public class MockFeature implements Feature
     public JSONObject toJSON()
     {
         return null;
+    }
+
+    @Override
+    public String getValue()
+    {
+        return (StringUtils.isNotBlank(this.id) ? this.id : this.name);
     }
 }

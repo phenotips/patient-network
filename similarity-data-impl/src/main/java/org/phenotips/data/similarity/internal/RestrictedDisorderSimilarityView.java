@@ -72,6 +72,12 @@ public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
     }
 
     @Override
+    public String getValue()
+    {
+        return this.access.isOpenAccess() && this.match != null ? this.match.getValue() : null;
+    }
+
+    @Override
     public JSONObject toJSON()
     {
         if (this.match == null && this.reference == null || !this.access.isOpenAccess()) {

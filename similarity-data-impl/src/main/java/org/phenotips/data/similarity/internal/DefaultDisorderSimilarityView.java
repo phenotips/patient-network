@@ -78,6 +78,12 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
     }
 
     @Override
+    public String getValue()
+    {
+        return this.match != null ? this.match.getValue() : null;
+    }
+
+    @Override
     public JSONObject toJSON()
     {
         if (this.match == null && this.reference == null) {
