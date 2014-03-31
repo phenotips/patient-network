@@ -19,12 +19,13 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import net.sf.json.JSONObject;
-
-import org.apache.commons.lang3.StringUtils;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
+
+import org.apache.commons.lang3.StringUtils;
+
+import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link DisorderSimilarityView} that only reveals information if the user has full access to the
@@ -69,6 +70,12 @@ public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
     public String getName()
     {
         return this.access.isOpenAccess() && this.match != null ? this.match.getName() : null;
+    }
+
+    @Override
+    public String getValue()
+    {
+        return this.access.isOpenAccess() && this.match != null ? this.match.getValue() : null;
     }
 
     @Override

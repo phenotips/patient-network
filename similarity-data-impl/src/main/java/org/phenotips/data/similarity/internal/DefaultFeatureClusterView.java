@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -135,12 +137,19 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         return term == null ? "Unmatched" : term.getName();
     }
 
+    @Override
+    public String getValue()
+    {
+        return StringUtils.isNotBlank(getId()) ? getId() : getName();
+    }
+
     /**
      * {@inheritDoc} Uses {@link #getMatch()} to list features in match patient, so this can be overridden to be
      * access-aware.
      * 
      * @see org.phenotips.data.Feature#toJSON()
      */
+    @Override
     public JSONObject toJSON()
     {
         // Add ancestor info

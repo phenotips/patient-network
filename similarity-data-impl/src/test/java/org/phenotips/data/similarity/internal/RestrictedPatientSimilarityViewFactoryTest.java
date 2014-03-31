@@ -206,7 +206,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         CacheFactory cacheFactory = mock(CacheFactory.class);
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Mockito.anyString());
 

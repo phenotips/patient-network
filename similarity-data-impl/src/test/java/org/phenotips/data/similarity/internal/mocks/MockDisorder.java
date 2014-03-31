@@ -19,9 +19,11 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import net.sf.json.JSONObject;
-
 import org.phenotips.data.Disorder;
+
+import org.apache.commons.lang3.StringUtils;
+
+import net.sf.json.JSONObject;
 
 /**
  * Simple mock for a disorder, responding with pre-specified values.
@@ -56,5 +58,11 @@ public class MockDisorder implements Disorder
     public JSONObject toJSON()
     {
         return null;
+    }
+
+    @Override
+    public String getValue()
+    {
+        return (StringUtils.isNotBlank(this.id) ? this.id : this.name);
     }
 }

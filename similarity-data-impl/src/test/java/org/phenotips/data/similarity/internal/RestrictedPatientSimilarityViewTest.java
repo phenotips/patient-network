@@ -83,9 +83,6 @@ public class RestrictedPatientSimilarityViewTest
     /** The default user used as the referrer of the matched patient, and of the reference patient for public access. */
     private static final DocumentReference USER_1 = new DocumentReference("xwiki", "XWiki", "padams");
 
-    /** The alternative user used as the referrer of the reference patient for matchable or private access. */
-    private static final DocumentReference USER_2 = new DocumentReference("xwiki", "XWiki", "hmccoy");
-
     private static AccessType open;
 
     private static AccessType limited;
@@ -458,7 +455,7 @@ public class RestrictedPatientSimilarityViewTest
         CacheFactory cacheFactory = mock(CacheFactory.class);
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Mockito.anyString());
 

@@ -30,6 +30,7 @@ import org.phenotips.messaging.ConnectionManager;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import net.sf.json.JSONArray;
@@ -171,6 +172,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * 
      * @see org.phenotips.data.Patient#toJSON()
      */
+    @Override
     public JSONObject toJSON()
     {
         JSONObject result = new JSONObject();
@@ -205,5 +207,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.elementOpt("genes", getGenesJSON());
 
         return result;
+    }
+
+    @Override
+    public JSONObject toJSON(Collection<String> onlyFieldNames)
+    {
+        // FIXME This needs to actually take into account the selected field names
+        return toJSON();
+    }
+
+    @Override
+    public void updateFromJSON(JSONObject json)
+    {
+        // This is not a real patient, and does not need to be updated from a serialization
     }
 }
