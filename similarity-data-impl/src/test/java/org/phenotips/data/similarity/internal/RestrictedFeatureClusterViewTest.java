@@ -22,11 +22,13 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
+import org.phenotips.data.similarity.internal.RestrictedFeatureClusterView;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.ontology.OntologyTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -35,7 +37,6 @@ import org.junit.Test;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +75,94 @@ public class RestrictedFeatureClusterViewTest
         when(priv.toString()).thenReturn("none");
     }
 
-    /** Ancestor data is available even with private access. */
+    /** Ancestor data is available with public access. */
+    @Test
+    public void testGetAncestorDetailsWithPublicAccess()
+    {
+        Collection<Feature> match = new ArrayList<Feature>();
+        Collection<Feature> reference = new ArrayList<Feature>();
+
+        OntologyTerm ancestor = mock(OntologyTerm.class);
+        when(ancestor.getName()).thenReturn("Cataract");
+        when(ancestor.getId()).thenReturn("HP:0000518");
+        double score = 0.1234;
+
+        FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, open, ancestor, score);
+        // Test that ancestor information is not retrieved as Feature methods of ClusterView
+        Assert.assertEquals(ancestor, o.getRoot());
+        Assert.assertEquals(score, o.getScore(), 1E-5);
+        Assert.assertEquals(ancestor.getName(), o.getName());
+        Assert.assertEquals(ancestor.getId(), o.getId());
+
+        // Test that type is "ancestor" and it is not present (by convention)
+        Assert.assertEquals("ancestor", o.getType());
+        Assert.assertFalse(o.isPresent());
+        Assert.assertTrue(o.getMetadata().isEmpty());
+    }
+
+    /** Ancestor data is available with match access. */
+    @Test
+    public void testGetAncestorDetailsWithMatchAccess()
+    {
+        Collection<Feature> match = new ArrayList<Feature>();
+        Collection<Feature> reference = new ArrayList<Feature>();
+
+        OntologyTerm ancestor = mock(OntologyTerm.class);
+        when(ancestor.getName()).thenReturn("Cataract");
+        when(ancestor.getId()).thenReturn("HP:0000518");
+        double score = 0.1234;
+
+        FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, limited, ancestor, score);
+        // Test that ancestor information is not retrieved as Feature methods of ClusterView
+        Assert.assertEquals(ancestor, o.getRoot());
+        Assert.assertEquals(score, o.getScore(), 1E-5);
+        Assert.assertEquals(ancestor.getName(), o.getName());
+        Assert.assertEquals(ancestor.getId(), o.getId());
+
+        // Test that type is "ancestor" and it is not present (by convention)
+        Assert.assertEquals("ancestor", o.getType());
+        Assert.assertFalse(o.isPresent());
+        Assert.assertTrue(o.getMetadata().isEmpty());
+    }
+
+    /**
+     * With matchable access, if the reference phenotype is the same as the cluster, the ancestor returned should be the
+     * parent of the actual ancestor.
+     */
+    @Test
+    public void testGetAncestorParentDetailsWithMatchAccess()
+    {
+        Collection<Feature> match = new ArrayList<Feature>();
+        Collection<Feature> reference = new ArrayList<Feature>();
+
+        OntologyTerm ancestor = mock(OntologyTerm.class);
+        when(ancestor.getName()).thenReturn("Cataract");
+        when(ancestor.getId()).thenReturn("HP:0000518");
+        double score = 0.1234;
+
+        // Parent ancestor whose details should be shown
+        OntologyTerm ancestorParent = mock(OntologyTerm.class);
+        when(ancestorParent.getName()).thenReturn("Abnormality of the lens");
+        when(ancestorParent.getId()).thenReturn("HP:0000517");
+        when(ancestor.getParents()).thenReturn(Collections.singleton(ancestorParent));
+
+        reference.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
+        match.add(new MockFeature("HP:0010696", "Polar cataract", "phenotype", true));
+
+        FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, limited, ancestor, score);
+        // Test that ancestor information is not retrieved as Feature methods of ClusterView
+        Assert.assertEquals(ancestorParent, o.getRoot());
+        Assert.assertEquals(score, o.getScore(), 1E-5);
+        Assert.assertEquals(ancestorParent.getName(), o.getName());
+        Assert.assertEquals(ancestorParent.getId(), o.getId());
+
+        // Test that type is "ancestor" and it is not present (by convention)
+        Assert.assertEquals("ancestor", o.getType());
+        Assert.assertFalse(o.isPresent());
+        Assert.assertTrue(o.getMetadata().isEmpty());
+    }
+
+    /** Ancestor data is unavailable with private access. */
     @Test
     public void testGetAncestorDetailsWithPrivateAccess()
     {
@@ -87,11 +175,11 @@ public class RestrictedFeatureClusterViewTest
         double score = 0.1234;
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, priv, ancestor, score);
-        // Test that ancestor information is retrieved as Feature methods of ClusterView
-        Assert.assertEquals(ancestor, o.getRoot());
-        Assert.assertEquals(score, o.getScore(), 1E-5);
-        Assert.assertEquals(ancestor.getName(), o.getName());
-        Assert.assertEquals(ancestor.getId(), o.getId());
+        // Test that ancestor information is not retrieved as Feature methods of ClusterView
+        Assert.assertEquals(null, o.getRoot());
+        Assert.assertEquals(Double.NaN, o.getScore(), 1E-5);
+        Assert.assertEquals("Unmatched", o.getName());
+        Assert.assertEquals("", o.getId());
 
         // Test that type is "ancestor" and it is not present (by convention)
         Assert.assertEquals("ancestor", o.getType());
@@ -220,7 +308,10 @@ public class RestrictedFeatureClusterViewTest
         }
     }
 
-    /** Basic JSON tests with private access, should contain reference information but no match element. */
+    /**
+     * Basic JSON tests with private access, should contain reference information but no match element. Categories of
+     * identical matches should report the parent term.
+     */
     @Test
     public void testToJSONWithMatchAccess()
     {

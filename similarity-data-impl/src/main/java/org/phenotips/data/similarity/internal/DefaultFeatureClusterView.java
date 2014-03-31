@@ -124,13 +124,15 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     @Override
     public String getId()
     {
-        return this.ancestor == null ? "" : this.ancestor.getId();
+        OntologyTerm term = getRoot();
+        return term == null ? "" : term.getId();
     }
 
     @Override
     public String getName()
     {
-        return this.ancestor == null ? "Unmatched" : this.ancestor.getName();
+        OntologyTerm term = getRoot();
+        return term == null ? "Unmatched" : term.getName();
     }
 
     /**

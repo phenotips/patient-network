@@ -39,7 +39,6 @@ import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
 import org.xwiki.cache.Cache;
-import org.xwiki.cache.CacheException;
 import org.xwiki.cache.CacheFactory;
 import org.xwiki.cache.CacheManager;
 import org.xwiki.cache.config.CacheConfiguration;

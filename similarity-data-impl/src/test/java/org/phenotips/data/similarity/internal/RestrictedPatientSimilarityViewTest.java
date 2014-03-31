@@ -63,9 +63,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.mockito.Mockito.doReturn;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -467,7 +468,6 @@ public class RestrictedPatientSimilarityViewTest
         Connection c = mock(Connection.class);
         when(connManager.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(c);
         when(c.getId()).thenReturn(Long.valueOf(42));
-        
 
         // Setup the ontology manager
         OntologyManager ontologyManager = mock(OntologyManager.class);
