@@ -30,6 +30,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Implementation of {@link org.phenotips.data.similarity.FeatureClusterView} that reveals the full patient information
  * if the user has full access to the patient, and only matching reference information for similar features if the
@@ -66,37 +68,40 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
     {
         if (this.access.isPrivateAccess()) {
             return null;
-        } else if (this.access.isLimitedAccess() && this.ancestor != null &&
-            this.reference.size() == 1 && this.reference.contains(this.ancestor)) {
-            Set<OntologyTerm> parents = this.ancestor.getParents();
-            if (parents.isEmpty()) {
-                return null;
-            } else if (parents.size() == 1) {
-                return parents.iterator().next();
-            } else {
-                // Get an arbitrary parent in a deterministic manner (lowest ID)
-                OntologyTerm parent = Collections.min(parents, new Comparator<OntologyTerm>()
-                {
-                    @Override
-                    public int compare(OntologyTerm o1, OntologyTerm o2)
+        } else if (this.access.isLimitedAccess() && this.ancestor != null && this.reference.size() == 1) {
+            String refId = this.reference.iterator().next().getId();
+            String ancestorId = this.ancestor.getId();
+            // Check if the reference and ancestor terms are the same term
+            if (refId != null && StringUtils.equals(refId, ancestorId)) {
+                Set<OntologyTerm> parents = this.ancestor.getParents();
+                if (parents.isEmpty()) {
+                    return null;
+                } else if (parents.size() == 1) {
+                    return parents.iterator().next();
+                } else {
+                    // Get an arbitrary parent in a deterministic manner (lowest ID)
+                    OntologyTerm parent = Collections.min(parents, new Comparator<OntologyTerm>()
                     {
-                        String id1 = o1.getId();
-                        String id2 = o2.getId();
-                        return id1 == null || id2 == null ? 0 : id1.compareTo(id2);
-                    }
-                });
-                return parent;
+                        @Override
+                        public int compare(OntologyTerm o1, OntologyTerm o2)
+                        {
+                            String id1 = o1.getId();
+                            String id2 = o2.getId();
+                            return id1 == null || id2 == null ? 0 : id1.compareTo(id2);
+                        }
+                    });
+                    return parent;
+                }
             }
-        } else {
-            return super.getRoot();
         }
+        return super.getRoot();
     }
 
     @Override
     public double getScore()
     {
         if (this.access.isPrivateAccess()) {
-            return Double.NaN;
+            return 0.0;
         } else {
             return super.getScore();
         }

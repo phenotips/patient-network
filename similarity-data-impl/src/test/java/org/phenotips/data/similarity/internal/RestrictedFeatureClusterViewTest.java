@@ -177,7 +177,7 @@ public class RestrictedFeatureClusterViewTest
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, priv, ancestor, score);
         // Test that ancestor information is not retrieved as Feature methods of ClusterView
         Assert.assertEquals(null, o.getRoot());
-        Assert.assertEquals(Double.NaN, o.getScore(), 1E-5);
+        Assert.assertEquals(0.0, o.getScore(), 1E-5);
         Assert.assertEquals("Unmatched", o.getName());
         Assert.assertEquals("", o.getId());
 
@@ -388,13 +388,13 @@ public class RestrictedFeatureClusterViewTest
         Assert.assertEquals(3, result.size());
 
         // Score at root level
-        Assert.assertEquals(score, result.getDouble("score"), 1E-10);
+        Assert.assertEquals(0.0, result.getDouble("score"), 1E-10);
 
         // Category information (for unmatched terms)
         JSONObject category = result.getJSONObject("category");
         Assert.assertEquals(2, category.size());
-        Assert.assertEquals(ancestor.getId(), category.getString("id"));
-        Assert.assertEquals(ancestor.getName(), category.getString("name"));
+        Assert.assertEquals("", category.getString("id"));
+        Assert.assertEquals("Unmatched", category.getString("name"));
 
         // Reference term ids
         JSONArray ref = result.getJSONArray("reference");

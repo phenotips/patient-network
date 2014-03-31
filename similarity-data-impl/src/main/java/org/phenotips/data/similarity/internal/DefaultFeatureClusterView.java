@@ -140,7 +140,8 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     @Override
     public String getValue()
     {
-        return StringUtils.isNotBlank(getId()) ? getId() : getName();
+        String id = getId();
+        return StringUtils.isNotBlank(id) ? id : getName();
     }
 
     /**
@@ -154,7 +155,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     {
         // Add ancestor info
         JSONObject featureMatchJSON = new JSONObject();
-        featureMatchJSON.element("score", this.score);
+        featureMatchJSON.element("score", getScore());
 
         JSONObject sharedParentJSON = new JSONObject();
         sharedParentJSON.element("id", getId());
