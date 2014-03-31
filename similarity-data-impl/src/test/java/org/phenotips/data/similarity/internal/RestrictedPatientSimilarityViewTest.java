@@ -63,9 +63,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.mockito.Mockito.doReturn;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -81,9 +82,6 @@ public class RestrictedPatientSimilarityViewTest
 
     /** The default user used as the referrer of the matched patient, and of the reference patient for public access. */
     private static final DocumentReference USER_1 = new DocumentReference("xwiki", "XWiki", "padams");
-
-    /** The alternative user used as the referrer of the reference patient for matchable or private access. */
-    private static final DocumentReference USER_2 = new DocumentReference("xwiki", "XWiki", "hmccoy");
 
     private static AccessType open;
 
@@ -457,7 +455,7 @@ public class RestrictedPatientSimilarityViewTest
         CacheFactory cacheFactory = mock(CacheFactory.class);
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Mockito.anyString());
 
@@ -467,7 +465,6 @@ public class RestrictedPatientSimilarityViewTest
         Connection c = mock(Connection.class);
         when(connManager.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(c);
         when(c.getId()).thenReturn(Long.valueOf(42));
-        
 
         // Setup the ontology manager
         OntologyManager ontologyManager = mock(OntologyManager.class);

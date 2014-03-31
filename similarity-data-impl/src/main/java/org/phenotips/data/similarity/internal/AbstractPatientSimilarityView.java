@@ -172,6 +172,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      * 
      * @see org.phenotips.data.Patient#toJSON()
      */
+    @Override
     public JSONObject toJSON()
     {
         JSONObject result = new JSONObject();

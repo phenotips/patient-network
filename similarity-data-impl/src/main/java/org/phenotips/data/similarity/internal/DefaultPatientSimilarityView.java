@@ -183,6 +183,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * 
      * @see org.phenotips.data.Patient#getDisorders()
      */
+    @Override
     public Set<? extends Disorder> getDisorders()
     {
         Set<Disorder> result = new HashSet<Disorder>();

@@ -147,6 +147,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
      * 
      * @see org.phenotips.data.Feature#toJSON()
      */
+    @Override
     public JSONObject toJSON()
     {
         // Add ancestor info

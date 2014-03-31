@@ -39,7 +39,6 @@ import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
 import org.xwiki.cache.Cache;
-import org.xwiki.cache.CacheException;
 import org.xwiki.cache.CacheFactory;
 import org.xwiki.cache.CacheManager;
 import org.xwiki.cache.config.CacheConfiguration;
@@ -207,7 +206,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         CacheFactory cacheFactory = mock(CacheFactory.class);
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        Cache<PatientSimilarityView> cache = (Cache<PatientSimilarityView>) mock(Cache.class);
+        Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Mockito.anyString());
 
