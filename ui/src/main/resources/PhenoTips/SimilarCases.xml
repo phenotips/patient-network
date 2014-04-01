@@ -373,7 +373,8 @@
         } else {
           var dList = new Element('ul');
           r.disorders.each(function(d) {
-            dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name)));
+            // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
+            dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name.substring(0, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length))));
           })
           return dList;
         }
