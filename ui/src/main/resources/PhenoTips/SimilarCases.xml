@@ -20,28 +20,49 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc>
+<xwikidoc version="1.1">
   <web>PhenoTips</web>
   <name>SimilarCases</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>PhenoTips.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <author>xwiki:XWiki.Admin</author>
-  <customClass/>
-  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <creationDate>1393098154000</creationDate>
-  <date>1393100447000</date>
-  <contentUpdateDate>1379609967000</contentUpdateDate>
+  <parent>PhenoTips.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1396352668000</date>
+  <contentUpdateDate>1396350913000</contentUpdateDate>
   <version>1.1</version>
   <title/>
-  <defaultTemplate/>
-  <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <content>{{velocity output=false}}
+  #set ($patient = $services.patients.getPatientById("$!{request.query}"))
+  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
+  #if ("$!matches" == '')
+    #set ($matches = [])
+  #end
+{{/velocity}}
+
+{{velocity}}
+#if ($xcontext.action == 'get')
+  $response.setContentType('application/json')
+#end
+{
+  "query": $patient.toJSON(),
+  "resultsCount" : $matches.size(),
+  "results" : [
+#foreach ($p in $matches)
+  $p.toJSON()#if ($foreach.hasNext()),
+  #end
+
+#end
+  ]
+}
+{{/velocity}}</content>
   <class>
     <name>PhenoTips.SimilarCases</name>
     <customClass/>
@@ -93,6 +114,10 @@
     </min_score>
   </class>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>9f32c038-3885-430b-b820-c088c0b5940a</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -164,10 +189,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>0</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>9f32c038-3885-430b-b820-c088c0b5940a</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -862,6 +883,10 @@
     </property>
   </object>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>2</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c6c502ee-b4bb-4329-ba9f-db75d315a963</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -933,10 +958,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>2</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>c6c502ee-b4bb-4329-ba9f-db75d315a963</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -980,6 +1001,10 @@
     </property>
   </object>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>314a760a-1ec1-46d2-a262-b728dd8e61f9</guid>
     <class>
       <name>XWiki.StyleSheetExtension</name>
       <customClass/>
@@ -1051,10 +1076,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>0</number>
-    <className>XWiki.StyleSheetExtension</className>
-    <guid>314a760a-1ec1-46d2-a262-b728dd8e61f9</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -1237,6 +1258,10 @@
     </property>
   </object>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>1</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>06eebed5-da22-4d52-929c-22dc8d73c0a7</guid>
     <class>
       <name>XWiki.StyleSheetExtension</name>
       <customClass/>
@@ -1308,10 +1333,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>1</number>
-    <className>XWiki.StyleSheetExtension</className>
-    <guid>06eebed5-da22-4d52-929c-22dc8d73c0a7</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -1334,6 +1355,10 @@
     </property>
   </object>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>2</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>fbd8e808-942d-40f2-9478-ef83760355c8</guid>
     <class>
       <name>XWiki.StyleSheetExtension</name>
       <customClass/>
@@ -1405,10 +1430,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>2</number>
-    <className>XWiki.StyleSheetExtension</className>
-    <guid>fbd8e808-942d-40f2-9478-ef83760355c8</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -1503,6 +1524,10 @@
     </property>
   </object>
   <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>6319e3f0-cdcb-47fa-9563-19058b4bf336</guid>
     <class>
       <name>XWiki.UIExtensionClass</name>
       <customClass/>
@@ -1567,10 +1592,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </scope>
     </class>
-    <name>PhenoTips.SimilarCases</name>
-    <number>0</number>
-    <className>XWiki.UIExtensionClass</className>
-    <guid>6319e3f0-cdcb-47fa-9563-19058b4bf336</guid>
     <property>
       <content>{{velocity}}
 #if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
@@ -1615,28 +1636,4 @@
       <scope>wiki</scope>
     </property>
   </object>
-  <content>{{velocity output=false}}
-  #set ($patient = $services.patients.getPatientById("$!{request.query}"))
-  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
-  #if ("$!matches" == '')
-    #set ($matches = [])
-  #end
-{{/velocity}}
-
-{{velocity}}
-#if ($xcontext.action == 'get')
-  $response.setContentType('application/json')
-#end
-{
-  "query": $patient.toJSON(),
-  "resultsCount" : $matches.size(),
-  "results" : [
-#foreach ($p in $matches)
-  $p.toJSON()#if ($foreach.hasNext()),
-  #end
-
-#end
-  ]
-}
-{{/velocity}}</content>
 </xwikidoc>
