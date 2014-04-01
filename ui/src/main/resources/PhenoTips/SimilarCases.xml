@@ -564,24 +564,24 @@
 
    _displayFeature : function(f) {
       if (!f) { return ''; }
-      var prefix = "", cssModifier = !f.name &amp;&amp; this._UNKNOWN_INFO_MARKER || "";
+      var prefix = "", cssModifier = !f.label &amp;&amp; this._UNKNOWN_INFO_MARKER || "";
       if (f.isPresent === false) {
         prefix = "NO ";
         cssModifier += " " + this._NEGATIVE_MARKER;
       }
       var container = new Element("div");
       var name = new Element("span", {
-         "title" : (f.id || "") + " " + (f.name || ""),
+         "title" : (f.id || "") + " " + (f.label || ""),
          "class" : cssModifier
-      }).insert(f.name &amp;&amp; prefix + f.name || this._UNKNOWN_INFO_TEXT);
+      }).insert(f.label &amp;&amp; prefix + f.label || this._UNKNOWN_INFO_TEXT);
         //.insert(f.type &amp;&amp; new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
       container.insert(name);
       if (f.metadata) {
         var metadata = new Element ("ul", {"class" : this._METADATA_MARKER});
         container.insert(metadata);
         f.metadata.each(function(m) {
-          if (m.name) {
-            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.name || ""), "class" : f.type || ""}).update(m.name || this._UNKNOWN_INFO_TEXT);
+          if (m.label) {
+            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || this._UNKNOWN_INFO_TEXT);
             metadata.insert(entry);
           }
         });
