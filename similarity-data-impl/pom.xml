@@ -53,22 +53,22 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>component-registry</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ontology-access-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-data-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-access-rules-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -108,7 +108,7 @@
     <dependency>
       <groupId>org.phenotips</groupId>
       <artifactId>medsavant-client-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${phenotips.version}</version>
     </dependency>
   </dependencies>
 

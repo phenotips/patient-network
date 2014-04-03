@@ -43,22 +43,22 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>component-registry</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ontology-access-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-data-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-access-rules-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

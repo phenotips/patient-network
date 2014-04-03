@@ -33,7 +33,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-access-rules-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>xwiki-platform-users-api</artifactId>
-      <version>${project.version}</version>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
