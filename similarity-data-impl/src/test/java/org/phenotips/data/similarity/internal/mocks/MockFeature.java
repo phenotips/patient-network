@@ -44,6 +44,8 @@ public class MockFeature implements Feature
 
     private final boolean present;
 
+    private final String notes;
+
     private final Map<String, FeatureMetadatum> meta;
 
     public MockFeature(String id, String name, String type, boolean present)
@@ -53,11 +55,18 @@ public class MockFeature implements Feature
 
     public MockFeature(String id, String name, String type, Map<String, FeatureMetadatum> meta, boolean present)
     {
+        this(id, name, type, Collections.<String, FeatureMetadatum>emptyMap(), present, "");
+    }
+
+    public MockFeature(String id, String name, String type, Map<String, FeatureMetadatum> meta, boolean present,
+        String notes)
+    {
         this.id = id;
         this.name = name;
         this.type = type;
         this.meta = meta;
         this.present = present;
+        this.notes = notes;
     }
 
     @Override
@@ -88,6 +97,12 @@ public class MockFeature implements Feature
     public Map<String, ? extends FeatureMetadatum> getMetadata()
     {
         return this.meta;
+    }
+
+    @Override
+    public String getNotes()
+    {
+        return this.notes;
     }
 
     @Override

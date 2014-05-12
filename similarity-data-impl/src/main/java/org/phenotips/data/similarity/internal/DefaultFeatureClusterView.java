@@ -124,6 +124,13 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     }
 
     @Override
+    public String getNotes()
+    {
+        // This is not relevant for the ancestor term.
+        return "";
+    }
+
+    @Override
     public String getId()
     {
         OntologyTerm term = getRoot();
