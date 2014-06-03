@@ -148,6 +148,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
                 token = String.valueOf(cm.getConnection(this).getId());
             } catch (ComponentLookupException e) {
                 // This should not happen
+            } catch (NullPointerException e) {
+                //This could happen, but should not matter if it does.
             }
             this.contactToken = token;
         }
