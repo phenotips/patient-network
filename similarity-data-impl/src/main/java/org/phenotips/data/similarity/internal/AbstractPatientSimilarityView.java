@@ -31,6 +31,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Collection;
+import java.util.MissingResourceException;
 import java.util.Objects;
 
 import net.sf.json.JSONArray;
@@ -148,8 +149,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
                 token = String.valueOf(cm.getConnection(this).getId());
             } catch (ComponentLookupException e) {
                 // This should not happen
-            } catch (NullPointerException e) {
-                //This could happen, but should not matter if it does.
+            } catch (MissingResourceException e) {
+                //This should only happen, if at all, when used in conjunction with RemoteMatching
             }
             this.contactToken = token;
         }

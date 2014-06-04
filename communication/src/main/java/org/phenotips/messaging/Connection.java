@@ -28,6 +28,8 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
+import java.util.MissingResourceException;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -82,6 +84,10 @@ public class Connection
         this.targetPatient = patientPair;
         this.referencePatient = patientPair.getReference();
         PatientAccess pa = getAccess(patientPair.getReference());
+        if (pa.getOwner().getUser() == null) {
+            throw new MissingResourceException("The patient pair does not have an owner",
+                "org.phenotips.data.permissions", "Owner");
+        }
         this.initiatingUser = new DocumentReference(pa.getOwner().getUser());
         pa = getAccess(patientPair);
         this.contactedUser = new DocumentReference(pa.getOwner().getUser());
