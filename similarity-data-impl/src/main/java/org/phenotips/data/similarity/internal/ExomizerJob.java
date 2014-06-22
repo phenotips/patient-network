@@ -62,7 +62,7 @@ public class ExomizerJob implements Runnable
     /** Logging helper object. */
     private final Logger logger;
 
-    /** The manager component, set with {@link #initialize(ExomizerJobManager, PatientRepository)}. */
+    /** The manager component, set with {@link #initialize(ExomizerJobManager, org.phenotips.data.PatientRepository)}. */
     private final ExomizerJobManager manager;
 
     /** Exomized gene data structure, likely shared by other ExomizerJob instances. */
@@ -124,8 +124,7 @@ public class ExomizerJob implements Runnable
         // Look up filtered variants from PhenomeCentral-Medsavant API
         MedSavantServer medsavant = null;
         try {
-            medsavant =
-                ComponentManagerRegistry.getContextComponentManager().getInstance(MedSavantServer.class);
+            medsavant = ComponentManagerRegistry.getContextComponentManager().getInstance(MedSavantServer.class);
         } catch (ComponentLookupException e) {
             // Should never happen
         }

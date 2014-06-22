@@ -71,7 +71,7 @@ public class ExomizerGenotype implements Genotype
 
             String gene = variant.getAnnotation("GENE");
             Double geneScore = Double.parseDouble(variant.getAnnotation("PHENO_SCORE"));
-            geneScores.put(gene, geneScore);
+            this.geneScores.put(gene, geneScore);
 
             if (gene != null && !gene.isEmpty()) {
                 List<Variant> geneMutations = this.variants.get(gene);

@@ -64,6 +64,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
      * 
      * @see org.phenotips.data.similarity.internal.DefaultFeatureClusterView#getRoot()
      */
+    @Override
     public OntologyTerm getRoot()
     {
         if (this.access.isPrivateAccess()) {

@@ -141,8 +141,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param score the score of the feature matching
      */
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access,
-        OntologyTerm root, double score)
+        AccessType access, OntologyTerm root, double score)
     {
         return new DefaultFeatureClusterView(match, reference, access, root, score);
     }
@@ -492,8 +491,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param termLookup a mapping from term IDs to features in the patient
      * @return a Collection of features in the patients corresponding to the given terms
      */
-    private Collection<Feature> termsToFeatures(Collection<OntologyTerm> terms,
-        Map<String, Feature> termLookup)
+    private Collection<Feature> termsToFeatures(Collection<OntologyTerm> terms, Map<String, Feature> termLookup)
     {
         Collection<Feature> features = new ArrayList<Feature>();
         for (OntologyTerm term : terms) {

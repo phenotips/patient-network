@@ -421,7 +421,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * Get the JSON for an array of variants.
      * 
      * @param vs an array of Variant objects
-     * @param restricted if false, the variants are displayed regardless of the current accessType  
+     * @param restricted if false, the variants are displayed regardless of the current accessType
      * @return JSON for the variants, an empty array if there are no variants
      */
     private JSONArray getVariantsJSON(Variant[] vs, boolean restricted)
@@ -453,7 +453,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         }
         JSONArray genesJSON = new JSONArray();
         // Gene genes, in order of decreasing score
-        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
+        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(this.geneScores.entrySet());
         Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
         {
             @Override

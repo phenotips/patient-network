@@ -103,7 +103,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     @Override
     public void initialize() throws InitializationException
     {
-        logger.error("Intializing ExomizerJobManager...");
+        this.logger.error("Intializing ExomizerJobManager...");
         this.chromosomeMap = null;
 
         // Set up threadpool

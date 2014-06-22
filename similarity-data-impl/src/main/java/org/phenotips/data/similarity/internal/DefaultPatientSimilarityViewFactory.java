@@ -393,7 +393,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
         Double thisIC = 0.0;
         if (siblings == null) {
-            logger.error("Missing siblings for term: " + term.getId());
+            this.logger.error("Missing siblings for term: " + term.getId());
         } else {
             // Sum probability mass under all siblings
             Double siblingProbMass = 0.0;
@@ -443,7 +443,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         this.logger.error("Initializing DefaultPatientSimilarityViewFactory...");
         if (this.viewCache == null) {
             try {
-                this.viewCache = cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
+                this.viewCache = this.cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
             } catch (ComponentLookupException e) {
                 this.logger.error("Error getting local cache factory");
             } catch (CacheException e) {
@@ -474,8 +474,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
             // Give data to views to use
             this.logger.error("Setting view globals...");
-            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager,
-                this.logger);
+            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager, this.logger);
         }
         this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
     }
