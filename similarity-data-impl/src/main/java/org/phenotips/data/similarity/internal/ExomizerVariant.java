@@ -24,7 +24,7 @@ import org.phenotips.data.similarity.Variant;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.bouncycastle.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -71,7 +71,7 @@ public class ExomizerVariant implements Variant
      */
     ExomizerVariant(String line)
     {
-        String[] tokens = Strings.split(line, '\t');
+        String[] tokens = StringUtils.split(line, '\t');
         init(tokens[0], Integer.parseInt(tokens[1]), tokens[3], tokens[4], tokens[9], tokens[7], null);
     }
 
@@ -84,7 +84,7 @@ public class ExomizerVariant implements Variant
     ExomizerVariant(JSONArray row)
     {
         init(row.getString(4), row.getInt(5), row.getString(8), row.getString(9),
-            Strings.split(row.getString(14), ':')[0], row.getString(15), 0.0);
+            StringUtils.split(row.getString(14), ':')[0], row.getString(15), 0.0);
     }
 
     /**
@@ -118,7 +118,7 @@ public class ExomizerVariant implements Variant
         // Parse the INFO field into a dictionary
         this.rawInfo = info;
         this.info = new TreeMap<String, String>();
-        String[] infoParts = Strings.split(info, ';');
+        String[] infoParts = StringUtils.split(info, ';');
         for (String part : infoParts) {
             int splitIndex = part.indexOf('=');
             if (splitIndex >= 0) {

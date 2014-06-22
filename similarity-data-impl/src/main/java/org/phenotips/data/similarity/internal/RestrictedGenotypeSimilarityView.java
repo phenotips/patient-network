@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.bouncycastle.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,7 +182,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                         if (line.startsWith("#")) {
                             continue;
                         }
-                        String[] tokens = Strings.split(line, '\t');
+                        String[] tokens = StringUtils.split(line, '\t');
                         String gene = tokens[0];
                         int[] scores = new int[4];
                         // Read and save the (first) four scores for the gene
