@@ -50,12 +50,12 @@ public class MockFeature implements Feature
 
     public MockFeature(String id, String name, String type, boolean present)
     {
-        this(id, name, type, Collections.<String, FeatureMetadatum> emptyMap(), present);
+        this(id, name, type, Collections.<String, FeatureMetadatum>emptyMap(), present, "");
     }
 
     public MockFeature(String id, String name, String type, Map<String, FeatureMetadatum> meta, boolean present)
     {
-        this(id, name, type, Collections.<String, FeatureMetadatum>emptyMap(), present, "");
+        this(id, name, type, meta, present, "");
     }
 
     public MockFeature(String id, String name, String type, Map<String, FeatureMetadatum> meta, boolean present,
