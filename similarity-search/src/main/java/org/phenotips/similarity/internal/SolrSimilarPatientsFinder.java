@@ -25,12 +25,12 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.ontology.SolrCoreContainerHandler;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.configuration.ConfigurationSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -63,9 +63,6 @@ import groovy.lang.Singleton;
 @Singleton
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
-    /** Character used in URLs to delimit path segments. */
-    private static final String URL_PATH_SEPARATOR = "/";
-
     /** Logging helper object. */
     @Inject
     private Logger logger;
@@ -85,8 +82,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private PatientSimilarityViewFactory factory;
 
     @Inject
-    @Named("xwikiproperties")
-    private ConfigurationSource configuration;
+    private SolrCoreContainerHandler cores;
 
     /** The Solr server instance used. */
     private SolrServer server;
@@ -94,11 +90,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Override
     public void initialize() throws InitializationException
     {
-        try {
-            this.server = new HttpSolrServer(this.getSolrLocation() + "patients/");
-        } catch (RuntimeException ex) {
-            throw new InitializationException("Invalid URL specified for the Solr server: {}");
-        }
+        this.server = new EmbeddedSolrServer(this.cores.getContainer(), "patients");
     }
 
     @Override
@@ -202,20 +194,5 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return response.getNumFound();
         }
         return 0;
-    }
-
-    /**
-     * Get the URL where the Solr server can be reached, without any core name.
-     * 
-     * @return an URL as a String
-     */
-    protected String getSolrLocation()
-    {
-        String wikiSolrUrl = this.configuration.getProperty("solr.remote.url", String.class);
-        if (StringUtils.isBlank(wikiSolrUrl)) {
-            return "http://localhost:8080/solr/";
-        }
-        return StringUtils.substringBeforeLast(StringUtils.removeEnd(wikiSolrUrl, URL_PATH_SEPARATOR),
-            URL_PATH_SEPARATOR) + URL_PATH_SEPARATOR;
     }
 }
