@@ -64,9 +64,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /** The largest IC found, for normalizing. */
     private static Double maxIC;
 
-    /** Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf). */
-    private static Map<OntologyTerm, Double> parentCondIC;
-
     /** Provides access to the term ontology. */
     private static OntologyManager ontologyManager;
 
@@ -110,22 +107,20 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     public static boolean isInitialized()
     {
-        return termICs != null && parentCondIC != null && ontologyManager != null;
+        return termICs != null && ontologyManager != null;
     }
 
     /**
      * Set the static information for the class. Must be run before creating instances of this class.
      * 
      * @param termICs the information content of each term
-     * @param condICs the conditional information content of each term, given its parents
      * @param ontologyManager the ontology manager
      * @param logger the logging component
      */
-    public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
-        OntologyManager ontologyManager, Logger logger)
+    public static void initializeStaticData(Map<OntologyTerm, Double> termICs, OntologyManager ontologyManager,
+        Logger logger)
     {
         DefaultPatientSimilarityView.termICs = termICs;
-        DefaultPatientSimilarityView.parentCondIC = condICs;
         DefaultPatientSimilarityView.ontologyManager = ontologyManager;
         DefaultPatientSimilarityView.logger = logger;
         DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
@@ -235,7 +230,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
             OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
             if (term == null) {
-                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
+                // Ignore terms that cannot be resolved to the ontology
+                continue;
             } else {
                 terms.add(term);
             }
@@ -279,16 +275,16 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return the cost of encoding all the terms (and their ancestors) in a tree together.
+     * Return the total IC across a collection of terms.
      * 
-     * @param all terms (and their ancestors) that are present in the patient
-     * @return the cost of the encoding all the terms
+     * @param terms (should include implied ancestors) that are present in the patient
+     * @return the total IC for all the terms
      */
-    private double getJointTermsCost(Collection<OntologyTerm> ancestors)
+    private double getTermICs(Collection<OntologyTerm> terms)
     {
         double cost = 0;
-        for (OntologyTerm term : ancestors) {
-            Double ic = parentCondIC.get(term);
+        for (OntologyTerm term : terms) {
+            Double ic = termICs.get(term);
             if (ic == null) {
                 ic = 0.0;
             }
@@ -311,20 +307,16 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
                 if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
                     this.score = 0.0;
                 } else {
-                    // Compute costs of each patient separately
-                    double p1Cost = getJointTermsCost(refAncestors);
-                    double p2Cost = getJointTermsCost(matchAncestors);
+                    // Score overlapping ancestors
+                    Set<OntologyTerm> commonAncestors = new HashSet<OntologyTerm>();
+                    commonAncestors.addAll(refAncestors);
+                    commonAncestors.retainAll(matchAncestors);
 
-                    // Score overlapping (min) ancestors
-                    Set<OntologyTerm> sharedAncestors = new HashSet<OntologyTerm>();
-                    sharedAncestors.addAll(refAncestors);
-                    sharedAncestors.retainAll(matchAncestors);
+                    Set<OntologyTerm> allAncestors = new HashSet<OntologyTerm>();
+                    allAncestors.addAll(refAncestors);
+                    allAncestors.addAll(matchAncestors);
 
-                    double sharedCost = getJointTermsCost(sharedAncestors);
-                    assert (sharedCost <= p1Cost && sharedCost <= p2Cost) : "sharedCost > individiual cost";
-
-                    double harmonicMeanIC = 2 / (p1Cost / sharedCost + p2Cost / sharedCost);
-                    this.score = harmonicMeanIC;
+                    this.score = getTermICs(commonAncestors) / getTermICs(allAncestors);
                 }
             }
         }

@@ -297,11 +297,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                         }
                         // Get frequency with which symptom occurs in disease, if annotated
                         // TODO: fix with actual frequency
-                        Double freq = null;
-                        if (freq == null) {
-                            // Default frequency
-                            freq = 0.5;
-                        }
+                        Double freq = 1.0;
                         freqDenom += freq;
                         // Add to accumulated term frequency
                         Double prevFreq = termFreq.get(symptom);
@@ -368,75 +364,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         return termICs;
     }
 
-    /**
-     * Return the (approximate) conditional information content (IC) of a term, given its parents. Approximation is
-     * IC(term) + log(sum_{sibling} probability mass under sibling)
-     * 
-     * @param term the OntologyTerm to compute the conditional IC
-     * @param termIC the pre-computed IC of each term
-     * @param termChildren the direct children of each OntologyTerm
-     * @return the approximate conditional IC of term, given its parents
-     */
-    private double getTermCondIC(OntologyTerm term, Map<OntologyTerm, Double> termIC,
-        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
-    {
-        // Find all terms with same set of parents
-        Collection<OntologyTerm> siblings = null;
-        for (OntologyTerm parent : term.getParents()) {
-            Collection<OntologyTerm> partialSiblings = termChildren.get(parent);
-            if (siblings == null) {
-                siblings = new HashSet<OntologyTerm>(partialSiblings);
-            } else {
-                siblings.retainAll(partialSiblings);
-            }
-        }
-
-        Double thisIC = 0.0;
-        if (siblings == null) {
-            this.logger.error("Missing siblings for term: " + term.getId());
-        } else {
-            // Sum probability mass under all siblings
-            Double siblingProbMass = 0.0;
-            for (OntologyTerm sibling : siblings) {
-                Double siblingIC = termIC.get(sibling);
-                if (siblingIC != null) {
-                    siblingProbMass += Math.exp(-siblingIC);
-                }
-            }
-
-            if (siblingProbMass > EPS) {
-                // Approximate conditional information content of term is information content of term less the overall
-                // information content of siblings
-                thisIC = termIC.get(term);
-                if (thisIC == null) {
-                    thisIC = 0.0;
-                }
-                thisIC += Math.log(siblingProbMass);
-            }
-        }
-        return thisIC;
-    }
-
-    /**
-     * Return the (approximate) conditional information content (IC) of all terms, given their parents. Approximation is
-     * IC(term) - max(IC(parent) | parent in parents(term))
-     * 
-     * @param termIC the pre-computed IC of each term
-     * @param termChildren the direct children of each OntologyTerm
-     * @return map of the conditional IC of each term, given its parents
-     */
-    private Map<OntologyTerm, Double> getCondICs(Map<OntologyTerm, Double> termIC,
-        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
-    {
-        Map<OntologyTerm, Double> parentCondIC = new HashMap<OntologyTerm, Double>();
-        for (OntologyTerm term : termIC.keySet()) {
-            double condIC = getTermCondIC(term, termIC, termChildren);
-            // logger.error("Term: " + term.getId() + ", IC|parents: " + condIC);
-            parentCondIC.put(term, condIC);
-        }
-        return parentCondIC;
-    }
-
     @Override
     public void initialize() throws InitializationException
     {
@@ -466,15 +393,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
             Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
-            this.logger.error("Calculating conditional ICs...");
-            // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-            Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
-            assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
-            assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
-
             // Give data to views to use
             this.logger.error("Setting view globals...");
-            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager, this.logger);
+            DefaultPatientSimilarityView.initializeStaticData(termICs, this.ontologyManager, this.logger);
         }
         this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
     }
