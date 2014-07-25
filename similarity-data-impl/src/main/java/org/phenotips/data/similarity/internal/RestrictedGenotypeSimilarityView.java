@@ -29,10 +29,7 @@ import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
-import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
-import org.xwiki.cache.CacheManager;
-import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.environment.Environment;
@@ -78,7 +75,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     private static Map<String, int[]> controlDamage;
 
     /** Cache for storing symmetric pairwise patient similarity scores. */
-    private static Cache<Double> similarityScoreCache;
+    private static PairCache<Double> similarityScoreCache;
 
     /** Logging helper object. */
     private final Logger logger = LoggerFactory.getLogger(DefaultPatientSimilarityView.class);
@@ -136,8 +133,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         try {
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
             if (similarityScoreCache == null) {
-                CacheManager cacheManager = componentManager.getInstance(CacheManager.class);
-                similarityScoreCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+                similarityScoreCache = new PairCache<Double>();
             }
 
             this.patientRepo = componentManager.getInstance(PatientRepository.class);
@@ -224,7 +220,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         Double score = similarityScoreCache.get(key);
         if (score == null) {
             score = this.patientViewFactory.makeSimilarPatient(p1, p2).getScore();
-            similarityScoreCache.set(key, score);
+            similarityScoreCache.set(id1, id2, key, score);
         }
         return score;
     }
@@ -414,6 +410,16 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             return 0.0;
         } else {
             return Collections.max(this.geneScores.values());
+        }
+    }
+
+    /**
+     * Clear all entries in the similarity score cache.
+     */
+    public static void clearCache()
+    {
+        if (similarityScoreCache != null) {
+            similarityScoreCache.removeAll();
         }
     }
 

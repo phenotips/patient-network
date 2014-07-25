@@ -29,12 +29,8 @@ import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
-import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
-import org.xwiki.cache.CacheManager;
-import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
@@ -69,6 +65,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /** Small value used to round things too close to 0 or 1. */
     private static final double EPS = 1e-9;
 
+    /** Cache for patient similarity views. */
+    private PairCache<PatientSimilarityView> viewCache;
+
     /** Logging helper object. */
     @Inject
     protected Logger logger;
@@ -90,13 +89,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /** Provides access to the term ontology. */
     @Inject
     protected OntologyManager ontologyManager;
-
-    /** Provides access to the cache manager. */
-    @Inject
-    private CacheManager cacheManager;
-
-    /** Cache for patient similarity views. */
-    private Cache<PatientSimilarityView> viewCache;
 
     /**
      * Create an instance of the PatientSimilarityView for this PatientSimilarityViewFactory. This can be overridden to
@@ -127,7 +119,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         PatientSimilarityView result = this.viewCache.get(cacheKey);
         if (result == null) {
             result = createPatientSimilarityView(match, reference, access);
-            this.viewCache.set(cacheKey, result);
+            this.viewCache.set(match.getId(), reference.getId(), cacheKey, result);
         }
         return result;
     }
@@ -443,9 +435,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         this.logger.error("Initializing DefaultPatientSimilarityViewFactory...");
         if (this.viewCache == null) {
             try {
-                this.viewCache = this.cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
-            } catch (ComponentLookupException e) {
-                this.logger.error("Error getting local cache factory");
+                this.viewCache = new PairCache<PatientSimilarityView>();
             } catch (CacheException e) {
                 this.logger.error("Unable to create cache for PatientSimilarityViews");
             }
@@ -477,5 +467,15 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager, this.logger);
         }
         this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
+    }
+
+    /**
+     * Clear all cached patient similarity data.
+     */
+    public void clearCache()
+    {
+        if (this.viewCache != null) {
+            this.viewCache.removeAll();
+        }
     }
 }
