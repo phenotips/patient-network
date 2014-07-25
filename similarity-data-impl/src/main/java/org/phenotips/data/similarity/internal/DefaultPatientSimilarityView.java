@@ -22,6 +22,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
@@ -297,8 +298,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         return cost;
     }
 
-    @Override
-    public double getScore()
+    /**
+     * Get the phenotypic similarity score for this patient match.
+     * 
+     * @return the similarity score, between 0 (a poor match) and 1 (a good match)
+     */
+    public double getPhenotypeScore()
     {
         if (this.score == null) {
             if (this.match == null || this.reference == null) {
@@ -329,6 +334,39 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
         }
         return this.score;
+    }
+
+    /**
+     * Return a collection of the names of candidate genes listed for the patient.
+     * 
+     * @param p the patient
+     * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
+     */
+    private Collection<String> getCandidateGeneNames(Patient p)
+    {
+        PatientData<Map<String, String>> genesData = p.getData("genes");
+        if (genesData != null) {
+            Map<String, String> geneMap = genesData.getValue();
+            if (geneMap != null) {
+                return Collections.unmodifiableSet(geneMap.keySet());
+            }
+        }
+        return Collections.emptySet();
+    }
+
+    @Override
+    public double getScore()
+    {
+        Collection<String> matchGenes = getCandidateGeneNames(match);
+        Collection<String> refGenes = getCandidateGeneNames(reference);
+        Set<String> sharedGenes = new HashSet<String>();
+        sharedGenes.addAll(matchGenes);
+        sharedGenes.retainAll(refGenes);
+        double geneBoost = 0.0;
+        if (!sharedGenes.isEmpty()) {
+            geneBoost = 0.6;
+        }
+        return Math.pow(this.getPhenotypeScore(), 1 - geneBoost);
     }
 
     /**
