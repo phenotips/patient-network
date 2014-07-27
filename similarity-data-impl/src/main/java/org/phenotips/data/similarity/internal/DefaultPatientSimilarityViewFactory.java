@@ -116,10 +116,15 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     {
         // Get potentially-cached patient similarity view
         String cacheKey = match.getId() + '|' + reference.getId() + '|' + access.getAccessLevel().getName();
-        PatientSimilarityView result = this.viewCache.get(cacheKey);
+        PatientSimilarityView result = null;
+        if (this.viewCache != null) {
+            // result = this.viewCache.get(cacheKey);
+        }
         if (result == null) {
             result = createPatientSimilarityView(match, reference, access);
-            this.viewCache.set(match.getId(), reference.getId(), cacheKey, result);
+            if (this.viewCache != null) {
+                this.viewCache.set(match.getId(), reference.getId(), cacheKey, result);
+            }
         }
         return result;
     }
@@ -464,9 +469,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
             // Give data to views to use
             this.logger.error("Setting view globals...");
-            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager, this.logger);
+            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager);
         }
-        this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
+        this.logger.error("DefaultPatientSimilarityViewFactory initialized.");
     }
 
     /**

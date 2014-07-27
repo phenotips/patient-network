@@ -38,6 +38,7 @@ import org.xwiki.query.QueryManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 
 import exomizer.Exomizer;
@@ -76,6 +78,9 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
 
     /** Filename of serialized UCSC data, used by exomizer. */
     private static final String SERIALIZED_UCSC = "ucsc.ser";
+
+    /** Number of threads to use in the Exomiser threadpool. */
+    private static final int NUM_THREADS = 2;
 
     /** Logging helper object. */
     @Inject
@@ -107,7 +112,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
         this.chromosomeMap = null;
 
         // Set up threadpool
-        this.executor = Executors.newFixedThreadPool(2);
+        this.executor = Executors.newFixedThreadPool(NUM_THREADS);
         this.submittedJobs = new ConcurrentHashMap<String, Future<?>>();
         this.completedJobs = new ConcurrentHashMap<String, Genotype>();
 
@@ -145,11 +150,11 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
 
             // Handle MedSavantServer component more carefully, since it *will* likely crash
-            try {
-                medsavant = cm.getInstance(MedSavantServer.class);
-            } catch (ComponentLookupException e) {
-                this.logger.error("Could not load medsavant, no jobs will be started.");
-            }
+            // try {
+            // medsavant = cm.getInstance(MedSavantServer.class);
+            // } catch (ComponentLookupException e) {
+            // this.logger.error("Could not load medsavant, no jobs will be started.");
+            // }
         } catch (ComponentLookupException e) {
             this.logger.error("Could not load components for patient lookup.");
             return;
@@ -158,23 +163,47 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             return;
         }
 
-        for (String patientDoc : patientDocs) {
-            Patient p = patients.getPatientById(patientDoc);
-            if (p != null) {
-                String patientId = p.getId();
-                File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
-                if (results.exists()) {
-                    try {
-                        this.logger.error("Loading genetics for " + patientId);
-                        putResult(patientId, new ExomizerGenotype(results));
-                    } catch (FileNotFoundException e) {
-                        this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
-                    }
-                } else if (medsavant != null && !hasJob(p) && medsavant.hasVCF(p)) {
-                    addJob(p);
-                }
+        // Load up any output files files
+        File[] outputFiles = this.dataDir.listFiles(new FilenameFilter()
+        {
+            @Override
+            public boolean accept(File dir, String name)
+            {
+                return name.endsWith(EXOMIZER_SUFFIX);
+            }
+        });
+
+        for (File outputFile : outputFiles) {
+            String patientId = FilenameUtils.removeExtension(outputFile.getName());
+            try {
+                long startTime = System.currentTimeMillis();
+                putResult(patientId, new ExomizerGenotype(outputFile));
+                this.logger.error(String.format("Loaded genetics for %s in %d ms", patientId,
+                    System.currentTimeMillis() - startTime));
+            } catch (FileNotFoundException e) {
+                this.logger.error("Unable to load genotype from file: " + outputFile.getAbsolutePath());
             }
         }
+
+//        for (String patientDoc : patientDocs) {
+//            Patient p = patients.getPatientById(patientDoc);
+//            if (p != null) {
+//                String patientId = p.getId();
+//                File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
+//                if (results.exists()) {
+//                    try {
+//                        long startTime = System.currentTimeMillis();
+//                        putResult(patientId, new ExomizerGenotype(results));
+//                        this.logger.error(String.format("Loaded genetics for %s in %d ms", patientId,
+//                            System.currentTimeMillis() - startTime));
+//                    } catch (FileNotFoundException e) {
+//                        this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
+//                    }
+//                } else if (medsavant != null && !hasJob(p) && medsavant.hasVCF(p)) {
+//                    addJob(p);
+//                }
+//            }
+//        }
     }
 
     /**
@@ -280,5 +309,14 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     public Set<String> getAllCompleted()
     {
         return Collections.unmodifiableSet(this.completedJobs.keySet());
+    }
+
+    /**
+     * Reload genotype data for completed jobs.
+     */
+    public void reloadData()
+    {
+        this.completedJobs.clear();
+        this.initializeData();
     }
 }

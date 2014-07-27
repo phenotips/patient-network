@@ -61,7 +61,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -210,8 +209,6 @@ public class RestrictedPatientSimilarityViewFactoryTest
         doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Mockito.anyString());
 
-        Logger logger = mock(Logger.class);
-
         // Mock up the contact token
         ConnectionManager connManager = this.mocker.registerMockComponent(ConnectionManager.class);
         Connection conn = mock(Connection.class);
@@ -302,6 +299,6 @@ public class RestrictedPatientSimilarityViewFactoryTest
             when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
-        DefaultPatientSimilarityView.initializeStaticData(termICs, condICs, ontologyManager, logger);
+        DefaultPatientSimilarityView.initializeStaticData(termICs, condICs, ontologyManager);
     }
 }

@@ -59,6 +59,10 @@ public class PairCache<T>
         } catch (ComponentLookupException e) {
             throw new CacheException("Error getting local cache factory");
         }
+
+        if (this.cache == null) {
+            throw new CacheException("Error getting local cache factory");
+        }
     }
 
     /**

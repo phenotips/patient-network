@@ -37,24 +37,39 @@ public interface Genotype
     /**
      * Get the names of all genes with variants in the patient.
      * 
-     * @return an unmodifiable set of gene names with variants in the patient
+     * @return an unmodifiable set of gene names with variants in the patient.
      */
     Set<String> getGenes();
 
     /**
      * Return the score for a gene.
      * 
-     * @param gene the gene in question
-     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene)
+     * @param gene the gene in question.
+     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene).
      */
     Double getGeneScore(String gene);
 
     /**
+     * Set the score for a gene.
+     * 
+     * @param gene the gene in question.
+     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene).
+     */
+    void setGeneScore(String gene, Double score);
+
+    /**
+     * Add the variant to the provided gene.
+     * 
+     * @param gene the gene in question.
+     */
+    void addVariant(String gene, Variant variant);
+
+    /**
      * Get the kth highest scoring variant in the given gene.
      * 
-     * @param gene the gene to return variants for
-     * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc)
-     * @return get the kth highest scoring variant (or null)
+     * @param gene the gene to return variants for.
+     * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc).
+     * @return get the kth highest scoring variant (or null).
      */
     Variant getTopVariant(String gene, int k);
 
@@ -81,7 +96,7 @@ public interface Genotype
      *   ]
      * </pre>
      * 
-     * @return the data about this value, using the json-lib classes
+     * @return the data about this value, using the json-lib classes.
      */
     JSONArray toJSON();
 }

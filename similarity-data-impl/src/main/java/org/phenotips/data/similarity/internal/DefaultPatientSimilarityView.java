@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -70,9 +71,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /** Provides access to the term ontology. */
     private static OntologyManager ontologyManager;
-
-    /** Logging helper object. */
-    private static Logger logger;
 
     /** Memoized match score. */
     private Double score;
@@ -120,15 +118,13 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param termICs the information content of each term
      * @param condICs the conditional information content of each term, given its parents
      * @param ontologyManager the ontology manager
-     * @param logger the logging component
      */
     public static void initializeStaticData(Map<OntologyTerm, Double> termICs, Map<OntologyTerm, Double> condICs,
-        OntologyManager ontologyManager, Logger logger)
+        OntologyManager ontologyManager)
     {
         DefaultPatientSimilarityView.termICs = termICs;
         DefaultPatientSimilarityView.parentCondIC = condICs;
         DefaultPatientSimilarityView.ontologyManager = ontologyManager;
-        DefaultPatientSimilarityView.logger = logger;
         DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
     }
 
@@ -235,9 +231,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
 
             OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
-            if (term == null) {
-                logger.error("Error resolving term: " + feature.getId() + " " + feature.getName());
-            } else {
+            if (term != null) {
+                // Only add resolvable terms
                 terms.add(term);
             }
         }
@@ -346,10 +341,16 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     {
         PatientData<Map<String, String>> genesData = p.getData("genes");
         if (genesData != null) {
-            Map<String, String> geneMap = genesData.getValue();
-            if (geneMap != null) {
-                return Collections.unmodifiableSet(geneMap.keySet());
+            Set<String> geneNames = new HashSet<String>();
+            Iterator<Map<String, String>> iterator = genesData.iterator();
+            while (iterator.hasNext()) {
+                Map<String, String> geneInfo = iterator.next();
+                String geneName = geneInfo.get("gene");
+                if (geneName != null) {
+                    geneNames.add(geneName);
+                }
             }
+            return Collections.unmodifiableSet(geneNames);
         }
         return Collections.emptySet();
     }
@@ -364,9 +365,9 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         sharedGenes.retainAll(refGenes);
         double geneBoost = 0.0;
         if (!sharedGenes.isEmpty()) {
-            geneBoost = 0.6;
+            geneBoost = 0.7;
         }
-        return Math.pow(this.getPhenotypeScore(), 1 - geneBoost);
+        return Math.pow(this.getPhenotypeScore(), 1.0 - geneBoost);
     }
 
     /**

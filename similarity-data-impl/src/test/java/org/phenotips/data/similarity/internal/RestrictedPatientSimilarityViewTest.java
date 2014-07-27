@@ -23,7 +23,9 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -48,9 +50,12 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,7 +66,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -256,6 +260,8 @@ public class RestrictedPatientSimilarityViewTest
         diseases.add(new MockDisorder("MIM:234", "Some other disease"));
         Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
 
+        when(mockPatient.getData("genes")).thenReturn(null);
+
         return mockPatient;
     }
 
@@ -285,6 +291,8 @@ public class RestrictedPatientSimilarityViewTest
         diseases.add(new MockDisorder("MIM:123", "Some disease"));
         diseases.add(new MockDisorder("MIM:345", "Some new disease"));
         Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
+
+        when(mockPatient.getData("genes")).thenReturn(null);
 
         return mockPatient;
     }
@@ -350,6 +358,69 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
         Assert.assertTrue(matchedDiseases.isEmpty());
+    }
+
+    /**
+     * Set candidate genes for mock patient.
+     * 
+     * @param mockPatient
+     * @param geneNames
+     */
+    private void setPatientCandidateGenes(Patient mockPatient, Collection<String> geneNames)
+    {
+        List<Map<String, String>> fakeGenes = new ArrayList<Map<String, String>>();
+
+        if (geneNames != null) {
+            for (String gene : geneNames) {
+                Map<String, String> fakeGene = new HashMap<String, String>();
+                fakeGene.put("gene", gene);
+                fakeGenes.add(fakeGene);
+            }
+        }
+
+        PatientData<Map<String, String>> fakeGeneData =
+            new IndexedPatientData<Map<String, String>>("genes", fakeGenes);
+
+        doReturn(fakeGeneData).when(mockPatient).getData("genes");
+    }
+
+    /** Matching candidate genes boosts score. */
+    @Test
+    public void testCandidateGeneMatching()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        double scoreBefore = view1.getScore();
+
+        Collection<String> matchGenes = new ArrayList<String>();
+        matchGenes.add("Another gene");
+        matchGenes.add("Matching gene");
+        setPatientCandidateGenes(mockMatch, matchGenes);
+        setPatientCandidateGenes(mockReference, Collections.singleton("Matching gene"));
+        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+
+        double scoreAfter = view2.getScore();
+        Assert.assertTrue(scoreAfter > scoreBefore + 0.01);
+    }
+
+    /** Non-matching candidate genes doesn't affect score. */
+    @Test
+    public void testCandidateGeneNonMatching()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        double scoreBefore = view1.getScore();
+
+        setPatientCandidateGenes(mockMatch, Collections.singleton("Gene A"));
+        setPatientCandidateGenes(mockReference, Collections.singleton("Gene B"));
+        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+
+        double scoreAfter = view2.getScore();
+        Assert.assertTrue(Math.abs(scoreAfter - scoreBefore) < 0.00001);
     }
 
     /** No information is disclosed for private access. */
@@ -446,8 +517,6 @@ public class RestrictedPatientSimilarityViewTest
         // This is a bit fragile, let's hope the field name doesn't change
         ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
         when(mockProvider.get()).thenReturn(componentManager);
-
-        Logger logger = mock(Logger.class);
 
         CacheManager cacheManager = mock(CacheManager.class);
         when(componentManager.getInstance(CacheManager.class)).thenReturn(cacheManager);
@@ -550,6 +619,6 @@ public class RestrictedPatientSimilarityViewTest
             when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
-        DefaultPatientSimilarityView.initializeStaticData(termICs, condICs, ontologyManager, logger);
+        DefaultPatientSimilarityView.initializeStaticData(termICs, condICs, ontologyManager);
     }
 }
