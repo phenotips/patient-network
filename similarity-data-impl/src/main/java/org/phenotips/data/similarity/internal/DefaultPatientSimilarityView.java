@@ -294,31 +294,28 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     public double getPhenotypeScore()
     {
-        if (this.score == null) {
-            if (this.match == null || this.reference == null) {
-                this.score = 0.0;
+        if (this.match == null || this.reference == null) {
+            return 0.0;
+        } else {
+            // Get ancestors for both patients
+            Set<OntologyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
+            Set<OntologyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
+
+            if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
+                return 0.0;
             } else {
-                // Get ancestors for both patients
-                Set<OntologyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
-                Set<OntologyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
+                // Score overlapping ancestors
+                Set<OntologyTerm> commonAncestors = new HashSet<OntologyTerm>();
+                commonAncestors.addAll(refAncestors);
+                commonAncestors.retainAll(matchAncestors);
 
-                if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
-                    this.score = 0.0;
-                } else {
-                    // Score overlapping ancestors
-                    Set<OntologyTerm> commonAncestors = new HashSet<OntologyTerm>();
-                    commonAncestors.addAll(refAncestors);
-                    commonAncestors.retainAll(matchAncestors);
+                Set<OntologyTerm> allAncestors = new HashSet<OntologyTerm>();
+                allAncestors.addAll(refAncestors);
+                allAncestors.addAll(matchAncestors);
 
-                    Set<OntologyTerm> allAncestors = new HashSet<OntologyTerm>();
-                    allAncestors.addAll(refAncestors);
-                    allAncestors.addAll(matchAncestors);
-
-                    this.score = getTermICs(commonAncestors) / getTermICs(allAncestors);
-                }
+                return getTermICs(commonAncestors) / getTermICs(allAncestors);
             }
         }
-        return this.score;
     }
 
     /**
@@ -348,16 +345,25 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     @Override
     public double getScore()
     {
-        Collection<String> matchGenes = getCandidateGeneNames(match);
-        Collection<String> refGenes = getCandidateGeneNames(reference);
-        Set<String> sharedGenes = new HashSet<String>();
-        sharedGenes.addAll(matchGenes);
-        sharedGenes.retainAll(refGenes);
-        double geneBoost = 0.0;
-        if (!sharedGenes.isEmpty()) {
-            geneBoost = 0.7;
+        // Memoize the score
+        if (this.score == null) {
+            double phenotypeScore = this.getPhenotypeScore();
+            
+            // Factor in candidate genes
+            Collection<String> matchGenes = getCandidateGeneNames(match);
+            Collection<String> refGenes = getCandidateGeneNames(reference);
+            Set<String> sharedGenes = new HashSet<String>();
+            sharedGenes.addAll(matchGenes);
+            sharedGenes.retainAll(refGenes);
+            double geneBoost = 0.0;
+            if (!sharedGenes.isEmpty()) {
+                geneBoost = 0.7;
+            }
+            
+            // Return boosted score
+            return Math.pow(phenotypeScore, 1.0 - geneBoost);
         }
-        return Math.pow(this.getPhenotypeScore(), 1.0 - geneBoost);
+        return this.score;
     }
 
     /**
