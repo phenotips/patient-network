@@ -61,7 +61,7 @@ import net.sf.json.JSONObject;
 public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 {
     /** The number of genes to show in the JSON output. */
-    private static final int MAX_GENES_SHOWN = 5;
+    private static final int MAX_GENES_SHOWN = 10;
 
     /** Cache for storing symmetric pairwise patient similarity scores. */
     private static PairCache<Double> similarityScoreCache;
@@ -93,20 +93,23 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /** Access to the ExomizerJobManager. */
     private ExternalToolJobManager<Genotype> exomizerManager;
 
+    /** Candidate genes in the reference patient. */
+    private Collection<String> refCandidateGenes;
+
+    /** Candidate genes in the match patient. */
+    private Collection<String> matchCandidateGenes;
+
     /** The similarity score for all genes. */
     private Map<String, Double> geneScores;
-
-    /** The top variants in each patient for all shared genes. */
-    private Map<String, Variant[][]> geneVariants;
 
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
      * 
-     * @param match the matched patient to represent
-     * @param reference the reference patient against which to compare
-     * @param access the access type the user has to the match patient
-     * @throws IllegalArgumentException if one of the patients is {@code null}
+     * @param match the matched patient, which is represented by this match.
+     * @param reference the reference patient, which the match is against.
+     * @param access the access type the user has to the match patient.
+     * @throws IllegalArgumentException if one of the patients is {@code null}.
      */
     public RestrictedGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
@@ -136,16 +139,27 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             this.logger.error("Unable to load component: " + e.toString());
         }
 
+        // Add in candidate genes
+        this.matchCandidateGenes = getCandidateGeneNames(this.match);
+        this.refCandidateGenes = getCandidateGeneNames(this.reference);
+
+        // Get exomiser results
         String matchId = match.getId();
         String refId = reference.getId();
-        if (matchId != null && refId != null && this.exomizerManager != null) {
-            // Full genotype similarity breakdown is possible
-            this.matchGenotype = this.exomizerManager.getResult(matchId);
-            this.refGenotype = this.exomizerManager.getResult(refId);
+        if (this.exomizerManager != null) {
+            if (matchId != null) {
+                this.matchGenotype = this.exomizerManager.getResult(matchId);
+            }
+            if (refId != null) {
+                this.refGenotype = this.exomizerManager.getResult(refId);
+            }
         }
 
         // Match candidate genes and any genotype available
-        matchGenes();
+        if ((!this.refCandidateGenes.isEmpty() || this.refGenotype != null) &&
+            (!this.matchCandidateGenes.isEmpty() || this.matchGenotype != null)) {
+            matchGenes();
+        }
     }
 
     /**
@@ -189,9 +203,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             if (otherPatient == null) {
                 otherSimScore = 0.0;
             } else {
-                otherSimScore =
-                    Math.max(getPatientSimilarity(otherPatient, this.match),
-                        getPatientSimilarity(otherPatient, this.reference));
+                otherSimScore = getPatientSimilarity(otherPatient, this.reference);
             }
             otherSimScores.put(patientId, otherSimScore);
         }
@@ -201,59 +213,62 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /**
      * Get the score for a gene, given the score threshold for each inheritance model for the pair of patients.
      * 
-     * @param gene the gene being score
-     * @param domThresh the dominant inheritance model score threshold
-     * @param recThresh the recessive inheritance model score threshold
+     * @param gene the gene being scored
+     * @param thresholds the [dominant, recessive] inheritance model score threshold
      * @param otherGenotypedIds the patient ids of other patients with genotype information, for comparison
      * @param otherSimScores the cached phenotype scores of other patients
      * @return the score for the gene, between [0, 1], with 0 corresponding to a poor score
      */
-    private double scoreGene(String gene, double domThresh, double recThresh, Set<String> otherGenotypedIds,
-        Map<String, Double> otherSimScores)
+    private double scoreGene(String gene, double[] thresholds,
+        Map<String, Genotype> otherGenotypes, Map<String, Double> otherSimScores)
     {
-        double geneScore = Math.min(this.refGenotype.getGeneScore(gene), this.matchGenotype.getGeneScore(gene));
-        // XXX: heuristic hack
-        if (geneScore < 0.0001) {
-            return 0.0;
-        }
-        // Adjust upwards the starting phenotype score to account for exomizer bias (almost all scores are < 0.7)
-        // geneScore = Math.min(geneScore / 0.7, 1);
-
-        double domScore = geneScore * domThresh;
-        double recScore = geneScore * recThresh;
+        double geneScore = Math.min(getGenePhenotypeScore(gene, this.refCandidateGenes, this.refGenotype),
+            getGenePhenotypeScore(gene, this.matchCandidateGenes, this.matchGenotype));
 
         // Quit early if things are going poorly
-        if (Math.max(domScore, recScore) < 0.0001) {
+        if (geneScore < 0.2) {
             return 0.0;
         }
 
-        for (String patientId : otherGenotypedIds) {
-            Genotype otherGt = this.exomizerManager.getResult(patientId);
+        double[] scores = new double[2];
+        for (int i = 0; i <= 1; i++) {
+            scores[i] = geneScore * thresholds[i];
+        }
+
+        // Quit early if things are going poorly
+        if (Math.max(scores[0], scores[1]) < 0.2) {
+            return 0.0;
+        }
+
+        for (String patientId : otherGenotypes.keySet()) {
+            Genotype otherGt = otherGenotypes.get(patientId);
             if (otherGt != null && otherGt.getGeneScore(gene) != null) {
-                double otherDomScore = getVariantScore(otherGt.getTopVariant(gene, 0)) + 0.01;
-                double otherRecScore = getVariantScore(otherGt.getTopVariant(gene, 1)) + 0.01;
-                if ((domScore > 0.0001 && otherDomScore >= domThresh) ||
-                    (recScore > 0.0001 && otherRecScore >= recThresh)) {
-                    // Adjust gene score if other patient has worse scores in gene, weighted by patient similarity
-                    double otherSimScore = Math.min(getOtherPatientSimilarity(patientId, otherSimScores) + 0.2, 1);
-                    double domDiff = otherDomScore - domThresh;
-                    double recDiff = otherRecScore - recThresh;
-                    if (domDiff > 0.0) {
-                        domScore *= Math.pow(otherSimScore, 1 - domDiff);
+                double[] otherScores = getGeneInheritanceScores(gene, null, otherGt);
+                boolean applyPenalty = false;
+                for (int i = 0; i <= 1; i++) {
+                    otherScores[i] += 0.01;
+                    if (scores[i] > 0.001 && otherScores[i] >= thresholds[i]) {
+                        applyPenalty = true;
                     }
-                    if (recDiff > 0.0) {
-                        recScore *= Math.pow(otherSimScore, 1 - recDiff);
+                }
+                if (applyPenalty) {
+                    double otherSimScore = Math.min(getOtherPatientSimilarity(patientId, otherSimScores) + 0.2, 1);
+                    for (int i = 0; i <= 1; i++) {
+                        double diff = otherScores[i] - thresholds[i];
+                        if (diff > 0.0) {
+                            scores[i] *= Math.pow(otherSimScore, diff);
+                        }
                     }
                 }
             }
 
             // Quit early if things are going poorly
-            if (Math.max(domScore, recScore) < 0.0001) {
+            if (Math.max(scores[0], scores[1]) < 0.001) {
                 return 0.0;
             }
         }
 
-        return Math.pow(Math.max(domScore, recScore), 0.1);
+        return Math.max(scores[0], scores[1]);
     }
 
     /**
@@ -264,7 +279,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      */
     private Collection<String> getCandidateGeneNames(Patient p)
     {
-        PatientData<Map<String, String>> genesData = p.getData("genes");
+        PatientData<Map<String, String>> genesData = null;
+        if (p != null) {
+            genesData = p.getData("genes");
+        }
         if (genesData != null) {
             Set<String> geneNames = new HashSet<String>();
             Iterator<Map<String, String>> iterator = genesData.iterator();
@@ -281,73 +299,117 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     }
 
     /**
+     * Get top Variants for a gene.
+     * 
+     * @param genotype the patient Genotype.
+     * @param gene the gene to get variants for.
+     * @return a (potentially-empty) list of top variants for the gene, by decreasing score.
+     */
+    private List<Variant> getTopVariants(Genotype genotype, String gene)
+    {
+        List<Variant> variants = new ArrayList<Variant>();
+        if (genotype != null) {
+            for (int i = 0; i <= 1; i++) {
+                Variant v = genotype.getTopVariant(gene, i);
+                if (v != null) {
+                    variants.add(v);
+                }
+            }
+        }
+        return variants;
+    }
+
+    /**
+     * Get dominant and recessive scores for gene in patient.
+     * 
+     * @param gene
+     * @param candidateGenes
+     * @param genotype
+     * @return array of [dominant, recessive] scores.
+     */
+    private double[] getGeneInheritanceScores(String gene, Collection<String> candidateGenes, Genotype genotype)
+    {
+        double[] scores = new double[2];
+
+        if (candidateGenes != null && candidateGenes.contains(gene)) {
+            scores[0] = 1.0;
+            scores[1] = 1.0;
+        } else {
+            List<Variant> variants = getTopVariants(genotype, gene);
+            for (int i = 0; i < variants.size(); i++) {
+                scores[i] = getVariantScore(variants.get(i));
+            }
+        }
+        return scores;
+    }
+
+    /**
+     * Get phenotype score for gene in patient.
+     * 
+     * @param gene
+     * @param candidateGenes
+     * @param genotype
+     * @return phenotype score for gene.
+     */
+    private double getGenePhenotypeScore(String gene, Collection<String> candidateGenes, Genotype genotype)
+    {
+        Double score = null;
+        if (candidateGenes != null && candidateGenes.contains(gene)) {
+            score = 1.0;
+        } else if (genotype != null) {
+            score = genotype.getGeneScore(gene);
+        }
+        if (score == null) {
+            score = 0.0;
+        }
+        return score;
+    }
+
+    /**
      * Score genes with variants in both patients, and sets 'geneScores' and 'geneVariants' fields accordingly.
      */
     private void matchGenes()
     {
         this.geneScores = new HashMap<String, Double>();
-        this.geneVariants = new HashMap<String, Variant[][]>();
 
-        // Auto-match shared candidate genes
-        Collection<String> matchGenes = getCandidateGeneNames(this.match);
-        Collection<String> refGenes = getCandidateGeneNames(this.reference);
-        Set<String> sharedGenes = new HashSet<String>();
-        sharedGenes.addAll(matchGenes);
-        sharedGenes.retainAll(refGenes);
-        for (String gene : sharedGenes) {
-            Variant[][] topVariants = new Variant[2][2];
-            topVariants[0][0] = new CandidateGene();
-            topVariants[0][1] = null;
-            topVariants[1][0] = new CandidateGene();
-            topVariants[1][1] = null;
-            this.geneScores.put(gene, 1.0);
-            this.geneVariants.put(gene, topVariants);
-        }
+        // Load genotypes for all other patients
+        Map<String, Genotype> otherGenotypes = null;
+        Map<String, Double> otherSimScores = new HashMap<String, Double>();
 
-        // Add candidate genes to each patient's genotype
-        if (this.matchGenotype != null) {
-            for (String gene : matchGenes) {
-                Variant v = new CandidateGene();
-                this.matchGenotype.addVariant(gene, v);
-            }
-        }
-        if (this.refGenotype != null) {
-            for (String gene : refGenes) {
-                Variant v = new CandidateGene();
-                this.refGenotype.addVariant(gene, v);
-            }
-        }
+        for (String gene : getGenes()) {
+            double[] refScores = getGeneInheritanceScores(gene, this.refCandidateGenes, this.refGenotype);
+            double[] matchScores = getGeneInheritanceScores(gene, this.matchCandidateGenes, this.matchGenotype);
 
-        if (this.exomizerManager != null && this.matchGenotype != null && this.refGenotype != null) {
-            // Load genotypes for all other patients
-            Set<String> otherGenotypedIds = new HashSet<String>(this.exomizerManager.getAllCompleted());
-            otherGenotypedIds.remove(this.match.getId());
-            otherGenotypedIds.remove(this.reference.getId());
-            Map<String, Double> otherSimScores = new HashMap<String, Double>();
-
-            for (String gene : getGenes()) {
-                if (this.geneScores.containsKey(gene)) {
-                    continue;
+            double geneScore = 0.0;
+            if (this.refGenotype == null && this.matchGenotype == null) {
+                // Without any genotypes, just score matching candidate genes as 1.0;
+                geneScore = 1.0;
+            } else if (this.exomizerManager != null) {
+                // Else, compute gene score based on full genotype breakdown
+                // Set the variant harmfulness thresholds at the min of the two patients'
+                double[] thresholds = new double[2];
+                for (int i = 0; i <= 1; i++) {
+                    thresholds[i] = Math.min(refScores[i], matchScores[i]);
                 }
 
-                // Set the variant harmfulness threshold at the min of the two patients'
-                Variant[][] topVariants = new Variant[2][2];
-                // TODO: rework to handle candidate genes better so they aren't listed twice in json
-                topVariants[0][0] = this.refGenotype.getTopVariant(gene, 0);
-                topVariants[0][1] = this.refGenotype.getTopVariant(gene, 1);
-                topVariants[1][0] = this.matchGenotype.getTopVariant(gene, 0);
-                topVariants[1][1] = this.matchGenotype.getTopVariant(gene, 1);
-
-                double domThresh = Math.min(getVariantScore(topVariants[0][0]), getVariantScore(topVariants[1][0]));
-                double recThresh = Math.min(getVariantScore(topVariants[0][1]), getVariantScore(topVariants[1][1]));
-                double geneScore = scoreGene(gene, domThresh, recThresh, otherGenotypedIds, otherSimScores);
-
-                if (geneScore < 0.0001) {
-                    continue;
+                if (otherGenotypes == null) {
+                    otherGenotypes = new HashMap<String, Genotype>();
+                    Set<String> otherIds = new HashSet<String>(this.exomizerManager.getAllCompleted());
+                    otherGenotypes.remove(this.match.getId());
+                    otherGenotypes.remove(this.reference.getId());
+                    for (String id : otherIds) {
+                        otherGenotypes.put(id, this.exomizerManager.getResult(id));
+                    }
                 }
-                this.geneScores.put(gene, geneScore);
-                this.geneVariants.put(gene, topVariants);
+                geneScore = scoreGene(gene, thresholds, otherGenotypes, otherSimScores);
             }
+
+            if (geneScore < 0.0001) {
+                continue;
+            }
+
+            // Save score and variants for display
+            this.geneScores.put(gene, geneScore);
         }
     }
 
@@ -369,13 +431,17 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     @Override
     public Set<String> getGenes()
     {
-        if (this.refGenotype == null || this.matchGenotype == null) {
-            return Collections.emptySet();
+        Set<String> sharedGenes = new HashSet<String>(this.refCandidateGenes);
+        if (this.refGenotype != null) {
+            sharedGenes.addAll(this.refGenotype.getGenes());
         }
-        // Get union of genes mutated in both patients
-        Set<String> sharedGenes = new HashSet<String>(this.refGenotype.getGenes());
-        Set<String> otherGenes = this.matchGenotype.getGenes();
-        sharedGenes.retainAll(otherGenes);
+        Set<String> matchGenes = new HashSet<String>(this.matchCandidateGenes);
+        if (this.matchGenotype != null) {
+            matchGenes.addAll(this.matchGenotype.getGenes());
+        }
+
+        // Get union of genes mutated/candidate in both patients
+        sharedGenes.retainAll(matchGenes);
         return Collections.unmodifiableSet(sharedGenes);
     }
 
@@ -420,31 +486,66 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     }
 
     /**
-     * Get the JSON for an array of variants.
+     * Get a JSON representation of the genotype of a patient with a candidate gene.
      * 
-     * @param vs an array of Variant objects
-     * @param restricted if false, the variants are displayed regardless of the current accessType
-     * @return JSON for the variants, an empty array if there are no variants
+     * @return a JSON array of one variant corresponding to a candidate gene.
      */
-    private JSONArray getVariantsJSON(Variant[] vs, boolean restricted)
+    private JSONArray getCandidateGeneJSON()
     {
-        JSONArray varJSON = new JSONArray();
-        if (vs == null) {
-            return varJSON;
-        }
-        for (Variant v : vs) {
-            if (v != null) {
+        JSONArray result = new JSONArray();
+        JSONObject variant = new JSONObject();
+        variant.element("score", 1.0);
+        result.add(variant);
+        return result;
+    }
+
+    /**
+     * Get the JSON for a patient's variants in a protected manner.
+     * 
+     * @param gene the gene to display variants for.
+     * @param genotype the patient genotype.
+     * @param candidateGenes the patient's candidate gene names.
+     * @param restricted if false, the variants are displayed regardless of the current accessType
+     * @return JSON for the patient's variants, an empty array if there are no variants
+     */
+    private JSONObject getPatientVariantsJSON(String gene, Genotype genotype, Collection<String> candidateGenes,
+        boolean restricted)
+    {
+        JSONObject patientJSON = new JSONObject();
+
+        List<Variant> variants = getTopVariants(genotype, gene);
+        JSONArray variantsJSON;
+        if (variants == null && candidateGenes != null && candidateGenes.contains(gene)) {
+            // Show candidate gene if no variants in gene
+            variantsJSON = getCandidateGeneJSON();
+        } else {
+            // Show the top variants in the patient, according to access level
+            variantsJSON = new JSONArray();
+            for (Variant v : variants) {
                 if (!restricted || this.access.isOpenAccess()) {
-                    varJSON.add(v.toJSON());
+                    variantsJSON.add(v.toJSON());
                 } else if (this.access.isLimitedAccess()) {
                     // Only show score if limited access
-                    JSONObject variantJSON = new JSONObject();
-                    variantJSON.element("score", v.getScore());
-                    varJSON.add(variantJSON);
+                    JSONObject varJSON = new JSONObject();
+                    varJSON.element("score", v.getScore());
+                    variantsJSON.add(varJSON);
                 }
             }
         }
-        return varJSON;
+        // Only add element if there are variants
+        if (!variantsJSON.isEmpty()) {
+            patientJSON.element("variants", variantsJSON);
+        }
+        return patientJSON;
+    }
+
+    private JSONObject getGeneVariantsJSON(String gene)
+    {
+        JSONObject variantsJSON = new JSONObject();
+        variantsJSON
+            .element("reference", getPatientVariantsJSON(gene, this.refGenotype, this.refCandidateGenes, false));
+        variantsJSON.element("match", getPatientVariantsJSON(gene, this.matchGenotype, this.matchCandidateGenes, true));
+        return variantsJSON;
     }
 
     @Override
@@ -465,9 +566,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 return Double.compare(e2.getValue(), e1.getValue());
             }
         });
+
         int iGene = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
-            // Include at most top 5 genes
+            // Include at most top N genes
             if (iGene >= MAX_GENES_SHOWN) {
                 break;
             }
@@ -476,51 +578,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
             JSONObject geneObject = new JSONObject();
             geneObject.element("gene", gene);
-
-            Variant[][] variants = this.geneVariants.get(gene);
-
-            JSONObject refJSON = new JSONObject();
-            refJSON.element("score", score);
-            JSONArray refVarJSON = getVariantsJSON(variants[0], false);
-            if (!refVarJSON.isEmpty()) {
-                refJSON.element("variants", refVarJSON);
-            }
-            geneObject.element("reference", refJSON);
-
-            JSONObject matchJSON = new JSONObject();
-            matchJSON.element("score", score);
-            JSONArray matchVarJSON = getVariantsJSON(variants[1], true);
-            if (!matchVarJSON.isEmpty()) {
-                matchJSON.element("variants", matchVarJSON);
-            }
-            geneObject.element("match", matchJSON);
-
+            geneObject.element("score", score);
+            geneObject.accumulateAll(getGeneVariantsJSON(gene));
             genesJSON.add(geneObject);
+
             iGene++;
         }
         return genesJSON;
     }
-
-    /**
-     * Setting gene score not supported for similarity view.
-     * 
-     * @see org.phenotips.data.similarity.Genotype#setGeneScore(java.lang.String, java.lang.Double)
-     */
-    @Override
-    public void setGeneScore(String gene, Double score)
-    {
-        return;
-    }
-
-    /**
-     * Adding variants not supported for similarity view.
-     * 
-     * @see org.phenotips.data.similarity.Genotype#addVariant(java.lang.String, org.phenotips.data.similarity.Variant)
-     */
-    @Override
-    public void addVariant(String gene, Variant variant)
-    {
-        return;
-    }
-
 }

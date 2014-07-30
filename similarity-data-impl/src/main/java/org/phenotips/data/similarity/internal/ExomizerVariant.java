@@ -134,6 +134,9 @@ public class ExomizerVariant implements Variant
             String infoScore = this.info.get("VARIANT_SCORE");
             if (infoScore != null) {
                 this.score = Double.parseDouble(infoScore);
+                if (this.effect.equals("MISSENSE")) {
+                    this.score *= 0.90;
+                }
             }
         } else {
             this.score = score;

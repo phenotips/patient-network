@@ -50,21 +50,6 @@ public interface Genotype
     Double getGeneScore(String gene);
 
     /**
-     * Set the score for a gene.
-     * 
-     * @param gene the gene in question.
-     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene).
-     */
-    void setGeneScore(String gene, Double score);
-
-    /**
-     * Add the variant to the provided gene.
-     * 
-     * @param gene the gene in question.
-     */
-    void addVariant(String gene, Variant variant);
-
-    /**
      * Get the kth highest scoring variant in the given gene.
      * 
      * @param gene the gene to return variants for.

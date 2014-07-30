@@ -19,29 +19,20 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
-import org.phenotips.integration.medsavant.MedSavantServer;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.environment.Environment;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -139,29 +130,28 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
     {
         this.logger.error("Looking for available genotype jobs to start...");
 
-        PatientRepository patients = null;
-        QueryManager qm = null;
-        MedSavantServer medsavant = null;
-        List<String> patientDocs = null;
-        try {
-            ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
-            patients = cm.getInstance(PatientRepository.class);
-            qm = cm.getInstance(QueryManager.class);
-            patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
-
-            // Handle MedSavantServer component more carefully, since it *will* likely crash
-            // try {
-            // medsavant = cm.getInstance(MedSavantServer.class);
-            // } catch (ComponentLookupException e) {
-            // this.logger.error("Could not load medsavant, no jobs will be started.");
-            // }
-        } catch (ComponentLookupException e) {
-            this.logger.error("Could not load components for patient lookup.");
-            return;
-        } catch (QueryException e) {
-            this.logger.error("Query error: " + e.toString());
-            return;
-        }
+        // PatientRepository patients = null;
+        // QueryManager qm = null;
+        // MedSavantServer medsavant = null;
+        // List<String> patientDocs = null;
+        // try {
+        // ComponentManager cm = ComponentManagerRegistry.getContextComponentManager();
+        // patients = cm.getInstance(PatientRepository.class);
+        // qm = cm.getInstance(QueryManager.class);
+        // patientDocs = qm.createQuery("from doc.object(PhenoTips.PatientClass) as patient", Query.XWQL).execute();
+        // // Handle MedSavantServer component more carefully, since it *will* likely crash
+        // try {
+        // medsavant = cm.getInstance(MedSavantServer.class);
+        // } catch (ComponentLookupException e) {
+        // this.logger.error("Could not load medsavant, no jobs will be started.");
+        // }
+        // } catch (ComponentLookupException e) {
+        // this.logger.error("Could not load components for patient lookup.");
+        // return;
+        // } catch (QueryException e) {
+        // this.logger.error("Query error: " + e.toString());
+        // return;
+        // }
 
         // Load up any output files files
         File[] outputFiles = this.dataDir.listFiles(new FilenameFilter()
@@ -173,37 +163,37 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
             }
         });
 
+        long startTime = System.currentTimeMillis();
         for (File outputFile : outputFiles) {
             String patientId = FilenameUtils.removeExtension(outputFile.getName());
             try {
-                long startTime = System.currentTimeMillis();
                 putResult(patientId, new ExomizerGenotype(outputFile));
-                this.logger.error(String.format("Loaded genetics for %s in %d ms", patientId,
-                    System.currentTimeMillis() - startTime));
             } catch (FileNotFoundException e) {
                 this.logger.error("Unable to load genotype from file: " + outputFile.getAbsolutePath());
             }
         }
+        this.logger.error(String.format("Loaded genetics for %d patients in %d ms", outputFiles.length,
+                System.currentTimeMillis() - startTime));
 
-//        for (String patientDoc : patientDocs) {
-//            Patient p = patients.getPatientById(patientDoc);
-//            if (p != null) {
-//                String patientId = p.getId();
-//                File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
-//                if (results.exists()) {
-//                    try {
-//                        long startTime = System.currentTimeMillis();
-//                        putResult(patientId, new ExomizerGenotype(results));
-//                        this.logger.error(String.format("Loaded genetics for %s in %d ms", patientId,
-//                            System.currentTimeMillis() - startTime));
-//                    } catch (FileNotFoundException e) {
-//                        this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
-//                    }
-//                } else if (medsavant != null && !hasJob(p) && medsavant.hasVCF(p)) {
-//                    addJob(p);
-//                }
-//            }
-//        }
+        // for (String patientDoc : patientDocs) {
+        // Patient p = patients.getPatientById(patientDoc);
+        // if (p != null) {
+        // String patientId = p.getId();
+        // File results = new File(this.dataDir, patientId + EXOMIZER_SUFFIX);
+        // if (results.exists()) {
+        // try {
+        // long startTime = System.currentTimeMillis();
+        // putResult(patientId, new ExomizerGenotype(results));
+        // this.logger.error(String.format("Loaded genetics for %s in %d ms", patientId,
+        // System.currentTimeMillis() - startTime));
+        // } catch (FileNotFoundException e) {
+        // this.logger.error("Unable to load genotype from file: " + results.getAbsolutePath());
+        // }
+        // } else if (medsavant != null && !hasJob(p) && medsavant.hasVCF(p)) {
+        // addJob(p);
+        // }
+        // }
+        // }
     }
 
     /**

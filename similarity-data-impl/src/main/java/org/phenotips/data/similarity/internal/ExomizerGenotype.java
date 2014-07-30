@@ -51,6 +51,15 @@ public class ExomizerGenotype implements Genotype
     private Map<String, List<Variant>> variants;
 
     /**
+     * Constructor for empty Genotype object.
+     */
+    ExomizerGenotype()
+    {
+        this.variants = new HashMap<String, List<Variant>>();
+        this.geneScores = new HashMap<String, Double>();
+    }
+
+    /**
      * Create a Genotype object from an Exomizer output file.
      * 
      * @param exomizerOutput an exomizer-annotated VCF file
@@ -73,9 +82,17 @@ public class ExomizerGenotype implements Genotype
             Double geneScore = Double.parseDouble(variant.getAnnotation("PHENO_SCORE"));
             this.geneScores.put(gene, geneScore);
 
-            if (gene != null && !gene.isEmpty()) {
-                // Add variant to gene without sorting (save sorting for end)
-                addVariant(gene, variant, false);
+            // Add variant to gene without sorting (save sorting for end)
+            List<Variant> geneMutations = this.variants.get(gene);
+            if (geneMutations == null) {
+                geneMutations = new ArrayList<Variant>();
+                this.variants.put(gene, geneMutations);
+            }
+
+            geneMutations.add(variant);
+            // Represent homozygous variants as two separate mutations
+            if (variant.isHomozygous()) {
+                geneMutations.add(variant);
             }
         }
         fileScan.close();
@@ -83,7 +100,9 @@ public class ExomizerGenotype implements Genotype
         // Sort variants within each gene by harmfulness score
         // TODO: have lists maintain sorted order, instead of sorting at the end
         for (List<Variant> vs : this.variants.values()) {
-            Collections.sort(vs);
+            if (vs.size() > 1) {
+                Collections.sort(vs);
+            }
         }
     }
 
@@ -94,48 +113,9 @@ public class ExomizerGenotype implements Genotype
     }
 
     @Override
-    public void setGeneScore(String gene, Double score)
-    {
-        this.geneScores.put(gene, score);
-    }
-
-    @Override
     public Double getGeneScore(String gene)
     {
         return this.geneScores.get(gene);
-    }
-
-    /**
-     * Add variant to gene, optionally sorting variants inside of gene afterwards.
-     * 
-     * @param gene the gene to add the variant to.
-     * @param variant the variant to add.
-     * @param sort if true, the variants inside the gene will be sorted based on score (which is necessary for proper
-     *            functioning of getTopVariants)
-     */
-    private void addVariant(String gene, Variant variant, boolean sort)
-    {
-        List<Variant> geneMutations = this.variants.get(gene);
-        if (geneMutations == null) {
-            geneMutations = new ArrayList<Variant>();
-            this.variants.put(gene, geneMutations);
-        }
-
-        geneMutations.add(variant);
-        // Represent homozygous variants as two separate mutations
-        if (variant.isHomozygous()) {
-            geneMutations.add(variant);
-        }
-
-        if (sort && geneMutations.size() > 1) {
-            Collections.sort(geneMutations);
-        }
-    }
-
-    @Override
-    public void addVariant(String gene, Variant variant)
-    {
-        addVariant(gene, variant, true);
     }
 
     @Override
