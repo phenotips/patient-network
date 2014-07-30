@@ -19,6 +19,7 @@
  */
 package org.phenotips.data.similarity.script;
 
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.RestrictedGenotypeSimilarityView;
 
@@ -29,6 +30,9 @@ import org.xwiki.stability.Unstable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+
 
 /**
  * Allows management of patient phenotype and genotype matching features.
@@ -43,14 +47,18 @@ import javax.inject.Singleton;
 public class PatientMatchingScriptService implements ScriptService
 {
     @Inject
-    private DefaultPatientSimilarityViewFactory patientViewFactory;
+    private PatientSimilarityViewFactory patientViewFactory;
 
+    @Inject
+    private Logger logging;
+    
     /**
      * Clear all (phenotype and genotype) patient similarity caches.
      */
     public void clearCache()
     {
-        patientViewFactory.clearCache();
+        ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearCache();
         RestrictedGenotypeSimilarityView.clearCache();
+        logging.error("Patient matching caches cleared!");
     }
 }
