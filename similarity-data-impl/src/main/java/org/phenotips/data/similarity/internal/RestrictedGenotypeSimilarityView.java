@@ -486,6 +486,19 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     }
 
     /**
+     * Clear all cached similarity scores associated with a particular patient.
+     */
+    public static void clearPatientCache(Patient p)
+    {
+        if (similarityScoreCache != null) {
+            String id = p.getId();
+            if (id != null) {
+                similarityScoreCache.removeAssociated(p.getId());
+            }
+        }
+    }
+
+    /**
      * Get a JSON representation of the genotype of a patient with a candidate gene.
      * 
      * @return a JSON array of one variant corresponding to a candidate gene.
