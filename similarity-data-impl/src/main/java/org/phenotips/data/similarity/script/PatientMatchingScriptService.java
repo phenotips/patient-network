@@ -64,11 +64,13 @@ public class PatientMatchingScriptService implements ScriptService
 
     /**
      * Clear all (phenotype and genotype) patient similarity caches for a specific patient.
+     * 
+     * @param p the patient to clear caches for.
      */
     public void clearPatientCache(Patient p)
     {
         ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(p);
         RestrictedGenotypeSimilarityView.clearPatientCache(p);
-        logging.error("Patient matching caches cleared!");
+        logging.error("Caches for " + p.getId() + " cleared!");
     }
 }

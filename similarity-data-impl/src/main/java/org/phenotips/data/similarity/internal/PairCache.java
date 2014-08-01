@@ -48,6 +48,11 @@ public class PairCache<T>
     /** Keys of all cache entries involving one of the IDs. */
     private Map<String, Collection<String>> idEntries;
 
+    /**
+     * Create a cache that associates a pair of IDs with each cache entry.
+     * 
+     * @throws CacheException if the cache cannot be created.
+     */
     public PairCache() throws CacheException
     {
         this.idEntries = new HashMap<String, Collection<String>>();
@@ -57,7 +62,7 @@ public class PairCache<T>
             CacheManager cacheManager = componentManager.getInstance(CacheManager.class);
             this.cache = cacheManager.createNewLocalCache(new CacheConfiguration());
         } catch (ComponentLookupException e) {
-            throw new CacheException("Error getting local cache factory");
+            this.cache = null;
         }
 
         if (this.cache == null) {

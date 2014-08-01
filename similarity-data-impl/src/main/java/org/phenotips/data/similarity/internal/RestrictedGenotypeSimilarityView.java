@@ -156,8 +156,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         }
 
         // Match candidate genes and any genotype available
-        if ((!this.refCandidateGenes.isEmpty() || this.refGenotype != null) &&
-            (!this.matchCandidateGenes.isEmpty() || this.matchGenotype != null)) {
+        if ((!this.refCandidateGenes.isEmpty() || this.refGenotype != null)
+            && (!this.matchCandidateGenes.isEmpty() || this.matchGenotype != null)) {
             matchGenes();
         }
     }
@@ -487,6 +487,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Clear all cached similarity scores associated with a particular patient.
+     * 
+     * @param p the patient to clear.
      */
     public static void clearPatientCache(Patient p)
     {

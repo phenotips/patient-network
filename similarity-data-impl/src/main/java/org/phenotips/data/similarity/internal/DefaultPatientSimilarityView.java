@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 
 import net.sf.json.JSONArray;
 
@@ -85,8 +84,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
-     * @throws NullPointerException if the class was not statically initialized with
-     *             {@link #initializeStaticData(Map, Map, OntologyManager, Logger)} before use
+     * @throws NullPointerException if the class was not statically initialized with {#initializeStaticData(Map, Map,
+     *             OntologyManager, Logger)} before use
      */
     public DefaultPatientSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
@@ -348,7 +347,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         // Memoize the score
         if (this.score == null) {
             double phenotypeScore = this.getPhenotypeScore();
-            
+
             // Factor in candidate genes
             Collection<String> matchGenes = getCandidateGeneNames(match);
             Collection<String> refGenes = getCandidateGeneNames(reference);
@@ -359,7 +358,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             if (!sharedGenes.isEmpty()) {
                 geneBoost = 0.7;
             }
-            
+
             // Return boosted score
             return Math.pow(phenotypeScore, 1.0 - geneBoost);
         }

@@ -65,9 +65,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /** Small value used to round things too close to 0 or 1. */
     private static final double EPS = 1e-9;
 
-    /** Cache for patient similarity views. */
-    private PairCache<PatientSimilarityView> viewCache;
-
     /** Logging helper object. */
     @Inject
     protected Logger logger;
@@ -89,6 +86,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /** Provides access to the term ontology. */
     @Inject
     protected OntologyManager ontologyManager;
+
+    /** Cache for patient similarity views. */
+    private PairCache<PatientSimilarityView> viewCache;
 
     /**
      * Create an instance of the PatientSimilarityView for this PatientSimilarityViewFactory. This can be overridden to
@@ -407,6 +407,8 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Clear all cached similarity data associated with a particular patient.
+     * 
+     * @param p the patient to clear.
      */
     public void clearPatientCache(Patient p)
     {
