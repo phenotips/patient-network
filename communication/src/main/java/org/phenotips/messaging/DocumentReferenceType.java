@@ -37,7 +37,7 @@ import org.hibernate.usertype.UserType;
 
 /**
  * Custom Hibernate type used for storing document references in a database.
- * 
+ *
  * @version $Id$
  * @since 1.0M1
  */
@@ -46,7 +46,7 @@ public class DocumentReferenceType implements UserType
     @Override
     public int[] sqlTypes()
     {
-        return new int[] {Types.VARCHAR};
+        return new int[] { Types.VARCHAR };
     }
 
     @Override

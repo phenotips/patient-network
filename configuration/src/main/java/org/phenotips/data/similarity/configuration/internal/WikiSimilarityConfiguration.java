@@ -37,7 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Default implementation of the {@link SimilarityConfiguration} component, reading values configured in the wiki using
  * a {@code PhenoTips.SimilarCases} object in the {@code SimilarCasesConfiguration} document.
- * 
+ *
  * @version $Id$
  */
 @Component

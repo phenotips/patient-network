@@ -36,7 +36,7 @@ import javax.inject.Singleton;
  * Stores a connection between the owners of two matched patients, anonymously, to be used for email communication. The
  * identities of the two parties are kept private, since mails are sent behind the scenes, while the users only see the
  * {@link #id identifier of the connection}.
- * 
+ *
  * @version $Id$
  * @since 1.0M1
  */
@@ -53,7 +53,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
 
     /**
      * Send the initial email to the owner of the matched patient.
-     * 
+     *
      * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
      *            involved in this connection
      * @param options the mail content options selected by the user
@@ -72,7 +72,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
 
     /**
      * Grant mutual view access on the two patients to the owners.
-     * 
+     *
      * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
      *            involved in this connection
      * @return {@code 0} if access was successfully granted, other numbers in case of errors
@@ -86,7 +86,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
                 try {
                     this.actionManager.sendSuccessMail(c);
                 } catch (Exception ex) {
-                    //Do nothing
+                    // Do nothing
                 }
                 return c;
             } else {

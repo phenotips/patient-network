@@ -59,7 +59,7 @@ import net.sf.json.JSONObject;
 /**
  * Implementation of {@link GenotypeSimilarityView} that reveals the full patient information if the user has full
  * access to the patient, and only matching reference information if the patient is matchable.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -116,7 +116,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
-     * 
+     *
      * @param match the matched patient to represent
      * @param reference the reference patient against which to compare
      * @param access the access type the user has to the match patient
@@ -206,7 +206,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the phenotype similarity between two patients in a cached manner.
-     * 
+     *
      * @param p1 the first patient
      * @param p2 the second patient
      * @return the symmetric similarity score between them, potentially cached
@@ -231,7 +231,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the similarity score for another patient, relative to the pair of patients being matched.
-     * 
+     *
      * @param patientId the String id of the other patient
      * @param otherSimScores a cache of such scores, added to by calling this method
      * @return the similarity score of the patient
@@ -257,7 +257,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the score for a gene, given the score threshold for each inheritance model for the pair of patients.
-     * 
+     *
      * @param gene the gene being score
      * @param domThresh the dominant inheritance model score threshold
      * @param recThresh the recessive inheritance model score threshold
@@ -361,7 +361,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the score of a variant.
-     * 
+     *
      * @param v the variant (or null)
      * @return the score of the variant (or 0.0 if v is null)
      */
@@ -419,7 +419,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the JSON for an array of variants.
-     * 
+     *
      * @param vs an array of Variant objects
      * @param restricted if false, the variants are displayed regardless of the current accessType
      * @return JSON for the variants, an empty array if there are no variants

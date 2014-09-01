@@ -38,7 +38,7 @@ import net.sf.json.JSONObject;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
- * 
+ *
  * @version $Id$
  * @since 1.0M10
  */
@@ -58,7 +58,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
-     * 
+     *
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
@@ -80,7 +80,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /**
      * Get JSON for all features in the patient according to the access level. See {@link #getFeatures()} for the
      * features displayed.
-     * 
+     *
      * @return the JSON for visible features, empty if no features to display.
      */
     protected abstract JSONArray getFeaturesJSON();
@@ -88,21 +88,21 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /**
      * Get JSON for all disorders in the patient according to the access level. See {@link #getDisorders()} for the
      * disorders displayed.
-     * 
+     *
      * @return the JSON for visible disorders, empty if no disorders to display.
      */
     protected abstract JSONArray getDisordersJSON();
 
     /**
      * Get JSON for many-to-many feature matches between the reference and the match.
-     * 
+     *
      * @return a JSON array of feature matches, empty if none to display
      */
     protected abstract JSONArray getFeatureMatchesJSON();
 
     /**
      * Get JSON for gene matches between the reference and the match.
-     * 
+     *
      * @return a JSON array of gene, empty if none to display, or null if no data is available
      */
     protected abstract JSONArray getGenesJSON();
@@ -169,7 +169,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     /**
      * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()},
      * {@link #getContactToken()}, etc.
-     * 
+     *
      * @see org.phenotips.data.Patient#toJSON()
      */
     @Override

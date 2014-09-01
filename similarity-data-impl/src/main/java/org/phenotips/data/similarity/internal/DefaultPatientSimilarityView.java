@@ -46,7 +46,7 @@ import net.sf.json.JSONArray;
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
  * to score similar patients.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -84,7 +84,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
-     * 
+     *
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
@@ -105,7 +105,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return whether the class has been initialized with static data.
-     * 
+     *
      * @return true iff the class has been initialized with static data
      */
     public static boolean isInitialized()
@@ -115,7 +115,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Set the static information for the class. Must be run before creating instances of this class.
-     * 
+     *
      * @param termICs the information content of each term
      * @param condICs the conditional information content of each term, given its parents
      * @param ontologyManager the ontology manager
@@ -133,7 +133,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Create an instance of the FeatureClusterView for this PatientSimilarityView.
-     * 
+     *
      * @param match the features in the matched patient
      * @param reference the features in the reference patient
      * @param access the access level of the match
@@ -148,7 +148,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Create an instance of the DisorderSimilarityView for this PatientSimilarityView.
-     * 
+     *
      * @param match the disorder in the match patient
      * @param reference the disorder in the reference patient
      * @param access the access level
@@ -162,7 +162,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /**
      * Searches for a similar disorder in the reference patient, matching one of the matched patient's disorders, or
      * vice-versa.
-     * 
+     *
      * @param toMatch the disorder to match
      * @param lookIn the list of disorders to look in, either the reference patient or the matched patient diseases
      * @return one of the disorders from the list, if it matches the target disorder, or {@code null} otherwise
@@ -179,7 +179,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return the displayable set of matched disorders, retrieved from {@link #getMatchedDisorders()}. {@inheritDoc}
-     * 
+     *
      * @see org.phenotips.data.Patient#getDisorders()
      */
     @Override
@@ -198,7 +198,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /**
      * Get pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
-     * 
+     *
      * @return an unmodifiable collection of matched disorders.
      */
     protected Collection<DisorderSimilarityView> getMatchedDisorders()
@@ -221,7 +221,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return a (potentially empty) collection of terms present in the patient.
-     * 
+     *
      * @param patient
      * @return a collection of terms present in the patient
      */
@@ -246,7 +246,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /**
      * Return a (potentially empty) mapping from OntologyTerm IDs back to features in the patient. Un-mappable features
      * are not included.
-     * 
+     *
      * @param patient
      * @return a mapping from term IDs to features in the patient
      */
@@ -264,7 +264,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return the set of terms implied by a collection of features in the ontology.
-     * 
+     *
      * @param terms a collection of terms
      * @return all provided OntologyTerm terms and their ancestors
      */
@@ -280,7 +280,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return the cost of encoding all the terms (and their ancestors) in a tree together.
-     * 
+     *
      * @param all terms (and their ancestors) that are present in the patient
      * @return the cost of the encoding all the terms
      */
@@ -333,7 +333,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Get the genotype similarity view for this pair of patients, lazily evaluated and memoized.
-     * 
+     *
      * @return the genotype similarity view for this pair of patients
      */
     private GenotypeSimilarityView getGenotypeSimilarity()
@@ -353,7 +353,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /**
      * {@inheritDoc} Return the features present in the match patient. If the features in the match are not visible at
      * the current access level, an empty set will be returned.
-     * 
+     *
      * @see org.phenotips.data.Patient#getFeatures()
      */
     @Override
@@ -387,7 +387,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Find, remove, and return all terms with given ancestor.
-     * 
+     *
      * @param terms the terms, modified by removing terms with given ancestor
      * @param ancestor the ancestor to search for
      * @return the terms with the given ancestor (removed from given terms)
@@ -406,7 +406,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Finds the best term match, removes these terms, and return the JSON for that match.
-     * 
+     *
      * @param refTerms the terms in the reference
      * @param matchTerms the terms in the match
      * @param matchFeatureLookup a mapping from OntologyTerm IDs back to the original Features in the match patient
@@ -486,7 +486,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     /**
      * Return the original patient features for a set of OntologyTerms.
-     * 
+     *
      * @param terms the terms to look up features for
      * @param termLookup a mapping from term IDs to features in the patient
      * @return a Collection of features in the patients corresponding to the given terms

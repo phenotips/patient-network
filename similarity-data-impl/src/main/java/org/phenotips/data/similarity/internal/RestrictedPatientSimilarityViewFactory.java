@@ -31,7 +31,7 @@ import javax.inject.Singleton;
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which only allows access to
  * public or shared information.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */

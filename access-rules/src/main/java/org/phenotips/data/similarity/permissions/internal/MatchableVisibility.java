@@ -32,7 +32,7 @@ import javax.inject.Singleton;
  * Allows returning the patient as the result of a similarity search, but only features similar between the two
  * patients, reference and match, will be accessible. On the permissiveness level, this sits between right above
  * {@link org.phenotips.data.permissions.internal.visibility.PrivateVisibility no access}.
- * 
+ *
  * @version $Id$
  */
 @Component

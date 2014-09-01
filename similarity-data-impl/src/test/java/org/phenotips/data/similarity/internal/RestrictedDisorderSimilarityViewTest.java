@@ -19,22 +19,25 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import net.sf.json.JSONObject;
+import org.phenotips.data.Disorder;
+import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.DisorderSimilarityView;
+
+import org.xwiki.component.manager.ComponentLookupException;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.phenotips.data.Disorder;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.xwiki.component.manager.ComponentLookupException;
+
+import net.sf.json.JSONObject;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the "restricted" {@link DisorderSimilarityView} implementation, {@link RestrictedDisorderSimilarityView}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedDisorderSimilarityViewTest

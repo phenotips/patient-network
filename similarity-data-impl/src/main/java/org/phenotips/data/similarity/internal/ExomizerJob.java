@@ -48,7 +48,7 @@ import net.sf.json.JSONArray;
 
 /**
  * A runnable exomizer job instance, suitable for a ThreadPool, and managed by an ExomizerJobManager instance.
- * 
+ *
  * @version $Id$
  */
 public class ExomizerJob implements Runnable
@@ -76,7 +76,7 @@ public class ExomizerJob implements Runnable
 
     /**
      * Create Runnable exomizer job from ExomizerManager instance.
-     * 
+     *
      * @param manager the job manager running this job
      * @param chromosomeMap the shared Exomizer data structure.
      * @param patient the patient to run.
@@ -94,7 +94,7 @@ public class ExomizerJob implements Runnable
 
     /**
      * Return the comma-separated string of HPO terms present in a Patient, suitable for ExomizerManager.
-     * 
+     *
      * @param patient the patient to get HPO terms for.
      * @return the string of present HPO terms, comma-separated.
      */
@@ -112,7 +112,7 @@ public class ExomizerJob implements Runnable
 
     /**
      * Write out the filtered variants for the patient to an output file.
-     * 
+     *
      * @param outFile the output file to write the variants to
      * @throws IOException if there is an error writing the variants to the file
      */

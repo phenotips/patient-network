@@ -60,7 +60,7 @@ import jannovar.reference.Chromosome;
 
 /**
  * Manager for dispatching and caching patient exomizer data.
- * 
+ *
  * @version $Id$
  */
 @Component(roles = { ExternalToolJobManager.class })
@@ -179,7 +179,7 @@ public class ExomizerJobManager implements ExternalToolJobManager<Genotype>, Ini
 
     /**
      * Get the chromosomeMap lazily, memoizing once it's loaded.
-     * 
+     *
      * @return the chromosomeMap for exomizer to use
      */
     private HashMap<Byte, Chromosome> getChromosomeMap()
