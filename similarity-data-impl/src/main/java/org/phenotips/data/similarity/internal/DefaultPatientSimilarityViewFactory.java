@@ -278,7 +278,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         Map<OntologyTerm, Double> termFreq = new HashMap<OntologyTerm, Double>();
         double freqDenom = 0.0;
         // Add up frequencies of each term across diseases
-        // TODO: Currently uniform weight across diseases
         Collection<OntologyTerm> diseases = queryAllTerms(mim);
         Set<OntologyTerm> ignoredSymptoms = new HashSet<OntologyTerm>();
         for (OntologyTerm disease : diseases) {
@@ -292,9 +291,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                             ignoredSymptoms.add(symptom);
                             continue;
                         }
-                        // Get frequency with which symptom occurs in disease, if annotated
-                        // TODO: fix with actual frequency
-                        Double freq = 1.0;
+                        // Ideally use frequency with which symptom occurs in disease
+                        // This information isn't prevalent or reliable yet, however
+                        double freq = 1.0;
                         freqDenom += freq;
                         // Add to accumulated term frequency
                         Double prevFreq = termFreq.get(symptom);
