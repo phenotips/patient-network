@@ -37,6 +37,12 @@ import net.sf.json.JSONObject;
  */
 public class ExomizerVariant implements Variant
 {
+    /** Info field key for variant effect. */
+    private static final String EFFECT_KEY = "EFFECT";
+
+    /** Info field key for variant harmfulness score. */
+    private static final String VARIANT_SCORE_KEY = "VARIANT_SCORE";
+
     /** See {@link #getChrom()}. */
     private String chrom;
 
@@ -127,16 +133,13 @@ public class ExomizerVariant implements Variant
                 this.info.put(part, "");
             }
         }
-        this.effect = this.info.get("EFFECT");
+        this.effect = this.info.get(EFFECT_KEY);
 
         if (score == null) {
             // Try to read score from info field
-            String infoScore = this.info.get("VARIANT_SCORE");
+            String infoScore = this.info.get(VARIANT_SCORE_KEY);
             if (infoScore != null) {
                 this.score = Double.parseDouble(infoScore);
-                if (this.effect.equals("MISSENSE")) {
-                    this.score *= 0.90;
-                }
             }
         } else {
             this.score = score;

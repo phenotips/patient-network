@@ -24,16 +24,22 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.ExternalToolJobManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.GenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.Variant;
 
+import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.environment.Environment;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +70,20 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /** The number of genes to show in the JSON output. */
     private static final int MAX_GENES_SHOWN = 10;
 
+    /** The name of the data subdirectory used by this job manager. */
+    private static final String GENOTYPE_SUBDIR = "exomiser";
+
+    /** Suffix of patient genotype files. */
+    private static final String GENOTYPE_SUFFIX = ".ezr";
+
     /** Cache for storing symmetric pairwise patient similarity scores. */
     private static PairCache<Double> similarityScoreCache;
+
+    /** Cache for storing patient genotypes. */
+    private static Cache<Genotype> genotypeCache;
+
+    /** Directory containing genotype information for all patients (e.g. Exomiser files). */
+    private static File genotypeDirectory;
 
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(RestrictedGenotypeSimilarityView.class);
@@ -89,9 +108,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /** Access to the patient view factory to get other patient phenotypic similarities. */
     private PatientSimilarityViewFactory patientViewFactory;
-
-    /** Access to the ExomizerJobManager. */
-    private ExternalToolJobManager<Genotype> exomizerManager;
 
     /** Candidate genes in the reference patient. */
     private Collection<String> refCandidateGenes;
@@ -129,12 +145,25 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             }
         }
 
+        ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
+        if (genotypeDirectory == null) {
+            genotypeDirectory = getGenotypeDirectory(componentManager);
+        }
+
+        // Set up genotype cache
+        if (genotypeCache == null) {
+            try {
+                CacheManager cacheManager = componentManager.getInstance(CacheManager.class);
+                genotypeCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+            } catch (ComponentLookupException | CacheException e) {
+                logger.warn("Unable to create patient genotype cache: " + e.toString());
+            }
+        }
+
         // Load components
         try {
-            ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
             this.patientRepo = componentManager.getInstance(PatientRepository.class);
             this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "restricted");
-            this.exomizerManager = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
         } catch (ComponentLookupException e) {
             logger.warn("Unable to load component: " + e.toString());
         }
@@ -143,16 +172,14 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.matchCandidateGenes = getCandidateGeneNames(this.match);
         this.refCandidateGenes = getCandidateGeneNames(this.reference);
 
-        // Get exomiser results
+        // Get genotype information
         String matchId = match.getId();
         String refId = reference.getId();
-        if (this.exomizerManager != null) {
-            if (matchId != null) {
-                this.matchGenotype = this.exomizerManager.getResult(matchId);
-            }
-            if (refId != null) {
-                this.refGenotype = this.exomizerManager.getResult(refId);
-            }
+        if (matchId != null) {
+            this.matchGenotype = getGenotype(matchId);
+        }
+        if (refId != null) {
+            this.refGenotype = getGenotype(refId);
         }
 
         // Match candidate genes and any genotype available
@@ -160,6 +187,83 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             && (!this.matchCandidateGenes.isEmpty() || this.matchGenotype != null)) {
             matchGenes();
         }
+    }
+
+    /**
+     * Get the directory containing processed genotype (e.g. Exomiser) files for patients.
+     * 
+     * @param componentManager
+     * @return the directory as a File object, or null if it could not be found.
+     */
+    private static File getGenotypeDirectory(ComponentManager componentManager)
+    {
+        try {
+            Environment environment = componentManager.getInstance(Environment.class);
+            File rootDir = environment.getPermanentDirectory();
+            File dataDir = new File(rootDir, GENOTYPE_SUBDIR);
+            if (!dataDir.isDirectory() && dataDir.exists()) {
+                logger.error("Expected directory but found file: " + dataDir.getAbsolutePath());
+            }
+            return dataDir;
+        } catch (ComponentLookupException e) {
+            logger.warn("Unable to find genotype directory: " + e.toString());
+        }
+        return null;
+    }
+
+    /**
+     * Get a list of all patients with genotype information.
+     * 
+     * @return a list of the document IDs for patients with genotype information.
+     */
+    private static List<String> getGenotypedPatients()
+    {
+        // List the basename of any genotype files in the genotype directory
+        File[] outputFiles = genotypeDirectory.listFiles(new FilenameFilter()
+        {
+            @Override
+            public boolean accept(File dir, String name)
+            {
+                return name.endsWith(GENOTYPE_SUFFIX);
+            }
+        });
+
+        List<String> patientIds = new ArrayList<String>();
+        for (File outputFile : outputFiles) {
+            String id = FilenameUtils.removeExtension(outputFile.getName());
+            patientIds.add(id);
+        }
+        return patientIds;
+    }
+
+    /**
+     * Get the (potentially-cached) genotype for the patient with the given id.
+     * 
+     * @param id the document identifier for the patient.
+     * @return the loaded Genotype, or null if no genotype available.
+     */
+    private Genotype getGenotype(String id)
+    {
+        Genotype genotype = null;
+        if (genotypeCache != null) {
+            genotype = genotypeCache.get(id);
+        }
+        if (id != null && genotype == null && genotypeDirectory != null) {
+            // Attempt to load genotype from file
+            File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
+            if (vcf.isFile()) {
+                try {
+                    genotype = new ExomizerGenotype(vcf);
+                } catch (FileNotFoundException e) {
+                    // No problem
+                }
+            }
+            // Cache genotype
+            if (genotype != null && genotypeCache != null) {
+                genotypeCache.set(id, genotype);
+            }
+        }
+        return null;
     }
 
     /**
@@ -384,7 +488,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             if (this.refGenotype == null && this.matchGenotype == null) {
                 // Without any genotypes, just score matching candidate genes as 1.0;
                 geneScore = 1.0;
-            } else if (this.exomizerManager != null) {
+            } else {
                 // Else, compute gene score based on full genotype breakdown
                 // Set the variant harmfulness thresholds at the min of the two patients'
                 double[] thresholds = new double[2];
@@ -394,11 +498,14 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
                 if (otherGenotypes == null) {
                     otherGenotypes = new HashMap<String, Genotype>();
-                    Set<String> otherIds = new HashSet<String>(this.exomizerManager.getAllCompleted());
+                    Set<String> otherIds = new HashSet<String>(getGenotypedPatients());
                     otherGenotypes.remove(this.match.getId());
                     otherGenotypes.remove(this.reference.getId());
                     for (String id : otherIds) {
-                        otherGenotypes.put(id, this.exomizerManager.getResult(id));
+                        Genotype gt = getGenotype(id);
+                        if (gt != null) {
+                            otherGenotypes.put(id, gt);
+                        }
                     }
                 }
                 geneScore = scoreGene(gene, thresholds, otherGenotypes, otherSimScores);
@@ -482,8 +589,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     {
         if (similarityScoreCache != null) {
             similarityScoreCache.removeAll();
-            logger.info("Cleared cache.");
         }
+        if (genotypeCache != null) {
+            genotypeCache.removeAll();
+        }
+        logger.info("Cleared caches.");
     }
 
     /**
@@ -493,9 +603,14 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      */
     public static void clearPatientCache(String id)
     {
-        if (similarityScoreCache != null && id != null) {
-            similarityScoreCache.removeAssociated(id);
-            logger.info("Cleared cache for patient: " + id);
+        if (id != null) {
+            if (similarityScoreCache != null) {
+                similarityScoreCache.removeAssociated(id);
+            }
+            if (genotypeCache != null) {
+                genotypeCache.remove(id);
+            }
+            logger.info("Cleared caches for patient: " + id);
         }
     }
 

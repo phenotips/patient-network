@@ -44,6 +44,12 @@ import net.sf.json.JSONObject;
  */
 public class ExomizerGenotype implements Genotype
 {
+    /** Info field key for the variant's gene. */
+    private static final String GENE_KEY = "GENE";
+
+    /** Info field key for gene phenotypic relevance score. */
+    private static final String GENE_PHENOTYPE_SCORE_KEY = "PHENO_SCORE";
+
     /** The phenotype score for each gene with a variant. */
     private Map<String, Double> geneScores;
 
@@ -78,8 +84,8 @@ public class ExomizerGenotype implements Genotype
 
             Variant variant = new ExomizerVariant(line);
 
-            String gene = variant.getAnnotation("GENE");
-            Double geneScore = Double.parseDouble(variant.getAnnotation("PHENO_SCORE"));
+            String gene = variant.getAnnotation(GENE_KEY);
+            Double geneScore = Double.parseDouble(variant.getAnnotation(GENE_PHENOTYPE_SCORE_KEY));
             this.geneScores.put(gene, geneScore);
 
             // Add variant to gene without sorting (save sorting for end)
