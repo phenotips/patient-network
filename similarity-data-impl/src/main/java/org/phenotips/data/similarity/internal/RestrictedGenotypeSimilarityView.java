@@ -67,7 +67,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     private static PairCache<Double> similarityScoreCache;
 
     /** Logging helper object. */
-    private final Logger logger = LoggerFactory.getLogger(DefaultPatientSimilarityView.class);
+    private static Logger logger = LoggerFactory.getLogger(RestrictedGenotypeSimilarityView.class);
 
     /** The matched patient to represent. */
     private Patient match;
@@ -125,7 +125,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             try {
                 similarityScoreCache = new PairCache<Double>();
             } catch (CacheException e) {
-                this.logger.error("Unable to create patient similarity score cache: " + e.toString());
+                logger.warn("Unable to create patient similarity score cache: " + e.toString());
             }
         }
 
@@ -136,7 +136,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             this.patientViewFactory = componentManager.getInstance(PatientSimilarityViewFactory.class, "restricted");
             this.exomizerManager = componentManager.getInstance(ExternalToolJobManager.class, "exomizer");
         } catch (ComponentLookupException e) {
-            this.logger.error("Unable to load component: " + e.toString());
+            logger.warn("Unable to load component: " + e.toString());
         }
 
         // Add in candidate genes
@@ -482,6 +482,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     {
         if (similarityScoreCache != null) {
             similarityScoreCache.removeAll();
+            logger.info("Cleared cache.");
         }
     }
 

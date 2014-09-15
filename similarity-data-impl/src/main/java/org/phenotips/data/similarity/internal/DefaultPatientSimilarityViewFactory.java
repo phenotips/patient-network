@@ -178,13 +178,13 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
-        this.logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        this.logger.info("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        this.logger.error(String.format("  ... found %d entries.", results.size()));
+        this.logger.info(String.format("  ... found %d entries.", results.size()));
         return results;
     }
 
@@ -197,7 +197,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     private Map<OntologyTerm, Collection<OntologyTerm>> getChildrenMap(OntologyService ontology)
     {
         Map<OntologyTerm, Collection<OntologyTerm>> children = new HashMap<OntologyTerm, Collection<OntologyTerm>>();
-        this.logger.error("Getting all children of ontology terms...");
+        this.logger.info("Getting all children of ontology terms...");
         Collection<OntologyTerm> terms = queryAllTerms(ontology);
         for (OntologyTerm term : terms) {
             for (OntologyTerm parent : term.getParents()) {
@@ -210,7 +210,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                 parentChildren.add(term);
             }
         }
-        this.logger.error(String.format("cached children of %d ontology terms.", children.size()));
+        this.logger.info(String.format("cached children of %d ontology terms.", children.size()));
         return children;
     }
 
@@ -239,7 +239,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                 if (childDescendants != null) {
                     descendants.addAll(childDescendants);
                 } else {
-                    this.logger.error("Descendants were null after recursion");
+                    this.logger.warn("Descendants were null after recursion");
                 }
             }
         }
@@ -311,10 +311,10 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             }
         }
         if (!ignoredSymptoms.isEmpty()) {
-            this.logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
+            this.logger.warn(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
 
-        this.logger.error("Normalizing term frequency distribution...");
+        this.logger.info("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
         for (Map.Entry<OntologyTerm, Double> entry : termFreq.entrySet()) {
             entry.setValue(limitProb(entry.getValue() / freqDenom));
@@ -338,7 +338,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         for (OntologyTerm term : termFreq.keySet()) {
             Collection<OntologyTerm> descendants = termDescendants.get(term);
             if (descendants == null) {
-                this.logger.error("Found no descendants of term: " + term.getId());
+                this.logger.warn("Found no descendants of term: " + term.getId());
             }
             // Sum up frequencies of all descendants
             double probMass = 0.0;
@@ -350,7 +350,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             }
 
             if (HP_ROOT.equals(term.getId())) {
-                this.logger.error(String
+                this.logger.warn(String
                     .format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
             if (probMass > EPS) {
@@ -364,12 +364,12 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @Override
     public void initialize() throws InitializationException
     {
-        this.logger.error("Initializing DefaultPatientSimilarityViewFactory...");
+        this.logger.info("Initializing...");
         if (this.viewCache == null) {
             try {
                 this.viewCache = new PairCache<PatientSimilarityView>();
             } catch (CacheException e) {
-                this.logger.error("Unable to create cache for PatientSimilarityViews");
+                this.logger.warn("Unable to create cache for PatientSimilarityViews");
             }
         }
         if (!DefaultPatientSimilarityView.isInitialized()) {
@@ -389,10 +389,10 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
             // Give data to views to use
-            this.logger.error("Setting view globals...");
+            this.logger.info("Setting view globals...");
             DefaultPatientSimilarityView.initializeStaticData(termICs, this.ontologyManager);
         }
-        this.logger.error("DefaultPatientSimilarityViewFactory initialized.");
+        this.logger.info("Initialized.");
     }
 
     /**
@@ -402,6 +402,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     {
         if (this.viewCache != null) {
             this.viewCache.removeAll();
+            this.logger.info("Cleared cache.");
         }
     }
 
