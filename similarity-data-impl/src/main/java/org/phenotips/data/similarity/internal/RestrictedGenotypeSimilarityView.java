@@ -197,17 +197,23 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      */
     private static File getGenotypeDirectory(ComponentManager componentManager)
     {
+        Environment environment = null;
         try {
-            Environment environment = componentManager.getInstance(Environment.class);
+            environment = componentManager.getInstance(Environment.class);
+        } catch (ComponentLookupException e) {
+            logger.warn("Unable to lookup environment: " + e.toString());
+        }
+
+        if (environment != null) {
             File rootDir = environment.getPermanentDirectory();
             File dataDir = new File(rootDir, GENOTYPE_SUBDIR);
             if (!dataDir.isDirectory() && dataDir.exists()) {
                 logger.error("Expected directory but found file: " + dataDir.getAbsolutePath());
+            } else {
+                return dataDir;
             }
-            return dataDir;
-        } catch (ComponentLookupException e) {
-            logger.warn("Unable to find genotype directory: " + e.toString());
         }
+        logger.warn("Could not find genotype directory");
         return null;
     }
 
@@ -254,6 +260,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             if (vcf.isFile()) {
                 try {
                     genotype = new ExomizerGenotype(vcf);
+                    logger.info("Loaded genotype for " + id);
                 } catch (FileNotFoundException e) {
                     // No problem
                 }
@@ -263,7 +270,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
                 genotypeCache.set(id, genotype);
             }
         }
-        return null;
+        return genotype;
     }
 
     /**

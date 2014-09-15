@@ -25,14 +25,10 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-  <suppress checks="IllegalType" files="ExomizerJobManager.java"/>
-  <suppress checks="IllegalType" files="ExomizerJob.java"/>
   <suppress checks="IllegalType" files="DefaultPatientSimilarityViewFactory.java"/>
   <suppress checks="ClassFanOutComplexity" files="RestrictedGenotypeSimilarityView.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultPatientSimilarityViewFactory.java"/>
-  <suppress checks="ClassFanOutComplexity" files="ExomizerJobManager.java"/>
   <suppress checks="CyclomaticComplexity" files="RestrictedGenotypeSimilarityView.java"/>
-  <suppress checks="CyclomaticComplexity" files="ExomizerJobManager.java"/>
   <suppress checks="NPathComplexity" files="RestrictedGenotypeSimilarityView.java"/>
   <suppress checks="MultipleStringLiterals" files="RestrictedGenotypeSimilarityView.java"/>
 </suppressions>
