@@ -489,15 +489,13 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /**
      * Clear all cached similarity scores associated with a particular patient.
      * 
-     * @param p the patient to clear.
+     * @param id the document identifier of the patient to clear from the cache.
      */
-    public static void clearPatientCache(Patient p)
+    public static void clearPatientCache(String id)
     {
-        if (similarityScoreCache != null) {
-            String id = p.getId();
-            if (id != null) {
-                similarityScoreCache.removeAssociated(p.getId());
-            }
+        if (similarityScoreCache != null && id != null) {
+            similarityScoreCache.removeAssociated(id);
+            logger.info("Cleared cache for patient: " + id);
         }
     }
 

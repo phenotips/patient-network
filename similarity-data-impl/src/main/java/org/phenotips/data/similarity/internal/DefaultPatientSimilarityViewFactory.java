@@ -409,15 +409,13 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /**
      * Clear all cached similarity data associated with a particular patient.
      * 
-     * @param p the patient to clear.
+     * @param id the document ID of the patient to remove from the cache
      */
-    public void clearPatientCache(Patient p)
+    public void clearPatientCache(String id)
     {
         if (this.viewCache != null) {
-            String id = p.getId();
-            if (id != null) {
-                this.viewCache.removeAssociated(p.getId());
-            }
+            this.viewCache.removeAssociated(id);
+            this.logger.info("Cleared patient from cache: " + id);
         }
     }
 }

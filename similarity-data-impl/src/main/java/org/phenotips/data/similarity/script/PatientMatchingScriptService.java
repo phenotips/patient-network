@@ -19,7 +19,6 @@
  */
 package org.phenotips.data.similarity.script;
 
-import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.RestrictedGenotypeSimilarityView;
@@ -50,7 +49,7 @@ public class PatientMatchingScriptService implements ScriptService
     private PatientSimilarityViewFactory patientViewFactory;
 
     @Inject
-    private Logger logging;
+    private Logger logger;
 
     /**
      * Clear all (phenotype and genotype) patient similarity caches.
@@ -59,18 +58,20 @@ public class PatientMatchingScriptService implements ScriptService
     {
         ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearCache();
         RestrictedGenotypeSimilarityView.clearCache();
-        logging.error("Patient matching caches cleared!");
+        logger.info("Cleared caches.");
     }
 
     /**
      * Clear all (phenotype and genotype) patient similarity caches for a specific patient.
      * 
-     * @param p the patient to clear caches for.
+     * @param id the document ID of the patient whose caches are to be cleared.
      */
-    public void clearPatientCache(Patient p)
+    public void clearPatientCache(String id)
     {
-        ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(p);
-        RestrictedGenotypeSimilarityView.clearPatientCache(p);
-        logging.error("Caches for " + p.getId() + " cleared!");
+        if (id != null) {
+            ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(id);
+            RestrictedGenotypeSimilarityView.clearPatientCache(id);
+            logger.info("Cleared cache for patient: " + id);
+        }
     }
 }
