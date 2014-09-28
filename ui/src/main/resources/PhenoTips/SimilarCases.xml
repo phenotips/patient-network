@@ -226,7 +226,7 @@
       this.launchSearch();
 
       this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
-      this._contactDialog = new MS.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact a non-public case owner', 'verticalPosition': 'top', 'removeOnClose': false});
+      this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact a non-public case owner', 'verticalPosition': 'top', 'removeOnClose': false});
     },
 
     launchSearch : function(event) {
