@@ -50,7 +50,7 @@ public interface Variant extends Comparable<Variant>
      * Get the reference allele for the variant (e.g. "A", "CCT"). If the variant is a simple insertion, this might be
      * "-".
      *
-     * @return the reference genotype as a string
+     * @return the reference genotype as a string, or null if not available
      */
     String getRef();
 
@@ -58,16 +58,16 @@ public interface Variant extends Comparable<Variant>
      * Get the alternate allele for the variant (e.g. "A", "CCT"). If the variant is a simple deletion, this might be
      * "-".
      *
-     * @return the alternate genotype as a string
+     * @return the alternate genotype as a string, or null if not available
      */
     String getAlt();
 
     /**
      * Return whether the variant is homozygous or not.
      *
-     * @return true if the variant is homozygous, false otherwise
+     * @return true if the variant is homozygous, false otherwise, null if unspecified
      */
-    boolean isHomozygous();
+    Boolean isHomozygous();
 
     /**
      * Get the value associated with a particular annotation (such as the INFO field of a VCF file).
@@ -95,7 +95,7 @@ public interface Variant extends Comparable<Variant>
     /**
      * Get the VCF-line equivalent of the variant.
      *
-     * @return the line of the VCF file without a terminal newline
+     * @return the line of the VCF file without a terminal newline, or null if not available
      */
     String toVCFLine();
 

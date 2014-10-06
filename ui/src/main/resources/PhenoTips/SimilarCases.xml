@@ -628,12 +628,10 @@
           titleRow.insert(new Element('th', {'class' : 'gene'})
                                .insert(geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
+                               .insert(geneInfo.score &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.score) || '')
                                 /* The genename service should populate this with links if the input is present*/
           ).insert(new Element('th', {'class' : 'variants-toggle'}));
           if (geneInfo.reference || geneInfo.match) {
-            var scoreRow = _this._getEmptyTableRow(genotypeMatchTable);
-            scoreRow.insert(new Element('td', {'class' : 'relevance query'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in ').insert(new Element('strong').update(_this._getDisplayedQueryId())).insert(":")).insert(geneInfo.reference &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.reference.score) || '-'));
-            scoreRow.insert(new Element('td', {'class' : 'relevance result'}).update(new Element('span', {'class' : 'hint'}).insert('Estimated relevance for the observed phenotype in ').insert(new Element('strong').update(_this._getDisplayedResultId(r))).insert(":")).insert(geneInfo.match &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.match.score) || '-'));
             if (geneInfo.reference &amp;&amp; geneInfo.reference.variants || geneInfo.match &amp;&amp; geneInfo.match.variants) {
               var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("Show variants...");
               var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("Hide variants...");
@@ -1436,18 +1434,17 @@
     <property>
       <code>#template("colorThemeInit.vm")
 
-.match-details table.gene-matches&gt;tr:nth-child(3n+1),
+.match-details table.gene-matches&gt;tr:nth-child(2n+1),
 .match-details table.phenotype-matches&gt;tr:nth-child(3n+1) {
   background-color: $theme.menuLinkColor;
   background-color: $theme.menuBackgroundColor;
   color: $theme.menuLinkColor;
   text-shadow: none;
 }
-.match-details table.gene-matches&gt;tr:nth-child(3n),
+.match-details table.gene-matches&gt;tr:nth-child(2n),
 .match-details table.phenotype-matches&gt;tr:nth-child(3n){
   background-color: transparent;
 }
-.match-details table.gene-matches&gt;tr:nth-child(3n+2),
 .match-details table.phenotype-matches&gt;tr:nth-child(3n+2) {
   background-color: transparent;
 }
@@ -1469,11 +1466,11 @@
   float: right;
   margin: 0;
 }
-.match-details .gene-matches &gt; tr &gt; th,
-.match-details .gene-matches .relevance {
- ## padding-bottom: .2em;
- ## padding-top: 0;
+.match-details .gene-matches &gt; tr &gt; th {
+  ##padding-bottom: .2em;
+  ##padding-top: 0;
   text-align: left;
+  width: 50%;
 }
 .match-details .gene-matches &gt; tr &gt; td {
   text-align: center;
@@ -1485,18 +1482,20 @@
     text-transform: none;
     width: 99%;
 }
-.match-details .gene-matches .variants-data .hint {
-    float: right;
-}
 .match-details .variants-data .segmented-bar .segmented-unit-fill {
     background-color: $theme.notificationErrorColor;
     verical-align: middle;
 }
+.match-details .gene-matches .gene .segmented-bar .segmented-unit-fill,
 .match-details .phenotype-matches .segmented-bar .segmented-unit-fill {
     background-color: $theme.menuLinkColor;
     verical-align: middle;
 }
 
+.match-details .gene-matches .gene .segmented-bar {
+    float: left;
+    padding-right: 1em;
+}
 .match-details .gene-matches .segmented-bar,
 .match-details .phenotype-matches .segmented-bar {
     float: right;

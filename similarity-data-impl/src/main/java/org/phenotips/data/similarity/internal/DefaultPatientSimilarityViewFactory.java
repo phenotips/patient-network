@@ -29,12 +29,8 @@ import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyService;
 import org.phenotips.ontology.OntologyTerm;
 
-import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
-import org.xwiki.cache.CacheManager;
-import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
@@ -91,12 +87,8 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @Inject
     protected OntologyManager ontologyManager;
 
-    /** Provides access to the cache manager. */
-    @Inject
-    private CacheManager cacheManager;
-
     /** Cache for patient similarity views. */
-    private Cache<PatientSimilarityView> viewCache;
+    private PairCache<PatientSimilarityView> viewCache;
 
     /**
      * Create an instance of the PatientSimilarityView for this PatientSimilarityViewFactory. This can be overridden to
@@ -124,10 +116,15 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     {
         // Get potentially-cached patient similarity view
         String cacheKey = match.getId() + '|' + reference.getId() + '|' + access.getAccessLevel().getName();
-        PatientSimilarityView result = this.viewCache.get(cacheKey);
+        PatientSimilarityView result = null;
+        if (this.viewCache != null) {
+            // result = this.viewCache.get(cacheKey);
+        }
         if (result == null) {
             result = createPatientSimilarityView(match, reference, access);
-            this.viewCache.set(cacheKey, result);
+            if (this.viewCache != null) {
+                this.viewCache.set(match.getId(), reference.getId(), cacheKey, result);
+            }
         }
         return result;
     }
@@ -181,13 +178,13 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
      */
     private Collection<OntologyTerm> queryAllTerms(OntologyService ontology)
     {
-        this.logger.error("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        this.logger.info("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
         Collection<OntologyTerm> results = ontology.search(queryAll, queryAllParams);
-        this.logger.error(String.format("  ... found %d entries.", results.size()));
+        this.logger.info(String.format("  ... found %d entries.", results.size()));
         return results;
     }
 
@@ -200,7 +197,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     private Map<OntologyTerm, Collection<OntologyTerm>> getChildrenMap(OntologyService ontology)
     {
         Map<OntologyTerm, Collection<OntologyTerm>> children = new HashMap<OntologyTerm, Collection<OntologyTerm>>();
-        this.logger.error("Getting all children of ontology terms...");
+        this.logger.info("Getting all children of ontology terms...");
         Collection<OntologyTerm> terms = queryAllTerms(ontology);
         for (OntologyTerm term : terms) {
             for (OntologyTerm parent : term.getParents()) {
@@ -213,7 +210,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                 parentChildren.add(term);
             }
         }
-        this.logger.error(String.format("cached children of %d ontology terms.", children.size()));
+        this.logger.info(String.format("cached children of %d ontology terms.", children.size()));
         return children;
     }
 
@@ -242,7 +239,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                 if (childDescendants != null) {
                     descendants.addAll(childDescendants);
                 } else {
-                    this.logger.error("Descendants were null after recursion");
+                    this.logger.warn("Descendants were null after recursion");
                 }
             }
         }
@@ -281,7 +278,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         Map<OntologyTerm, Double> termFreq = new HashMap<OntologyTerm, Double>();
         double freqDenom = 0.0;
         // Add up frequencies of each term across diseases
-        // TODO: Currently uniform weight across diseases
         Collection<OntologyTerm> diseases = queryAllTerms(mim);
         Set<OntologyTerm> ignoredSymptoms = new HashSet<OntologyTerm>();
         for (OntologyTerm disease : diseases) {
@@ -295,13 +291,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                             ignoredSymptoms.add(symptom);
                             continue;
                         }
-                        // Get frequency with which symptom occurs in disease, if annotated
-                        // TODO: fix with actual frequency
-                        Double freq = null;
-                        if (freq == null) {
-                            // Default frequency
-                            freq = 0.5;
-                        }
+                        // Ideally use frequency with which symptom occurs in disease
+                        // This information isn't prevalent or reliable yet, however
+                        double freq = 1.0;
                         freqDenom += freq;
                         // Add to accumulated term frequency
                         Double prevFreq = termFreq.get(symptom);
@@ -318,10 +310,10 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             }
         }
         if (!ignoredSymptoms.isEmpty()) {
-            this.logger.error(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
+            this.logger.warn(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
 
-        this.logger.error("Normalizing term frequency distribution...");
+        this.logger.info("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
         for (Map.Entry<OntologyTerm, Double> entry : termFreq.entrySet()) {
             entry.setValue(limitProb(entry.getValue() / freqDenom));
@@ -345,7 +337,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         for (OntologyTerm term : termFreq.keySet()) {
             Collection<OntologyTerm> descendants = termDescendants.get(term);
             if (descendants == null) {
-                this.logger.error("Found no descendants of term: " + term.getId());
+                this.logger.warn("Found no descendants of term: " + term.getId());
             }
             // Sum up frequencies of all descendants
             double probMass = 0.0;
@@ -357,7 +349,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             }
 
             if (HP_ROOT.equals(term.getId())) {
-                this.logger.error(String
+                this.logger.warn(String
                     .format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
             }
             if (probMass > EPS) {
@@ -368,86 +360,15 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         return termICs;
     }
 
-    /**
-     * Return the (approximate) conditional information content (IC) of a term, given its parents. Approximation is
-     * IC(term) + log(sum_{sibling} probability mass under sibling)
-     *
-     * @param term the OntologyTerm to compute the conditional IC
-     * @param termIC the pre-computed IC of each term
-     * @param termChildren the direct children of each OntologyTerm
-     * @return the approximate conditional IC of term, given its parents
-     */
-    private double getTermCondIC(OntologyTerm term, Map<OntologyTerm, Double> termIC,
-        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
-    {
-        // Find all terms with same set of parents
-        Collection<OntologyTerm> siblings = null;
-        for (OntologyTerm parent : term.getParents()) {
-            Collection<OntologyTerm> partialSiblings = termChildren.get(parent);
-            if (siblings == null) {
-                siblings = new HashSet<OntologyTerm>(partialSiblings);
-            } else {
-                siblings.retainAll(partialSiblings);
-            }
-        }
-
-        Double thisIC = 0.0;
-        if (siblings == null) {
-            this.logger.error("Missing siblings for term: " + term.getId());
-        } else {
-            // Sum probability mass under all siblings
-            Double siblingProbMass = 0.0;
-            for (OntologyTerm sibling : siblings) {
-                Double siblingIC = termIC.get(sibling);
-                if (siblingIC != null) {
-                    siblingProbMass += Math.exp(-siblingIC);
-                }
-            }
-
-            if (siblingProbMass > EPS) {
-                // Approximate conditional information content of term is information content of term less the overall
-                // information content of siblings
-                thisIC = termIC.get(term);
-                if (thisIC == null) {
-                    thisIC = 0.0;
-                }
-                thisIC += Math.log(siblingProbMass);
-            }
-        }
-        return thisIC;
-    }
-
-    /**
-     * Return the (approximate) conditional information content (IC) of all terms, given their parents. Approximation is
-     * IC(term) - max(IC(parent) | parent in parents(term))
-     *
-     * @param termIC the pre-computed IC of each term
-     * @param termChildren the direct children of each OntologyTerm
-     * @return map of the conditional IC of each term, given its parents
-     */
-    private Map<OntologyTerm, Double> getCondICs(Map<OntologyTerm, Double> termIC,
-        Map<OntologyTerm, Collection<OntologyTerm>> termChildren)
-    {
-        Map<OntologyTerm, Double> parentCondIC = new HashMap<OntologyTerm, Double>();
-        for (OntologyTerm term : termIC.keySet()) {
-            double condIC = getTermCondIC(term, termIC, termChildren);
-            // logger.error("Term: " + term.getId() + ", IC|parents: " + condIC);
-            parentCondIC.put(term, condIC);
-        }
-        return parentCondIC;
-    }
-
     @Override
     public void initialize() throws InitializationException
     {
-        this.logger.error("Initializing DefaultPatientSimilarityViewFactory...");
+        this.logger.info("Initializing...");
         if (this.viewCache == null) {
             try {
-                this.viewCache = this.cacheManager.getLocalCacheFactory().newCache(new CacheConfiguration());
-            } catch (ComponentLookupException e) {
-                this.logger.error("Error getting local cache factory");
+                this.viewCache = new PairCache<PatientSimilarityView>();
             } catch (CacheException e) {
-                this.logger.error("Unable to create cache for PatientSimilarityViews");
+                this.logger.warn("Unable to create cache for PatientSimilarityViews");
             }
         }
         if (!DefaultPatientSimilarityView.isInitialized()) {
@@ -466,16 +387,34 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
             Map<OntologyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
 
-            this.logger.error("Calculating conditional ICs...");
-            // Pre-computed bound on -logP(t|parents(t)), for each node t (i.e. t.cond_inf).
-            Map<OntologyTerm, Double> parentCondIC = getCondICs(termICs, termChildren);
-            assert termICs.size() == parentCondIC.size() : "Mismatch between sizes of IC and IC|parent maps";
-            assert Math.abs(parentCondIC.get(hpRoot)) < 1e-6 : "IC(root|parents) should equal 0.0";
-
             // Give data to views to use
-            this.logger.error("Setting view globals...");
-            DefaultPatientSimilarityView.initializeStaticData(termICs, parentCondIC, this.ontologyManager, this.logger);
+            this.logger.info("Setting view globals...");
+            DefaultPatientSimilarityView.initializeStaticData(termICs, this.ontologyManager);
         }
-        this.logger.error("DefaultPatientSimilarityViewFactor initialized.");
+        this.logger.info("Initialized.");
+    }
+
+    /**
+     * Clear all cached patient similarity data.
+     */
+    public void clearCache()
+    {
+        if (this.viewCache != null) {
+            this.viewCache.removeAll();
+            this.logger.info("Cleared cache.");
+        }
+    }
+
+    /**
+     * Clear all cached similarity data associated with a particular patient.
+     *
+     * @param id the document ID of the patient to remove from the cache
+     */
+    public void clearPatientCache(String id)
+    {
+        if (this.viewCache != null) {
+            this.viewCache.removeAssociated(id);
+            this.logger.info("Cleared patient from cache: " + id);
+        }
     }
 }

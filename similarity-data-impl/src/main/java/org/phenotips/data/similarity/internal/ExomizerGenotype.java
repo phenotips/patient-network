@@ -44,11 +44,26 @@ import net.sf.json.JSONObject;
  */
 public class ExomizerGenotype implements Genotype
 {
+    /** Info field key for the variant's gene. */
+    private static final String GENE_KEY = "GENE";
+
+    /** Info field key for gene phenotypic relevance score. */
+    private static final String GENE_PHENOTYPE_SCORE_KEY = "PHENO_SCORE";
+
     /** The phenotype score for each gene with a variant. */
     private Map<String, Double> geneScores;
 
     /** The variants in each gene. */
     private Map<String, List<Variant>> variants;
+
+    /**
+     * Constructor for empty Genotype object.
+     */
+    ExomizerGenotype()
+    {
+        this.variants = new HashMap<String, List<Variant>>();
+        this.geneScores = new HashMap<String, Double>();
+    }
 
     /**
      * Create a Genotype object from an Exomizer output file.
@@ -69,22 +84,21 @@ public class ExomizerGenotype implements Genotype
 
             Variant variant = new ExomizerVariant(line);
 
-            String gene = variant.getAnnotation("GENE");
-            Double geneScore = Double.parseDouble(variant.getAnnotation("PHENO_SCORE"));
+            String gene = variant.getAnnotation(GENE_KEY);
+            Double geneScore = Double.parseDouble(variant.getAnnotation(GENE_PHENOTYPE_SCORE_KEY));
             this.geneScores.put(gene, geneScore);
 
-            if (gene != null && !gene.isEmpty()) {
-                List<Variant> geneMutations = this.variants.get(gene);
-                if (geneMutations == null) {
-                    geneMutations = new ArrayList<Variant>();
-                    this.variants.put(gene, geneMutations);
-                }
+            // Add variant to gene without sorting (save sorting for end)
+            List<Variant> geneMutations = this.variants.get(gene);
+            if (geneMutations == null) {
+                geneMutations = new ArrayList<Variant>();
+                this.variants.put(gene, geneMutations);
+            }
 
+            geneMutations.add(variant);
+            // Represent homozygous variants as two separate mutations
+            if (variant.isHomozygous()) {
                 geneMutations.add(variant);
-                // Represent homozygous variants as two separate mutations
-                if (variant.isHomozygous()) {
-                    geneMutations.add(variant);
-                }
             }
         }
         fileScan.close();
@@ -92,7 +106,9 @@ public class ExomizerGenotype implements Genotype
         // Sort variants within each gene by harmfulness score
         // TODO: have lists maintain sorted order, instead of sorting at the end
         for (List<Variant> vs : this.variants.values()) {
-            Collections.sort(vs);
+            if (vs.size() > 1) {
+                Collections.sort(vs);
+            }
         }
     }
 

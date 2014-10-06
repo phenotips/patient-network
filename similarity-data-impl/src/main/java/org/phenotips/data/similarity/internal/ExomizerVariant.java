@@ -21,8 +21,8 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.similarity.Variant;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,6 +37,12 @@ import net.sf.json.JSONObject;
  */
 public class ExomizerVariant implements Variant
 {
+    /** Info field key for variant effect. */
+    private static final String EFFECT_KEY = "EFFECT";
+
+    /** Info field key for variant harmfulness score. */
+    private static final String VARIANT_SCORE_KEY = "VARIANT_SCORE";
+
     /** See {@link #getChrom()}. */
     private String chrom;
 
@@ -98,7 +104,7 @@ public class ExomizerVariant implements Variant
      * @param info the info field from a VCF line, may contain "EFFECT" annotation
      * @param score the score (if null, will be parsed from "VARIANT_SCORE" annotation in info field
      */
-    public void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
+    private void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
     {
         this.chrom = chrom.toUpperCase();
 
@@ -117,7 +123,7 @@ public class ExomizerVariant implements Variant
 
         // Parse the INFO field into a dictionary
         this.rawInfo = info;
-        this.info = new TreeMap<String, String>();
+        this.info = new HashMap<String, String>();
         String[] infoParts = StringUtils.split(info, ';');
         for (String part : infoParts) {
             int splitIndex = part.indexOf('=');
@@ -127,11 +133,11 @@ public class ExomizerVariant implements Variant
                 this.info.put(part, "");
             }
         }
-        this.effect = this.info.get("EFFECT");
+        this.effect = this.info.get(EFFECT_KEY);
 
         if (score == null) {
             // Try to read score from info field
-            String infoScore = this.info.get("VARIANT_SCORE");
+            String infoScore = this.info.get(VARIANT_SCORE_KEY);
             if (infoScore != null) {
                 this.score = Double.parseDouble(infoScore);
             }
@@ -177,7 +183,7 @@ public class ExomizerVariant implements Variant
     }
 
     @Override
-    public boolean isHomozygous()
+    public Boolean isHomozygous()
     {
         return "1/1".equals(this.gt) || "1|1".equals(this.gt);
     }
