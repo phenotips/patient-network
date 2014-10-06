@@ -97,12 +97,12 @@ disease-id=
 inheritance-mode=
 
 #OUTPUT OPTIONS
-#num-genes options: 0 = all or specify a limit e.g. 500 for the first 500 results  
+#num-genes options: 0 = all or specify a limit e.g. 500 for the first 500 results
 num-genes=0
 #out-file options: specify the path/filename without an extension and this will be added
-# according to the out-format option. If unspecified this will default to the following: 
+# according to the out-format option. If unspecified this will default to the following:
 # {exomiserDir}/results/input-vcf-name-exomiser-results.html
-# alternatively, specify a fully qualifed path only. e.g. /users/jules/exomes/analysis    
+# alternatively, specify a fully qualifed path only. e.g. /users/jules/exomes/analysis
 out-file=${outfile}
 #out-format options: HTML, TSV, VCF (default: HTML)
 out-format=VCF
@@ -174,7 +174,7 @@ function check_record {
 trap failure INT TERM EXIT
 
 # Investigate each record for changes
-for recorddir in "${RECORD_DIR}"/*; do 
+for recorddir in "${RECORD_DIR}"/*; do
 	record="$(basename "$recorddir")"
     n_vcf_attachments=$(list_vcfs | wc -l)
 	echo "Found ${n_vcf_attachments} attachments for ${record}" >&2

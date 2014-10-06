@@ -30,7 +30,7 @@ import net.sf.json.JSONObject;
 /**
  * Implementation of {@link DisorderSimilarityView} that only reveals information if the user has full access to the
  * patient.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -48,7 +48,7 @@ public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
     /**
      * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
      * the {@link #access patient access type}.
-     * 
+     *
      * @param match the matched disorder to represent
      * @param reference the reference disorder against which to compare, can be {@code null}
      * @param access the access type the user has to the patient having this disorder

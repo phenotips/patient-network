@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
  * Implementation of {@link org.phenotips.data.similarity.FeatureClusterView} that reveals the full patient information
  * if the user has full access to the patient, and only matching reference information for similar features if the
  * patient is matchable.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -44,7 +44,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
 {
     /**
      * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
-     * 
+     *
      * @param match the features in the matched patient, can be empty
      * @param reference the features in the reference patient, can be empty
      * @param access the access level of the match
@@ -61,7 +61,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
     /**
      * {@inheritDoc} If access is matchable and there is exactly one reference phenotype that is identical to the
      * category (ancestor), report the category as the parent of the ancestor for privacy.
-     * 
+     *
      * @see org.phenotips.data.similarity.internal.DefaultFeatureClusterView#getRoot()
      */
     @Override

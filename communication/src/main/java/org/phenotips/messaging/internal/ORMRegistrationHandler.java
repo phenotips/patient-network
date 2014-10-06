@@ -38,7 +38,7 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 /**
  * Registers the {@link Connection connection entity} in the Hibernate configuration at startup, since Hibernate doesn't
  * have a clean mechanism for auto-registering optional modular entities at runtime.
- * 
+ *
  * @version $Id$
  * @since 1.0M10
  */

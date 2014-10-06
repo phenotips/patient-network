@@ -69,7 +69,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for the "restricted" {@link PatientSimilarityViewFactory} implementation,
  * {@link RestrictedPatientSimilarityViewFactory}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedPatientSimilarityViewFactoryTest

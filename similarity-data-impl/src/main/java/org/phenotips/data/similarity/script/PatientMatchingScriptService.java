@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 
 /**
  * Allows management of patient phenotype and genotype matching features.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -63,7 +63,7 @@ public class PatientMatchingScriptService implements ScriptService
 
     /**
      * Clear all (phenotype and genotype) patient similarity caches for a specific patient.
-     * 
+     *
      * @param id the document ID of the patient whose caches are to be cleared.
      */
     public void clearPatientCache(String id)

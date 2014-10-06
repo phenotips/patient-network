@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Role;
  * information. For example, a feature from the matched patient that matches another feature from the reference patient
  * will {@link FeatureClusterView#getReference() indicate that}, and will be able to compute a
  * {@link FeatureClusterView#getScore() similarity score}.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -39,7 +39,7 @@ public interface PatientSimilarityViewFactory
 {
     /**
      * Instantiates a {@link PatientSimilarityView} specific to this factory, linking the two patients.
-     * 
+     *
      * @param match the matched patient whose data will be exposed
      * @param reference the patient used as the reference against which to compare
      * @return the extended patient
@@ -50,7 +50,7 @@ public interface PatientSimilarityViewFactory
     /**
      * Converts a different type of {@link PatientSimilarityView} to the type managed by this factory. Useful for
      * converting between restricted and open patient similarity views.
-     * 
+     *
      * @param patientPair the patient similarity view to convert
      * @return a clone of the passed patient pair, using this factory's type of view
      */

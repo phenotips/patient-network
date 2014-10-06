@@ -26,7 +26,7 @@ import org.xwiki.stability.Unstable;
 
 /**
  * View of a patient as related to another reference patient.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -35,14 +35,14 @@ public interface PatientSimilarityView extends Patient
 {
     /**
      * The reference patient against which we're comparing.
-     * 
+     *
      * @return the patient for which we're searching similar cases
      */
     Patient getReference();
 
     /**
      * What type of access does the user have to this patient profile.
-     * 
+     *
      * @return an {@link AccessLevel} value
      */
     AccessLevel getAccess();
@@ -50,14 +50,14 @@ public interface PatientSimilarityView extends Patient
     /**
      * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
      * token as an identifier for the pair (reference patient<->matched patient).
-     * 
+     *
      * @return a token which can be used for identifying the anonymous email session
      */
     String getContactToken();
 
     /**
      * How similar is this patient to the reference.
-     * 
+     *
      * @return a similarity score, between {@code -1} for opposite patient descriptions and {@code 1} for an exact
      *         match, with {@code 0} for patients with no similarities
      */

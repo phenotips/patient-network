@@ -40,7 +40,7 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 
 /**
  * Default implementation for the {@code ConnectionManager} role, based on Hibernate for storage.
- * 
+ *
  * @version $Id$
  */
 @Component

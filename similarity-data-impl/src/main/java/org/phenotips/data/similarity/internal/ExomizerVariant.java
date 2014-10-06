@@ -31,7 +31,7 @@ import net.sf.json.JSONObject;
 
 /**
  * An annotated variant, as outputted by Exomizer.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -72,7 +72,7 @@ public class ExomizerVariant implements Variant
 
     /**
      * Create a Variant from a line of an exomizer-annotated VCF file.
-     * 
+     *
      * @param line the line of the VCF file
      */
     ExomizerVariant(String line)
@@ -84,7 +84,7 @@ public class ExomizerVariant implements Variant
     /**
      * Create a Variant from a MedSavant Row using the current database configuration. TODO: make this adapt to the
      * database configuration, rather than use hard-coded column indices.
-     * 
+     *
      * @param line the line of the VCF file
      */
     ExomizerVariant(JSONArray row)
@@ -95,7 +95,7 @@ public class ExomizerVariant implements Variant
 
     /**
      * Initialize a variant given a standard set of field values.
-     * 
+     *
      * @param chrom the chromosome string
      * @param position the variant position (1-indexed)
      * @param ref the reference allele

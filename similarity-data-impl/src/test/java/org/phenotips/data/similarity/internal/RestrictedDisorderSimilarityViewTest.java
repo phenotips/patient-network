@@ -34,7 +34,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 
 /**
  * Tests for the "restricted" {@link DisorderSimilarityView} implementation, {@link RestrictedDisorderSimilarityView}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedDisorderSimilarityViewTest

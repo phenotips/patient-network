@@ -76,7 +76,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for the "restricted" {@link PatientSimilarityView} implementation, {@link RestrictedPatientSimilarityView}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedPatientSimilarityViewTest
@@ -362,7 +362,7 @@ public class RestrictedPatientSimilarityViewTest
 
     /**
      * Set candidate genes for mock patient.
-     * 
+     *
      * @param mockPatient
      * @param geneNames
      */

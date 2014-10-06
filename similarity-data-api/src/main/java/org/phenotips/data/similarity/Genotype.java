@@ -27,7 +27,7 @@ import net.sf.json.JSONArray;
 
 /**
  * A basic representation of a genotype of a patient, with scored Variant objects in scored genes.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -36,14 +36,14 @@ public interface Genotype
 {
     /**
      * Get the names of all genes with variants in the patient.
-     * 
+     *
      * @return an unmodifiable set of gene names with variants in the patient.
      */
     Set<String> getGenes();
 
     /**
      * Return the score for a gene.
-     * 
+     *
      * @param gene the gene in question.
      * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene).
      */
@@ -51,7 +51,7 @@ public interface Genotype
 
     /**
      * Get the kth highest scoring variant in the given gene.
-     * 
+     *
      * @param gene the gene to return variants for.
      * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc).
      * @return get the kth highest scoring variant (or null).
@@ -60,14 +60,14 @@ public interface Genotype
 
     /**
      * Retrieve all variant information in a JSON format. For example:
-     * 
+     *
      * <pre>
-     *   [ 
+     *   [
      *     {
      *       "gene": "SRCAP",
      *       "score": 0.7, // phenotype score
      *       "variants": [ // variants sorted by decreasing score
-     *         { 
+     *         {
      *           "score": 0.8, // genotype score
      *           "chrom": "1",
      *           "position": 2014819,
@@ -80,7 +80,7 @@ public interface Genotype
      *     }
      *   ]
      * </pre>
-     * 
+     *
      * @return the data about this value, using the json-lib classes.
      */
     JSONArray toJSON();

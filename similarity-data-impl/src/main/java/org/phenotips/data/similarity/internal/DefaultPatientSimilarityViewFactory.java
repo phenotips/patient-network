@@ -51,7 +51,7 @@ import org.slf4j.Logger;
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which uses the mutual
  * information to score pairs of patients.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -93,7 +93,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /**
      * Create an instance of the PatientSimilarityView for this PatientSimilarityViewFactory. This can be overridden to
      * have the same PatientSimilarityViewFactory functionality with a different PatientSimilarityView implementation.
-     * 
+     *
      * @param match the match patient
      * @param reference the reference patient
      * @param access the access level
@@ -106,7 +106,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Get PatientSimilarityView from cache or create a new one and add to the cache.
-     * 
+     *
      * @param match the match patient
      * @param reference the reference patient
      * @param access the access level
@@ -161,7 +161,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Bound probability to between (0, 1) exclusive.
-     * 
+     *
      * @param prob
      * @return probability bounded between (0, 1) exclusive
      */
@@ -172,7 +172,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Return all terms in the ontology.
-     * 
+     *
      * @param ontology the ontology to query
      * @return a Collection of all OntologyTerms in the ontology
      */
@@ -190,7 +190,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Return a mapping from OntologyTerms to their children in the given ontology.
-     * 
+     *
      * @param ontology the ontology
      * @return a map from each term to the children in ontology
      */
@@ -216,7 +216,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Helper method to recursively fill a map with the descendants of all terms under a root term.
-     * 
+     *
      * @param root the root of the ontology to explore
      * @param termChildren a map from each ontology term to its children
      * @param termDescendants a partially-complete map of terms to descendants, filled in by this method
@@ -249,7 +249,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Return a mapping from OntologyTerms to their descendants in the part of the ontology under root.
-     * 
+     *
      * @param root the root of the ontology to explore
      * @param termChildren a map from each ontology term to its children
      * @return a map from each term to the descendants in ontology
@@ -265,7 +265,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Return the observed frequency distribution across provided HPO terms seen in MIM.
-     * 
+     *
      * @param mim the MIM ontology with diseases and symptom frequencies
      * @param hpo the human phenotype ontology
      * @param allowedTerms only frequencies for a subset of these terms will be returned
@@ -324,7 +324,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Return the information content of each OntologyTerm in termFreq.
-     * 
+     *
      * @param termFreq the absolute frequency of each OntologyTerm
      * @param termDescendants the descendants of each OntologyTerm
      * @return a map from each term to the information content of that term
@@ -407,7 +407,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /**
      * Clear all cached similarity data associated with a particular patient.
-     * 
+     *
      * @param id the document ID of the patient to remove from the cache
      */
     public void clearPatientCache(String id)

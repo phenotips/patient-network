@@ -40,7 +40,7 @@ import net.sf.json.JSONObject;
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that reveals the full patient
  * information if the user has full access to the patient, and only limited information for similar features if the
  * patient is matchable; for use in public scripts.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -48,7 +48,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 {
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
-     * 
+     *
      * @param match the matched patient to represent, must not be {@code null}
      * @param reference the reference patient against which to compare, must not be {@code null}
      * @param access the access level the current user has on the matched patient
@@ -62,7 +62,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 
     /**
      * Constructor that copies the data from another patient pair.
-     * 
+     *
      * @param openView the open patient pair to clone
      */
     public RestrictedPatientSimilarityView(AbstractPatientSimilarityView openView)

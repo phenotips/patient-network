@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for the default {@link SimilarityConfiguration} implementation, {@link WikiSimilarityConfiguration}.
- * 
+ *
  * @version $Id$
  */
 public class WikiSimilarityConfigurationTest

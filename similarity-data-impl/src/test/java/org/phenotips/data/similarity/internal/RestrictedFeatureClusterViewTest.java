@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for the "restricted" {@link FeatureClusterView} implementation, {@link RestrictedFeatureClusterView}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedFeatureClusterViewTest

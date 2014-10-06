@@ -35,7 +35,7 @@ import java.util.Map;
 
 /**
  * Wrapper over an xwiki cache to better handle keys corresponding to pairs of entities.
- * 
+ *
  * @version $Id$
  * @param <T>
  * @since
@@ -50,7 +50,7 @@ public class PairCache<T>
 
     /**
      * Create a cache that associates a pair of IDs with each cache entry.
-     * 
+     *
      * @throws CacheException if the cache cannot be created.
      */
     public PairCache() throws CacheException
@@ -72,7 +72,7 @@ public class PairCache<T>
 
     /**
      * Add the cacheKey to the collection of cache keys associated with the given ID.
-     * 
+     *
      * @param id the unique ID to associate with the cache key.
      * @param cacheKey the cache key to associate with.
      */
@@ -88,7 +88,7 @@ public class PairCache<T>
 
     /**
      * Store the cacheKey and corresponding value in the cache, and associate this entry with the pair of id strings.
-     * 
+     *
      * @param id1 an id to associate with the entry.
      * @param id2 another id to associate with the entry.
      * @param cacheKey the key for the cache entry.
@@ -105,7 +105,7 @@ public class PairCache<T>
 
     /**
      * Get the value associated with the given cacheKey.
-     * 
+     *
      * @param cacheKey the key to query from the cache.
      * @return the value associated with the key, or null if there is no value.
      */
@@ -116,7 +116,7 @@ public class PairCache<T>
 
     /**
      * Clear all cache entries involving a specific ID.
-     * 
+     *
      * @param id the id specified as one of a pair associated with cache entries.
      */
     public void removeAssociated(String id)

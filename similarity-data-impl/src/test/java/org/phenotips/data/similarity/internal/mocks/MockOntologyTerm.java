@@ -29,7 +29,7 @@ import org.phenotips.ontology.OntologyTerm;
 
 /**
  * Simple mock for an ontology term, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockOntologyTerm implements OntologyTerm
@@ -42,7 +42,7 @@ public class MockOntologyTerm implements OntologyTerm
 
     /**
      * Create a simple Mock OntologyTerm.
-     * 
+     *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      */
@@ -64,7 +64,7 @@ public class MockOntologyTerm implements OntologyTerm
 
     /**
      * Create a simple Mock OntologyTerm.
-     * 
+     *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      * @param ancestors the ancestors of the term (or null)

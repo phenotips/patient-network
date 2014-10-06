@@ -25,7 +25,7 @@ import net.sf.json.JSONArray;
 
 /**
  * View of a patient genotype as related to another reference genotype.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -34,14 +34,14 @@ public interface GenotypeSimilarityView extends Genotype
 {
     /**
      * How similar is this genotype to the reference.
-     * 
+     *
      * @return a similarity score, between {@code 0} for no related genes and {@code 1} for a perfect candidate.
      */
     double getScore();
 
     /**
      * Retrieve all genotype match information in a JSON format. For example:
-     * 
+     *
      * <pre>
      *      [
      *         {
@@ -78,7 +78,7 @@ public interface GenotypeSimilarityView extends Genotype
      *        ...
      *     ]
      * </pre>
-     * 
+     *
      * @return the data about this value, using the json-lib classes, empty if there are no matches and null if the
      *         necessary genetic information is not available or visible
      */

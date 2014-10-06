@@ -31,7 +31,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 
 /**
  * Tests for the {@link AccessType} enumeration.
- * 
+ *
  * @version $Id$
  */
 public class DefaultAccessTypeTest

@@ -362,7 +362,7 @@ The ${platformName} team</text>
   padding: .3em;
 }
 .anonymous-contact .message-preview .message {
-  background-image: url("$xwiki.getSkinFile('icons/xwiki/lquo.gif')") 
+  background-image: url("$xwiki.getSkinFile('icons/xwiki/lquo.gif')");
 }
 .anonymous-contact .message-preview .message #user-message {
   background: $theme.backgroundSecondaryColor;

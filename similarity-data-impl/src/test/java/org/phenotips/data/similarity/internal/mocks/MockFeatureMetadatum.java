@@ -25,7 +25,7 @@ import org.phenotips.data.FeatureMetadatum;
 
 /**
  * Simple mock for a feature metadatum, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockFeatureMetadatum implements FeatureMetadatum

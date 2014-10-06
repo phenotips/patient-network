@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  * Performs actions on {@link Connection}s, such as sending emails and handling access granting.
- * 
+ *
  * @version $Id$
  * @since 1.0M1
  */
@@ -44,7 +44,7 @@ public interface ActionManager
 
     /**
      * Grant mutual view access on the two patients to the owners.
-     * 
+     *
      * @param connection the anonymous communication linking the two patients and their owners that are involved in this
      *            connection
      * @return {@code 0} if access was successfully granted, other numbers in case of errors

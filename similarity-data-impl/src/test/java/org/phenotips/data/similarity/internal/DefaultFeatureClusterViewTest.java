@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for the default {@link FeatureClusterView} implementation, {@link DefaultFeatureClusterView}.
- * 
+ *
  * @version $Id$
  */
 public class DefaultFeatureClusterViewTest
