@@ -125,11 +125,6 @@
       <artifactId>exomizer</artifactId>
       <version>0.1-sk</version>
     </dependency>
-    <dependency>
-      <groupId>org.phenotips</groupId>
-      <artifactId>medsavant-client-api</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
