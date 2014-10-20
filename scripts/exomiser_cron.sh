@@ -3,7 +3,6 @@
 set -eu
 set -o pipefail
 
-# For each patient on server with a VCF file, check the VCF MD5 and and query all present phenotypes in the patient. If VCF file or phenotypes have changed, rerun exomiser and clear patient similarity cache.
 
 function usage {
 	cat <<EOF
