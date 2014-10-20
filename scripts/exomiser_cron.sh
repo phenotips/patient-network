@@ -156,7 +156,7 @@ function check_record {
 	local vcf="$2"
 	local md5file="${EXOMISER_DIR}/${record}.vcf.md5"
 	local phenotypefile="${EXOMISER_DIR}/${record}.hpo"
-	local ezrfile="${EXOMISER_DIR}/${record}.vcf"
+	local ezrfile="${EXOMISER_DIR}/${record}.ezr"
 
 	local phenotypes="$(get_phenotypes "$record")"
 	local mismatch=$(echo "$phenotypes" | cmp -s - "$phenotypefile" || echo "fail")
