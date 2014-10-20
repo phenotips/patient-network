@@ -691,7 +691,9 @@
                  'title' : 'Visualize in the UCSC Genome Browser'
             }).update(position).wrap('span', {'class' : 'buttonwrapper'});
             if (v.ref &amp;&amp; v.alt) {
-              change = v.ref + " → " + v.alt;
+              var displayedRef = v.ref.length <= 15 ? v.ref : (v.ref.substring(0, 9) + "..." + v.ref[v.ref.length - 1]);
+              var displayedAlt = v.alt.length <= 15 ? v.alt : (v.alt.substring(0, 9) + "..." + v.alt[v.alt.length - 1]);
+              change = "<span class='dna-fragment ref'>" + displayedRef + "</span> → <span class='dna-fragment alt'>" + displayedAlt + "</span>";
             }
          }
          vRow.insert(new Element('td').update(position)
