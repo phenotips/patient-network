@@ -124,7 +124,7 @@ function run_exomisers {
 	ls -1 "${CRON_DIR}"/*.settings 2> /dev/null > "${batchfile}" || true
 	if [[ -s "${batchfile}" ]]; then
 		log "Running Exomiser on batch file: ${batchfile}"
-		java -Xms10g -Xmx10g -jar "${EXOMISER_JAR}" --batch-file "${batchfile}" 1>&2
+		java -Xms10g -Xmx10g -jar "${EXOMISER_JAR}" --batch-file "${batchfile}" 1>&2 || true
 
 		# Clear caches for processed records
 		log "Clearing cache for changed records: ${batchfile}"
@@ -145,8 +145,8 @@ function clear_cache {
 function list_vcfs {
 	# Usage: list_vcfs record
 	# vcf named like: F0000009/~this/attachments/exome.vcf/exome.vcf
-	ls -1 "${RECORD_DIR}/${record}/${ATTACH_SUBDIR}"/*/* 2> /dev/null \
-		| awk -F"/" '$(NF-1) == $(NF);'
+	(ls -1 "${RECORD_DIR}/${record}/${ATTACH_SUBDIR}"/*/* 2> /dev/null \
+		| awk -F"/" '$(NF-1) == $(NF);') || true
 }
 
 function check_record {
