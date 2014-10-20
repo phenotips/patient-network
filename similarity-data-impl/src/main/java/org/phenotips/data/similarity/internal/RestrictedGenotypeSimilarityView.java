@@ -74,7 +74,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient genotype files. */
-    private static final String GENOTYPE_SUFFIX = ".ezr";
+    private static final String GENOTYPE_SUFFIX = ".vcf";
 
     /** Cache for storing symmetric pairwise patient similarity scores. */
     private static PairCache<Double> similarityScoreCache;
