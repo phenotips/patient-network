@@ -24,7 +24,7 @@ import org.phenotips.data.similarity.AccessType;
 
 /**
  * Straightforward implementation of {@link AccessType}.
- * 
+ *
  * @version $Id$
  * @since 1.0M9
  */
@@ -41,7 +41,7 @@ public class DefaultAccessType implements AccessType
 
     /**
      * Simple constructor identifying the access level to wrap.
-     * 
+     *
      * @param access the value to set for {@link #access}
      * @param view the value to set for {@link #view}, passed from outside since this is not a component
      * @param match the value to set for {@link #match}, passed from outside since this is not a component

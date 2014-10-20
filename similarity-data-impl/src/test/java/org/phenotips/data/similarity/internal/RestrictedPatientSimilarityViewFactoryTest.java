@@ -60,6 +60,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import static org.mockito.Mockito.doReturn;
@@ -69,7 +70,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for the "restricted" {@link PatientSimilarityViewFactory} implementation,
  * {@link RestrictedPatientSimilarityViewFactory}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedPatientSimilarityViewFactoryTest
@@ -206,13 +207,13 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
         Cache<PatientSimilarityView> cache = mock(Cache.class);
-        doReturn(cache).when(cacheFactory).newCache(Mockito.any(CacheConfiguration.class));
-        doReturn(null).when(cache).get(Mockito.anyString());
+        doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
+        doReturn(null).when(cache).get(Matchers.anyString());
 
         // Mock up the contact token
         ConnectionManager connManager = this.mocker.registerMockComponent(ConnectionManager.class);
         Connection conn = mock(Connection.class);
-        when(connManager.getConnection(Mockito.any(PatientSimilarityView.class))).thenReturn(conn);
+        when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(conn);
         when(conn.getId()).thenReturn(Long.valueOf(42));
 
         // Setup the ontology manager

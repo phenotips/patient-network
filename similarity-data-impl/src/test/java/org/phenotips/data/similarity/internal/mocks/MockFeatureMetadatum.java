@@ -19,13 +19,13 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import net.sf.json.JSONObject;
-
 import org.phenotips.data.FeatureMetadatum;
+
+import net.sf.json.JSONObject;
 
 /**
  * Simple mock for a feature metadatum, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockFeatureMetadatum implements FeatureMetadatum

@@ -61,7 +61,7 @@ import net.sf.json.JSONObject;
 /**
  * Implementation of {@link GenotypeSimilarityView} that reveals the full patient information if the user has full
  * access to the patient, and only matching reference information if the patient is matchable.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -121,11 +121,11 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
-     * 
-     * @param match the matched patient, which is represented by this match.
-     * @param reference the reference patient, which the match is against.
-     * @param access the access type the user has to the match patient.
-     * @throws IllegalArgumentException if one of the patients is {@code null}.
+     *
+     * @param match the matched patient, which is represented by this match
+     * @param reference the reference patient, which the match is against
+     * @param access the access type the user has to the match patient
+     * @throws IllegalArgumentException if one of the patients is {@code null}
      */
     public RestrictedGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
@@ -191,7 +191,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the directory containing processed genotype (e.g. Exomiser) files for patients.
-     * 
+     *
      * @param componentManager
      * @return the directory as a File object, or null if it could not be found.
      */
@@ -219,7 +219,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get a list of all patients with genotype information.
-     * 
+     *
      * @return a list of the document IDs for patients with genotype information.
      */
     private static List<String> getGenotypedPatients()
@@ -244,7 +244,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the (potentially-cached) genotype for the patient with the given id.
-     * 
+     *
      * @param id the document identifier for the patient.
      * @return the loaded Genotype, or null if no genotype available.
      */
@@ -275,7 +275,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the phenotype similarity between two patients in a cached manner.
-     * 
+     *
      * @param p1 the first patient
      * @param p2 the second patient
      * @return the symmetric similarity score between them, potentially cached
@@ -300,7 +300,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the similarity score for another patient, relative to the pair of patients being matched.
-     * 
+     *
      * @param patientId the String id of the other patient
      * @param otherSimScores a cache of such scores, added to by calling this method
      * @return the similarity score of the patient
@@ -323,7 +323,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the score for a gene, given the score threshold for each inheritance model for the pair of patients.
-     * 
+     *
      * @param gene the gene being scored
      * @param thresholds the [dominant, recessive] inheritance model score threshold
      * @param otherGenotypedIds the patient ids of other patients with genotype information, for comparison
@@ -384,7 +384,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Return a collection of the names of candidate genes listed for the patient.
-     * 
+     *
      * @param p the patient
      * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
      */
@@ -411,7 +411,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get top Variants for a gene.
-     * 
+     *
      * @param genotype the patient Genotype.
      * @param gene the gene to get variants for.
      * @return a (potentially-empty) list of top variants for the gene, by decreasing score.
@@ -432,7 +432,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get dominant and recessive scores for gene in patient.
-     * 
+     *
      * @param gene
      * @param candidateGenes
      * @param genotype
@@ -456,7 +456,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get phenotype score for gene in patient.
-     * 
+     *
      * @param gene
      * @param candidateGenes
      * @param genotype
@@ -529,7 +529,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the score of a variant.
-     * 
+     *
      * @param v the variant (or null)
      * @return the score of the variant (or 0.0 if v is null)
      */
@@ -605,7 +605,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Clear all cached similarity scores associated with a particular patient.
-     * 
+     *
      * @param id the document identifier of the patient to clear from the cache.
      */
     public static void clearPatientCache(String id)
@@ -623,7 +623,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get a JSON representation of the genotype of a patient with a candidate gene.
-     * 
+     *
      * @return a JSON array of one variant corresponding to a candidate gene.
      */
     private JSONArray getCandidateGeneJSON()
@@ -637,7 +637,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 
     /**
      * Get the JSON for a patient's variants in a protected manner.
-     * 
+     *
      * @param gene the gene to display variants for.
      * @param genotype the patient genotype.
      * @param candidateGenes the patient's candidate gene names.

@@ -19,17 +19,17 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
+import org.phenotips.ontology.OntologyService;
+import org.phenotips.ontology.OntologyTerm;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
-
 /**
  * Simple mock for an ontology term, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockOntologyTerm implements OntologyTerm
@@ -42,7 +42,7 @@ public class MockOntologyTerm implements OntologyTerm
 
     /**
      * Create a simple Mock OntologyTerm.
-     * 
+     *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      */
@@ -64,7 +64,7 @@ public class MockOntologyTerm implements OntologyTerm
 
     /**
      * Create a simple Mock OntologyTerm.
-     * 
+     *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      * @param ancestors the ancestors of the term (or null)

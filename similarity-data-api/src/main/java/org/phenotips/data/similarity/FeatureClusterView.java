@@ -30,7 +30,7 @@ import net.sf.json.JSONObject;
 
 /**
  * View of the relationship between a collection of features in each of two patients.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -39,14 +39,14 @@ public interface FeatureClusterView extends Feature
 {
     /**
      * Returns the reference features, if any.
-     * 
+     *
      * @return a potentially empty, unmodifiable collection of the features from the reference patient
      */
     Collection<Feature> getReference();
 
     /**
      * Returns the features matched by this feature, if any.
-     * 
+     *
      * @return a potentially empty, unmodifiable collection of the features from the reference patient, with
      *         {@code null} values corresponding to undisclosed features
      */
@@ -54,14 +54,14 @@ public interface FeatureClusterView extends Feature
 
     /**
      * Returns the root/ancestor of the cluster.
-     * 
+     *
      * @return the root feature for the reference and match features
      */
     OntologyTerm getRoot();
 
     /**
      * How similar are the match and reference features.
-     * 
+     *
      * @return a similarity score, between {@code -1} for opposite features and {@code 1} for an exact match, with
      *         {@code 0} for features with no similarities, and {@code NaN} if one of the collections of features is
      *         empty
@@ -70,7 +70,7 @@ public interface FeatureClusterView extends Feature
 
     /**
      * Retrieve all information about the cluster of features. For example:
-     * 
+     *
      * <pre>
      * {
      *   "id": "HP:0100247",
@@ -85,8 +85,9 @@ public interface FeatureClusterView extends Feature
      *   ]
      * }
      * </pre>
-     * 
+     *
      * @return the feature data, using the json-lib classes
      */
+    @Override
     JSONObject toJSON();
 }

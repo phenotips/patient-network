@@ -95,7 +95,7 @@ public class DefaultActionManager implements ActionManager
             options.put(MATCH_CASE_LINK,
                 xwiki.getExternalURL("data.GrantMatchAccess", EXTERNAL_LINK_MODE, "id=" + connection.getId(), context));
             mailsender.sendMailFromTemplate("PhenoTips.MatchContact", PHENOMECENTRAL_EMAIL, to,
-                null, null, "", options, context);
+                "qc@phenomecentral.org", null, "", options, context);
             return 0;
         } catch (Exception ex) {
             this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);

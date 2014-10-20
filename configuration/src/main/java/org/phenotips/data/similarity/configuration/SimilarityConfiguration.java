@@ -24,7 +24,7 @@ import org.xwiki.stability.Unstable;
 
 /**
  * Configuration for the patient similarity feature.
- * 
+ *
  * @version $Id$
  */
 @Unstable
@@ -33,7 +33,7 @@ public interface SimilarityConfiguration
 {
     /**
      * The configured {@link FeatureSimilarityScorer feature scorer} to use.
-     * 
+     *
      * @return the name (component implementation hint) of the selected feature scorer, or {@code default} if none is
      *         configured
      */

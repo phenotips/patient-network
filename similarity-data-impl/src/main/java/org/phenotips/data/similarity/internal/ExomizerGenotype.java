@@ -38,7 +38,7 @@ import net.sf.json.JSONObject;
 /**
  * This class represents the genotype information from an exomizer-annotated VCF file. Specifically, a collection of
  * variants annotated with genes, phenotype scores, and harmfulness scores.
- * 
+ *
  * @version $Id$
  * @since
  */
@@ -67,7 +67,7 @@ public class ExomizerGenotype implements Genotype
 
     /**
      * Create a Genotype object from an Exomizer output file.
-     * 
+     *
      * @param exomizerOutput an exomizer-annotated VCF file
      * @throws FileNotFoundException if the file does not exist
      */

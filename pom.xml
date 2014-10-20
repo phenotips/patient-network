@@ -25,16 +25,46 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>phenotips-components</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <relativePath>../phenotips/components/</relativePath>
+    <version>1.0</version>
+    <relativePath />
   </parent>
   <artifactId>patient-network</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>PhenoTips - Patient network</name>
 
+  <!-- We need to list repositories for finding the parent. Other settings will be correctly inherited from the parent. -->
+  <repositories>
+    <repository>
+      <id>phenotips-releases</id>
+      <name>PhenoTips Releases repository</name>
+      <url>https://nexus.phenotips.org/nexus/content/repositories/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>phenotips-snapshots</id>
+      <name>PhenoTips Snapshots repository</name>
+      <url>https://nexus.phenotips.org/nexus/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <properties>
-    <phenotips.version>${project.parent.version}</phenotips.version>
+    <phenotips.version>1.0</phenotips.version>
     <!-- Disable Clirr since this is the first version -->
     <clirr.skip>true</clirr.skip>
   </properties>
@@ -61,19 +91,11 @@
           -->
           <ignored>
             <!-- Remove the following ignores after we release the current version as final -->
-            <difference>
-              <className>**/similarity/PatientSimilarityView</className>
-              <differenceType>7006</differenceType>
-              <method>org.phenotips.data.similarity.AccessType getAccess()</method>
-              <to>org.phenotips.data.permissions.AccessLevel</to>
-            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
             <exclude>**/test/**</exclude>
             <!-- Remove the following excludes after we release the current version as final -->
-            <!-- The previous version was a temporary workaround while waiting for access rules to be added in the main PhenoTips code -->
-            <exclude>**/data/similarity/AccessType</exclude>
           </excludes>
         </configuration>
       </plugin>

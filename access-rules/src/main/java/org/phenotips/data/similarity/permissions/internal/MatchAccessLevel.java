@@ -32,7 +32,7 @@ import javax.inject.Singleton;
  * two patients will be accessible. On the permissiveness level, this sits between
  * {@link org.phenotips.data.permissions.internal.access.NoAccessLevel no access} and
  * {@link org.phenotips.data.permissions.internal.access.ViewAccessLevel view access}.
- * 
+ *
  * @version $Id$
  */
 @Component

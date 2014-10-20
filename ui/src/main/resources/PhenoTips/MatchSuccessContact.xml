@@ -115,7 +115,7 @@ The ${platformName} team&lt;/p&gt;
 
 You have requested access to ${matchCaseId} as a match to your patient ${matchCaseReferenceId}.
 ${contactedUserName} has granted you access to patient ${matchCaseId} and you can now view the record at the following link: ${matchCaseAccessLink}
-        
+
 Best wishes,
 The ${platformName} team</text>
     </property>

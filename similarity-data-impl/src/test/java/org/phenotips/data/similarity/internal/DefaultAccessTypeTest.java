@@ -19,19 +19,21 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.junit.Assert;
-import org.junit.Test;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.permissions.internal.access.ViewAccessLevel;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
+
 import org.xwiki.component.manager.ComponentLookupException;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for the {@link AccessType} enumeration.
- * 
+ *
  * @version $Id$
  */
 public class DefaultAccessTypeTest

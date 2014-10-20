@@ -25,7 +25,7 @@ import org.xwiki.component.annotation.Role;
 
 /**
  * Creates and retrieves {@link Connection}s.
- * 
+ *
  * @version $Id$
  * @since 1.0M1
  */
@@ -35,7 +35,7 @@ public interface ConnectionManager
     /**
      * Search for an existing connection for the patient pair view; if one exists, return it, otherwise create, store
      * and return a new connection, with the data from the passed patient pair view.
-     * 
+     *
      * @param patientPair the two patients and their owners that are involved in this connection
      * @return a connection object, already saved in the storage
      */
@@ -43,7 +43,7 @@ public interface ConnectionManager
 
     /**
      * Retrieve an existing connection from the storage.
-     * 
+     *
      * @param id the identifier of the requested connection
      * @return the requested connection, if it was found in the database, {@code null} otherwise
      */

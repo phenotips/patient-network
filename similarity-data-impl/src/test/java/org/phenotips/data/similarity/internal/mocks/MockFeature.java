@@ -31,7 +31,7 @@ import net.sf.json.JSONObject;
 
 /**
  * Simple mock for a patient feature, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockFeature implements Feature

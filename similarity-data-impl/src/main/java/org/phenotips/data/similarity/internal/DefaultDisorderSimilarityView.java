@@ -29,7 +29,7 @@ import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link DisorderSimilarityView} that always reveals its information.
- * 
+ *
  * @version $Id$
  * @since 1.0M10
  */
@@ -43,7 +43,7 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 
     /**
      * Simple constructor passing the {@link #match matched disorder} and the {@link #reference reference disorder}.
-     * 
+     *
      * @param match the matched disorder to represent
      * @param reference the reference disorder against which to compare, can be {@code null}
      */
@@ -56,7 +56,7 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
     /**
      * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
      * the {@link #access patient access type}.
-     * 
+     *
      * @param match the matched disorder to represent
      * @param reference the reference disorder against which to compare, can be {@code null}
      * @param access the access type, unused

@@ -55,7 +55,7 @@ import groovy.lang.Singleton;
 
 /**
  * Implementation for {@link SimilarPatientsFinder} based on Solr indexing of existing patients.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -143,7 +143,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     /**
      * Generates a Solr query that tries to match patients similar to the reference.
-     * 
+     *
      * @param referencePatient the reference patient
      * @return a query populated with terms from the patient phenotype
      */
@@ -166,7 +166,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     /**
      * Performs a search in the Solr index, returning the matched documents.
-     * 
+     *
      * @param query the query prepared with {@link #generateQuery(Patient)}
      * @return the documents matched by the query, if any
      */
@@ -182,7 +182,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     /**
      * Performs a search in the Solr index, returning only the total number of matches found.
-     * 
+     *
      * @param query the query prepared with {@link #generateQuery(Patient)}
      * @return the total number of document matched by the query, {@code 0} if none match
      */

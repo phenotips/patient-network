@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.data.similarity.internal.RestrictedFeatureClusterView;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -37,12 +36,13 @@ import org.junit.Test;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Tests for the "restricted" {@link FeatureClusterView} implementation, {@link RestrictedFeatureClusterView}.
- * 
+ *
  * @version $Id$
  */
 public class RestrictedFeatureClusterViewTest

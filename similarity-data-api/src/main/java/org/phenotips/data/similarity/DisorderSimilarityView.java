@@ -25,7 +25,7 @@ import org.xwiki.stability.Unstable;
 
 /**
  * View of a disorder as related to another reference disorder.
- * 
+ *
  * @version $Id$
  * @since 1.0M8
  */
@@ -34,14 +34,14 @@ public interface DisorderSimilarityView extends Disorder
 {
     /**
      * Does this similar disorders pair have both a match and a reference?
-     * 
+     *
      * @return {@code true} if both related disorders are present, {@code false} otherwise
      */
     boolean isMatchingPair();
 
     /**
      * Returns the reference disorder matched by this disease, if any.
-     * 
+     *
      * @return a disorder from the reference patient, or {@code null} if this disorder doesn't match a reference
      *         disorder
      */
@@ -49,7 +49,7 @@ public interface DisorderSimilarityView extends Disorder
 
     /**
      * How similar is this disorder to the reference.
-     * 
+     *
      * @return a similarity score, between {@code -1} for opposite disorders and {@code 1} for an exact match, with
      *         {@code 0} for disorders with no similarities, and {@code NaN} in case there's no matched reference
      */

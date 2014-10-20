@@ -27,7 +27,7 @@ import net.sf.json.JSONObject;
 
 /**
  * Simple mock for a disorder, responding with pre-specified values.
- * 
+ *
  * @version $Id$
  */
 public class MockDisorder implements Disorder

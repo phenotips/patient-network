@@ -38,7 +38,7 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 /**
  * Registers the {@link Connection connection entity} in the Hibernate configuration at startup, since Hibernate doesn't
  * have a clean mechanism for auto-registering optional modular entities at runtime.
- * 
+ *
  * @version $Id$
  * @since 1.0M10
  */
@@ -60,7 +60,7 @@ public class ORMRegistrationHandler implements EventListener
     @Override
     public List<Event> getEvents()
     {
-        return Collections.<Event> singletonList(new ApplicationStartedEvent());
+        return Collections.<Event>singletonList(new ApplicationStartedEvent());
     }
 
     @Override

@@ -38,7 +38,7 @@ import org.hibernate.annotations.Type;
  * Stores a connection between the owners of two matched patients, anonymously, to be used for email communication. The
  * identities of the two parties are kept private, since mails are sent behind the scenes, while the users only see the
  * {@link #id identifier of the connection}.
- * 
+ *
  * @version $Id$
  * @since 1.0M1
  */
@@ -74,7 +74,7 @@ public class Connection
 
     /**
      * Constructor that copies the data from a patient pair.
-     * 
+     *
      * @param patientPair the paired patient to get the data from
      */
     public Connection(PatientSimilarityView patientPair)
@@ -90,7 +90,7 @@ public class Connection
     /**
      * The identifier of this connection can be exposed, and is the only thing needed to
      * {@link ConnectionManager#getConnectionById(Long) retrieve back the full connection}.
-     * 
+     *
      * @return a numerical identifier
      */
     public Long getId()
@@ -100,7 +100,7 @@ public class Connection
 
     /**
      * The user that initiated the communication, one of the owners of the reference patient.
-     * 
+     *
      * @return a user reference
      */
     public DocumentReference getInitiatingUser()
@@ -110,7 +110,7 @@ public class Connection
 
     /**
      * Sets the initiating user.
-     * 
+     *
      * @param userReference the user reference to store
      */
     public void setInitiatingUser(DocumentReference userReference)
@@ -120,7 +120,7 @@ public class Connection
 
     /**
      * The target of the communication, the owner of the matched patient.
-     * 
+     *
      * @return a user reference
      */
     public DocumentReference getContactedUser()
@@ -130,7 +130,7 @@ public class Connection
 
     /**
      * Sets the contacted user.
-     * 
+     *
      * @param userReference the user reference to store
      */
     public void setContactedUser(DocumentReference userReference)
@@ -140,7 +140,7 @@ public class Connection
 
     /**
      * The reference patient, owned by the {@link #getInitiatingUser() initiating user}.
-     * 
+     *
      * @return a patient
      */
     public Patient getReferencePatient()
@@ -150,7 +150,7 @@ public class Connection
 
     /**
      * Sets the reference patient.
-     * 
+     *
      * @param patient the reference patient to store
      */
     public void setReferencePatient(Patient patient)
@@ -160,7 +160,7 @@ public class Connection
 
     /**
      * The matched patient, owned by the {@link #getContactedUser() contacted user}.
-     * 
+     *
      * @return a patient, usually with only partial information exposed
      */
     public Patient getTargetPatient()
@@ -170,7 +170,7 @@ public class Connection
 
     /**
      * Sets the matched patient.
-     * 
+     *
      * @param patient the matched patient to store
      */
     public void setTargetPatient(Patient patient)
@@ -186,7 +186,7 @@ public class Connection
 
     /**
      * Helper method for computing the access level granted for the current user to the target patient.
-     * 
+     *
      * @param p the patient on which the access level is checked
      * @return the access type the current user has on the target patient
      */
@@ -198,7 +198,7 @@ public class Connection
 
     /**
      * Helper method for retrieving components from the component manager.
-     * 
+     *
      * @param type the component type to retrieve
      * @return an instance implementing the requested component type, or {@code null} if the requested component failed
      *         to be instantiated

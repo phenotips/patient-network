@@ -25,7 +25,7 @@ import org.xwiki.stability.Unstable;
 
 /**
  * Helper class providing quick information about an {@link AccessLevel access level}.
- * 
+ *
  * @version $Id$
  * @since 1.0M9
  */
@@ -34,28 +34,28 @@ public interface AccessType
 {
     /**
      * The real level of access the user has on the patient's data.
-     * 
+     *
      * @return the computed access level, can not be {@code null}
      */
     AccessLevel getAccessLevel();
 
     /**
      * Indicates full access to the patient's data.
-     * 
+     *
      * @return {@code true} if the patient has full access to the patient data, {@code false} otherwise
      */
     boolean isOpenAccess();
 
     /**
      * Indicates limited, obfuscated access to the patient's data.
-     * 
+     *
      * @return {@code true} if the patient has only limited access to the patient data, {@code false} otherwise
      */
     boolean isLimitedAccess();
 
     /**
      * Indicates no access to the patient's data.
-     * 
+     *
      * @return {@code true} if the patient has no access to the patient data, {@code false} otherwise
      */
     boolean isPrivateAccess();

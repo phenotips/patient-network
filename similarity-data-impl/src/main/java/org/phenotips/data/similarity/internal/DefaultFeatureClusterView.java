@@ -37,7 +37,7 @@ import net.sf.json.JSONObject;
 /**
  * Implementation of {@link FeatureClusterView} that always reveals the full patient information; for use in trusted
  * code.
- * 
+ *
  * @version $Id$
  * @since 1.0M10
  */
@@ -58,7 +58,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
 
     /**
      * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
-     * 
+     *
      * @param match the features in the matched patient, can be empty
      * @param reference the features in the reference patient, can be empty
      * @param access the access level of the match
@@ -154,7 +154,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     /**
      * {@inheritDoc} Uses {@link #getMatch()} to list features in match patient, so this can be overridden to be
      * access-aware.
-     * 
+     *
      * @see org.phenotips.data.Feature#toJSON()
      */
     @Override
