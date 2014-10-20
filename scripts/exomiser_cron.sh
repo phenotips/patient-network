@@ -3,6 +3,8 @@
 set -eu
 set -o pipefail
 
+# For each patient on server with a VCF file, check the VCF MD5 and and query all present phenotypes in the patient. If VCF file or phenotypes have changed, rerun exomiser and clear patient similarity cache.
+
 function usage {
 	cat <<EOF
 Usage: $0 EXOMISER_JAR PT_CREDENTIALS_FILE
@@ -11,53 +13,59 @@ Check all patient VCF file attachments and update Exomiser files accordingly.
 
 To be run from the root of the PhenomeCentral instance (with subdirectories: exomiser, storage, etc.).
 
-EXOMISER_JAR: full path to Exomiser 3.0.1 JAR file
+EXOMISER_JAR: full path to Exomiser 3.0.2 JAR file
 PT_CREDENTIALS_FILE: file containing PhenoTips ScriptService credentials (one line, in the format: 'username:password')
 EOF
 	exit 1
 }
 
+
+
+##### Command line and prereqs #####
+
 if [[ $# -ne 2 ]]; then
 	usage
 fi
-
 EXOMISER_JAR="$1"
 CREDENTIALS=$(cat "$2")
 
-EXOMISER_DIR=exomiser
+which jq > /dev/null
+
+
+
+##### Environment variables #####
+
+EXOMISER_DIR=$(pwd)/exomiser
 LOCK=${EXOMISER_DIR}/.cron-lock
-CRON_DIR=${EXOMISER_DIR}/cron_$(date "+%Y-%m-%d_%H%M%S")
-RECORD_DIR=storage/xwiki/data
-ATTACH_SUDIR=~this/attachments
+CRON_DIR=${EXOMISER_DIR}/cron_$(date "+%F_%H%M%S")
+RECORD_DIR=$(pwd)/storage/xwiki/data
+ATTACH_SUBDIR=~this/attachments
+SERVICE_URL_BASE=http://localhost:8080/bin/get/PhenoTips
 
-mkdir -pv "${CRON_DIR}"
 
-# Check lock
-if [[ -e "${LOCK}" ]]; then
-	echo "Exomiser cron already running (found lock file: ${LOCK})" >&2
-	exit 1
-fi
 
-# Set lock
-touch "${LOCK}"
+##### Function definitions #####
+
+function log {
+	echo "[$(date "+%F %T")] $@" >&2
+}
+
 function cleanup {
 	rm -f "${LOCK}"
 }
+
 function failure {
 	trap - INT TERM EXIT
-	echo "ERROR: program terminated for unexpected reason." >&2
+	log "ERROR: program terminated for unexpected reason."
 	cleanup
 }
-
-
-# For each patient on server with a VCF file, check the VCF MD5 and and query all present phenotypes in the patient. If VCF file or phenotypes have changed, rerun exomiser and clear patient similarity cache.
 
 
 function get_phenotypes {
 	# Usage: get_phenotypes record
 	local record="$1"
-	curl -s -S -u "${CREDENTIALS}" "http://localhost:8080/get/PhenoTips/PatientPhenotypeExportService?id=${record}&basicauth=1" \
-		| ~/jq '.rows[] | select(.type == "phenotype" and .is_present == "yes") | .phenotype_HP_id' \
+	curl -s -S -u "${CREDENTIALS}" "${SERVICE_URL_BASE}/PatientPhenotypeExportService?id=${record}&basicauth=1" \
+		| jq '.rows[] | select(.type == "phenotype" and .is_present == "yes") | .phenotype_HP_id' \
 		| sort | xargs echo | tr -d '"' | tr " " ","
 }
 
@@ -72,7 +80,7 @@ function enqueue_exomiser {
 	# Create settings file
 	cat > "$settings" <<EOF
 #REQUIRED OPTIONS
-vcf="$vcf"
+vcf=$vcf
 prioritiser=exomiser-allspecies
 
 #SAMPLE DATA OPTIONS
@@ -102,7 +110,7 @@ num-genes=0
 #out-file options: specify the path/filename without an extension and this will be added
 # according to the out-format option. If unspecified this will default to the following: 
 # {exomiserDir}/results/input-vcf-name-exomiser-results.html
-# alternatively, specify a fully qualifed path only. e.g. /users/jules/exomes/analysis    
+# alternatively, specify a fully qualifed path only. e.g. /users/jules/exomes/analysis	  
 out-file=${outfile}
 #out-format options: HTML, TSV, VCF (default: HTML)
 out-format=VCF
@@ -114,22 +122,25 @@ function run_exomisers {
 	# Usage: run_exomisers
 	# Runs all settings files in CRON_DIR as batch
 	local batchfile="${CRON_DIR}/batch.txt"
-	ls -1 "${CRON_DIR}"/*.settings > "${batchfile}"
+	ls -1 "${CRON_DIR}"/*.settings 2> /dev/null > "${batchfile}" || true
+	if [[ -s "${batchfile}" ]]; then
+		log "Running Exomiser on batch file: ${batchfile}"
+		java -Xms10g -Xmx10g -jar "${EXOMISER_JAR}" --batch-file "${batchfile}" 1>&2
 
-	echo "Running Exomiser on batch file: ${batchfile}" >&2
-	java -Xms10g -Xmx10g -jar "${EXOMISER_JAR}" --batch-file "${batchfile}"
-
-	# Clear caches for processed records
-	echo "Clearing cache for changed records: ${batchfile}" >&2
-	for filename in "${CRON_DIR}"/*.settings; do
-		local record="$(basename "${filename}" .settings)"
-		clear_cache "$record"
-	done
+		# Clear caches for processed records
+		log "Clearing cache for changed records: ${batchfile}"
+		for filename in "${CRON_DIR}"/*.settings; do
+			local record="$(basename "${filename}" .settings)"
+			clear_cache "$record"
+		done
+	else
+		log "Exomiser jobs up-to-date."
+	fi
 }
 
 function clear_cache {
 	# Usage: clear_cache record
-	curl -s -S -u "${CREDENTIALS}" "http://localhost:8080/get/PhenoTips/ClearPatientCache?id=${record}&basicauth=1"
+	curl -s -S -u "${CREDENTIALS}" "${SERVICE_URL_BASE}/ClearPatientCache?id=${record}&basicauth=1"
 }
 
 function list_vcfs {
@@ -146,18 +157,18 @@ function check_record {
 	local vcf="$2"
 	local md5file="${EXOMISER_DIR}/${record}.vcf.md5"
 	local phenotypefile="${EXOMISER_DIR}/${record}.hpo"
-	local ezrfile="${EXOMISER_DIR}/${record}.ezr"
+	local ezrfile="${EXOMISER_DIR}/${record}.vcf"
 
 	local phenotypes="$(get_phenotypes "$record")"
-	echo "$phenotypes" | cmp -s - "$phenotypefile"
-	if [[ $? -ne 0 ]]; then
+	local mismatch=$(echo "$phenotypes" | cmp -s - "$phenotypefile" || echo "fail")
+	if [[ ! -z "$mismatch" ]]; then
 		# Phenotypes have changed (or new patient)
 		echo "$phenotypes" > "$phenotypefile"
 	fi
 
 	# Check md5sum
-	md5sum --status -c "$md5file"
-	if [[ $? -ne 0 ]]; then
+	local mismatch=$(md5sum --status -c "$md5file" || echo "fail")
+	if [[ ! -z "$mismatch" ]]; then
 		# VCF file changed
 		md5sum "$vcf" > "$md5file"
 	fi
@@ -169,6 +180,18 @@ function check_record {
 }
 
 
+##### Begin main program #####
+
+# Create directory for this job
+mkdir -p "${CRON_DIR}"
+log "Starting up Exomiser cronjob from directory: ${CRON_DIR}"
+
+# Redirect all stderr to log file
+log "Writing all output to: ${CRON_DIR}/log"
+exec 2> "${CRON_DIR}/log"
+
+# Set lock
+touch "${LOCK}"
 
 # Start critical block
 trap failure INT TERM EXIT
@@ -176,8 +199,8 @@ trap failure INT TERM EXIT
 # Investigate each record for changes
 for recorddir in "${RECORD_DIR}"/*; do 
 	record="$(basename "$recorddir")"
-    n_vcf_attachments=$(list_vcfs | wc -l)
-	echo "Found ${n_vcf_attachments} attachments for ${record}" >&2
+	n_vcf_attachments=$(list_vcfs | wc -l)
+	log "Found ${n_vcf_attachments} attachments for ${record}"
 	if [[ ${n_vcf_attachments} -eq 0 ]]; then
 		# VCF may have been deleted
 		# Remove any exomiser files, and clear cache
@@ -190,7 +213,11 @@ for recorddir in "${RECORD_DIR}"/*; do
 	fi
 done
 
+# Run any queued jobs
 run_exomisers
+
+
 # End critical block
 trap - INT TERM EXIT
 cleanup
+log "SUCCESS"
