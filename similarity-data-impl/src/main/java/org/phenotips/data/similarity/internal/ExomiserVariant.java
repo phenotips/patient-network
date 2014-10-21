@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import net.sf.json.JSONObject;
 
 /**
- * An annotated variant, as outputted by Exomizer.
+ * An annotated variant, as outputted by Exomiser.
  *
  * @version $Id$
  * @since

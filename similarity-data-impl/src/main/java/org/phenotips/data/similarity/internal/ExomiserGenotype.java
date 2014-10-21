@@ -36,7 +36,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * This class represents the genotype information from an exomizer-annotated VCF file. Specifically, a collection of
+ * This class represents the genotype information from an exomiser-annotated VCF file. Specifically, a collection of
  * variants annotated with genes, phenotype scores, and harmfulness scores.
  *
  * @version $Id$
@@ -66,16 +66,16 @@ public class ExomiserGenotype implements Genotype
     }
 
     /**
-     * Create a Genotype object from an Exomizer output file.
+     * Create a Genotype object from an Exomiser output file.
      *
-     * @param exomizerOutput an exomizer-annotated VCF file
+     * @param exomiserOutput an exomiser-annotated VCF file
      * @throws IOException if the the file does not follow the Exomiser format
      */
-    ExomiserGenotype(Reader exomizerOutput) throws IOException
+    ExomiserGenotype(Reader exomiserOutput) throws IOException
     {
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();
-        BufferedReader reader = new BufferedReader(exomizerOutput);
+        BufferedReader reader = new BufferedReader(exomiserOutput);
         while (true) {
             String line = reader.readLine();
             if (line == null) {
