@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.star.auth.InvalidArgumentException;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -120,7 +118,7 @@ public class ExomiserGenotype implements Genotype
     private Variant parseVariant(String line) throws IOException {
         try {
             return new ExomiserVariant(line);
-        } catch (InvalidArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new IOException("Error parsing variant line: " + line);
         }
     }

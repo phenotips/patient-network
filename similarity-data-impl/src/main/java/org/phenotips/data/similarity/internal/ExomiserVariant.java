@@ -26,8 +26,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.sun.star.auth.InvalidArgumentException;
-
 import net.sf.json.JSONObject;
 
 /**
@@ -75,9 +73,9 @@ public class ExomiserVariant implements Variant
      * Create a Variant from a line of an Exomiser-annotated VCF file.
      *
      * @param line the line of the VCF file
-     * @throws InvalidArgumentException if the variant cannot be parsed as an Exomiser variant
+     * @throws IllegalArgumentException if the variant cannot be parsed as an Exomiser variant
      */
-    ExomiserVariant(String line) throws InvalidArgumentException
+    ExomiserVariant(String line) throws IllegalArgumentException
     {
         String[] tokens = StringUtils.split(line, '\t');
         init(tokens[0], Integer.parseInt(tokens[1]), tokens[3], tokens[4], tokens[9], tokens[7], null);
@@ -93,10 +91,10 @@ public class ExomiserVariant implements Variant
      * @param gt the genotype (e.g. "0/1")
      * @param info the info field from a VCF line, may contain "EFFECT" annotation
      * @param score the score (if null, will be parsed from "VARIANT_SCORE" annotation in info field
-     * @throws InvalidArgumentException if the info field does not contain the necessary annotations
+     * @throws IllegalArgumentException if the info field does not contain the necessary annotations
      */
     private void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
-        throws InvalidArgumentException
+        throws IllegalArgumentException
     {
         this.chrom = chrom.toUpperCase();
 
@@ -131,7 +129,7 @@ public class ExomiserVariant implements Variant
             // Try to read score from info field
             String infoScore = this.info.get(VARIANT_SCORE_KEY);
             if (infoScore == null) {
-                throw new InvalidArgumentException("Variant score not provided, and missing info field: "
+                throw new IllegalArgumentException("Variant score not provided, and missing info field: "
                     + VARIANT_SCORE_KEY);
             } else {
                 this.score = Double.parseDouble(infoScore);
