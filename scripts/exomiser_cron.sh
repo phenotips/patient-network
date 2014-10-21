@@ -119,22 +119,17 @@ EOF
 
 function run_exomisers {
 	# Usage: run_exomisers
-	# Runs all settings files in CRON_DIR as batch
-	local batchfile="${CRON_DIR}/batch.txt"
-	ls -1 "${CRON_DIR}"/*.settings 2> /dev/null > "${batchfile}" || true
-	if [[ -s "${batchfile}" ]]; then
-		log "Running Exomiser on batch file: ${batchfile}"
-		java -Xms10g -Xmx10g -jar "${EXOMISER_JAR}" --batch-file "${batchfile}" 1>&2 || true
-
-		# Clear caches for processed records
-		log "Clearing cache for changed records: ${batchfile}"
-		for filename in "${CRON_DIR}"/*.settings; do
-			local record="$(basename "${filename}" .settings)"
-			clear_cache "$record"
-		done
-	else
-		log "Exomiser jobs up-to-date."
-	fi
+	for settings in "${CRON_DIR}"/*.settings; do
+		if [[ ! -s "${settings}" ]]; then
+			continue
+		fi
+		local record="$(basename "${settings}" .settings)"
+		log "Running Exomiser on settings file: ${settings}"
+		java -Xms20g -Xmx20g -jar "${EXOMISER_JAR}" --settings-file "${settings}" 1>&2 || true
+		
+		log "Clearing cache for changed record: ${record}"
+		clear_cache "$record"
+	done
 }
 
 function clear_cache {
@@ -146,7 +141,7 @@ function list_vcfs {
 	# Usage: list_vcfs record
 	# vcf named like: F0000009/~this/attachments/exome.vcf/exome.vcf
 	(ls -1 "${RECORD_DIR}/${record}/${ATTACH_SUBDIR}"/*/* 2> /dev/null \
-		| awk -F"/" '$(NF-1) == $(NF);') || true
+		| awk -F"/" '$(NF-1) == $(NF) && ((getline line < $0) && line ~ /^##fileformat=VCF/);') || true
 }
 
 function check_record {
