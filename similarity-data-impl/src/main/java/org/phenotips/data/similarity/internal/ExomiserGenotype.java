@@ -69,7 +69,7 @@ public class ExomiserGenotype implements Genotype
      * Create a Genotype object from an Exomiser output file.
      *
      * @param exomiserOutput an exomiser-annotated VCF file
-     * @throws IOException if the the file does not follow the Exomiser format
+     * @throws IOException if the file does not follow the Exomiser format
      */
     ExomiserGenotype(Reader exomiserOutput) throws IOException
     {

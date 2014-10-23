@@ -86,7 +86,7 @@ public interface Variant extends Comparable<Variant>
 
     /**
      * Get the variant effect (e.g. "SPLICING", "FS_INSERTION"). If the variant falls into multiple classes, the most
-     * harmful should be provided, based upon a reasonable ordering such as Exomizer output.
+     * harmful should be provided, based upon a reasonable ordering such as Exomiser output.
      *
      * @return the effect of the variant as a string, potentially null
      */
