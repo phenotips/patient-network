@@ -26,22 +26,21 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * An annotated variant, as outputted by Exomizer.
+ * An annotated variant, as outputted by Exomiser.
  *
  * @version $Id$
  * @since
  */
-public class ExomizerVariant implements Variant
+public class ExomiserVariant implements Variant
 {
     /** Info field key for variant effect. */
-    private static final String EFFECT_KEY = "EFFECT";
+    private static final String EFFECT_KEY = "EXOMISER_EFFECT";
 
     /** Info field key for variant harmfulness score. */
-    private static final String VARIANT_SCORE_KEY = "VARIANT_SCORE";
+    private static final String VARIANT_SCORE_KEY = "EXOMISER_VARIANT_SCORE";
 
     /** See {@link #getChrom()}. */
     private String chrom;
@@ -71,26 +70,15 @@ public class ExomizerVariant implements Variant
     private String rawInfo;
 
     /**
-     * Create a Variant from a line of an exomizer-annotated VCF file.
+     * Create a Variant from a line of an Exomiser-annotated VCF file.
      *
      * @param line the line of the VCF file
+     * @throws IllegalArgumentException if the variant cannot be parsed as an Exomiser variant
      */
-    ExomizerVariant(String line)
+    ExomiserVariant(String line) throws IllegalArgumentException
     {
         String[] tokens = StringUtils.split(line, '\t');
         init(tokens[0], Integer.parseInt(tokens[1]), tokens[3], tokens[4], tokens[9], tokens[7], null);
-    }
-
-    /**
-     * Create a Variant from a MedSavant Row using the current database configuration. TODO: make this adapt to the
-     * database configuration, rather than use hard-coded column indices.
-     *
-     * @param line the line of the VCF file
-     */
-    ExomizerVariant(JSONArray row)
-    {
-        init(row.getString(4), row.getInt(5), row.getString(8), row.getString(9),
-            StringUtils.split(row.getString(14), ':')[0], row.getString(15), 0.0);
     }
 
     /**
@@ -103,8 +91,10 @@ public class ExomizerVariant implements Variant
      * @param gt the genotype (e.g. "0/1")
      * @param info the info field from a VCF line, may contain "EFFECT" annotation
      * @param score the score (if null, will be parsed from "VARIANT_SCORE" annotation in info field
+     * @throws IllegalArgumentException if the info field does not contain the necessary annotations
      */
     private void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
+        throws IllegalArgumentException
     {
         this.chrom = chrom.toUpperCase();
 
@@ -138,7 +128,10 @@ public class ExomizerVariant implements Variant
         if (score == null) {
             // Try to read score from info field
             String infoScore = this.info.get(VARIANT_SCORE_KEY);
-            if (infoScore != null) {
+            if (infoScore == null) {
+                throw new IllegalArgumentException("Variant score not provided, and missing info field: "
+                    + VARIANT_SCORE_KEY);
+            } else {
                 this.score = Double.parseDouble(infoScore);
             }
         } else {

@@ -39,7 +39,10 @@ import org.xwiki.environment.Environment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -259,10 +262,15 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
             File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
             if (vcf.isFile()) {
                 try {
-                    genotype = new ExomizerGenotype(vcf);
-                    logger.info("Loaded genotype for " + id);
+                    Reader reader = new FileReader(vcf);
+                    genotype = new ExomiserGenotype(reader);
+                    logger.info("Loaded genotype for " + id + " from: " + vcf);
                 } catch (FileNotFoundException e) {
                     // No problem
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    logger.error("Encountered error reading genotype: " + vcf);
+                    genotype = null;
                 }
             }
             // Cache genotype

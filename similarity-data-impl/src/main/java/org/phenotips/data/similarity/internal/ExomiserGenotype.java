@@ -22,33 +22,33 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.Variant;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * This class represents the genotype information from an exomizer-annotated VCF file. Specifically, a collection of
+ * This class represents the genotype information from an exomiser-annotated VCF file. Specifically, a collection of
  * variants annotated with genes, phenotype scores, and harmfulness scores.
  *
  * @version $Id$
  * @since
  */
-public class ExomizerGenotype implements Genotype
+public class ExomiserGenotype implements Genotype
 {
     /** Info field key for the variant's gene. */
-    private static final String GENE_KEY = "GENE";
+    private static final String GENE_KEY = "EXOMISER_GENE";
 
     /** Info field key for gene phenotypic relevance score. */
-    private static final String GENE_PHENOTYPE_SCORE_KEY = "PHENO_SCORE";
+    private static final String GENE_PHENOTYPE_SCORE_KEY = "EXOMISER_GENE_PHENO_SCORE";
 
     /** The phenotype score for each gene with a variant. */
     private Map<String, Double> geneScores;
@@ -59,33 +59,36 @@ public class ExomizerGenotype implements Genotype
     /**
      * Constructor for empty Genotype object.
      */
-    ExomizerGenotype()
+    ExomiserGenotype()
     {
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();
     }
 
     /**
-     * Create a Genotype object from an Exomizer output file.
+     * Create a Genotype object from an Exomiser output file.
      *
-     * @param exomizerOutput an exomizer-annotated VCF file
-     * @throws FileNotFoundException if the file does not exist
+     * @param exomiserOutput an exomiser-annotated VCF file
+     * @throws IOException if the the file does not follow the Exomiser format
      */
-    ExomizerGenotype(File exomizerOutput) throws FileNotFoundException
+    ExomiserGenotype(Reader exomiserOutput) throws IOException
     {
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();
-        Scanner fileScan = new Scanner(exomizerOutput);
-        while (fileScan.hasNextLine()) {
-            String line = fileScan.nextLine();
-            if (line.startsWith("#")) {
+        BufferedReader reader = new BufferedReader(exomiserOutput);
+        while (true) {
+            String line = reader.readLine();
+            if (line == null) {
+                break;
+            } else if (line.startsWith("#")) {
                 continue;
             }
 
-            Variant variant = new ExomizerVariant(line);
+            Variant variant = parseVariant(line);
 
-            String gene = variant.getAnnotation(GENE_KEY);
-            Double geneScore = Double.parseDouble(variant.getAnnotation(GENE_PHENOTYPE_SCORE_KEY));
+            String gene = getRequiredAnnotation(variant, GENE_KEY);
+            String genePhenoScore = getRequiredAnnotation(variant, GENE_PHENOTYPE_SCORE_KEY);
+            Double geneScore = Double.parseDouble(genePhenoScore);
             this.geneScores.put(gene, geneScore);
 
             // Add variant to gene without sorting (save sorting for end)
@@ -101,7 +104,7 @@ public class ExomizerGenotype implements Genotype
                 geneMutations.add(variant);
             }
         }
-        fileScan.close();
+        reader.close();
 
         // Sort variants within each gene by harmfulness score
         // TODO: have lists maintain sorted order, instead of sorting at the end
@@ -110,6 +113,22 @@ public class ExomizerGenotype implements Genotype
                 Collections.sort(vs);
             }
         }
+    }
+
+    private Variant parseVariant(String line) throws IOException {
+        try {
+            return new ExomiserVariant(line);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Error parsing variant line: " + line);
+        }
+    }
+
+    private String getRequiredAnnotation(Variant variant, String key) throws IOException {
+        String value = variant.getAnnotation(key);
+        if (value == null) {
+            throw new IOException("Exomiser variant missing required field: " + key);
+        }
+        return value;
     }
 
     @Override
