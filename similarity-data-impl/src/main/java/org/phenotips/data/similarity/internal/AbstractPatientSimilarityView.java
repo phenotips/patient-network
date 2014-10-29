@@ -27,7 +27,6 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
 
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Collection;
@@ -146,8 +145,9 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
                 ConnectionManager cm =
                     ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
                 token = String.valueOf(cm.getConnection(this).getId());
-            } catch (ComponentLookupException e) {
-                // This should not happen
+            } catch (Exception e) {
+                //FIXME. Improper handling exceptions. This should only catch ComponentLookupException.
+                //This should only happen, if at all, when used in conjunction with RemoteMatching
             }
             this.contactToken = token;
         }
