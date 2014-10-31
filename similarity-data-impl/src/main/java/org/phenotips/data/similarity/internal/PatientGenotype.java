@@ -51,8 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class represents the genotype information from an exomiser-annotated VCF file. Specifically, a collection of
- * variants annotated with genes, phenotype scores, and harmfulness scores.
+ * This class represents the collective genotype information in a patient, both from candidate genes and from exome
+ * data.
  *
  * @version $Id$
  * @since
@@ -62,7 +62,7 @@ public class PatientGenotype
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(PatientGenotype.class);
 
-    /** The name of the data subdirectory used by this job manager. */
+    /** The name of the data subdirectory which stores the genotype data. */
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient genotype files. */
