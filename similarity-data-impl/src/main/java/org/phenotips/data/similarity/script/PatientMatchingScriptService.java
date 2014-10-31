@@ -21,7 +21,7 @@ package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory;
-import org.phenotips.data.similarity.internal.RestrictedGenotypeSimilarityView;
+import org.phenotips.data.similarity.internal.PatientGenotype;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
@@ -57,7 +57,7 @@ public class PatientMatchingScriptService implements ScriptService
     public void clearCache()
     {
         ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearCache();
-        RestrictedGenotypeSimilarityView.clearCache();
+        PatientGenotype.clearCache();
         logger.info("Cleared caches.");
     }
 
@@ -70,7 +70,7 @@ public class PatientMatchingScriptService implements ScriptService
     {
         if (id != null) {
             ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(id);
-            RestrictedGenotypeSimilarityView.clearPatientCache(id);
+            PatientGenotype.clearPatientCache(id);
             logger.info("Cleared cache for patient: " + id);
         }
     }

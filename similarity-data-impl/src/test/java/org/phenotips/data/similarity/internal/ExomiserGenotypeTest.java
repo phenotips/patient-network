@@ -52,7 +52,7 @@ public class ExomiserGenotypeTest
             Assert.fail("Exomiser file parsing resulted in IOException");
         }
         
-        Assert.assertEquals(0.8331819, genotype.getGeneScore("SRCAP"), 0.00001);
+        Assert.assertEquals(0.98364943, genotype.getGeneScore("SRCAP"), 0.00001);
         Assert.assertEquals(3, genotype.getGenes().size());
     }
 }

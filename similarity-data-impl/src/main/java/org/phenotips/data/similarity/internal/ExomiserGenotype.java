@@ -47,10 +47,10 @@ public class ExomiserGenotype implements Genotype
     /** Info field key for the variant's gene. */
     private static final String GENE_KEY = "EXOMISER_GENE";
 
-    /** Info field key for gene phenotypic relevance score. */
-    private static final String GENE_PHENOTYPE_SCORE_KEY = "EXOMISER_GENE_PHENO_SCORE";
+    /** Info field key for gene score. */
+    private static final String GENE_SCORE_KEY = "EXOMISER_GENE_COMBINED_SCORE";
 
-    /** The phenotype score for each gene with a variant. */
+    /** The overall score for each gene with a variant. */
     private Map<String, Double> geneScores;
 
     /** The variants in each gene. */
@@ -87,8 +87,8 @@ public class ExomiserGenotype implements Genotype
             Variant variant = parseVariant(line);
 
             String gene = getRequiredAnnotation(variant, GENE_KEY);
-            String genePhenoScore = getRequiredAnnotation(variant, GENE_PHENOTYPE_SCORE_KEY);
-            Double geneScore = Double.parseDouble(genePhenoScore);
+            String rawGeneScore = getRequiredAnnotation(variant, GENE_SCORE_KEY);
+            Double geneScore = Double.parseDouble(rawGeneScore);
             this.geneScores.put(gene, geneScore);
 
             // Add variant to gene without sorting (save sorting for end)
@@ -147,7 +147,7 @@ public class ExomiserGenotype implements Genotype
     public Variant getTopVariant(String gene, int k)
     {
         List<Variant> vs = this.variants.get(gene);
-        if (k < vs.size()) {
+        if (vs != null && k < vs.size()) {
             return vs.get(k);
         } else {
             return null;
