@@ -513,11 +513,13 @@ public class RestrictedPatientSimilarityViewTest
     @SuppressWarnings("unchecked")
     public void setupComponents() throws ComponentLookupException, CacheException
     {
+        ComponentManagerRegistry registry = new ComponentManagerRegistry();
         ComponentManager componentManager = mock(ComponentManager.class);
         Provider<ComponentManager> mockProvider = mock(Provider.class);
         // This is a bit fragile, let's hope the field name doesn't change
-        ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
+        ReflectionUtils.setFieldValue(registry, "cmProvider", mockProvider);
         when(mockProvider.get()).thenReturn(componentManager);
+        when(ComponentManagerRegistry.getContextComponentManager()).thenReturn(componentManager);
 
         CacheManager cacheManager = mock(CacheManager.class);
         when(componentManager.getInstance(CacheManager.class)).thenReturn(cacheManager);
