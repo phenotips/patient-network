@@ -25,6 +25,7 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -102,7 +103,9 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
         PatientAccess pa = mock(PatientAccess.class);
         when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
-        when(pa.getAccessLevel()).thenReturn(this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view"));
+        Visibility pv = mock(Visibility.class);
+        when(pa.getVisibility()).thenReturn(pv);
+        when(pv.getDefaultAccessLevel()).thenReturn(this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view"));
 
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
@@ -127,8 +130,10 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
         AccessLevel match = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "match");
         AccessLevel view = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view");
-        when(pa.getAccessLevel()).thenReturn(match);
         when(match.compareTo(view)).thenReturn(-5);
+        Visibility pv = mock(Visibility.class);
+        when(pa.getVisibility()).thenReturn(pv);
+        when(pv.getDefaultAccessLevel()).thenReturn(match);
 
         Map<String, FeatureMetadatum> matchMeta = new HashMap<String, FeatureMetadatum>();
         matchMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));

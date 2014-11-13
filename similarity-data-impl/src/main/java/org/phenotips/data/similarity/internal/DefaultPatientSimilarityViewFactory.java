@@ -135,8 +135,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
-        AccessType access = new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(),
-            this.viewAccess, this.matchAccess);
+        AccessType access = new DefaultAccessType(
+                                this.permissions.getPatientAccess(match).getVisibility().getDefaultAccessLevel(),
+                                this.viewAccess, this.matchAccess);
         return getCachedPatientSimilarityView(match, reference, access);
     }
 
