@@ -114,6 +114,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private List<PatientSimilarityView> find(Patient referencePatient, boolean prototypes)
     {
+        //logger.error("Searching for patients using access level: {}", this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
@@ -125,7 +126,11 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
                 continue;
             }
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
+            //logger.error("Found match: found {}, score: {}, accessLevel: {}, accessCompare: {}",
+            //             name, result.getScore(), result.getAccess().getName(),
+            //             this.accessLevelThreshold.compareTo(result.getAccess()));
             if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0 && result.getScore() > 0) {
+                //logger.error("added match");
                 results.add(result);
             }
         }
@@ -157,10 +162,14 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
                 q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
             }
         }
-        // Ignore the reference patient itself
-        q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
+        // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
+        if (referencePatient.getDocument() != null) {
+            q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
+        //logger.error("SOLRQUERY generated: {}", query.toString());
         return query;
     }
 
