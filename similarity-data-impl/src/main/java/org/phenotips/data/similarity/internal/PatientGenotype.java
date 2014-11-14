@@ -283,7 +283,7 @@ public class PatientGenotype
      */
     public Variant getTopVariant(String gene, int k)
     {
-        return genotype.getTopVariant(gene, k);
+        return genotype == null ? null : genotype.getTopVariant(gene, k);
     }
 
     /**
