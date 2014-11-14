@@ -693,7 +693,7 @@
             if (v.ref &amp;&amp; v.alt) {
               var displayedRef = v.ref.length &lt;= 15 ? v.ref : (v.ref.substring(0, 9) + "..." + v.ref[v.ref.length - 1]);
               var displayedAlt = v.alt.length &lt;= 15 ? v.alt : (v.alt.substring(0, 9) + "..." + v.alt[v.alt.length - 1]);
-              change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
+              change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
             }
          }
          vRow.insert(new Element('td').update(position)
