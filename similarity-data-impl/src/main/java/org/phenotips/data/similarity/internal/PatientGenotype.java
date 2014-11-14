@@ -154,11 +154,15 @@ public class PatientGenotype
     private static Genotype getPatientGenotype(Patient p)
     {
         String id = p.getId();
+        if (id == null) {
+            // this must be a remote patient: such patients never have genotype
+            return null;
+        }
         Genotype genotype = null;
         if (genotypeCache != null) {
             genotype = genotypeCache.get(id);
         }
-        if (id != null && genotype == null && genotypeDirectory != null) {
+        if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
             File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
             if (vcf.isFile()) {
