@@ -120,11 +120,6 @@
       <version>${xwiki.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>de.charite.compbio</groupId>
-      <artifactId>exomizer</artifactId>
-      <version>0.1-sk</version>
-    </dependency>
   </dependencies>
 
   <build>
