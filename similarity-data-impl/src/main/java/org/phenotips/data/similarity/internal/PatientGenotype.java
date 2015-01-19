@@ -86,8 +86,9 @@ public class PatientGenotype
     /**
      * Constructor for a PatientGenotype object, representing the candidate genes and exome sequence data for the given
      * Patient.
+     * @param patient the patient object
      */
-    PatientGenotype(Patient patient)
+    public PatientGenotype(Patient patient)
     {
         if (!initialized) {
             initialize();
