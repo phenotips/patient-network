@@ -86,6 +86,7 @@ public class PatientGenotype
     /**
      * Constructor for a PatientGenotype object, representing the candidate genes and exome sequence data for the given
      * Patient.
+     *
      * @param patient the patient object
      */
     public PatientGenotype(Patient patient)
@@ -94,8 +95,8 @@ public class PatientGenotype
             initialize();
         }
 
-        genotype = getPatientGenotype(patient);
-        candidateGenes = getPatientCandidateGeneNames(patient);
+        this.genotype = getPatientGenotype(patient);
+        this.candidateGenes = getPatientCandidateGeneNames(patient);
     }
 
     private static void initialize()
@@ -152,7 +153,7 @@ public class PatientGenotype
      * @param p the patient to get the genotype for.
      * @return the corresponding Genotype, or null if no genotype available
      */
-    private static Genotype getPatientGenotype(Patient p)
+    public static Genotype getPatientGenotype(Patient p)
     {
         String id = p.getId();
         if (id == null) {
