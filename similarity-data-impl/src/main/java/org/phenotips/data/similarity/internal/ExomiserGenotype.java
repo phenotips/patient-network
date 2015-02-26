@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,11 +37,10 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * This class represents the genotype information from an exomiser-annotated VCF file. Specifically, a collection of
+ * This class represents the genotype information from an Exomiser-annotated TSV file. Specifically, a collection of
  * variants annotated with genes, phenotype scores, and harmfulness scores.
  *
  * @version $Id$
- * @since
  */
 public class ExomiserGenotype implements Genotype
 {
@@ -49,6 +49,8 @@ public class ExomiserGenotype implements Genotype
 
     /** Info field key for gene score. */
     private static final String GENE_SCORE_KEY = "EXOMISER_GENE_COMBINED_SCORE";
+
+    private static final String FIELD_DELIMITER = "\t";
 
     /** The overall score for each gene with a variant. */
     private Map<String, Double> geneScores;
@@ -76,15 +78,22 @@ public class ExomiserGenotype implements Genotype
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();
         BufferedReader reader = new BufferedReader(exomiserOutput);
+
+        // Parse column names from header
+        String header = reader.readLine();
+        if (header == null || !header.startsWith("#")) {
+            throw new IOException("Missing header in Exomiser file");
+        }
+        List<String> columns = Arrays.asList(header.substring(1).trim().split(FIELD_DELIMITER));
+
         while (true) {
             String line = reader.readLine();
             if (line == null) {
                 break;
-            } else if (line.startsWith("#")) {
-                continue;
             }
 
-            Variant variant = parseVariant(line);
+            String[] values = line.split(FIELD_DELIMITER);
+            Variant variant = parseVariant(columns, values);
 
             String gene = getRequiredAnnotation(variant, GENE_KEY);
             String rawGeneScore = getRequiredAnnotation(variant, GENE_SCORE_KEY);
@@ -115,15 +124,25 @@ public class ExomiserGenotype implements Genotype
         }
     }
 
-    private Variant parseVariant(String line) throws IOException {
+    /**
+     * Parse a variant from an Exomiser TSV line.
+     *
+     * @param columns the column headers for the TSV file
+     * @param values the values in each column for the current row
+     * @return a Variant with the data from the row
+     * @throws IOException if there is an error parsing the row
+     */
+    private Variant parseVariant(List<String> columns, String[] values) throws IOException
+    {
         try {
-            return new ExomiserVariant(line);
+            return new ExomiserVariant(columns, values);
         } catch (IllegalArgumentException e) {
-            throw new IOException("Error parsing variant line: " + line);
+            throw new IOException("Error parsing variant line: " + Arrays.toString(values));
         }
     }
 
-    private String getRequiredAnnotation(Variant variant, String key) throws IOException {
+    private String getRequiredAnnotation(Variant variant, String key) throws IOException
+    {
         String value = variant.getAnnotation(key);
         if (value == null) {
             throw new IOException("Exomiser variant missing required field: " + key);

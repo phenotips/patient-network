@@ -179,7 +179,7 @@ public class RestrictedGenotypeSimilarityViewTest
         JSONArray vars;
         JSONObject v;
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
-        Assert.assertEquals(top.getDouble("score"), 1.0, 0.00001);
+        Assert.assertTrue(top.getDouble("score") > 0.9);
 
         // Ensure reference only shows score
         JSONObject refVars = top.getJSONObject("reference");
@@ -187,7 +187,7 @@ public class RestrictedGenotypeSimilarityViewTest
         vars = refVars.getJSONArray("variants");
         Assert.assertEquals(1, vars.size());
         v = vars.getJSONObject(0);
-        Assert.assertEquals(1.0, v.getDouble("score"), 0.0001);
+        Assert.assertTrue(v.getDouble("score") > 0.9);
         Assert.assertEquals(1, v.size());
 
         // Ensure match only shows score
@@ -196,7 +196,7 @@ public class RestrictedGenotypeSimilarityViewTest
         vars = matchVars.getJSONArray("variants");
         Assert.assertEquals(1, vars.size());
         v = vars.getJSONObject(0);
-        Assert.assertEquals(1.0, v.getDouble("score"), 0.0001);
+        Assert.assertTrue(v.getDouble("score") > 0.9);
         Assert.assertEquals(1, v.size());
     }
 

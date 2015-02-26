@@ -22,22 +22,20 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.similarity.Variant;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 import net.sf.json.JSONObject;
 
 /**
- * An annotated variant, as outputted by Exomiser.
+ * A variant after being annotated by Exomiser.
  *
  * @version $Id$
- * @since
  */
 public class ExomiserVariant implements Variant
 {
     /** Info field key for variant effect. */
-    private static final String EFFECT_KEY = "EXOMISER_EFFECT";
+    private static final String EFFECT_KEY = "FUNCTIONAL_CLASS";
 
     /** Info field key for variant harmfulness score. */
     private static final String VARIANT_SCORE_KEY = "EXOMISER_VARIANT_SCORE";
@@ -64,79 +62,103 @@ public class ExomiserVariant implements Variant
     private String gt;
 
     /** See {@link #getAnnotation(String)}. */
-    private Map<String, String> info;
-
-    /** A string representation of the parsed info field, used to write to VCF. */
-    private String rawInfo;
+    private Map<String, String> annotations;
 
     /**
-     * Create a Variant from a line of an Exomiser-annotated VCF file.
+     * Create a Variant from a line of an Exomiser variant TSV file.
      *
-     * @param line the line of the VCF file
+     * @param columns the names of the TSV columns
+     * @param values the value in each TSV column
      * @throws IllegalArgumentException if the variant cannot be parsed as an Exomiser variant
      */
-    ExomiserVariant(String line) throws IllegalArgumentException
+    ExomiserVariant(List<String> columns, String[] values) throws IllegalArgumentException
     {
-        String[] tokens = StringUtils.split(line, '\t');
-        init(tokens[0], Integer.parseInt(tokens[1]), tokens[3], tokens[4], tokens[9], tokens[7], null);
+        setChrom(values[0]);
+        setPosition(Integer.parseInt(values[1]));
+        setGenotype(values[2], values[3], values[6]);
+
+        // Parse into annotation map
+        this.annotations = new HashMap<String, String>();
+        for (int i = 0; i < Math.min(columns.size(), values.length); i++) {
+            this.annotations.put(columns.get(i), values[i]);
+        }
+
+        String lineEffect = this.annotations.get(EFFECT_KEY);
+        if (lineEffect == null) {
+            throw new IllegalArgumentException("Variant missing effect annotation: " + EFFECT_KEY);
+        } else {
+            setEffect(lineEffect);
+        }
+
+        String lineScore = this.annotations.get(VARIANT_SCORE_KEY);
+        if (lineScore == null) {
+            throw new IllegalArgumentException("Variant missing score annotation: " + VARIANT_SCORE_KEY);
+        } else {
+            setScore(Double.parseDouble(lineScore));
+        }
     }
 
     /**
-     * Initialize a variant given a standard set of field values.
+     * Set the chromosome of the variant.
      *
      * @param chrom the chromosome string
+     */
+    private void setChrom(String chrom)
+    {
+        String chr = chrom.toUpperCase();
+
+        // Standardize without without prefix
+        if (chr.startsWith("CHR")) {
+            chr = chr.substring(3);
+        }
+        if ("MT".equals(chr)) {
+            chr = "M";
+        }
+        this.chrom = chr;
+    }
+
+    /**
+     * Set the position of the variant.
+     *
      * @param position the variant position (1-indexed)
+     */
+    private void setPosition(int position)
+    {
+        this.position = position;
+    }
+
+    /**
+     * Set the genotype of the variant.
+     *
      * @param ref the reference allele
      * @param alt the alternate allele
      * @param gt the genotype (e.g. "0/1")
-     * @param info the info field from a VCF line, may contain "EFFECT" annotation
-     * @param score the score (if null, will be parsed from "VARIANT_SCORE" annotation in info field
-     * @throws IllegalArgumentException if the info field does not contain the necessary annotations
      */
-    private void init(String chrom, Integer position, String ref, String alt, String gt, String info, Double score)
-        throws IllegalArgumentException
+    private void setGenotype(String ref, String alt, String gt)
     {
-        this.chrom = chrom.toUpperCase();
-
-        // Standardize chromosome
-        if (this.chrom.startsWith("CHR")) {
-            this.chrom = this.chrom.substring(3);
-        }
-        if ("MT".equals(this.chrom)) {
-            this.chrom = "M";
-        }
-
-        this.position = position;
         this.ref = ref;
         this.alt = alt;
         this.gt = gt;
+    }
 
-        // Parse the INFO field into a dictionary
-        this.rawInfo = info;
-        this.info = new HashMap<String, String>();
-        String[] infoParts = StringUtils.split(info, ';');
-        for (String part : infoParts) {
-            int splitIndex = part.indexOf('=');
-            if (splitIndex >= 0) {
-                this.info.put(part.substring(0, splitIndex), part.substring(splitIndex + 1));
-            } else {
-                this.info.put(part, "");
-            }
-        }
-        this.effect = this.info.get(EFFECT_KEY);
+    /**
+     * Set the genotype of the variant.
+     *
+     * @param effect the cDNA effect of the variant
+     */
+    private void setEffect(String effect)
+    {
+        this.effect = effect;
+    }
 
-        if (score == null) {
-            // Try to read score from info field
-            String infoScore = this.info.get(VARIANT_SCORE_KEY);
-            if (infoScore == null) {
-                throw new IllegalArgumentException("Variant score not provided, and missing info field: "
-                    + VARIANT_SCORE_KEY);
-            } else {
-                this.score = Double.parseDouble(infoScore);
-            }
-        } else {
-            this.score = score;
-        }
+    /**
+     * Set the score of the variant.
+     *
+     * @param score the score of the variant in [0.0, 1.0], where 1.0 is more harmful
+     */
+    private void setScore(double score)
+    {
+        this.score = score;
     }
 
     @Override
@@ -184,7 +206,7 @@ public class ExomiserVariant implements Variant
     @Override
     public String getAnnotation(String key)
     {
-        return this.info.get(key);
+        return this.annotations.get(key);
     }
 
     @Override
@@ -192,13 +214,6 @@ public class ExomiserVariant implements Variant
     {
         // negative so that largest score comes first
         return -Double.compare(getScore(), o.getScore());
-    }
-
-    @Override
-    public String toVCFLine()
-    {
-        return String.format("%s\t%s\t.\t%s\t%s\t.\tPASS\t%s\tGT\t%s", this.chrom, this.position, this.ref, this.alt,
-            this.rawInfo, this.gt);
     }
 
     @Override

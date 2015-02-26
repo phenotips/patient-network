@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
  * data.
  *
  * @version $Id$
- * @since
  */
 public class PatientGenotype
 {
@@ -66,7 +65,7 @@ public class PatientGenotype
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient genotype files. */
-    private static final String GENOTYPE_SUFFIX = ".ezr";
+    private static final String GENOTYPE_SUFFIX = ".variants.tsv";
 
     /** Cache for storing patient genotypes. */
     private static Cache<Genotype> genotypeCache;
@@ -86,6 +85,7 @@ public class PatientGenotype
     /**
      * Constructor for a PatientGenotype object, representing the candidate genes and exome sequence data for the given
      * Patient.
+     *
      * @param patient the patient object
      */
     public PatientGenotype(Patient patient)
@@ -165,16 +165,16 @@ public class PatientGenotype
         }
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
-            File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
-            if (vcf.isFile()) {
+            File exome = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
+            if (exome.isFile()) {
                 try {
-                    Reader reader = new FileReader(vcf);
+                    Reader reader = new FileReader(exome);
                     genotype = new ExomiserGenotype(reader);
-                    logger.info("Loaded genotype for " + id + " from: " + vcf);
+                    logger.info("Loaded genotype for " + id + " from: " + exome);
                 } catch (FileNotFoundException e) {
                     // No problem
                 } catch (IOException e) {
-                    logger.error("Encountered error reading genotype: " + vcf);
+                    logger.error("Encountered error reading genotype: " + exome);
                     genotype = null;
                 }
             }
@@ -295,14 +295,14 @@ public class PatientGenotype
      */
     public double getGeneScore(String gene)
     {
-        Double score = null;
-        if (candidateGenes != null && candidateGenes.contains(gene)) {
-            score = 1.0;
-        } else if (genotype != null) {
+        double score = 0.0;
+        if (genotype != null) {
             score = genotype.getGeneScore(gene);
         }
-        if (score == null) {
-            score = 0.0;
+        // Potentially boost score if candidate gene
+        if (candidateGenes != null && candidateGenes.contains(gene)) {
+            // Score of 1.0 for 1 candidate gene, 0.95 for each of 2, exponentially decreasing
+            score = Math.max(score, Math.pow(0.95, candidateGenes.size() - 1));
         }
         return score;
     }
