@@ -1,0 +1,20 @@
+vcf=${vcf_filepath}
+prioritiser=hiphive
+
+#FILTER OPTIONS
+max-freq=${min_freq}
+min-qual=${min_qual}
+keep-non-pathogenic=false
+remove-dbsnp=false
+keep-off-target=false
+full-analysis=false
+
+#PRIORITISER OPTIONS
+hpo-ids=${exomiser_phenotypes}
+seed-genes=
+inheritance-mode=${exomiser_inheritance}
+
+#OUTPUT OPTIONS
+num-genes=0
+out-file=${exomiser_out_prefix}
+out-format=TSV-VARIANT,TSV-GENE
