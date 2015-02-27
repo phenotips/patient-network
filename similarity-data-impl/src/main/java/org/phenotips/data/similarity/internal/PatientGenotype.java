@@ -65,7 +65,7 @@ public class PatientGenotype
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient genotype files. */
-    private static final String GENOTYPE_SUFFIX = ".variants.tsv";
+    private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
 
     /** Cache for storing patient genotypes. */
     private static Cache<Genotype> genotypeCache;
@@ -165,8 +165,9 @@ public class PatientGenotype
         }
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
-            File exome = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
-            if (exome.isFile()) {
+            File patientDirectory = new File(genotypeDirectory, id);
+            File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
+            if (patientDirectory.isDirectory() && exome.isFile()) {
                 try {
                     Reader reader = new FileReader(exome);
                     genotype = new ExomiserGenotype(reader);
