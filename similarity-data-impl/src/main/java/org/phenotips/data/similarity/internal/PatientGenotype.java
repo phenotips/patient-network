@@ -146,6 +146,25 @@ public class PatientGenotype
         return null;
     }
 
+    private static Genotype loadPatientGenotype(String id)
+    {
+        File patientDirectory = new File(genotypeDirectory, id);
+        File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
+        if (patientDirectory.isDirectory() && exome.isFile()) {
+            try {
+                Reader exomeReader = new FileReader(exome);
+                Genotype genotype = new ExomiserGenotype(exomeReader);
+                logger.info("Loading genotype for " + id + " from: " + exome);
+                return genotype;
+            } catch (FileNotFoundException e) {
+                // No problem
+            } catch (IOException e) {
+                logger.error("Encountered error reading genotype: " + exome);
+            }
+        }
+        return null;
+    }
+
     /**
      * Get the (potentially-cached) Genotype for the patient with the given id.
      *
@@ -165,20 +184,7 @@ public class PatientGenotype
         }
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
-            File patientDirectory = new File(genotypeDirectory, id);
-            File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
-            if (patientDirectory.isDirectory() && exome.isFile()) {
-                try {
-                    Reader reader = new FileReader(exome);
-                    genotype = new ExomiserGenotype(reader);
-                    logger.info("Loaded genotype for " + id + " from: " + exome);
-                } catch (FileNotFoundException e) {
-                    // No problem
-                } catch (IOException e) {
-                    logger.error("Encountered error reading genotype: " + exome);
-                    genotype = null;
-                }
-            }
+            genotype = loadPatientGenotype(id);
             // Cache genotype
             if (genotype != null && genotypeCache != null) {
                 genotypeCache.set(id, genotype);
