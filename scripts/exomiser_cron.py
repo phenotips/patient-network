@@ -5,7 +5,7 @@ Usage: $0 PHENOTIPS_DIR EXOMISER_JAR CREDENTIALS_FILE
 
 Check all patient VCF file attachments and update Exomiser files accordingly.
 
-PHENOTIPS_DIR: path to the Phenotips installation's data directory (with 'storage' and 'exomiser' subdirectories)
+PHENOTIPS_DIR: path to the PhenoTips installation's data directory (with 'storage' and 'exomiser' subdirectories)
 EXOMISER_JAR: path to Exomiser JAR file
 CREDENTIALS_FILE: file containing PhenoTips ScriptService credentials (one line, in the format: 'username:password')
 """
