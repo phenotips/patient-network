@@ -561,20 +561,16 @@
 }
 
 td.gene-score {
-  border: 1px solid black;
+  border-bottom : 1px solid $theme.textColor;
   border-right: none;
 }
 
 td.gene-name {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid $theme.textColor;
 }
 
 td.gene-name, td.variant-position, td.variant-change, td.variant-type {
   text-align: left;
-}
-
-td.variant-type {
-  border-right: 1px solid black;
 }
 
 th.variant-display-heading{
@@ -594,14 +590,20 @@ th.variant-display-heading:last-child {
 table.variant-display-table{
   margin:0;
   margin-bottom: 1px;
+  width: 100%;
+}
+
+table.variant-display-table td{
+  padding: 10px;
 }
 
 #variant_display_container{
   display:inline-block;
+  width: 100%;
 }
 
 .variant-display-table &gt; .last-row-for-gene &gt; td {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid $theme.textColor;
 }
 </code>
     </property>

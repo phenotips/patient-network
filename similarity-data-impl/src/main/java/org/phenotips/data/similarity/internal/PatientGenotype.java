@@ -99,8 +99,11 @@ public class PatientGenotype
         this.candidateGenes = getPatientCandidateGeneNames(patient);
     }
 
-    private static void initialize()
+    private static boolean initialize()
     {
+        if (initialized) {
+            return true;
+        }
         ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
         if (genotypeDirectory == null) {
             genotypeDirectory = getGenotypeDirectory(componentManager);
@@ -115,8 +118,8 @@ public class PatientGenotype
                 logger.warn("Unable to create patient genotype cache: " + e.toString());
             }
         }
-
         initialized = true;
+        return initialized;
     }
 
     /**
@@ -164,6 +167,9 @@ public class PatientGenotype
         if (genotypeCache != null) {
             genotype = genotypeCache.get(id);
         }
+
+        initialize();
+
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
             File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);

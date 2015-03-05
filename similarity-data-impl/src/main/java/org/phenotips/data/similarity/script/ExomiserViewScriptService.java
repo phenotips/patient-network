@@ -48,7 +48,7 @@ import net.sf.json.JSONObject;
 @Component
 @Named("patientVariantView")
 @Singleton
-public class ExomiserViewMatchingScriptService implements ScriptService
+public class ExomiserViewScriptService implements ScriptService
 {
 
     /**
@@ -94,7 +94,7 @@ public class ExomiserViewMatchingScriptService implements ScriptService
         if (patient == null) {
             return false;
         }
-        return new PatientGenotype(patient).getGenes() != null;
+        return PatientGenotype.getPatientGenotype(patient) != null;
     }
 
     /**
