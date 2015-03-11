@@ -27,6 +27,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import net.sf.json.JSON;
+import net.sf.json.JSONObject;
+
 /**
  * Simple mock for an ontology term, responding with pre-specified values.
  *
@@ -143,5 +146,11 @@ public class MockOntologyTerm implements OntologyTerm
     {
         // Not used
         return 0;
+    }
+
+    @Override
+    public JSON toJson()
+    {
+         return new JSONObject();
     }
 }
