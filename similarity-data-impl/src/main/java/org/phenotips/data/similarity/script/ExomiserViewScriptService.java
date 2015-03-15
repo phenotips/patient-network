@@ -29,6 +29,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -64,16 +65,17 @@ public class ExomiserViewScriptService implements ScriptService
             return null;
         }
         final Genotype patientGenotype = PatientGenotype.getPatientGenotype(patient);
-        List<String> genes = new ArrayList<String>(patientGenotype.getGenes());
-        genes.sort(new Comparator<String>()
+        List<String> genes = new ArrayList<>(patientGenotype.getGenes());
+        Collections.sort(genes, new Comparator<String>()
+        {
+            @Override
+            public int compare(String g1, String g2)
             {
-                @Override
-                public int compare(String g1, String g2)
-                {
-                    // Sort by score, descending
-                    return Double.compare(patientGenotype.getGeneScore(g2), patientGenotype.getGeneScore(g1));
-                };
-            });
+                // Sort by score, descending, nulls last
+                return org.apache.commons.lang3.ObjectUtils.compare(patientGenotype.getGeneScore(g2),
+                    patientGenotype.getGeneScore(g1), true);
+            };
+        });
         List<String> result = new ArrayList<String>();
         for (int i = 0; i < k; i++) {
             if (genes.get(i) != null) {
