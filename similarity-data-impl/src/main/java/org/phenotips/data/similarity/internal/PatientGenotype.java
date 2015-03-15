@@ -86,6 +86,7 @@ public class PatientGenotype
     /**
      * Constructor for a PatientGenotype object, representing the candidate genes and exome sequence data for the given
      * Patient.
+     *
      * @param patient the patient object
      */
     public PatientGenotype(Patient patient)
@@ -94,12 +95,15 @@ public class PatientGenotype
             initialize();
         }
 
-        genotype = getPatientGenotype(patient);
-        candidateGenes = getPatientCandidateGeneNames(patient);
+        this.genotype = getPatientGenotype(patient);
+        this.candidateGenes = getPatientCandidateGeneNames(patient);
     }
 
-    private static void initialize()
+    private static boolean initialize()
     {
+        if (initialized) {
+            return true;
+        }
         ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
         if (genotypeDirectory == null) {
             genotypeDirectory = getGenotypeDirectory(componentManager);
@@ -114,8 +118,8 @@ public class PatientGenotype
                 logger.warn("Unable to create patient genotype cache: " + e.toString());
             }
         }
-
         initialized = true;
+        return initialized;
     }
 
     /**
@@ -152,7 +156,7 @@ public class PatientGenotype
      * @param p the patient to get the genotype for.
      * @return the corresponding Genotype, or null if no genotype available
      */
-    private static Genotype getPatientGenotype(Patient p)
+    public static Genotype getPatientGenotype(Patient p)
     {
         String id = p.getId();
         if (id == null) {
@@ -163,6 +167,9 @@ public class PatientGenotype
         if (genotypeCache != null) {
             genotype = genotypeCache.get(id);
         }
+
+        initialize();
+
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
             File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
