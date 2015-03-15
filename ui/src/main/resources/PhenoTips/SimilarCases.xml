@@ -557,7 +557,7 @@
            phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
            if (featureMatch.reference) {
              featureMatch.reference.each(function (fId) {
-               crtPFeatures.insert(_this._displayFeature(_this._queryFeatures['phenotype'] &amp;&amp; _this._queryFeatures['phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
+               crtPFeatures.insert(_this._displayFeature(_this._queryFeatures['phenotype'] &amp;&amp; _this._queryFeatures['phenotype'][fId] || _this._queryFeatures['prenatal_phenotype'] &amp;&amp; _this._queryFeatures['prenatal_phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
              });
            } else {
              crtPFeatures.insert("-");
@@ -566,7 +566,7 @@
              var undisclosedCount = 0;
              featureMatch.match.each(function (fId) {
                if (fId) {
-                 otherPFeatures.insert(_this._displayFeature(resultFeatures['phenotype'] &amp;&amp; resultFeatures['phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
+                 otherPFeatures.insert(_this._displayFeature(resultFeatures['phenotype'] &amp;&amp; resultFeatures['phenotype'][fId] || resultFeatures['prenatal_phenotype'] &amp;&amp; resultFeatures['prenatal_phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
                } else {
                  undisclosedCount++;
                }
