@@ -93,13 +93,6 @@ public interface Variant extends Comparable<Variant>
     String getEffect();
 
     /**
-     * Get the VCF-line equivalent of the variant.
-     *
-     * @return the line of the VCF file without a terminal newline, or null if not available
-     */
-    String toVCFLine();
-
-    /**
      * Retrieve a variant's information in a JSON format. For example:
      *
      * <pre>

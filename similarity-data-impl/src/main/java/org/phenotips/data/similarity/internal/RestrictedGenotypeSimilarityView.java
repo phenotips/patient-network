@@ -34,9 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -51,9 +48,6 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
 {
     /** The number of genes to show in the JSON output. */
     private static final int MAX_GENES_SHOWN = 10;
-
-    /** Logging helper object. */
-    private static Logger logger = LoggerFactory.getLogger(RestrictedGenotypeSimilarityView.class);
 
     /** The matched patient to represent. */
     private Patient match;

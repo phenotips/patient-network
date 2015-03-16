@@ -20,6 +20,7 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Variant;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -35,12 +36,10 @@ import org.junit.Test;
 public class ExomiserGenotypeTest
 {
     private static final String TEST_FILE =
-        "##fileformat=VCFv4.1\n"
-            + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tGENOTYPE\n"
-            + "chr16\t30748691\t.\tC\tT\t225.0\tPASS\tDP=40;VDB=0.0403;AF1=0.5;AC1=1;DP4=0,16,4,18;MQ=59;FQ=133;PV4=0.12,0.13,1,1;EXOMISER_GENE=SRCAP;EXOMISER_VARIANT_SCORE=0.95;EXOMISER_GENE_PHENO_SCORE=0.8331819;EXOMISER_GENE_VARIANT_SCORE=0.95;EXOMISER_GENE_COMBINED_SCORE=0.98364943;EXOMISER_EFFECT=STOPGAIN\tGT\t0/1\n"
-            + "chrX\t70349991\t.\tG\tT\t4.13\tPASS\tDP=14;VDB=0.0102;AF1=0.4998;AC1=1;DP4=6,6,1,1;MQ=60;FQ=6.2;PV4=1,1,1,0.43;EXOMISER_GENE=MED12;EXOMISER_VARIANT_SCORE=1.0;EXOMISER_GENE_PHENO_SCORE=0.63577175;EXOMISER_GENE_VARIANT_SCORE=1.0;EXOMISER_GENE_COMBINED_SCORE=0.9244368;EXOMISER_EFFECT=MISSENSE\tGT\t0/1\n"
-            + "chr6\t32629935\t.\tC\tG\t27.0\tPASS\tDP=85;VDB=0.0342;AF1=0.5;AC1=1;DP4=45,21,6,12;MQ=39;FQ=30;PV4=0.013,0.016,0.0014,1;EXOMISER_GENE=HLA-DQB1;EXOMISER_VARIANT_SCORE=0.96;EXOMISER_GENE_PHENO_SCORE=0.6184042;EXOMISER_GENE_VARIANT_SCORE=1.0;EXOMISER_GENE_COMBINED_SCORE=0.91082;EXOMISER_EFFECT=MISSENSE\tGT\t0/1\n";
-
+        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n" +
+        "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n" +
+        "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n" +
+        "chr6\t32628660\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-1A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.9\t0.612518\t1.0\t0.9057237\n";
     /** Basic test for Exomiser output file parsing. */
     @Test
     public void testParseExomiser()
@@ -52,7 +51,22 @@ public class ExomiserGenotypeTest
             Assert.fail("Exomiser file parsing resulted in IOException");
         }
         
-        Assert.assertEquals(0.98364943, genotype.getGeneScore("SRCAP"), 0.00001);
+        Assert.assertEquals(0.9876266, genotype.getGeneScore("SRCAP"), 0.00001);
+        
+        // Get top variant and make sure it was parsed correctly
+        Variant v1 = genotype.getTopVariant("SRCAP", 0);
+        Assert.assertEquals("STOPGAIN", v1.getEffect());
+        Assert.assertEquals("16", v1.getChrom());
+        Assert.assertEquals((Integer)30748691, v1.getPosition());
+        Assert.assertEquals("C", v1.getRef());
+        Assert.assertEquals("T", v1.getAlt());
+        Assert.assertEquals("40", v1.getAnnotation("COVERAGE"));
+        Assert.assertFalse(v1.isHomozygous());
+
+        // Try to get second (non-existent) variant
+        Variant v2 = genotype.getTopVariant("SRCAP", 1);
+        Assert.assertNull(v2);
+        
         Assert.assertEquals(3, genotype.getGenes().size());
     }
 }

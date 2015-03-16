@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
  * data.
  *
  * @version $Id$
- * @since
  */
 public class PatientGenotype
 {
@@ -66,7 +65,7 @@ public class PatientGenotype
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient genotype files. */
-    private static final String GENOTYPE_SUFFIX = ".ezr";
+    private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
 
     /** Cache for storing patient genotypes. */
     private static Cache<Genotype> genotypeCache;
@@ -150,6 +149,25 @@ public class PatientGenotype
         return null;
     }
 
+    private static Genotype loadPatientGenotype(String id)
+    {
+        File patientDirectory = new File(genotypeDirectory, id);
+        File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
+        if (patientDirectory.isDirectory() && exome.isFile()) {
+            try {
+                Reader exomeReader = new FileReader(exome);
+                Genotype genotype = new ExomiserGenotype(exomeReader);
+                logger.info("Loading genotype for " + id + " from: " + exome);
+                return genotype;
+            } catch (FileNotFoundException e) {
+                // No problem
+            } catch (IOException e) {
+                logger.error("Encountered error reading genotype: " + exome);
+            }
+        }
+        return null;
+    }
+
     /**
      * Get the (potentially-cached) Genotype for the patient with the given id.
      *
@@ -172,19 +190,7 @@ public class PatientGenotype
 
         if (genotype == null && genotypeDirectory != null) {
             // Attempt to load genotype from file
-            File vcf = new File(genotypeDirectory, id + GENOTYPE_SUFFIX);
-            if (vcf.isFile()) {
-                try {
-                    Reader reader = new FileReader(vcf);
-                    genotype = new ExomiserGenotype(reader);
-                    logger.info("Loaded genotype for " + id + " from: " + vcf);
-                } catch (FileNotFoundException e) {
-                    // No problem
-                } catch (IOException e) {
-                    logger.error("Encountered error reading genotype: " + vcf);
-                    genotype = null;
-                }
-            }
+            genotype = loadPatientGenotype(id);
             // Cache genotype
             if (genotype != null && genotypeCache != null) {
                 genotypeCache.set(id, genotype);
@@ -302,14 +308,14 @@ public class PatientGenotype
      */
     public double getGeneScore(String gene)
     {
-        Double score = null;
-        if (candidateGenes != null && candidateGenes.contains(gene)) {
-            score = 1.0;
-        } else if (genotype != null) {
+        double score = 0.0;
+        if (genotype != null) {
             score = genotype.getGeneScore(gene);
         }
-        if (score == null) {
-            score = 0.0;
+        // Potentially boost score if candidate gene
+        if (candidateGenes != null && candidateGenes.contains(gene)) {
+            // Score of 1.0 for 1 candidate gene, 0.95 for each of 2, exponentially decreasing
+            score = Math.max(score, Math.pow(0.95, candidateGenes.size() - 1));
         }
         return score;
     }

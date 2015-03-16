@@ -5,7 +5,7 @@ Usage: $0 PHENOTIPS_DIR EXOMISER_JAR CREDENTIALS_FILE
 
 Check all patient VCF file attachments and update Exomiser files accordingly.
 
-PHENOTIPS_DIR: path to the Phenotips installation's data directory (with 'storage' and 'exomiser' subdirectories)
+PHENOTIPS_DIR: path to the PhenoTips installation's data directory (with 'storage' and 'exomiser' subdirectories)
 EXOMISER_JAR: path to Exomiser JAR file
 CREDENTIALS_FILE: file containing PhenoTips ScriptService credentials (one line, in the format: 'username:password')
 """
@@ -53,7 +53,10 @@ class Settings:
         'exomiser_template': os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                           'exomiser_settings.txt'),
         'attach_subdir': '~this/attachments',
-        'service_url_base': 'http://localhost:8080/bin/get/PhenoTips',
+        'host': 'http://localhost:8080',
+        'clear_cache_url': '/bin/get/PhenoTips/ClearPatientCache',
+        'export_id_url': '/bin/get/PhenomeCentral/ExportIDs',
+        'export_patient_url': '/bin/get/PhenoTips/ExportPatient',
         }
     _settings = {}
     def __init__(self, **kwargs):
@@ -136,14 +139,14 @@ def maybe_gzip_open(filename, *args, **kwargs):
 
 def fetch_patient_data(record_id, settings):
     logging.info('Fetching patient data for {0}'.format(record_id))
-    url = settings['service_url_base'] + '/ExportPatient?id={0}&basicauth=1'.format(record_id)
+    url = '{0}{1}?id={2}&basicauth=1'.format(settings['host'], settings['export_patient_url'], record_id)
     proc = subprocess.Popen(['curl', '-s', '-S', '-u', settings['credentials'], url], stdout=subprocess.PIPE)
     output = proc.communicate()[0]
     return json.loads(output)
 
 def clear_cache(record_id, settings):
     logging.info('Clearing cache for {0}'.format(record_id))
-    url = settings['service_url_base'] + '/ClearPatientCache?id={0}&basicauth=1'.format(record_id)
+    url = '{0}{1}?id={2}&basicauth=1'.format(settings['host'], settings['clear_cache_url'], record_id)
     retcode = subprocess.call(['curl', '-s', '-S', '-u', settings['credentials'], url], stdout=subprocess.PIPE)
     if retcode != 0:
         logging.error('Attempt to clear cache for {0} failed'.format(record_id))
@@ -154,7 +157,7 @@ def fetch_changed_records(settings, since=None):
         fields['since'] = since
 
     logging.info('Fetching records changed since: {0}'.format(since))
-    url = 'http://localhost:8080/bin/get/Sandbox/ExportIDs?basicauth=1'
+    url = '{0}{1}?basicauth=1'.format(settings['host'], settings['export_id_url'])
     command = ['curl', '-s', '-S', '-u', settings['credentials'], url, '--data', urlencode(fields)]
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
     stdout = proc.communicate()[0]
