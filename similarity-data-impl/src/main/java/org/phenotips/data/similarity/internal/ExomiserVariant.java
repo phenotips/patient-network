@@ -107,7 +107,7 @@ public class ExomiserVariant implements Variant
     {
         String chr = chrom.toUpperCase();
 
-        // Standardize without without prefix
+        // Standardize without prefix
         if (chr.startsWith("CHR")) {
             chr = chr.substring(3);
         }
