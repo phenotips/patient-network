@@ -116,6 +116,7 @@ public class ExomiserGenotype implements Genotype
         reader.close();
 
         // Sort variants within each gene by harmfulness score
+        // Required as precondition for many methods in this class.
         // TODO: have lists maintain sorted order, instead of sorting at the end
         for (List<Variant> vs : this.variants.values()) {
             if (vs.size() > 1) {
@@ -171,6 +172,12 @@ public class ExomiserGenotype implements Genotype
         } else {
             return null;
         }
+    }
+
+    @Override
+    public List<Variant> getTopVariants(String gene)
+    {
+        return this.variants.get(gene);
     }
 
     @Override

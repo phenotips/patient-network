@@ -56,10 +56,10 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     private Patient reference;
 
     /** The matched genotype to represent. */
-    private PatientGenotype matchGenotype;
+    private DefaultPatientGenotype matchGenotype;
 
     /** The reference genotype against which to compare. */
-    private PatientGenotype refGenotype;
+    private DefaultPatientGenotype refGenotype;
 
     /** The access type the user has to the match patient. */
     private AccessType access;
@@ -87,8 +87,8 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         this.access = access;
 
         // Store genotype information
-        this.matchGenotype = new PatientGenotype(this.match);
-        this.refGenotype = new PatientGenotype(this.reference);
+        this.matchGenotype = new DefaultPatientGenotype(this.match);
+        this.refGenotype = new DefaultPatientGenotype(this.reference);
 
         // Match candidate genes and any genotype available
         if (this.matchGenotype.hasGenotypeData() && this.refGenotype.hasGenotypeData()) {
@@ -134,6 +134,12 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     }
 
     @Override
+    public List<Variant> getTopVariants(String gene)
+    {
+        return this.matchGenotype.getTopVariants(gene);
+    }
+    
+    @Override
     public double getScore()
     {
         if (this.geneScores == null || this.geneScores.isEmpty()) {
@@ -165,7 +171,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
      * @param restricted if false, the variants are displayed regardless of the current accessType
      * @return JSON for the patient's variants, an empty array if there are no variants
      */
-    private JSONObject getPatientVariantsJSON(String gene, PatientGenotype genotype, boolean restricted)
+    private JSONObject getPatientVariantsJSON(String gene, DefaultPatientGenotype genotype, boolean restricted)
     {
         JSONObject patientJSON = new JSONObject();
 
@@ -249,4 +255,5 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         }
         return genesJSON;
     }
+
 }

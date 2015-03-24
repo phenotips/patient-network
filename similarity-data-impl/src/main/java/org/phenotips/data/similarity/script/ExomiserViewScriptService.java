@@ -22,7 +22,7 @@ package org.phenotips.data.similarity.script;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.Variant;
-import org.phenotips.data.similarity.internal.PatientGenotype;
+import org.phenotips.data.similarity.internal.DefaultPatientGenotype;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
@@ -64,7 +64,7 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return null;
         }
-        final Genotype patientGenotype = PatientGenotype.getPatientGenotype(patient);
+        final Genotype patientGenotype = DefaultPatientGenotype.getPatientGenotype(patient);
         List<String> genes = new ArrayList<>(patientGenotype.getGenes());
         Collections.sort(genes, new Comparator<String>()
         {
@@ -96,7 +96,7 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return false;
         }
-        return PatientGenotype.getPatientGenotype(patient) != null;
+        return DefaultPatientGenotype.getPatientGenotype(patient) != null;
     }
 
     /**
@@ -114,7 +114,7 @@ public class ExomiserViewScriptService implements ScriptService
             return result;
         }
         List<String> topGeneNames = this.getKTopGenes(patient, g);
-        Genotype patientGenotype = PatientGenotype.getPatientGenotype(patient);
+        Genotype patientGenotype = DefaultPatientGenotype.getPatientGenotype(patient);
 
         for (String geneName : topGeneNames) {
             JSONObject gene = new JSONObject();

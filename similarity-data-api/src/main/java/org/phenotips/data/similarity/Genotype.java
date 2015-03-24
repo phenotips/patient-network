@@ -21,6 +21,7 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
+import java.util.List;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
@@ -58,6 +59,14 @@ public interface Genotype
      */
     Variant getTopVariant(String gene, int k);
 
+    /**
+     * Get top Variants for a gene.
+     *
+     * @param gene the gene to get variants for.
+     * @return a (potentially-empty) list of top variants for the gene, by decreasing score
+     */
+    List<Variant> getTopVariants(String gene);
+    
     /**
      * Retrieve all variant information in a JSON format. For example:
      *

@@ -326,6 +326,82 @@ public class RestrictedGenotypeSimilarityViewTest
         Assert.assertTrue(results == null);
     }
 
+    /** Candidate genes affect score of existing variants in gene. */
+    @Test
+    public void testCandidateGeneVariantInGene()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        Collection<String> matchGenes = new ArrayList<String>();
+        matchGenes.add("SRCAP");
+        matchGenes.add("TTN");
+        setPatientCandidateGenes(mockMatch, matchGenes);
+
+        Collection<String> refGenes = new ArrayList<String>();
+        refGenes.add("Corf27");
+        refGenes.add("HEXA");
+        refGenes.add("SRCAP");
+        setPatientCandidateGenes(mockReference, refGenes);
+
+        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+
+        Set<String> genes = o.getGenes();
+        Assert.assertEquals(1, genes.size());
+        Assert.assertTrue(genes.contains("SRCAP"));
+
+        JSONArray results = o.toJSON();
+        Assert.assertEquals(1, results.size());
+
+        JSONObject top = results.getJSONObject(0);
+        JSONArray vars;
+        JSONObject v;
+        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
+        Assert.assertEquals(1, top.getDouble("score"), 0.001);
+
+        // Ensure reference only shows score
+        JSONObject refVars = top.getJSONObject("reference");
+        Assert.assertEquals(1, refVars.size());
+        vars = refVars.getJSONArray("variants");
+        Assert.assertEquals(1, vars.size());
+        v = vars.getJSONObject(0);
+        Assert.assertTrue(v.getDouble("score") > 0.9);
+        Assert.assertEquals(1, v.size());
+
+        // Ensure match only shows score
+        JSONObject matchVars = top.getJSONObject("match");
+        Assert.assertEquals(1, matchVars.size());
+        vars = matchVars.getJSONArray("variants");
+        Assert.assertEquals(1, vars.size());
+        v = vars.getJSONObject(0);
+        Assert.assertTrue(v.getDouble("score") > 0.9);
+        Assert.assertEquals(1, v.size());
+    }
+
+    /** Candidate genes work even if no existing variants in gene. */
+    @Test
+    public void testCandidateGeneNoVariantsInGene()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference = getBasicMockReference();
+
+        Collection<String> matchGenes = new ArrayList<String>();
+        matchGenes.add("SRCAP");
+        matchGenes.add("TTN");
+        setPatientCandidateGenes(mockMatch, matchGenes);
+
+        Collection<String> refGenes = new ArrayList<String>();
+        setPatientCandidateGenes(mockReference, refGenes);
+
+        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+
+        Set<String> genes = o.getGenes();
+        Assert.assertTrue(genes.isEmpty());
+
+        JSONArray results = o.toJSON();
+        Assert.assertTrue(results == null);
+    }
+    
     @Before
     @SuppressWarnings("unchecked")
     public void setupComponents() throws ComponentLookupException, CacheException

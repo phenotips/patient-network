@@ -1,0 +1,188 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.phenotips.data.similarity.internal;
+
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.GenotypeFactory;
+
+import org.xwiki.cache.Cache;
+import org.xwiki.cache.CacheException;
+import org.xwiki.cache.CacheManager;
+import org.xwiki.cache.config.CacheConfiguration;
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
+import org.xwiki.environment.Environment;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+
+/**
+ * This is an implementation of the GenotypeFactory, and allows creating ExomiserGenotype objects for the given Patient.
+ *
+ * @version $Id$
+ * @since 1.0M6
+ */
+@Component
+@Named("exomiser")
+@Singleton
+public class ExomiserGenotypeFactory implements GenotypeFactory, Initializable
+{
+    /** The name of the data subdirectory which stores the genotype data. */
+    private static final String GENOTYPE_SUBDIR = "exomiser";
+
+    /** Suffix of patient genotype files. */
+    private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
+
+    /** Cache for storing patient genotypes. */
+    protected Cache<Genotype> genotypeCache;
+
+    /** Directory containing genotype information for all patients (e.g. Exomiser files). */
+    protected File genotypeDirectory;
+
+    /** Logging helper object. */
+    @Inject
+    protected static Logger logger;
+
+    /** Environment handle, to access exome data on filesystem. */
+    @Inject
+    protected Environment environment;
+
+    /** Manager to create genotype caches. */
+    @Inject
+    protected CacheManager cacheManager;
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        genotypeDirectory = getGenotypeDirectory();
+
+        // Set up genotype cache
+        try {
+            genotypeCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+        } catch (CacheException e) {
+            logger.error("Unable to create patient genotype cache: " + e.toString());
+        }
+    }
+
+    @Override
+    public Genotype getGenotype(Patient patient)
+    {
+        String id = patient.getId();
+        if (id == null) {
+            // this must be a remote patient: such patients never have genotype
+            return null;
+        }
+        Genotype genotype = null;
+        if (genotypeCache != null) {
+            genotype = genotypeCache.get(id);
+        }
+
+        if (genotype == null && genotypeDirectory != null) {
+            // Attempt to load genotype from file
+            genotype = loadGenotypeById(id);
+            // Cache genotype
+            if (genotype != null && genotypeCache != null) {
+                genotypeCache.set(id, genotype);
+            }
+        }
+        return genotype;
+    }
+
+    /**
+     * Get the directory containing processed genotype (e.g. Exomiser) files for patients.
+     *
+     * @param componentManager
+     * @return the directory as a File object, or null if it could not be found.
+     */
+    private File getGenotypeDirectory()
+    {
+        if (environment != null) {
+            File rootDir = environment.getPermanentDirectory();
+            File dataDir = new File(rootDir, GENOTYPE_SUBDIR);
+            if (!dataDir.isDirectory() && dataDir.exists()) {
+                logger.error("Expected directory but found file: " + dataDir.getAbsolutePath());
+            } else {
+                return dataDir;
+            }
+        }
+        logger.warn("Could not find genotype directory");
+        return null;
+    }
+    
+    /**
+     * Load a patient's ExomiserGenotype, based on the patient's id.
+     *
+     * @param id the patient record identifier
+     * @return the ExomiserGenotype for the corresponding patient
+     */
+    private Genotype loadGenotypeById(String id)
+    {
+        File patientDirectory = new File(genotypeDirectory, id);
+        File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
+        if (patientDirectory.isDirectory() && exome.isFile()) {
+            try {
+                Reader exomeReader = new FileReader(exome);
+                Genotype genotype = new ExomiserGenotype(exomeReader);
+                logger.info("Loading genotype for " + id + " from: " + exome);
+                return genotype;
+            } catch (FileNotFoundException e) {
+                logger.info("No exome data exists for " + id + " at: " + exome);
+            } catch (IOException e) {
+                logger.error("Encountered error reading genotype: " + exome);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Clear all cached patient genotype data.
+     */
+    public void clearCache()
+    {
+        if (genotypeCache != null) {
+            genotypeCache.removeAll();
+            logger.info("Cleared cache.");
+        }
+    }
+
+    /**
+     * Clear all cached similarity data associated with a particular patient.
+     *
+     * @param id the document ID of the patient to remove from the cache
+     */
+    public void clearPatientCache(String id)
+    {
+        if (genotypeCache != null) {
+            genotypeCache.remove(id);
+            logger.info("Cleared patient from cache: " + id);
+        }
+    }
+}
