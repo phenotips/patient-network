@@ -172,7 +172,10 @@ public class DefaultPatientGenotype implements PatientGenotype
     {
         double score = 0.0;
         if (exome != null) {
-            score = exome.getGeneScore(gene);
+            Double exomeScore = exome.getGeneScore(gene);
+            if (exomeScore != null) {
+                score = exomeScore;
+            }
         }
         // Potentially boost score if candidate gene
         if (candidateGenes != null && candidateGenes.contains(gene)) {
