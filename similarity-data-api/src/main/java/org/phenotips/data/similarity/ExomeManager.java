@@ -24,19 +24,19 @@ import org.phenotips.data.Patient;
 import org.xwiki.stability.Unstable;
 
 /**
- * This class generates a Genotype object for a given patient.
+ * This class allows access to an {@link #Exome} object for a given patient.
  *
  * @version $Id$
  * @since 1.0M6
  */
 @Unstable
-public interface GenotypeFactory
+public interface ExomeManager
 {
     /**
-     * Get the (potentially-cached) Genotype for the patient with the given id.
+     * Get the (potentially-cached) {@link #Exome} for the patient with the given id.
      *
-     * @param p the patient to get the genotype for.
-     * @return the corresponding Genotype, or null if no genotype available
+     * @param p the patient for which the {@link #Exome} will be retrieved
+     * @return the corresponding {@link #Exome}, or null if no exome available
      */
-    Genotype getGenotype(Patient p);
+    Exome getExome(Patient p);
 }

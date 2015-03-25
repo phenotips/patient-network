@@ -26,8 +26,8 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.Genotype;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.Exome;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
 
 import org.xwiki.cache.Cache;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for the {@link ExomiserGenotype} implementation based on the latest Exomiser-3.0.2 output file format
+ * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format
  * 
  * @version $Id$
  */
@@ -166,7 +166,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("SRCAP");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertEquals(1, genes.size());
@@ -217,7 +217,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("HEXA");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertTrue(genes.isEmpty());
@@ -245,7 +245,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("  ");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertTrue(genes.isEmpty());
@@ -269,7 +269,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("  SRCAP  ");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertEquals(1, genes.size());
@@ -293,7 +293,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("HEXA");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertTrue(genes.isEmpty());
@@ -317,7 +317,7 @@ public class RestrictedGenotypeSimilarityViewTest
         Collection<String> refGenes = new ArrayList<String>();
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertTrue(genes.isEmpty());
@@ -344,7 +344,7 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("SRCAP");
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertEquals(1, genes.size());
@@ -393,7 +393,7 @@ public class RestrictedGenotypeSimilarityViewTest
         Collection<String> refGenes = new ArrayList<String>();
         setPatientCandidateGenes(mockReference, refGenes);
 
-        GenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertTrue(genes.isEmpty());
@@ -401,7 +401,7 @@ public class RestrictedGenotypeSimilarityViewTest
         JSONArray results = o.toJSON();
         Assert.assertTrue(results == null);
     }
-    
+
     @Before
     @SuppressWarnings("unchecked")
     public void setupComponents() throws ComponentLookupException, CacheException
@@ -418,7 +418,7 @@ public class RestrictedGenotypeSimilarityViewTest
         CacheFactory cacheFactory = mock(CacheFactory.class);
         when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
 
-        Cache<Genotype> cache = mock(Cache.class);
+        Cache<Exome> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Matchers.anyString());
     }

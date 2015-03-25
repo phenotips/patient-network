@@ -20,8 +20,8 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.Genotype;
-import org.phenotips.data.similarity.GenotypeFactory;
+import org.phenotips.data.similarity.Exome;
+import org.phenotips.data.similarity.ExomeManager;
 
 import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
@@ -45,7 +45,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * This is an implementation of the GenotypeFactory, and allows creating ExomiserGenotype objects for the given Patient.
+ * This is an implementation of the {@link #ExomeManager}, and allows accessing {@link #ExomiserExome} objects for the
+ * given {@link #Patient}.
  *
  * @version $Id$
  * @since 1.0M6
@@ -53,19 +54,19 @@ import org.slf4j.Logger;
 @Component
 @Named("exomiser")
 @Singleton
-public class ExomiserGenotypeFactory implements GenotypeFactory, Initializable
+public class ExomiserExomeManager implements ExomeManager, Initializable
 {
-    /** The name of the data subdirectory which stores the genotype data. */
+    /** The name of the data subdirectory which stores the exome data. */
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
-    /** Suffix of patient genotype files. */
+    /** Suffix of patient exome files. */
     private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
 
-    /** Cache for storing patient genotypes. */
-    protected Cache<Genotype> genotypeCache;
+    /** Cache for storing patient exomes. */
+    protected Cache<Exome> exomeCache;
 
-    /** Directory containing genotype information for all patients (e.g. Exomiser files). */
-    protected File genotypeDirectory;
+    /** Directory containing exome information for all patients (e.g. Exomiser files). */
+    protected File exomeDirectory;
 
     /** Logging helper object. */
     @Inject
@@ -75,54 +76,53 @@ public class ExomiserGenotypeFactory implements GenotypeFactory, Initializable
     @Inject
     protected Environment environment;
 
-    /** Manager to create genotype caches. */
+    /** Manager to create exome caches. */
     @Inject
     protected CacheManager cacheManager;
 
     @Override
     public void initialize() throws InitializationException
     {
-        genotypeDirectory = getGenotypeDirectory();
+        exomeDirectory = getExomeDirectory();
 
-        // Set up genotype cache
+        // Set up exome cache
         try {
-            genotypeCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+            exomeCache = cacheManager.createNewLocalCache(new CacheConfiguration());
         } catch (CacheException e) {
             logger.error("Unable to create patient genotype cache: " + e.toString());
         }
     }
 
     @Override
-    public Genotype getGenotype(Patient patient)
+    public Exome getExome(Patient patient)
     {
         String id = patient.getId();
         if (id == null) {
-            // this must be a remote patient: such patients never have genotype
+            // this must be a remote patient: such patients never have an exome
             return null;
         }
-        Genotype genotype = null;
-        if (genotypeCache != null) {
-            genotype = genotypeCache.get(id);
+        Exome exome = null;
+        if (exomeCache != null) {
+            exome = exomeCache.get(id);
         }
 
-        if (genotype == null && genotypeDirectory != null) {
-            // Attempt to load genotype from file
-            genotype = loadGenotypeById(id);
-            // Cache genotype
-            if (genotype != null && genotypeCache != null) {
-                genotypeCache.set(id, genotype);
+        if (exome == null && exomeDirectory != null) {
+            // Attempt to load exome from file
+            exome = loadExomeById(id);
+            // Cache exome
+            if (exome != null && exomeCache != null) {
+                exomeCache.set(id, exome);
             }
         }
-        return genotype;
+        return exome;
     }
 
     /**
-     * Get the directory containing processed genotype (e.g. Exomiser) files for patients.
+     * Get the directory containing processed exome (e.g. Exomiser) files for patients.
      *
-     * @param componentManager
      * @return the directory as a File object, or null if it could not be found.
      */
-    private File getGenotypeDirectory()
+    private File getExomeDirectory()
     {
         if (environment != null) {
             File rootDir = environment.getPermanentDirectory();
@@ -133,55 +133,55 @@ public class ExomiserGenotypeFactory implements GenotypeFactory, Initializable
                 return dataDir;
             }
         }
-        logger.warn("Could not find genotype directory");
+        logger.warn("Could not find exome directory");
         return null;
     }
-    
+
     /**
-     * Load a patient's ExomiserGenotype, based on the patient's id.
+     * Load a patient's {@link #ExomiserExome}, based on the patient's id.
      *
      * @param id the patient record identifier
-     * @return the ExomiserGenotype for the corresponding patient
+     * @return the {@link #ExomiserExome} for the corresponding patient
      */
-    private Genotype loadGenotypeById(String id)
+    private Exome loadExomeById(String id)
     {
-        File patientDirectory = new File(genotypeDirectory, id);
-        File exome = new File(patientDirectory, id + GENOTYPE_SUFFIX);
-        if (patientDirectory.isDirectory() && exome.isFile()) {
+        File patientDirectory = new File(exomeDirectory, id);
+        File exomeFile = new File(patientDirectory, id + GENOTYPE_SUFFIX);
+        if (patientDirectory.isDirectory() && exomeFile.isFile()) {
             try {
-                Reader exomeReader = new FileReader(exome);
-                Genotype genotype = new ExomiserGenotype(exomeReader);
-                logger.info("Loading genotype for " + id + " from: " + exome);
-                return genotype;
+                Reader exomeReader = new FileReader(exomeFile);
+                Exome exome = new ExomiserExome(exomeReader);
+                logger.info("Loading genotype for " + id + " from: " + exomeFile);
+                return exome;
             } catch (FileNotFoundException e) {
-                logger.info("No exome data exists for " + id + " at: " + exome);
+                logger.info("No exome data exists for " + id + " at: " + exomeFile);
             } catch (IOException e) {
-                logger.error("Encountered error reading genotype: " + exome);
+                logger.error("Encountered error reading genotype: " + exomeFile);
             }
         }
         return null;
     }
 
     /**
-     * Clear all cached patient genotype data.
+     * Clear all cached patient exome data.
      */
     public void clearCache()
     {
-        if (genotypeCache != null) {
-            genotypeCache.removeAll();
+        if (exomeCache != null) {
+            exomeCache.removeAll();
             logger.info("Cleared cache.");
         }
     }
 
     /**
-     * Clear all cached similarity data associated with a particular patient.
+     * Clear all cached exome data associated with a particular patient.
      *
      * @param id the document ID of the patient to remove from the cache
      */
     public void clearPatientCache(String id)
     {
-        if (genotypeCache != null) {
-            genotypeCache.remove(id);
+        if (exomeCache != null) {
+            exomeCache.remove(id);
             logger.info("Cleared patient from cache: " + id);
         }
     }

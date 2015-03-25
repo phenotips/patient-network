@@ -19,7 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.Variant;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link ExomiserGenotype} implementation based on the latest Exomiser-3.0.2 output file format
+ * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format
  *
  * @version $Id$
  */
@@ -44,9 +44,9 @@ public class ExomiserGenotypeTest
     @Test
     public void testParseExomiser()
     {
-        Genotype genotype = null;
+        Exome genotype = null;
         try {
-            genotype = new ExomiserGenotype(new StringReader(TEST_FILE));
+            genotype = new ExomiserExome(new StringReader(TEST_FILE));
         } catch (IOException e) {
             Assert.fail("Exomiser file parsing resulted in IOException");
         }

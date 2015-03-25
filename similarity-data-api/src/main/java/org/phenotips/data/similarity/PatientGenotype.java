@@ -31,7 +31,7 @@ import java.util.Set;
  * @since 1.0M6
  */
 @Unstable
-public interface PatientGenotype extends Genotype
+public interface PatientGenotype extends Exome
 {
     /**
      * Return whether the patient has any genotype data available (candidate genes or exome data).
@@ -52,5 +52,6 @@ public interface PatientGenotype extends Genotype
      *
      * @return a collection of gene names
      */
+    @Override
     Set<String> getGenes();
 }

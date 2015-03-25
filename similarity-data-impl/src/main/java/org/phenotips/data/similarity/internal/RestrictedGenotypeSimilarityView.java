@@ -21,7 +21,7 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.Variant;
 
 import java.util.ArrayList;
@@ -38,13 +38,13 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link GenotypeSimilarityView} that reveals the full patient information if the user has full
- * access to the patient, and only matching reference information if the patient is matchable.
+ * Implementation of {@link PatientGenotypeSimilarityView} that reveals the full patient information if the user has
+ * full access to the patient, and only matching reference information if the patient is matchable.
  *
  * @version $Id$
  * @since
  */
-public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
+public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilarityView
 {
     /** The number of genes to show in the JSON output. */
     private static final int MAX_GENES_SHOWN = 10;
@@ -138,7 +138,7 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
     {
         return this.matchGenotype.getTopVariants(gene);
     }
-    
+
     @Override
     public double getScore()
     {
@@ -147,6 +147,19 @@ public class RestrictedGenotypeSimilarityView implements GenotypeSimilarityView
         } else {
             return Collections.max(this.geneScores.values());
         }
+    }
+
+    @Override
+    public boolean hasGenotypeData()
+    {
+        return this.matchGenotype.hasGenotypeData();
+    }
+
+    @Override
+    public Collection<String> getCandidateGenes()
+    {
+        // Currently just returns the candidate genes in the match patient.
+        return this.matchGenotype.getCandidateGenes();
     }
 
     /**

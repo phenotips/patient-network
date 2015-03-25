@@ -19,7 +19,7 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.Variant;
 
 import java.io.BufferedReader;
@@ -37,12 +37,12 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * This class represents the genotype information from an Exomiser-annotated TSV file. Specifically, a collection of
+ * This class represents the exome information from an Exomiser-annotated TSV file. Specifically, a collection of
  * variants annotated with genes, phenotype scores, and harmfulness scores.
  *
  * @version $Id$
  */
-public class ExomiserGenotype implements Genotype
+public class ExomiserExome implements Exome
 {
     /** Info field key for the variant's gene. */
     private static final String GENE_KEY = "EXOMISER_GENE";
@@ -59,21 +59,21 @@ public class ExomiserGenotype implements Genotype
     private Map<String, List<Variant>> variants;
 
     /**
-     * Constructor for empty Genotype object.
+     * Constructor for empty {@link #Exome} object.
      */
-    ExomiserGenotype()
+    ExomiserExome()
     {
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();
     }
 
     /**
-     * Create a Genotype object from an Exomiser output file.
+     * Create a {@link #Exome} object from an Exomiser output file.
      *
      * @param exomiserOutput an exomiser-annotated VCF file
      * @throws IOException if the file does not follow the Exomiser format
      */
-    ExomiserGenotype(Reader exomiserOutput) throws IOException
+    ExomiserExome(Reader exomiserOutput) throws IOException
     {
         this.variants = new HashMap<String, List<Variant>>();
         this.geneScores = new HashMap<String, Double>();

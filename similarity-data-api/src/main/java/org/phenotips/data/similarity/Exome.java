@@ -27,13 +27,13 @@ import java.util.Set;
 import net.sf.json.JSONArray;
 
 /**
- * A basic representation of a genotype of a patient, with scored Variant objects in scored genes.
+ * A basic representation of a genotype of a patient, with scored {@link #Variant} objects in scored genes.
  *
  * @version $Id$
  * @since 1.0M8
  */
 @Unstable
-public interface Genotype
+public interface Exome
 {
     /**
      * Get the names of all genes with variants in the patient.
@@ -51,19 +51,19 @@ public interface Genotype
     Double getGeneScore(String gene);
 
     /**
-     * Get the kth highest scoring variant in the given gene.
+     * Get the kth highest scoring {@link #Variant} in the given gene.
      *
-     * @param gene the gene to return variants for
-     * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc)
-     * @return get the kth highest scoring variant (or null)
+     * @param gene the gene for which a {@link #Variant} will be returned
+     * @param k the ranked position of the {@link #Variant} to get (0 is the 1st, 1 is the 2nd, ..., etc)
+     * @return get the kth highest scoring {@link #Variant} (or null)
      */
     Variant getTopVariant(String gene, int k);
 
     /**
-     * Get top Variants for a gene.
+     * Get top {@link #Variant}s for a gene.
      *
-     * @param gene the gene to get variants for.
-     * @return a (potentially-empty) list of top variants for the gene, by decreasing score
+     * @param gene the gene to get {@link #Variant}s for.
+     * @return a (potentially-empty) list of top {@link #Variant}s for the gene, by decreasing score
      */
     List<Variant> getTopVariants(String gene);
     

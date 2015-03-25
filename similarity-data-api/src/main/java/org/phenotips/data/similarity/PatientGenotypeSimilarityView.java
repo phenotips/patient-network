@@ -30,7 +30,7 @@ import net.sf.json.JSONArray;
  * @since
  */
 @Unstable
-public interface GenotypeSimilarityView extends Genotype
+public interface PatientGenotypeSimilarityView extends PatientGenotype
 {
     /**
      * How similar is this genotype to the reference.

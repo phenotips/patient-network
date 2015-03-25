@@ -26,7 +26,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -75,7 +75,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private Set<DisorderSimilarityView> matchedDisorders;
 
     /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
-    private GenotypeSimilarityView matchedGenes;
+    private PatientGenotypeSimilarityView matchedGenes;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -370,7 +370,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      *
      * @return the genotype similarity view for this pair of patients
      */
-    private GenotypeSimilarityView getGenotypeSimilarity()
+    private PatientGenotypeSimilarityView getGenotypeSimilarity()
     {
         if (this.matchedGenes == null) {
             this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);

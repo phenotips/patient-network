@@ -19,11 +19,16 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
-import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Exome;
+import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.Variant;
+
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,28 +55,45 @@ public class DefaultPatientGenotype implements PatientGenotype
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
 
+    /** Factory for loading exome data. */
+    protected static ExomeManager exomeManager;
+
     /** The candidate genes for the patient. */
     private Collection<String> candidateGenes;
 
     /** The exome data for the patient. */
-    private Genotype genotype;
+    private Exome exome;
 
     /**
-     * Constructor for a PatientGenotype object, representing the candidate genes and exome sequence data for the given
-     * Patient.
+     * Constructor for a {@link #PatientGenotype} object, representing the candidate genes and exome sequence data for
+     * the given Patient.
      *
      * @param patient the patient object
      */
     public DefaultPatientGenotype(Patient patient)
     {
-        this.genotype = genotype;
-        this.candidateGenes = getPatientCandidateGeneNames(patient);
+        // Initialize static exome manager
+        if (exomeManager == null) {
+            ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
+            if (componentManager != null) {
+                try {
+                    exomeManager = componentManager.getInstance(ExomeManager.class);
+                } catch (ComponentLookupException e) {
+                    logger.error("Unable to look up ExomeManager: " + e.toString());
+                }
+            }
+        }
+
+        if (exomeManager != null) {
+            exome = exomeManager.getExome(patient);
+        }
+        candidateGenes = getPatientCandidateGeneNames(patient);
     }
 
     /**
      * Return a collection of the names of candidate genes listed for the given patient.
      *
-     * @param p the patient
+     * @param p the {@link #Patient}
      * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
      */
     private static Collection<String> getPatientCandidateGeneNames(Patient p)
@@ -103,7 +125,7 @@ public class DefaultPatientGenotype implements PatientGenotype
     @Override
     public boolean hasGenotypeData()
     {
-        return (candidateGenes != null && !candidateGenes.isEmpty()) || genotype != null;
+        return (candidateGenes != null && !candidateGenes.isEmpty()) || exome != null;
     }
 
     @Override
@@ -120,8 +142,8 @@ public class DefaultPatientGenotype implements PatientGenotype
     public Set<String> getGenes()
     {
         Set<String> genes = new HashSet<String>();
-        if (genotype != null) {
-            genes.addAll(genotype.getGenes());
+        if (exome != null) {
+            genes.addAll(exome.getGenes());
         }
         if (candidateGenes != null) {
             genes.addAll(candidateGenes);
@@ -132,17 +154,17 @@ public class DefaultPatientGenotype implements PatientGenotype
     @Override
     public Variant getTopVariant(String gene, int k)
     {
-        return genotype == null ? null : genotype.getTopVariant(gene, k);
+        return exome == null ? null : exome.getTopVariant(gene, k);
     }
 
     @Override
     public List<Variant> getTopVariants(String gene)
     {
         List<Variant> variants;
-        if (genotype == null) {
+        if (exome == null) {
             variants = new ArrayList<Variant>();
         } else {
-            variants = genotype.getTopVariants(gene);
+            variants = exome.getTopVariants(gene);
         }
         return variants;
     }
@@ -151,8 +173,8 @@ public class DefaultPatientGenotype implements PatientGenotype
     public Double getGeneScore(String gene)
     {
         double score = 0.0;
-        if (genotype != null) {
-            score = genotype.getGeneScore(gene);
+        if (exome != null) {
+            score = exome.getGeneScore(gene);
         }
         // Potentially boost score if candidate gene
         if (candidateGenes != null && candidateGenes.contains(gene)) {
@@ -171,8 +193,8 @@ public class DefaultPatientGenotype implements PatientGenotype
     public JSONArray toJSON()
     {
         // TODO: add candidate genes
-        if (this.genotype != null) {
-            return this.genotype.toJSON();
+        if (this.exome != null) {
+            return this.exome.toJSON();
         } else {
             return new JSONArray();
         }
