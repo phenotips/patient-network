@@ -60,7 +60,7 @@ public class ExomiserViewScriptService implements ScriptService
      * Gets the top K genes by score from a patient.
      *
      * @param patient A valid patient
-     * @param k The wanted number of genes
+     * @param k The number of genes to report
      * @return A sorted list of k gene names with descending scores
      */
     public List<String> getKTopGenes(Patient patient, int k)
@@ -107,8 +107,8 @@ public class ExomiserViewScriptService implements ScriptService
      * Outputs the k top genes from a patient as a JSON array.
      *
      * @param patient A valid patient
-     * @param g The wanted number of genes
-     * @param v The number of variants per gene
+     * @param g The number of genes to report
+     * @param v The maximum number of variants to report per gene
      * @return An array of "g" JSON objects representing the top genes for the patient
      */
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)

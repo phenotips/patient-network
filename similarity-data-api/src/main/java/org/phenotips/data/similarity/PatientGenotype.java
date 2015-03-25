@@ -43,14 +43,14 @@ public interface PatientGenotype extends Exome
     /**
      * Return a collection of the names of candidate genes listed for the patient.
      *
-     * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
+     * @return a (potentially-empty) collection of the names of candidate genes
      */
     Collection<String> getCandidateGenes();
 
     /**
      * Get the genes likely mutated in the patient, both from candidate genes and exome data.
      *
-     * @return a collection of gene names
+     * @return a (potentiall-empty) collection of gene names
      */
     @Override
     Set<String> getGenes();

@@ -27,7 +27,7 @@ import java.util.Set;
 import net.sf.json.JSONArray;
 
 /**
- * A basic representation of a genotype of a patient, with scored {@link #Variant} objects in scored genes.
+ * A basic representation of a exome of a patient, with scored {@link #Variant} objects in scored genes.
  *
  * @version $Id$
  * @since 1.0M8
@@ -38,7 +38,7 @@ public interface Exome
     /**
      * Get the names of all genes with variants in the patient.
      *
-     * @return an unmodifiable set of gene names with variants in the patient
+     * @return a set of gene names with variants in the patient
      */
     Set<String> getGenes();
 
@@ -46,7 +46,7 @@ public interface Exome
      * Return the score for a gene.
      *
      * @param gene the gene in question
-     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene)
+     * @return the score of the gene, between 0 and 1, where 1 is better (or null if no variants for gene)
      */
     Double getGeneScore(String gene);
 
