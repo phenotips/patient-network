@@ -19,9 +19,10 @@
  */
 package org.phenotips.data.similarity.script;
 
+import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory;
-import org.phenotips.data.similarity.internal.DefaultPatientGenotype;
+import org.phenotips.data.similarity.internal.ExomiserExomeManager;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
@@ -49,6 +50,9 @@ public class PatientMatchingScriptService implements ScriptService
     private PatientSimilarityViewFactory patientViewFactory;
 
     @Inject
+    private ExomeManager exomeManager;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -57,7 +61,7 @@ public class PatientMatchingScriptService implements ScriptService
     public void clearCache()
     {
         ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearCache();
-        DefaultPatientGenotype.clearCache();
+        ((ExomiserExomeManager) exomeManager).clearCache();
         logger.info("Cleared caches.");
     }
 
@@ -70,7 +74,7 @@ public class PatientMatchingScriptService implements ScriptService
     {
         if (id != null) {
             ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(id);
-            DefaultPatientGenotype.clearPatientCache(id);
+            ((ExomiserExomeManager) exomeManager).clearPatientCache(id);
             logger.info("Cleared cache for patient: " + id);
         }
     }

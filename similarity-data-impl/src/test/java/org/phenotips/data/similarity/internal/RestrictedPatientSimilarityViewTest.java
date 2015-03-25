@@ -29,6 +29,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
@@ -70,7 +71,6 @@ import org.mockito.Mockito;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,6 +93,9 @@ public class RestrictedPatientSimilarityViewTest
     private static AccessType limited;
 
     private static AccessType priv;
+
+    /** The mocked genotype manager component, initialized before each test. */
+    private static PatientGenotypeManager genotypeManager;
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -383,6 +386,9 @@ public class RestrictedPatientSimilarityViewTest
             new IndexedPatientData<Map<String, String>>("genes", fakeGenes);
 
         doReturn(fakeGeneData).when(mockPatient).getData("genes");
+        
+        DefaultPatientGenotype genotype = new DefaultPatientGenotype(mockPatient);
+        when(genotypeManager.getGenotype(mockPatient)).thenReturn(genotype);
     }
 
     /** Matching candidate genes boosts score. */
@@ -537,6 +543,10 @@ public class RestrictedPatientSimilarityViewTest
         Connection c = mock(Connection.class);
         when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(c);
         when(c.getId()).thenReturn(Long.valueOf(42));
+        
+        // Wire up mocked genetics
+        genotypeManager = mock(PatientGenotypeManager.class);
+        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
 
         // Setup the ontology manager
         OntologyManager ontologyManager = mock(OntologyManager.class);

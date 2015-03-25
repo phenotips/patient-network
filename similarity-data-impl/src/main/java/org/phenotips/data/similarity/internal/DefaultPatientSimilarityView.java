@@ -22,7 +22,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
@@ -35,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -317,30 +315,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         }
     }
 
-    /**
-     * Return a collection of the names of candidate genes listed for the patient.
-     *
-     * @param p the patient
-     * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
-     */
-    private Collection<String> getCandidateGeneNames(Patient p)
-    {
-        PatientData<Map<String, String>> genesData = p.getData("genes");
-        if (genesData != null) {
-            Set<String> geneNames = new HashSet<String>();
-            Iterator<Map<String, String>> iterator = genesData.iterator();
-            while (iterator.hasNext()) {
-                Map<String, String> geneInfo = iterator.next();
-                String geneName = geneInfo.get("gene");
-                if (geneName != null) {
-                    geneNames.add(geneName);
-                }
-            }
-            return Collections.unmodifiableSet(geneNames);
-        }
-        return Collections.emptySet();
-    }
-
     @Override
     public double getScore()
     {
@@ -348,12 +322,11 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         if (this.score == null) {
             double phenotypeScore = this.getPhenotypeScore();
 
-            // Factor in candidate genes
-            Collection<String> matchGenes = getCandidateGeneNames(match);
-            Collection<String> refGenes = getCandidateGeneNames(reference);
-            Set<String> sharedGenes = new HashSet<String>();
-            sharedGenes.addAll(matchGenes);
-            sharedGenes.retainAll(refGenes);
+            // Factor in overlap between candidate genes
+            PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
+            Collection<String> sharedGenes = new HashSet<String>();
+            sharedGenes = genotypeSimilarity.getCandidateGenes();
+
             double geneBoost = 0.0;
             if (!sharedGenes.isEmpty()) {
                 geneBoost = 0.7;

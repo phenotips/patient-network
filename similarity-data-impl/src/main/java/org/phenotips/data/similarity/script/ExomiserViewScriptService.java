@@ -21,8 +21,8 @@ package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.Exome;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.Variant;
-import org.phenotips.data.similarity.internal.DefaultPatientGenotype;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -51,6 +52,9 @@ import net.sf.json.JSONObject;
 @Singleton
 public class ExomiserViewScriptService implements ScriptService
 {
+    /** Manager to allow access to patient genotype data. */
+    @Inject
+    PatientGenotypeManager patientGenotypeManager;
 
     /**
      * Gets the top K genes by score from a patient.
@@ -64,7 +68,7 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return null;
         }
-        final Exome patientGenotype = DefaultPatientGenotype.getPatientGenotype(patient);
+        final Exome patientGenotype = patientGenotypeManager.getGenotype(patient);
         List<String> genes = new ArrayList<>(patientGenotype.getGenes());
         Collections.sort(genes, new Comparator<String>()
         {
@@ -86,7 +90,7 @@ public class ExomiserViewScriptService implements ScriptService
     }
 
     /**
-     * Checks if a patient has a valid exomiser genotype.
+     * Checks if a patient has a valid Exomiser genotype.
      *
      * @param patient A valid patient
      * @return boolean value
@@ -96,7 +100,7 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return false;
         }
-        return DefaultPatientGenotype.getPatientGenotype(patient) != null;
+        return patientGenotypeManager.getGenotype(patient) != null;
     }
 
     /**
@@ -114,7 +118,7 @@ public class ExomiserViewScriptService implements ScriptService
             return result;
         }
         List<String> topGeneNames = this.getKTopGenes(patient, g);
-        Exome patientGenotype = DefaultPatientGenotype.getPatientGenotype(patient);
+        Exome patientGenotype = patientGenotypeManager.getGenotype(patient);
 
         for (String geneName : topGeneNames) {
             JSONObject gene = new JSONObject();

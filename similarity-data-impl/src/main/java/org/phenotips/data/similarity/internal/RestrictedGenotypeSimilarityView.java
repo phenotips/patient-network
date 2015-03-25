@@ -19,10 +19,16 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientGenotype;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.Variant;
+
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -49,6 +58,12 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
     /** The number of genes to show in the JSON output. */
     private static final int MAX_GENES_SHOWN = 10;
 
+    /** Logging helper object. */
+    private static Logger logger = LoggerFactory.getLogger(RestrictedGenotypeSimilarityView.class);
+
+    /** Manager to allow access to underlying genotype data. */
+    private static PatientGenotypeManager genotypeManager;
+
     /** The matched patient to represent. */
     private Patient match;
 
@@ -56,10 +71,10 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
     private Patient reference;
 
     /** The matched genotype to represent. */
-    private DefaultPatientGenotype matchGenotype;
+    private PatientGenotype matchGenotype;
 
     /** The reference genotype against which to compare. */
-    private DefaultPatientGenotype refGenotype;
+    private PatientGenotype refGenotype;
 
     /** The access type the user has to the match patient. */
     private AccessType access;
@@ -86,14 +101,37 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
         this.reference = reference;
         this.access = access;
 
-        // Store genotype information
-        this.matchGenotype = new DefaultPatientGenotype(this.match);
-        this.refGenotype = new DefaultPatientGenotype(this.reference);
+        if (genotypeManager == null) {
+            genotypeManager = getGenotypeManager();
+        }
 
+        if (genotypeManager != null) {
+            // Store genotype information
+            this.matchGenotype = genotypeManager.getGenotype(this.match);
+            this.refGenotype = genotypeManager.getGenotype(this.reference);
+        }
+        
         // Match candidate genes and any genotype available
-        if (this.matchGenotype.hasGenotypeData() && this.refGenotype.hasGenotypeData()) {
+        if (this.matchGenotype != null && this.refGenotype != null && this.matchGenotype.hasGenotypeData()
+            && this.refGenotype.hasGenotypeData()) {
             matchGenes();
         }
+    }
+
+    /**
+     * Lookup component genotype manager.
+     * 
+     * @return {@link #PatientGenotypeManager} component
+     */
+    private PatientGenotypeManager getGenotypeManager()
+    {
+        ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
+        try {
+            return componentManager.getInstance(PatientGenotypeManager.class);
+        } catch (ComponentLookupException e) {
+            logger.error("Unable to look up PatientGenotypeManager: " + e.toString());
+        }
+        return null;
     }
 
     /**
@@ -115,28 +153,37 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
     @Override
     public Set<String> getGenes()
     {
-        // Get union of genes mutated/candidate in both patients
-        Set<String> sharedGenes = new HashSet<String>(this.refGenotype.getGenes());
-        sharedGenes.retainAll(this.matchGenotype.getGenes());
-        return Collections.unmodifiableSet(sharedGenes);
+        if (this.matchGenotype == null || this.refGenotype == null) {
+            return Collections.emptySet();
+        } else {
+            // Get intersection of genes mutated/candidate in both patients
+            Set<String> sharedGenes = new HashSet<String>(this.refGenotype.getGenes());
+            sharedGenes.retainAll(this.matchGenotype.getGenes());
+            return Collections.unmodifiableSet(sharedGenes);
+        }
     }
 
     @Override
     public Double getGeneScore(String gene)
     {
-        return this.matchGenotype.getGeneScore(gene);
+        return this.matchGenotype == null ? null : this.matchGenotype.getGeneScore(gene);
     }
 
     @Override
     public Variant getTopVariant(String gene, int k)
     {
-        return this.matchGenotype.getTopVariant(gene, k);
+        return this.matchGenotype == null ? null : this.matchGenotype.getTopVariant(gene, k);
     }
 
     @Override
     public List<Variant> getTopVariants(String gene)
     {
-        return this.matchGenotype.getTopVariants(gene);
+        if (this.matchGenotype == null) {
+            List<Variant> topVariants = Collections.emptyList();
+            return topVariants;
+        } else {
+            return this.matchGenotype.getTopVariants(gene);
+        }
     }
 
     @Override
@@ -152,14 +199,26 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
     @Override
     public boolean hasGenotypeData()
     {
-        return this.matchGenotype.hasGenotypeData();
+        return this.refGenotype != null && this.matchGenotype != null && this.refGenotype.hasGenotypeData()
+            && this.matchGenotype.hasGenotypeData();
     }
 
+    /**
+     * Return the candidate genes shared by both patients in the view.
+     * 
+     * @see org.phenotips.data.similarity.PatientGenotype#getCandidateGenes()
+     */
     @Override
     public Collection<String> getCandidateGenes()
     {
-        // Currently just returns the candidate genes in the match patient.
-        return this.matchGenotype.getCandidateGenes();
+        Set<String> sharedGenes = new HashSet<String>();
+        if (this.matchGenotype != null && this.refGenotype != null) {
+            Collection<String> matchGenes = this.matchGenotype.getCandidateGenes();
+            Collection<String> refGenes = this.refGenotype.getCandidateGenes();
+            sharedGenes.addAll(matchGenes);
+            sharedGenes.retainAll(refGenes);
+        }
+        return Collections.unmodifiableCollection(sharedGenes);
     }
 
     /**
@@ -184,7 +243,7 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
      * @param restricted if false, the variants are displayed regardless of the current accessType
      * @return JSON for the patient's variants, an empty array if there are no variants
      */
-    private JSONObject getPatientVariantsJSON(String gene, DefaultPatientGenotype genotype, boolean restricted)
+    private JSONObject getPatientVariantsJSON(String gene, PatientGenotype genotype, boolean restricted)
     {
         JSONObject patientJSON = new JSONObject();
 
@@ -225,8 +284,12 @@ public class RestrictedGenotypeSimilarityView implements PatientGenotypeSimilari
     private JSONObject getGeneVariantsJSON(String gene)
     {
         JSONObject variantsJSON = new JSONObject();
-        variantsJSON.element("reference", getPatientVariantsJSON(gene, this.refGenotype, false));
-        variantsJSON.element("match", getPatientVariantsJSON(gene, this.matchGenotype, true));
+        if (this.refGenotype != null) {
+            variantsJSON.element("reference", getPatientVariantsJSON(gene, this.refGenotype, false));
+        }
+        if (this.matchGenotype != null) {
+            variantsJSON.element("match", getPatientVariantsJSON(gene, this.matchGenotype, true));
+        }
         return variantsJSON;
     }
 

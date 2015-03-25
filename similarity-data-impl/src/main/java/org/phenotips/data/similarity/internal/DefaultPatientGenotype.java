@@ -75,12 +75,10 @@ public class DefaultPatientGenotype implements PatientGenotype
         // Initialize static exome manager
         if (exomeManager == null) {
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
-            if (componentManager != null) {
-                try {
-                    exomeManager = componentManager.getInstance(ExomeManager.class);
-                } catch (ComponentLookupException e) {
-                    logger.error("Unable to look up ExomeManager: " + e.toString());
-                }
+            try {
+                exomeManager = componentManager.getInstance(ExomeManager.class);
+            } catch (ComponentLookupException e) {
+                logger.error("Unable to look up ExomeManager: " + e.toString());
             }
         }
 
