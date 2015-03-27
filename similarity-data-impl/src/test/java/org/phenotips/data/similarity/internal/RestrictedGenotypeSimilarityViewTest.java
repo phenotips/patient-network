@@ -74,33 +74,40 @@ import static org.mockito.Mockito.when;
  */
 public class RestrictedGenotypeSimilarityViewTest
 {
-    /** The matched patient document. */
+    /** The reference patient document. */
     private static final DocumentReference PATIENT_1 = new DocumentReference("xwiki", "data", "P0000001");
+
+    /** The matched patient document. */
+    private static final DocumentReference PATIENT_2 = new DocumentReference("xwiki", "data", "P0000002");
 
     /** The default user used as the referrer of the matched patient, and of the reference patient for public access. */
     private static final DocumentReference USER_1 = new DocumentReference("xwiki", "XWiki", "padams");
 
     /** Sample exome data for match patient. */
     private static final String EXOME_1 =
-        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n" +
-        "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n" +
-        "chr6\t32628660\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-1A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.9\t0.612518\t1.0\t0.9057237\n";
+        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n"
+            +
+            "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n"
+            +
+            "chr6\t32628660\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-1A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.9\t0.612518\t1.0\t0.9057237\n"
+            +
+            "chr6\t32628661\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-2A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.5\t0.612518\t1.0\t0.9057237\n";
 
     /** Sample exome data for reference patient. */
     private static final String EXOME_2 =
-        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n" +
-        "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n" +
-        "chr1\t120611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\n" + 
-        "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
-    
+        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n"
+            +
+            "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n"
+            +
+            "chr1\t120611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\n"
+            +
+            "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
+
     private static AccessType open;
 
     private static AccessType limited;
 
     private static AccessType priv;
-
-    /** The mocked genotype manager component, initialized once for all tests. */
-    private static PatientGenotypeManager genotypeManager;
 
     /** The mocked exome manager component, initialized once for all tests. */
     private static ExomeManager exomeManager;
@@ -110,6 +117,13 @@ public class RestrictedGenotypeSimilarityViewTest
 
     /** The mocked reference, initialized before each test. */
     private Patient mockReference;
+
+    private enum VariantDetailLevel
+    {
+        FULL,
+        LIMITED,
+        NONE
+    };
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -140,8 +154,8 @@ public class RestrictedGenotypeSimilarityViewTest
     private Patient getBasicMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
-        when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
+        when(mockPatient.getDocument()).thenReturn(PATIENT_2);
+        when(mockPatient.getId()).thenReturn(PATIENT_2.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
         return mockPatient;
     }
@@ -150,18 +164,22 @@ public class RestrictedGenotypeSimilarityViewTest
     private Patient getBasicMockReference()
     {
         Patient mockPatient = mock(Patient.class);
+        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(null);
         return mockPatient;
     }
 
     /**
-     * Set candidate genes for mock patient.
+     * Set candidate genes and exome data for mock patient.
      * 
      * @param mockPatient
      * @param geneNames
+     * @param exomeData
      */
-    private void setPatientCandidateGenes(Patient mockPatient, Collection<String> geneNames)
+    private void setupPatientGenetics(Patient mockPatient, Collection<String> geneNames, String exomeData)
     {
+        // Mock candidate genes
         List<Map<String, String>> fakeGenes = new ArrayList<Map<String, String>>();
 
         if (geneNames != null) {
@@ -176,39 +194,70 @@ public class RestrictedGenotypeSimilarityViewTest
             new IndexedPatientData<Map<String, String>>("genes", fakeGenes);
 
         doReturn(fakeGeneData).when(mockPatient).getData("genes");
-    }
-    
-    private void setMatchPatientExome() {
-        Exome exome = null;
-        try {
-            exome = new ExomiserExome(new StringReader(EXOME_1));
-        } catch (IOException e) {
-            Assert.fail("Exomiser file parsing resulted in IOException");
+
+        // Mock exome data
+        if (exomeData != null) {
+            Exome exome = null;
+            try {
+                exome = new ExomiserExome(new StringReader(exomeData));
+            } catch (IOException e) {
+                Assert.fail("Exomiser file parsing resulted in IOException");
+            }
+
+            when(exomeManager.getExome(mockPatient)).thenReturn(exome);
         }
-        
-        when(exomeManager.getExome(mockMatch)).thenReturn(exome);
     }
 
-    private void setReferencePatientExome() {
-        Exome exome = null;
-        try {
-            exome = new ExomiserExome(new StringReader(EXOME_2));
-        } catch (IOException e) {
-            Assert.fail("Exomiser file parsing resulted in IOException");
-        }
-        
-        when(exomeManager.getExome(mockReference)).thenReturn(exome);
-    }
-
-    private void linkGenetics()
+    private void setupPatientGenetics(Patient mockPatient, Collection<String> geneNames)
     {
-        DefaultPatientGenotype genotype;
+        setupPatientGenetics(mockPatient, geneNames, null);
+    }
 
-        genotype = new DefaultPatientGenotype(mockReference);
-        when(genotypeManager.getGenotype(mockReference)).thenReturn(genotype);
+    private void assertNoMatch(PatientGenotypeSimilarityView view)
+    {
+        Assert.assertTrue(view.getCandidateGenes().isEmpty());
+        Assert.assertTrue(view.getGenes().isEmpty());
+        Assert.assertEquals(0, view.getScore(), 0.0001);
+    }
 
-        genotype = new DefaultPatientGenotype(mockMatch);
-        when(genotypeManager.getGenotype(mockMatch)).thenReturn(genotype);
+    private void assertNoGenetics(PatientGenotypeSimilarityView view)
+    {
+        assertNoMatch(view);
+        Assert.assertTrue(view.toJSON() == null);
+    }
+
+    private void assertVariantDetailLevel(VariantDetailLevel detailLevel, JSONObject result, int nVariants)
+    {
+        if (detailLevel.equals(VariantDetailLevel.NONE)) {
+            Assert.assertTrue(result.isEmpty());
+        } else {
+            Assert.assertEquals(1, result.size());
+            JSONArray variants = result.getJSONArray("variants");
+            // Ensure expected number of variants
+            Assert.assertEquals(nVariants, variants.size());
+
+            for (int i = 0; i < nVariants; i++) {
+                JSONObject v = variants.getJSONObject(i);
+                Assert.assertNotNull(v);
+
+                if (detailLevel.equals(VariantDetailLevel.FULL)) {
+                    // Ensure full variant details displayed
+                    Assert.assertTrue(v.size() > 4);
+
+                    Assert.assertTrue(v.getDouble("score") > 0);
+                    Assert.assertFalse(v.getString("chrom").isEmpty());
+                    Assert.assertTrue(v.getInt("position") > 0);
+                    Assert.assertFalse(v.getString("ref").isEmpty());
+                    Assert.assertFalse(v.getString("alt").isEmpty());
+                    Assert.assertFalse(v.getString("type").isEmpty());
+                } else if (detailLevel.equals(VariantDetailLevel.LIMITED)) {
+                    // Ensure limited variant details displayed
+                    Assert.assertEquals(2, v.size());
+                    Assert.assertTrue(v.getDouble("score") > 0);
+                    Assert.assertFalse(v.getString("type").isEmpty());
+                }
+            }
+        }
     }
 
     /** Candidate genes intersected properly. */
@@ -218,15 +267,14 @@ public class RestrictedGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         refGenes.add("SRCAP");
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, refGenes);
 
-        linkGenetics();
         PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         Set<String> genes = o.getGenes();
@@ -237,28 +285,13 @@ public class RestrictedGenotypeSimilarityViewTest
         Assert.assertEquals(1, results.size());
 
         JSONObject top = results.getJSONObject(0);
-        JSONArray vars;
-        JSONObject v;
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
-        Assert.assertTrue(top.getDouble("score") > 0.9);
+        Assert.assertTrue(top.getDouble("score") > 0.7);
 
-        // Ensure reference only shows score
-        JSONObject refVars = top.getJSONObject("reference");
-        Assert.assertEquals(1, refVars.size());
-        vars = refVars.getJSONArray("variants");
-        Assert.assertEquals(1, vars.size());
-        v = vars.getJSONObject(0);
-        Assert.assertTrue(v.getDouble("score") > 0.9);
-        Assert.assertEquals(1, v.size());
+        assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
 
         // Ensure match only shows score
-        JSONObject matchVars = top.getJSONObject("match");
-        Assert.assertEquals(1, matchVars.size());
-        vars = matchVars.getJSONArray("variants");
-        Assert.assertEquals(1, vars.size());
-        v = vars.getJSONObject(0);
-        Assert.assertTrue(v.getDouble("score") > 0.9);
-        Assert.assertEquals(1, v.size());
+        assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("match"), 0);
     }
 
     /** Candidate genes intersected properly. */
@@ -268,199 +301,209 @@ public class RestrictedGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, refGenes);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
-        Set<String> genes = o.getGenes();
-        Assert.assertTrue(genes.isEmpty());
-
-        JSONArray results = o.toJSON();
-        Assert.assertTrue(results.isEmpty());
+        assertNoMatch(view);
     }
 
     /** Candidate genes intersected properly. */
     @Test
-    public void testCandidateGeneIgnoreBlanks()
+    public void testCandidateGeneNoMatchOnBlanks()
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("   ");
         matchGenes.add("");
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("");
         refGenes.add("HEXA");
         refGenes.add("  ");
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, refGenes);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
-        Set<String> genes = o.getGenes();
-        Assert.assertTrue(genes.isEmpty());
-
-        JSONArray results = o.toJSON();
-        Assert.assertTrue(results.isEmpty());
+        assertNoMatch(view);
     }
 
     /** Candidate genes intersected properly. */
     @Test
-    public void testCandidateGeneIgnoreWhitespace()
+    public void testCandidateGeneMatchIgnoreWhitespace()
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("  SRCAP  ");
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, refGenes);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
-        Set<String> genes = o.getGenes();
+        Set<String> genes = view.getGenes();
         Assert.assertEquals(1, genes.size());
 
-        JSONArray results = o.toJSON();
+        JSONArray results = view.toJSON();
         Assert.assertTrue(!results.isEmpty());
     }
 
     /** Candidate genes work if match is missing genotype data. */
     @Test
-    public void testCandidateGeneEmptyMatch()
+    public void testCandidateGeneWithoutMatchGenetics()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, null);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, refGenes);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
-        Set<String> genes = o.getGenes();
-        Assert.assertTrue(genes.isEmpty());
-
-        JSONArray results = o.toJSON();
-        Assert.assertTrue(results == null);
+        assertNoGenetics(view);
     }
 
     /** Candidate genes work if ref is missing genotype data. */
     @Test
-    public void testCandidateGeneEmptyRef()
+    public void testCandidateGeneWithoutRefGenetics()
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setPatientCandidateGenes(mockMatch, matchGenes);
+        setupPatientGenetics(mockMatch, matchGenes);
 
-        Collection<String> refGenes = new ArrayList<String>();
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockReference, null);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
-        Set<String> genes = o.getGenes();
-        Assert.assertTrue(genes.isEmpty());
-
-        JSONArray results = o.toJSON();
-        Assert.assertTrue(results == null);
+        assertNoGenetics(view);
     }
 
     /** Candidate genes affect score of existing variants in gene. */
     @Test
-    public void testCandidateGeneVariantInGene()
+    public void testVariantInCandidateGene()
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setPatientCandidateGenes(mockMatch, matchGenes);
-        
         // Include exome with variant in SRCAP in match patient
-        setMatchPatientExome();
-        
+        setupPatientGenetics(mockMatch, matchGenes, EXOME_1);
+
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         refGenes.add("SRCAP");
-        setPatientCandidateGenes(mockReference, refGenes);
+        // No exome for reference patient
+        setupPatientGenetics(mockReference, refGenes, null);
 
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         // SRCAP (candidate + exome vs. candidate) should match
-        Set<String> genes = o.getGenes();
+        Set<String> genes = view.getGenes();
         Assert.assertEquals(1, genes.size());
         Assert.assertTrue(genes.contains("SRCAP"));
 
-        JSONArray results = o.toJSON();
+        JSONArray results = view.toJSON();
         Assert.assertEquals(1, results.size());
 
         JSONObject top = results.getJSONObject(0);
-        JSONArray vars;
-        JSONObject v;
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
-        Assert.assertTrue(top.getDouble("score") > 0.9);
+        double score = top.getDouble("score");
+        Assert.assertTrue(String.format("Unexpected score: %.4f", score), score > 0.9);
 
-        // Ensure reference only shows score
-        JSONObject refVars = top.getJSONObject("reference");
-        Assert.assertEquals(1, refVars.size());
-        vars = refVars.getJSONArray("variants");
-        Assert.assertEquals(1, vars.size());
-        v = vars.getJSONObject(0);
-        Assert.assertTrue(v.getDouble("score") > 0.9);
-        Assert.assertEquals(1, v.size());
+        // Ensure match shows underlying exome variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("match"), 1);
 
-        // Ensure match shows underlying variant details
-        JSONObject matchVars = top.getJSONObject("match");
-        Assert.assertEquals(1, matchVars.size());
-        vars = matchVars.getJSONArray("variants");
-        Assert.assertEquals(1, vars.size());
-        v = vars.getJSONObject(0);
-        Assert.assertTrue(v.getDouble("score") > 0.9);
-        // Full variant details
-        Assert.assertTrue(v.size() > 4);
-        Assert.assertFalse(v.getString("chrom").isEmpty());
+        // Ensure reference only shows score (candidate gene)
+        assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
     }
 
     /** Candidate genes work even if no existing variants in gene. */
     @Test
-    public void testCandidateGeneNoVariantsInGene()
+    public void testNoVariantsInCandidateGene()
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("NOTCH2");
-        setPatientCandidateGenes(mockMatch, matchGenes);
-
         // Include exome with variant in SRCAP in match patient
-        setMatchPatientExome();
-        
-        Collection<String> refGenes = new ArrayList<String>();
-        setPatientCandidateGenes(mockReference, refGenes);
+        setupPatientGenetics(mockMatch, matchGenes, EXOME_1);
 
         // Include exome with variant in NOTCH2, SRCAP in reference patient
-        setReferencePatientExome();
-        
-        linkGenetics();
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        setupPatientGenetics(mockReference, null, EXOME_2);
+
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
 
         // Both NOTCH2 (candidate vs. exome) and SRCAP (exome vs. exome) should match.
-        Set<String> genes = o.getGenes();
+        Set<String> genes = view.getGenes();
         Assert.assertEquals(2, genes.size());
         Assert.assertTrue(genes.contains("NOTCH2"));
         Assert.assertTrue(genes.contains("SRCAP"));
 
-        JSONArray results = o.toJSON();
+        JSONArray results = view.toJSON();
         Assert.assertEquals(2, results.size());
+
+        JSONObject top = results.getJSONObject(0);
+        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
+        Assert.assertTrue(top.getDouble("score") > 0.9);
+
+        // Ensure match shows underlying variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("match"), 1);
+
+        // Ensure reference shows underlying exome variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 1);
+
+        // NOTCH2 match
+        top = results.getJSONObject(1);
+        Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
+        Assert.assertTrue(top.getDouble("score") > 0.7);
+
+        // Ensure match shows candidate gene level
+        assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("match"), 0);
+
+        // Ensure reference shows underlying exome variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 2);
+    }
+
+    /** Only score shown for variant when matchable. */
+    @Test
+    public void testMultipleVariantsMatchVisibility()
+    {
+        // Include exome with variants in HLA-DQB1 in match patient
+        setupPatientGenetics(mockMatch, null, EXOME_1);
+
+        Collection<String> refGenes = new ArrayList<String>();
+        refGenes.add("HLA-DQB1");
+        setupPatientGenetics(mockReference, refGenes);
+
+        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, limited);
+
+        // HLA-DQB1 (candidate vs. exome) should match.
+        Set<String> genes = view.getGenes();
+        Assert.assertEquals(1, genes.size());
+        Assert.assertTrue(genes.contains("HLA-DQB1"));
+
+        Collection<String> candidateGenes = view.getCandidateGenes();
+        Assert.assertTrue(candidateGenes.isEmpty());
+
+        JSONArray results = view.toJSON();
+        Assert.assertEquals(1, results.size());
+
+        JSONObject top = results.getJSONObject(0);
+        Assert.assertTrue(top.getString("gene").equals("HLA-DQB1"));
+        Assert.assertTrue(top.getDouble("score") > 0.5);
+
+        // Ensure match has limited view for variants
+        assertVariantDetailLevel(VariantDetailLevel.LIMITED, top.getJSONObject("match"), 2);
+
+        // Ensure reference shows candidate gene score
+        assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
     }
 
     // Only do once, because components are stored statically within various classes,
@@ -486,11 +529,12 @@ public class RestrictedGenotypeSimilarityViewTest
         doReturn(null).when(cache).get(Matchers.anyString());
 
         // Wire up mocked genetics
-        genotypeManager = mock(PatientGenotypeManager.class);
-        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
-        
         exomeManager = mock(ExomeManager.class);
         when(componentManager.getInstance(ExomeManager.class)).thenReturn(exomeManager);
+
+        // Use a real GenotypeManager
+        PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
+        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
     }
 
     @Before

@@ -63,7 +63,6 @@ import java.util.Set;
 import javax.inject.Provider;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -71,6 +70,7 @@ import org.mockito.Mockito;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,9 +93,6 @@ public class RestrictedPatientSimilarityViewTest
     private static AccessType limited;
 
     private static AccessType priv;
-
-    /** The mocked genotype manager component, initialized before each test. */
-    private static PatientGenotypeManager genotypeManager;
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -386,9 +383,6 @@ public class RestrictedPatientSimilarityViewTest
             new IndexedPatientData<Map<String, String>>("genes", fakeGenes);
 
         doReturn(fakeGeneData).when(mockPatient).getData("genes");
-        
-        DefaultPatientGenotype genotype = new DefaultPatientGenotype(mockPatient);
-        when(genotypeManager.getGenotype(mockPatient)).thenReturn(genotype);
     }
 
     /** Matching candidate genes boosts score. */
@@ -400,6 +394,7 @@ public class RestrictedPatientSimilarityViewTest
 
         PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         double scoreBefore = view1.getScore();
+        Assert.assertTrue(scoreBefore > 0);
 
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("Another gene");
@@ -409,7 +404,9 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
 
         double scoreAfter = view2.getScore();
-        Assert.assertTrue(scoreAfter > scoreBefore + 0.01);
+        Assert.assertTrue(scoreAfter > 0);
+        Assert.assertTrue(String.format("after (%.4f) <= before (%.4f)", scoreAfter, scoreBefore),
+            scoreAfter > scoreBefore);
     }
 
     /** Non-matching candidate genes doesn't affect score. */
@@ -515,9 +512,9 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertFalse(result.has("disorders"));
     }
 
-    @Before
+    @BeforeClass
     @SuppressWarnings("unchecked")
-    public void setupComponents() throws ComponentLookupException, CacheException
+    public static void setupComponents() throws ComponentLookupException, CacheException
     {
         ComponentManagerRegistry registry = new ComponentManagerRegistry();
         ComponentManager componentManager = mock(ComponentManager.class);
@@ -543,9 +540,9 @@ public class RestrictedPatientSimilarityViewTest
         Connection c = mock(Connection.class);
         when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(c);
         when(c.getId()).thenReturn(Long.valueOf(42));
-        
+
         // Wire up mocked genetics
-        genotypeManager = mock(PatientGenotypeManager.class);
+        PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
         when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
 
         // Setup the ontology manager

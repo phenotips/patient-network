@@ -30,7 +30,7 @@ import net.sf.json.JSONArray;
  * A basic representation of a exome of a patient, with scored {@link #Variant} objects in scored genes.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since
  */
 @Unstable
 public interface Exome
@@ -51,22 +51,20 @@ public interface Exome
     Double getGeneScore(String gene);
 
     /**
-     * Get the kth highest scoring {@link #Variant} in the given gene.
-     *
-     * @param gene the gene for which a {@link #Variant} will be returned
-     * @param k the ranked position of the {@link #Variant} to get (0 is the 1st, 1 is the 2nd, ..., etc)
-     * @return get the kth highest scoring {@link #Variant} (or null)
-     */
-    Variant getTopVariant(String gene, int k);
-
-    /**
-     * Get top {@link #Variant}s for a gene.
+     * Get {@link #Variant}s for a gene.
      *
      * @param gene the gene to get {@link #Variant}s for.
      * @return a (potentially-empty) list of top {@link #Variant}s for the gene, by decreasing score
      */
     List<Variant> getTopVariants(String gene);
-    
+
+    /**
+     * Get an {@link #Iterable} over gene names, in descending order of score.
+     *
+     * @return an {@link #Iterable} over gene names
+     */
+    Iterable<String> iterTopGenes();
+
     /**
      * Retrieve all variant information in a JSON format. For example:
      *

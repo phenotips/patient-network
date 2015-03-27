@@ -28,6 +28,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,20 +165,35 @@ public class ExomiserExome implements Exome
     }
 
     @Override
-    public Variant getTopVariant(String gene, int k)
+    public List<Variant> getTopVariants(String gene)
     {
-        List<Variant> vs = this.variants.get(gene);
-        if (vs != null && k < vs.size()) {
-            return vs.get(k);
-        } else {
-            return null;
+        List<Variant> variants = this.variants.get(gene);
+        if (variants == null) {
+            variants = Collections.emptyList();
         }
+        return variants;
     }
 
     @Override
-    public List<Variant> getTopVariants(String gene)
+    public Iterable<String> iterTopGenes()
     {
-        return this.variants.get(gene);
+        // Gene genes, in order of decreasing score
+        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(this.geneScores.entrySet());
+        Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
+        {
+            @Override
+            public int compare(Map.Entry<String, Double> e1, Map.Entry<String, Double> e2)
+            {
+                return Double.compare(e2.getValue(), e1.getValue());
+            }
+        });
+
+        List<String> geneNames = new ArrayList<String>(genes.size());
+        for (Map.Entry<String, Double> entry : genes) {
+            geneNames.add(entry.getKey());
+        }
+
+        return geneNames;
     }
 
     @Override

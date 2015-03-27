@@ -68,7 +68,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         throws IllegalArgumentException
     {
         if (match == null || reference == null) {
-            throw new IllegalArgumentException("Similar patients require both a match and a reference");
+            throw new IllegalArgumentException("Both a match and a reference patient required");
         }
         this.match = match;
         this.reference = reference;

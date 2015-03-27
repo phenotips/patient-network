@@ -17,40 +17,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.phenotips.data.similarity;
+package org.phenotips.data.similarity.internal;
 
-import org.xwiki.stability.Unstable;
-
-import java.util.Set;
+import org.phenotips.data.similarity.Variant;
 
 /**
- * This class represents the combined genetics (candidate genes and exome sequence data) for a Patient.
+ * A restricted-view implementation of a Variant.
  *
  * @version $Id$
- * @since 1.0M6
  */
-@Unstable
-public interface PatientGenotype extends Exome
+public class RestrictedVariant extends AbstractVariant
 {
     /**
-     * Return whether the patient has any genotype data available (candidate genes or exome data).
-     *
-     * @return true iff the patient has any candidate genes or exome data
+     * Create an empty {@link #Variant}.
+     * 
+     * @param variant the {@link #Variant} to restrict
      */
-    boolean hasGenotypeData();
-
-    /**
-     * Return a set of the names of candidate genes listed for the patient.
-     *
-     * @return a (potentially-empty) set of the names of candidate genes
-     */
-    Set<String> getCandidateGenes();
-
-    /**
-     * Get the genes likely mutated in the patient, both from candidate genes and exome data.
-     *
-     * @return a (potentially-empty) set of gene names
-     */
-    @Override
-    Set<String> getGenes();
+    RestrictedVariant(Variant variant)
+    {
+        // Only store the effect and score
+        if (variant != null) {
+            setEffect(variant.getEffect());
+            setScore(variant.getScore());
+        }
+    }
 }

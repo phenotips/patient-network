@@ -31,8 +31,9 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -59,10 +60,10 @@ public class DefaultPatientGenotype implements PatientGenotype
     protected static ExomeManager exomeManager;
 
     /** The candidate genes for the patient. */
-    private Collection<String> candidateGenes;
+    protected Set<String> candidateGenes;
 
     /** The exome data for the patient. */
-    private Exome exome;
+    protected Exome exome;
 
     /**
      * Constructor for a {@link #PatientGenotype} object, representing the candidate genes and exome sequence data for
@@ -83,18 +84,18 @@ public class DefaultPatientGenotype implements PatientGenotype
         }
 
         if (exomeManager != null) {
-            exome = exomeManager.getExome(patient);
+            this.exome = exomeManager.getExome(patient);
         }
-        candidateGenes = getPatientCandidateGeneNames(patient);
+        this.candidateGenes = getPatientCandidateGeneNames(patient);
     }
 
     /**
-     * Return a collection of the names of candidate genes listed for the given patient.
+     * Return a set of the names of candidate genes listed for the given patient.
      *
      * @param p the {@link #Patient}
-     * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
+     * @return a (potentially-empty) unmodifiable set of the names of candidate genes
      */
-    private static Collection<String> getPatientCandidateGeneNames(Patient p)
+    private static Set<String> getPatientCandidateGeneNames(Patient p)
     {
         PatientData<Map<String, String>> genesData = null;
         if (p != null) {
@@ -123,16 +124,16 @@ public class DefaultPatientGenotype implements PatientGenotype
     @Override
     public boolean hasGenotypeData()
     {
-        return (candidateGenes != null && !candidateGenes.isEmpty()) || exome != null;
+        return (this.candidateGenes != null && !this.candidateGenes.isEmpty()) || this.exome != null;
     }
 
     @Override
-    public Collection<String> getCandidateGenes()
+    public Set<String> getCandidateGenes()
     {
-        if (candidateGenes == null) {
+        if (this.candidateGenes == null) {
             return Collections.emptySet();
         } else {
-            return Collections.unmodifiableCollection(candidateGenes);
+            return Collections.unmodifiableSet(this.candidateGenes);
         }
     }
 
@@ -140,56 +141,78 @@ public class DefaultPatientGenotype implements PatientGenotype
     public Set<String> getGenes()
     {
         Set<String> genes = new HashSet<String>();
-        if (exome != null) {
-            genes.addAll(exome.getGenes());
+        if (this.exome != null) {
+            genes.addAll(this.exome.getGenes());
         }
-        if (candidateGenes != null) {
-            genes.addAll(candidateGenes);
+        if (this.candidateGenes != null) {
+            genes.addAll(this.candidateGenes);
         }
-        return Collections.unmodifiableSet(genes);
-    }
-
-    @Override
-    public Variant getTopVariant(String gene, int k)
-    {
-        return exome == null ? null : exome.getTopVariant(gene, k);
+        return genes;
     }
 
     @Override
     public List<Variant> getTopVariants(String gene)
     {
         List<Variant> variants;
-        if (exome == null) {
+        if (this.exome == null) {
             variants = new ArrayList<Variant>();
         } else {
-            variants = exome.getTopVariants(gene);
+            variants = this.exome.getTopVariants(gene);
         }
         return variants;
     }
 
     @Override
+    public Iterable<String> iterTopGenes()
+    {
+        // Get score for every gene
+        Map<String, Double> geneScores = new HashMap<String, Double>();
+        for (String gene : this.getGenes()) {
+            geneScores.put(gene, this.getGeneScore(gene));
+        }
+
+        // Gene genes, in order of decreasing score
+        List<Map.Entry<String, Double>> sortedGenes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
+        Collections.sort(sortedGenes, new Comparator<Map.Entry<String, Double>>()
+        {
+            @Override
+            public int compare(Map.Entry<String, Double> e1, Map.Entry<String, Double> e2)
+            {
+                return Double.compare(e2.getValue(), e1.getValue());
+            }
+        });
+
+        // Get gene names from sorted list of map entries
+        List<String> geneNames = new ArrayList<String>(sortedGenes.size());
+        for (Map.Entry<String, Double> entry : sortedGenes) {
+            geneNames.add(entry.getKey());
+        }
+
+        return geneNames;
+    }
+
+    @Override
     public Double getGeneScore(String gene)
     {
-        double score = 0.0;
-        if (exome != null) {
-            Double exomeScore = exome.getGeneScore(gene);
-            if (exomeScore != null) {
-                score = exomeScore;
-            }
+        // If gene is a candidate gene, reduce distance of score to 1.0
+        // by 1 / (# of candidate genes).
+        // If variant is not found in exome, score is 0.9 ** (# candidate genes - 1)
+        Double score = null;
+        if (this.exome != null) {
+            score = this.exome.getGeneScore(gene);
         }
-        // Potentially boost score if candidate gene
-        if (candidateGenes != null && candidateGenes.contains(gene)) {
-            // Score of 1.0 for 1 candidate gene, 0.95 for each of 2, exponentially decreasing
-            score = Math.max(score, Math.pow(0.95, candidateGenes.size() - 1));
+        // Boost score if candidate gene
+        if (this.candidateGenes != null && this.candidateGenes.contains(gene)) {
+            if (score == null) {
+                score = Math.pow(0.9, this.candidateGenes.size() - 1);
+            } else {
+                double candidateGeneBoost = (1.0 - score) / this.candidateGenes.size();
+                score += candidateGeneBoost;
+            }
         }
         return score;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.phenotips.data.similarity.Genotype#toJSON()
-     */
     @Override
     public JSONArray toJSON()
     {

@@ -21,16 +21,13 @@ package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.Exome;
-import org.phenotips.data.similarity.PatientGenotypeManager;
+import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.Variant;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -52,55 +49,23 @@ import net.sf.json.JSONObject;
 @Singleton
 public class ExomiserViewScriptService implements ScriptService
 {
-    /** Manager to allow access to patient genotype data. */
+    /** Manager to allow access to patient exome data. */
     @Inject
-    PatientGenotypeManager patientGenotypeManager;
-
-    /**
-     * Gets the top K genes by score from a patient.
-     *
-     * @param patient A valid patient
-     * @param k The number of genes to report
-     * @return A sorted list of k gene names with descending scores
-     */
-    public List<String> getKTopGenes(Patient patient, int k)
-    {
-        if (patient == null) {
-            return null;
-        }
-        final Exome patientGenotype = patientGenotypeManager.getGenotype(patient);
-        List<String> genes = new ArrayList<>(patientGenotype.getGenes());
-        Collections.sort(genes, new Comparator<String>()
-        {
-            @Override
-            public int compare(String g1, String g2)
-            {
-                // Sort by score, descending, nulls last
-                return org.apache.commons.lang3.ObjectUtils.compare(patientGenotype.getGeneScore(g2),
-                    patientGenotype.getGeneScore(g1), true);
-            };
-        });
-        List<String> result = new ArrayList<String>();
-        for (int i = 0; i < k; i++) {
-            if (genes.get(i) != null) {
-                result.add(genes.get(i));
-            }
-        }
-        return result;
-    }
+    @Named("exomiser")
+    ExomeManager exomeManager;
 
     /**
      * Checks if a patient has a valid Exomiser genotype.
      *
-     * @param patient A valid patient
-     * @return boolean value
+     * @param patient A valid {@link #Patient}
+     * @return boolean true iff the patient has a valid Exomiser genotype
      */
     public boolean hasGenotype(Patient patient)
     {
         if (patient == null) {
             return false;
         }
-        return patientGenotypeManager.getGenotype(patient) != null;
+        return exomeManager.getExome(patient) != null;
     }
 
     /**
@@ -117,23 +82,30 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return result;
         }
-        List<String> topGeneNames = this.getKTopGenes(patient, g);
-        Exome patientGenotype = patientGenotypeManager.getGenotype(patient);
 
-        for (String geneName : topGeneNames) {
-            JSONObject gene = new JSONObject();
-            gene.element("name", geneName);
-            gene.element("score", patientGenotype.getGeneScore(geneName));
+        Exome patientExome = exomeManager.getExome(patient);
+        int i = 0;
+        for (String geneName : patientExome.iterTopGenes()) {
+            // Include at most g genes
+            if (i >= g) {
+                break;
+            }
 
-            JSONArray variants = new JSONArray();
-            for (int i = 0; i < v; i++) {
-                Variant variant = patientGenotype.getTopVariant(geneName, i);
+            JSONObject geneJSON = new JSONObject();
+            geneJSON.element("name", geneName);
+            geneJSON.element("score", patientExome.getGeneScore(geneName));
+
+            JSONArray variantsJSON = new JSONArray();
+            List<Variant> topVariants = patientExome.getTopVariants(geneName);
+            for (int j = 0; j < Math.min(v, topVariants.size()); j++) {
+                Variant variant = topVariants.get(j);
                 if (variant != null) {
-                    variants.add(variant.toJSON());
+                    variantsJSON.add(variant.toJSON());
                 }
             }
-            gene.element("variants", variants);
-            result.add(gene);
+            geneJSON.element("variants", variantsJSON);
+            result.add(geneJSON);
+            i++;
         }
         return result;
     }

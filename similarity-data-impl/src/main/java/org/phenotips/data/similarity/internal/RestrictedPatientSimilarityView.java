@@ -58,6 +58,9 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
         throws IllegalArgumentException
     {
         super(match, reference, access);
+        if (access == null) {
+            throw new IllegalArgumentException("AccessType cannot be null for restricted view");
+        }
     }
 
     /**

@@ -80,9 +80,9 @@ public interface Variant extends Comparable<Variant>
     /**
      * Get the harmfulness score of the variant.
      *
-     * @return the harmfulness score of the variant, default 0.0
+     * @return the harmfulness score of the variant, or null if not available
      */
-    double getScore();
+    Double getScore();
 
     /**
      * Get the variant effect (e.g. "SPLICING", "FS_INSERTION"). If the variant falls into multiple classes, the most
