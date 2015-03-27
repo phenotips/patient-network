@@ -288,12 +288,20 @@ public class RestrictedPatientSimilarityViewTest
         phenotypes.add(mid);
         phenotypes.add(cat);
 
+        when(mockPatient.getData("genes")).thenReturn(null);
+
+        return mockPatient;
+    }
+
+    /** Get simple reference patient. */
+    private Patient getMockReferenceWithDisease()
+    {
+        Patient mockPatient = getBasicMockReference();
+
         Set<Disorder> diseases = new HashSet<Disorder>();
         diseases.add(new MockDisorder("MIM:123", "Some disease"));
         diseases.add(new MockDisorder("MIM:345", "Some new disease"));
         Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
-
-        when(mockPatient.getData("genes")).thenReturn(null);
 
         return mockPatient;
     }
@@ -342,7 +350,7 @@ public class RestrictedPatientSimilarityViewTest
     public void testGetDiseasesWithPublicAccess()
     {
         Patient mockMatch = getBasicMockMatch();
-        Patient mockReference = getBasicMockReference();
+        Patient mockReference = getMockReferenceWithDisease();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
@@ -354,11 +362,30 @@ public class RestrictedPatientSimilarityViewTest
     public void testGetDiseasesWithMatchAccess()
     {
         Patient mockMatch = getBasicMockMatch();
-        Patient mockReference = getBasicMockReference();
+        Patient mockReference = getMockReferenceWithDisease();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
         Assert.assertTrue(matchedDiseases.isEmpty());
+    }
+
+    /** Matching diseases should boost match score. */
+    @Test
+    public void testDiseaseMatchBoost()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference1 = getBasicMockReference();
+        Patient mockReference2 = getMockReferenceWithDisease();
+
+        PatientSimilarityView o1 = new RestrictedPatientSimilarityView(mockMatch, mockReference1, limited);
+        double score1 = o1.getScore();
+        Assert.assertTrue(score1 > 0);
+
+        PatientSimilarityView o2 = new RestrictedPatientSimilarityView(mockMatch, mockReference2, limited);
+        double score2 = o2.getScore();
+        Assert.assertTrue(score2 > 0);
+
+        Assert.assertTrue(score2 > score1 + 0.1);
     }
 
     /**

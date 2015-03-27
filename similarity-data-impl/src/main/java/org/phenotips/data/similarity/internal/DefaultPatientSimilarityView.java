@@ -187,9 +187,9 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Get pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      *
-     * @return an unmodifiable collection of matched disorders.
+     * @return an unmodifiable set of matched disorders.
      */
-    protected Collection<DisorderSimilarityView> getMatchedDisorders()
+    protected Set<DisorderSimilarityView> getMatchedDisorders()
     {
         if (this.matchedDisorders == null) {
             Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
@@ -315,12 +315,40 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         }
     }
 
+    /**
+     * Adjust the similarity score by taking into account common disorders. Matching disorders will boost the base score
+     * given by the phenotypic similarity, while unmatched disorders don't affect the score at all.
+     *
+     * @param baseScore the score given by features alone, a number between {@code 0} and {@code 1}
+     * @return the adjusted similarity score, boosted closer to {@code 1} if there are common disorders between this
+     *         patient and the reference patient, or the unmodified base score otherwise; the score is never lowered,
+     *         and never goes above {@code 1}
+     * @see #getScore()
+     */
+    private double adjustScoreWithDisordersScore(double baseScore)
+    {
+        Set<DisorderSimilarityView> disorders = getMatchedDisorders();
+        if (disorders.isEmpty()) {
+            return baseScore;
+        }
+        double score = baseScore;
+        double bias = 3;
+        for (DisorderSimilarityView disorder : disorders) {
+            if (disorder.isMatchingPair()) {
+                // For each disorder match, reduce the distance between the current score to 1 by 1/3
+                score = score + (1 - score) / bias;
+            }
+        }
+        return score;
+    }
+
     @Override
     public double getScore()
     {
         // Memoize the score
         if (this.score == null) {
-            double phenotypeScore = this.getPhenotypeScore();
+            double phenotypeScore = getPhenotypeScore();
+            phenotypeScore = adjustScoreWithDisordersScore(phenotypeScore);
 
             // Factor in overlap between candidate genes
             PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
