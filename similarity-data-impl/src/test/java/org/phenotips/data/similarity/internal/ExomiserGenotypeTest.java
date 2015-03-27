@@ -113,17 +113,18 @@ public class ExomiserGenotypeTest
 
     /** Genes should iterate in decreasing order of score. */
     @Test
-    public void testTopGeneIteration()
+    public void testGetTopGenes()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
-
         List<String> geneNames = new ArrayList<String>();
-        for (String gene : exome.iterTopGenes()) {
+        for (String gene : exome.getTopGenes(0)) {
             geneNames.add(gene);
         }
         Assert.assertEquals(3, geneNames.size());
         Assert.assertEquals("SRCAP", geneNames.get(0));
         Assert.assertEquals("NOTCH2", geneNames.get(1));
         Assert.assertEquals("HLA-DQB1", geneNames.get(2));
+
+        Assert.assertEquals(3, exome.getTopGenes(5).size());
     }
 }

@@ -28,10 +28,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
@@ -43,7 +41,7 @@ import net.sf.json.JSONObject;
  *
  * @version $Id$
  */
-public class ExomiserExome implements Exome
+public class ExomiserExome extends AbstractExome implements Exome
 {
     /** Info field key for the variant's gene. */
     private static final String GENE_KEY = "EXOMISER_GENE";
@@ -51,13 +49,8 @@ public class ExomiserExome implements Exome
     /** Info field key for gene score. */
     private static final String GENE_SCORE_KEY = "EXOMISER_GENE_COMBINED_SCORE";
 
+    /** Delimiter for fields in Exomiser output. */
     private static final String FIELD_DELIMITER = "\t";
-
-    /** The overall score for each gene with a variant. */
-    private Map<String, Double> geneScores;
-
-    /** The variants in each gene. */
-    private Map<String, List<Variant>> variants;
 
     /**
      * Constructor for empty {@link #Exome} object.
@@ -172,28 +165,6 @@ public class ExomiserExome implements Exome
             vs = Collections.emptyList();
         }
         return vs;
-    }
-
-    @Override
-    public Iterable<String> iterTopGenes()
-    {
-        // Gene genes, in order of decreasing score
-        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(this.geneScores.entrySet());
-        Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
-        {
-            @Override
-            public int compare(Map.Entry<String, Double> e1, Map.Entry<String, Double> e2)
-            {
-                return Double.compare(e2.getValue(), e1.getValue());
-            }
-        });
-
-        List<String> geneNames = new ArrayList<String>(genes.size());
-        for (Map.Entry<String, Double> entry : genes) {
-            geneNames.add(entry.getKey());
-        }
-
-        return geneNames;
     }
 
     @Override

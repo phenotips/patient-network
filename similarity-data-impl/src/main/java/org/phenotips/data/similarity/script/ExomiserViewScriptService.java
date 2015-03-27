@@ -79,18 +79,12 @@ public class ExomiserViewScriptService implements ScriptService
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {
         JSONArray result = new JSONArray();
-        if (patient == null) {
+        if (patient == null || g < 0) {
             return result;
         }
 
         Exome patientExome = exomeManager.getExome(patient);
-        int i = 0;
-        for (String geneName : patientExome.iterTopGenes()) {
-            // Include at most g genes
-            if (i >= g) {
-                break;
-            }
-
+        for (String geneName : patientExome.getTopGenes(g)) {
             JSONObject geneJSON = new JSONObject();
             geneJSON.element("name", geneName);
             geneJSON.element("score", patientExome.getGeneScore(geneName));
@@ -105,7 +99,6 @@ public class ExomiserViewScriptService implements ScriptService
             }
             geneJSON.element("variants", variantsJSON);
             result.add(geneJSON);
-            i++;
         }
         return result;
     }

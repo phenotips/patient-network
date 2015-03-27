@@ -59,11 +59,12 @@ public interface Exome
     List<Variant> getTopVariants(String gene);
 
     /**
-     * Get an {@link #Iterable} over gene names, in descending order of score.
+     * Get the n highest genes, in descending order of score. If there are fewer than n genes, all will be returned.
      *
-     * @return an {@link #Iterable} over gene names
+     * @param n the number of genes to return (specify 0 for all)
+     * @return a (potentially-empty) list of gene names
      */
-    Iterable<String> iterTopGenes();
+    List<String> getTopGenes(int n);
 
     /**
      * Retrieve all variant information in a JSON format. For example:

@@ -56,9 +56,6 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultGenotypeSimilarityView.class);
 
-    /** The similarity score for all genes. */
-    protected Map<String, Double> geneScores;
-
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
@@ -138,28 +135,6 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
         } else {
             return Collections.max(this.geneScores.values());
         }
-    }
-
-    @Override
-    public Iterable<String> iterTopGenes()
-    {
-        // Gene genes, in order of decreasing score
-        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(this.geneScores.entrySet());
-        Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
-        {
-            @Override
-            public int compare(Map.Entry<String, Double> e1, Map.Entry<String, Double> e2)
-            {
-                return Double.compare(e2.getValue(), e1.getValue());
-            }
-        });
-
-        List<String> geneNames = new ArrayList<String>(genes.size());
-        for (int i = 0; i < genes.size(); i++) {
-            geneNames.add(genes.get(i).getKey());
-        }
-
-        return geneNames;
     }
 
     /**

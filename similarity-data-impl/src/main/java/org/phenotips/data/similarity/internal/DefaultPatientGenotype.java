@@ -32,7 +32,6 @@ import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,15 +42,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.json.JSONArray;
-
 /**
  * This class represents the collective genotype information in a patient, both from candidate genes and from exome
  * data.
  *
  * @version $Id$
  */
-public class DefaultPatientGenotype implements PatientGenotype
+public class DefaultPatientGenotype extends AbstractExome implements PatientGenotype
 {
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
@@ -87,6 +84,14 @@ public class DefaultPatientGenotype implements PatientGenotype
             this.exome = exomeManager.getExome(patient);
         }
         this.candidateGenes = getPatientCandidateGeneNames(patient);
+
+        // Score all genes
+        if (this.geneScores == null) {
+            this.geneScores = new HashMap<String, Double>();
+            for (String gene : this.getGenes()) {
+                this.geneScores.put(gene, this.getGeneScore(gene));
+            }
+        }
     }
 
     /**
@@ -163,35 +168,6 @@ public class DefaultPatientGenotype implements PatientGenotype
     }
 
     @Override
-    public Iterable<String> iterTopGenes()
-    {
-        // Get score for every gene
-        Map<String, Double> geneScores = new HashMap<String, Double>();
-        for (String gene : this.getGenes()) {
-            geneScores.put(gene, this.getGeneScore(gene));
-        }
-
-        // Gene genes, in order of decreasing score
-        List<Map.Entry<String, Double>> sortedGenes = new ArrayList<Map.Entry<String, Double>>(geneScores.entrySet());
-        Collections.sort(sortedGenes, new Comparator<Map.Entry<String, Double>>()
-        {
-            @Override
-            public int compare(Map.Entry<String, Double> e1, Map.Entry<String, Double> e2)
-            {
-                return Double.compare(e2.getValue(), e1.getValue());
-            }
-        });
-
-        // Get gene names from sorted list of map entries
-        List<String> geneNames = new ArrayList<String>(sortedGenes.size());
-        for (Map.Entry<String, Double> entry : sortedGenes) {
-            geneNames.add(entry.getKey());
-        }
-
-        return geneNames;
-    }
-
-    @Override
     public Double getGeneScore(String gene)
     {
         // If gene is a candidate gene, reduce distance of score to 1.0
@@ -211,16 +187,5 @@ public class DefaultPatientGenotype implements PatientGenotype
             }
         }
         return score;
-    }
-
-    @Override
-    public JSONArray toJSON()
-    {
-        // TODO: add candidate genes
-        if (this.exome != null) {
-            return this.exome.toJSON();
-        } else {
-            return new JSONArray();
-        }
     }
 }

@@ -50,6 +50,7 @@ public interface PatientGenotype extends Exome
      * Get the genes likely mutated in the patient, both from candidate genes and exome data.
      *
      * @return a (potentially-empty) set of gene names
+     * @see org.phenotips.data.similarity.Exome#getGenes()
      */
     @Override
     Set<String> getGenes();

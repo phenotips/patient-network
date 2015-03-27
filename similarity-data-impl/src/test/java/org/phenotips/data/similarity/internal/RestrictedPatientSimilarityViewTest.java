@@ -423,6 +423,8 @@ public class RestrictedPatientSimilarityViewTest
         double scoreBefore = view1.getScore();
         Assert.assertTrue(scoreBefore > 0);
 
+        mockMatch = getBasicMockMatch();
+        mockReference = getBasicMockReference();
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("Another gene");
         matchGenes.add("Matching gene");
@@ -446,6 +448,8 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         double scoreBefore = view1.getScore();
 
+        mockMatch = getBasicMockMatch();
+        mockReference = getBasicMockReference();
         setPatientCandidateGenes(mockMatch, Collections.singleton("Gene A"));
         setPatientCandidateGenes(mockReference, Collections.singleton("Gene B"));
         PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);

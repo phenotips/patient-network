@@ -36,7 +36,7 @@ import java.util.Set;
  * @version $Id$
  * @since 1.0M6
  */
-public abstract class AbstractGenotypeSimilarityView implements PatientGenotypeSimilarityView
+public abstract class AbstractGenotypeSimilarityView extends AbstractExome implements PatientGenotypeSimilarityView
 {
     /** The matched patient to represent. */
     protected final Patient match;
