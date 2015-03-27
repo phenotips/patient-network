@@ -82,7 +82,8 @@ public abstract class AbstractGenotypeSimilarityView implements PatientGenotypeS
 
     /**
      * Return the candidate genes shared by both patients in the view.
-     * 
+     *
+     * @return {@inheritDoc}
      * @see org.phenotips.data.similarity.PatientGenotype#getCandidateGenes()
      */
     @Override

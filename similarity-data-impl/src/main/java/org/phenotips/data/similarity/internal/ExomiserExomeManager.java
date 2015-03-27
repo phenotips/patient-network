@@ -55,21 +55,15 @@ import org.slf4j.Logger;
 @Singleton
 public class ExomiserExomeManager implements ExomeManager, Initializable
 {
+    /** Logging helper object. */
+    @Inject
+    protected static Logger logger;
+
     /** The name of the data subdirectory which stores the exome data. */
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient exome files. */
     private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
-
-    /** Cache for storing patient exomes. */
-    protected Cache<Exome> exomeCache;
-
-    /** Directory containing exome information for all patients (e.g. Exomiser files). */
-    protected File exomeDirectory;
-
-    /** Logging helper object. */
-    @Inject
-    protected static Logger logger;
 
     /** Environment handle, to access exome data on filesystem. */
     @Inject
@@ -78,6 +72,12 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     /** Manager to create exome caches. */
     @Inject
     protected CacheManager cacheManager;
+
+    /** Cache for storing patient exomes. */
+    protected Cache<Exome> exomeCache;
+
+    /** Directory containing exome information for all patients (e.g. Exomiser files). */
+    protected File exomeDirectory;
 
     @Override
     public void initialize() throws InitializationException

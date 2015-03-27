@@ -331,15 +331,15 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         if (disorders.isEmpty()) {
             return baseScore;
         }
-        double score = baseScore;
+        double adjustedScore = baseScore;
         double bias = 3;
         for (DisorderSimilarityView disorder : disorders) {
             if (disorder.isMatchingPair()) {
                 // For each disorder match, reduce the distance between the current score to 1 by 1/3
-                score = score + (1 - score) / bias;
+                adjustedScore = adjustedScore + (1 - adjustedScore) / bias;
             }
         }
-        return score;
+        return adjustedScore;
     }
 
     @Override

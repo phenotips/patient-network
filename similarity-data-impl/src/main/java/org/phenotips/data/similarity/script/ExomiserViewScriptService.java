@@ -52,7 +52,7 @@ public class ExomiserViewScriptService implements ScriptService
     /** Manager to allow access to patient exome data. */
     @Inject
     @Named("exomiser")
-    ExomeManager exomeManager;
+    private ExomeManager exomeManager;
 
     /**
      * Checks if a patient has a valid Exomiser genotype.

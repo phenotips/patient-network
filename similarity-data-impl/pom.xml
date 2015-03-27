@@ -29,7 +29,7 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.15</coverage.instructionRatio>
+    <coverage.instructionRatio>0.60</coverage.instructionRatio>
   </properties>
 
   <artifactId>patient-similarity-data-impl</artifactId>

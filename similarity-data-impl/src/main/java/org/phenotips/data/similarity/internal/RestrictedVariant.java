@@ -30,7 +30,7 @@ public class RestrictedVariant extends AbstractVariant
 {
     /**
      * Create an empty {@link #Variant}.
-     * 
+     *
      * @param variant the {@link #Variant} to restrict
      */
     RestrictedVariant(Variant variant)

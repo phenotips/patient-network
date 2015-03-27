@@ -167,11 +167,11 @@ public class ExomiserExome implements Exome
     @Override
     public List<Variant> getTopVariants(String gene)
     {
-        List<Variant> variants = this.variants.get(gene);
-        if (variants == null) {
-            variants = Collections.emptyList();
+        List<Variant> vs = this.variants.get(gene);
+        if (vs == null) {
+            vs = Collections.emptyList();
         }
-        return variants;
+        return vs;
     }
 
     @Override

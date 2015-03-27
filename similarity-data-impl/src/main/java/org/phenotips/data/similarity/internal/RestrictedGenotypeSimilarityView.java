@@ -21,7 +21,6 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.Variant;
 
 import java.util.ArrayList;
@@ -31,8 +30,9 @@ import java.util.List;
 import net.sf.json.JSONArray;
 
 /**
- * Implementation of {@link PatientGenotypeSimilarityView} that reveals the full patient information if the user has
- * full access to the patient, and only matching reference information if the patient is matchable.
+ * Implementation of {@link org.phenotips.data.similarity.PatientGenotypeSimilarityView} that reveals the full patient
+ * information if the user has full access to the patient, and only matching reference information if the patient is
+ * matchable.
  *
  * @version $Id$
  * @since

@@ -53,11 +53,11 @@ import net.sf.json.JSONArray;
  */
 public class DefaultPatientGenotype implements PatientGenotype
 {
-    /** Logging helper object. */
-    private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
-
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
+
+    /** Logging helper object. */
+    private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
 
     /** The candidate genes for the patient. */
     protected Set<String> candidateGenes;

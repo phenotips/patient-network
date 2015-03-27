@@ -23,7 +23,6 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientGenotypeManager;
-import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.Variant;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -43,18 +42,19 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
- * Implementation of {@link PatientGenotypeSimilarityView} that always reveals the full patient information.
+ * Implementation of {@link org.phenotips.data.similarity.PatientGenotypeSimilarityView} that always reveals the full
+ * patient information.
  *
  * @version $Id$
  * @since 1.0M6
  */
 public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityView
 {
-    /** Logging helper object. */
-    private static Logger logger = LoggerFactory.getLogger(DefaultGenotypeSimilarityView.class);
-
     /** Manager to allow access to underlying genotype data. */
     protected static PatientGenotypeManager genotypeManager;
+
+    /** Logging helper object. */
+    private static Logger logger = LoggerFactory.getLogger(DefaultGenotypeSimilarityView.class);
 
     /** The similarity score for all genes. */
     protected Map<String, Double> geneScores;
@@ -93,7 +93,7 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
 
     /**
      * Lookup component genotype manager.
-     * 
+     *
      * @return {@link #PatientGenotypeManager} component
      */
     private PatientGenotypeManager getGenotypeManager()
