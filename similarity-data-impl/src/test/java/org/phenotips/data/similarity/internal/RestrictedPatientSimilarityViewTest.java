@@ -406,7 +406,7 @@ public class RestrictedPatientSimilarityViewTest
         double scoreAfter = view2.getScore();
         Assert.assertTrue(scoreAfter > 0);
         Assert.assertTrue(String.format("after (%.4f) <= before (%.4f)", scoreAfter, scoreBefore),
-            scoreAfter > scoreBefore);
+            scoreAfter > scoreBefore + 0.1);
     }
 
     /** Non-matching candidate genes doesn't affect score. */
