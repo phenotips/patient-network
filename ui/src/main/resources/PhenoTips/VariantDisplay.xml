@@ -366,7 +366,7 @@
     		if (r.chrom &amp;&amp; r.position &amp;&amp; r.ref) {
 	    		var start = r.position;
 	    		var end = r.position + r.ref.length;
-	    		var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()[0]).replace("__START__", start).replace("__STOP__", end);
+			var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()).replace("__START__", start).replace("__STOP__", end);
 	    		var positionURLFragment = "Chr" + r.chrom.toUpperCase()[0] + ": " + start + "-" + end;
 	            var assembly = r.assembly || "hg19";
 	            var position = new Element('a', {
