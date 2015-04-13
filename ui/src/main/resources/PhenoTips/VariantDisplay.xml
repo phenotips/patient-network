@@ -605,6 +605,10 @@ table.variant-display-table td{
 .variant-display-table &gt; .last-row-for-gene &gt; td {
   border-bottom: 1px solid $theme.textColor;
 }
+
+.variant-display-table .variant-position .button.secondary {
+  text-transform: none;
+}
 </code>
     </property>
     <property>
