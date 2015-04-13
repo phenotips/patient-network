@@ -682,7 +682,7 @@
             var start = v.position || v.start_position;
             var end = v.position &amp;&amp; (v.position + (v.ref &amp;&amp; (v.ref.length - 1) || 0)) || v.end_position;
             position = "chr" + v.chrom.toUpperCase() + ": " + start + " - " + end;
-            var positionURLFragment = "chr" + v.chrom.toUpperCase()[0] + ":" + start + "-" + end;
+            var positionURLFragment = "chr" + v.chrom.toUpperCase() + ":" + start + "-" + end;
             var assembly = v.assembly || "hg19";
             position = new Element('a', {
                  'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
