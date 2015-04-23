@@ -20,6 +20,8 @@
 package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.Genotype;
 import org.phenotips.data.similarity.Variant;
 import org.phenotips.data.similarity.internal.PatientGenotype;
@@ -33,6 +35,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -51,6 +54,16 @@ import net.sf.json.JSONObject;
 @Singleton
 public class ExomiserViewScriptService implements ScriptService
 {
+    private static final int MAXIMUM_NUMBER_OF_GENES = 10;
+
+    private static final int MAXIMUM_VARIANTS_PER_GENE = 5;
+
+    @Inject
+    private PermissionsManager pm;
+
+    @Inject
+    @Named("edit")
+    private AccessLevel editAccess;
 
     /**
      * Gets the top K genes by score from a patient.
@@ -74,10 +87,14 @@ public class ExomiserViewScriptService implements ScriptService
                 // Sort by score, descending, nulls last
                 return org.apache.commons.lang3.ObjectUtils.compare(patientGenotype.getGeneScore(g2),
                     patientGenotype.getGeneScore(g1), true);
-            };
+            }
         });
         List<String> result = new ArrayList<String>();
-        for (int i = 0; i < k; i++) {
+
+        boolean restrictNumber =
+                (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) && k > MAXIMUM_NUMBER_OF_GENES);
+        int n = restrictNumber ? MAXIMUM_NUMBER_OF_GENES : k;
+        for (int i = 0; i < n; i++) {
             if (genes.get(i) != null) {
                 result.add(genes.get(i));
             }
@@ -122,6 +139,9 @@ public class ExomiserViewScriptService implements ScriptService
             gene.element("score", patientGenotype.getGeneScore(geneName));
 
             JSONArray variants = new JSONArray();
+            boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) &&
+                    v > MAXIMUM_VARIANTS_PER_GENE);
+            int n = restrictVariants ? MAXIMUM_VARIANTS_PER_GENE : v;
             for (int i = 0; i < v; i++) {
                 Variant variant = patientGenotype.getTopVariant(geneName, i);
                 if (variant != null) {
