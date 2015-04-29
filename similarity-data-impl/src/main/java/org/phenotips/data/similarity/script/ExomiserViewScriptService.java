@@ -52,9 +52,9 @@ import net.sf.json.JSONObject;
 @Singleton
 public class ExomiserViewScriptService implements ScriptService
 {
-    private static final int MAXIMUM_NUMBER_OF_GENES = 10;
+    private static final int MAXIMUM_UNPRIVILEGED_GENES = 10;
 
-    private static final int MAXIMUM_VARIANTS_PER_GENE = 5;
+    private static final int MAXIMUM_UNPRIVILEGED_VARIANTS = 5;
 
     @Inject
     private PermissionsManager pm;
@@ -90,8 +90,8 @@ public class ExomiserViewScriptService implements ScriptService
         List<String> result = new ArrayList<String>();
 
         boolean restrictNumber =
-                (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) && k > MAXIMUM_NUMBER_OF_GENES);
-        int n = restrictNumber ? MAXIMUM_NUMBER_OF_GENES : k;
+            (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) && k > MAXIMUM_UNPRIVILEGED_GENES);
+        int n = restrictNumber ? MAXIMUM_UNPRIVILEGED_GENES : k;
         for (int i = 0; i < n; i++) {
             if (genes.get(i) != null) {
                 result.add(genes.get(i));
@@ -137,9 +137,9 @@ public class ExomiserViewScriptService implements ScriptService
             gene.element("score", patientGenotype.getGeneScore(geneName));
 
             JSONArray variants = new JSONArray();
-            boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) &&
-                    v > MAXIMUM_VARIANTS_PER_GENE);
-            int n = restrictVariants ? MAXIMUM_VARIANTS_PER_GENE : v;
+            boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
+                && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
+            int n = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
             for (int i = 0; i < v; i++) {
                 Variant variant = patientGenotype.getTopVariant(geneName, i);
                 if (variant != null) {
