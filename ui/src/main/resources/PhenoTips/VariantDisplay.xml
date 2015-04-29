@@ -165,14 +165,15 @@
             this.optionsButton.update(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Strings["hideOptionsButton"])).stopObserving('click', this.showOptions).observe('click', this.hideOptions.bind(this));
             
             var numberOfGenesInput = new Element('select', {'id' : 'variant-display-number-of-genes'});
-            for (var i = 1; i &lt;= 20; i++) {
+            var maxGenes = ("$xwiki.hasAccessLevel('edit')" == "true") ? 500 : 10;
+            for (var i = 1; i &lt;= maxGenes; i++) {
                 numberOfGenesInput.insert(new Element('option', {'value' : i}).update(i));
             };
             numberOfGenesInput.value = this.DEFAULT_NUMBER_OF_GENES;
             var numberOfGenesInput = new Element('label').insert(this.Strings["options.numberOfGenes"]).insert(numberOfGenesInput);
             
             var numberOfVariantsInput = new Element('select', {'id' : 'variant-display-number-of-variants'});
-            for (var i = 1; i &lt;= 10; i++) {
+            for (var i = 1; i &lt;= 5; i++) {
                 numberOfVariantsInput.insert(new Element('option', {'value' : i}).update(i));
             };
             numberOfVariantsInput.value = this.DEFAULT_NUMBER_OF_VARIANTS;
