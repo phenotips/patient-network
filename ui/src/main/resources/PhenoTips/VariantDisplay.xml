@@ -165,9 +165,10 @@
             this.optionsButton.update(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Strings["hideOptionsButton"])).stopObserving('click', this.showOptions).observe('click', this.hideOptions.bind(this));
             
             var numberOfGenesInput = new Element('select', {'id' : 'variant-display-number-of-genes'});
-            var maxGenes = ("$xwiki.hasAccessLevel('edit')" == "true") ? 500 : 10;
-            for (var i = 1; i &lt;= maxGenes; i++) {
-                numberOfGenesInput.insert(new Element('option', {'value' : i}).update(i));
+            // FIXME This is not the proper way of checking access, but there is no other way at the moment
+            var maxGeneLevels = $('prActionEdit') ? [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 75, 100, 150, 200, 300, 500] : [1, 2, 3, 4, 5, 10];
+            for (var i = 0; i &lt; maxGeneLevels.length; i++) {
+                numberOfGenesInput.insert(new Element('option', {'value' : maxGeneLevels[i]}).update(maxGeneLevels[i]));
             };
             numberOfGenesInput.value = this.DEFAULT_NUMBER_OF_GENES;
             var numberOfGenesInput = new Element('label').insert(this.Strings["options.numberOfGenes"]).insert(numberOfGenesInput);
