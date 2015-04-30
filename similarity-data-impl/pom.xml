@@ -137,6 +137,9 @@
         <configuration>
           <!-- Some test classes are using an instance mock which is reused by individual methods. -->
           <parallel>classes</parallel>
+          <threadCount>1</threadCount>
+          <reuseForks>false</reuseForks>
+          <forkCount>1</forkCount>
         </configuration>
       </plugin>
     </plugins>
