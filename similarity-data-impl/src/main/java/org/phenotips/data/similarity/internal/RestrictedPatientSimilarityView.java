@@ -40,7 +40,7 @@ import net.sf.json.JSONObject;
  * patient is matchable; for use in public scripts.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityView
 {

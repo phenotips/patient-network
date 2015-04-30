@@ -33,7 +33,8 @@ import net.sf.json.JSONObject;
 /**
  * Base class for implementing exome-related classes, specifically those that include scored genes with variants.
  *
- * @version $Id $
+ * @version $Id$
+ * @since 1.0M6
  */
 public abstract class AbstractExome implements Exome
 {

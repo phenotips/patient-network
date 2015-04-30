@@ -36,7 +36,7 @@ import org.slf4j.Logger;
  * Allows management of patient phenotype and genotype matching features.
  *
  * @version $Id$
- * @since
+ * @since 1.0M2
  */
 @Unstable
 @Component

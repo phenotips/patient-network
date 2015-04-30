@@ -37,7 +37,7 @@ import net.sf.json.JSONObject;
  * code.
  *
  * @version $Id$
- * @since 1.0M10
+ * @since 1.0M1
  */
 public class DefaultFeatureClusterView implements FeatureClusterView
 {

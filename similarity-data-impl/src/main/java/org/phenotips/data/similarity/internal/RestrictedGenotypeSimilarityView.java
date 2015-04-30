@@ -33,7 +33,7 @@ import net.sf.json.JSONArray;
  * matchable.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 public class RestrictedGenotypeSimilarityView extends DefaultGenotypeSimilarityView
 {

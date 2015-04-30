@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
  * a {@code PhenoTips.SimilarCases} object in the {@code SimilarCasesConfiguration} document.
  *
  * @version $Id$
+ * @since 1.0M1
  */
 @Component
 @Singleton

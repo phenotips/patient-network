@@ -38,6 +38,7 @@ import net.sf.json.JSONObject;
  * variants annotated with genes, phenotype scores, and harmfulness scores.
  *
  * @version $Id$
+ * @since 1.0M6
  */
 public class ExomiserExome extends AbstractExome implements Exome
 {

@@ -29,7 +29,7 @@ import net.sf.json.JSONObject;
  * Implementation of {@link DisorderSimilarityView} that always reveals its information.
  *
  * @version $Id$
- * @since 1.0M10
+ * @since 1.0M1
  */
 public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 {

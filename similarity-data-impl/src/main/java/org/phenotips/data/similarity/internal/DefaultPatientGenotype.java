@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * data.
  *
  * @version $Id$
+ * @since 1.0M6
  */
 public class DefaultPatientGenotype extends AbstractExome implements PatientGenotype
 {

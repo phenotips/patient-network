@@ -42,6 +42,7 @@ import com.xpn.xwiki.web.Utils;
  * Default implementation for the {@code AcctionManager} role.
  *
  * @version $Id$
+ * @since 1.0M1
  */
 @Component
 @Singleton

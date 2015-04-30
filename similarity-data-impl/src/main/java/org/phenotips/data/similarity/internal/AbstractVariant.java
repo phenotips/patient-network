@@ -27,6 +27,7 @@ import net.sf.json.JSONObject;
  * A base implementation of a Variant.
  *
  * @version $Id$
+ * @since 1.0M6
  */
 public abstract class AbstractVariant implements Variant
 {

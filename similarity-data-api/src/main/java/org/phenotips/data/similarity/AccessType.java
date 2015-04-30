@@ -25,7 +25,7 @@ import org.xwiki.stability.Unstable;
  * Helper class providing quick information about an {@link AccessLevel access level}.
  *
  * @version $Id$
- * @since 1.0M9
+ * @since 1.0M1
  */
 @Unstable
 public interface AccessType

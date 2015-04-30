@@ -55,7 +55,7 @@ import groovy.lang.Singleton;
  * Implementation for {@link SimilarPatientsFinder} based on Solr indexing of existing patients.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Component
 @Singleton

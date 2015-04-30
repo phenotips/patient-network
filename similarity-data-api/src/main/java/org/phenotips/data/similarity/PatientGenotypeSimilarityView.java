@@ -25,7 +25,7 @@ import net.sf.json.JSONArray;
  * View of a patient genotype as related to another reference genotype.
  *
  * @version $Id$
- * @since
+ * @since 1.0M6
  */
 @Unstable
 public interface PatientGenotypeSimilarityView extends PatientGenotype

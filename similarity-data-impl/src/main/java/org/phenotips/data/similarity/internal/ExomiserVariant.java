@@ -24,6 +24,7 @@ import java.util.List;
  * A variant after being annotated by Exomiser.
  *
  * @version $Id$
+ * @since 1.0M2
  */
 public class ExomiserVariant extends AbstractVariant
 {

@@ -23,6 +23,7 @@ import org.phenotips.data.similarity.Variant;
  * A restricted-view implementation of a Variant.
  *
  * @version $Id$
+ * @since 1.0M6
  */
 public class RestrictedVariant extends AbstractVariant
 {

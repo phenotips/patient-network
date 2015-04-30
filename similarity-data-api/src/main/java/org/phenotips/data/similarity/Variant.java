@@ -25,7 +25,7 @@ import net.sf.json.JSONObject;
  * A simple representation of a variant from a VCF file.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 @Unstable
 public interface Variant extends Comparable<Variant>

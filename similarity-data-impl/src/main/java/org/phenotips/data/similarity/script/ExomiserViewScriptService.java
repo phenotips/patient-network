@@ -41,7 +41,7 @@ import net.sf.json.JSONObject;
  * Allows management of patient phenotype and genotype matching features.
  *
  * @version $Id$
- * @since
+ * @since 1.0M5
  */
 @Unstable
 @Component

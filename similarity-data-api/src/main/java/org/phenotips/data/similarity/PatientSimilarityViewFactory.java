@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Role;
  * {@link FeatureClusterView#getScore() similarity score}.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Role
 public interface PatientSimilarityViewFactory

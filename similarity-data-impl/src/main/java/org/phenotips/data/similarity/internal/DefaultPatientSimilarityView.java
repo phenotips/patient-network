@@ -45,7 +45,7 @@ import net.sf.json.JSONArray;
  * to score similar patients.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {

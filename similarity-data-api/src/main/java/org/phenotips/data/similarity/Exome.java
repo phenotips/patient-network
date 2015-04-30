@@ -28,7 +28,7 @@ import net.sf.json.JSONArray;
  * A basic representation of a exome of a patient, with scored {@link Variant} objects in scored genes.
  *
  * @version $Id$
- * @since
+ * @since 1.0M6
  */
 @Unstable
 public interface Exome

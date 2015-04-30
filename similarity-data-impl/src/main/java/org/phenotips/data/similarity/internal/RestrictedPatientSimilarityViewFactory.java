@@ -31,7 +31,7 @@ import javax.inject.Singleton;
  * public or shared information.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Component
 @Named("restricted")

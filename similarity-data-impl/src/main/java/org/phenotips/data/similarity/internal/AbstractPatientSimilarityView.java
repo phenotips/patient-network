@@ -38,7 +38,7 @@ import net.sf.json.JSONObject;
  * Base class for implementing {@link PatientSimilarityView}.
  *
  * @version $Id$
- * @since 1.0M10
+ * @since 1.0M1
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {

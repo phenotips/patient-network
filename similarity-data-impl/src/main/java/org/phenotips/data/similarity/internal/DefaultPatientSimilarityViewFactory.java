@@ -51,7 +51,7 @@ import org.slf4j.Logger;
  * information to score pairs of patients.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 @Component
 @Singleton

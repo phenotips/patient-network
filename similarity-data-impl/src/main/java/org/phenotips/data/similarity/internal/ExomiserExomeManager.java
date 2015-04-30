@@ -47,6 +47,7 @@ import org.slf4j.Logger;
  * given {@link Patient}.
  *
  * @version $Id$
+ * @since 1.0M6
  */
 @Component
 @Named("exomiser")

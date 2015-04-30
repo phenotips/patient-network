@@ -24,7 +24,7 @@ import org.phenotips.data.similarity.AccessType;
  * Straightforward implementation of {@link AccessType}.
  *
  * @version $Id$
- * @since 1.0M9
+ * @since 1.0M1
  */
 public class DefaultAccessType implements AccessType
 {
