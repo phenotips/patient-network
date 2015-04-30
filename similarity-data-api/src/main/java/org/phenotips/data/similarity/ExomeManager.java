@@ -19,6 +19,7 @@ package org.phenotips.data.similarity;
 
 import org.phenotips.data.Patient;
 
+import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -28,6 +29,7 @@ import org.xwiki.stability.Unstable;
  * @since 1.0M6
  */
 @Unstable
+@Role
 public interface ExomeManager
 {
     /**
