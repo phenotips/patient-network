@@ -24,10 +24,4 @@
 
 <suppressions>
   <suppress checks="IllegalType" files="DefaultPatientSimilarityViewFactory.java"/>
-  <suppress checks="ClassFanOutComplexity" files="RestrictedGenotypeSimilarityView.java"/>
-  <suppress checks="ClassFanOutComplexity" files="DefaultPatientSimilarityViewFactory.java"/>
-  <suppress checks="CyclomaticComplexity" files="RestrictedGenotypeSimilarityView.java"/>
-  <suppress checks="NPathComplexity" files="RestrictedGenotypeSimilarityView.java"/>
-  <suppress checks="ClassDataAbstractionCouplingCheck" files="RestrictedGenotypeSimilarityView.java"/>
-  <suppress checks="MultipleStringLiterals" files="RestrictedGenotypeSimilarityView.java"/>
 </suppressions>

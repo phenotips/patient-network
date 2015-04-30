@@ -20,11 +20,10 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.data.similarity.GenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.ontology.OntologyManager;
 import org.phenotips.ontology.OntologyTerm;
 
@@ -33,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +45,7 @@ import net.sf.json.JSONArray;
  * to score similar patients.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {
@@ -73,7 +71,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private Set<DisorderSimilarityView> matchedDisorders;
 
     /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
-    private GenotypeSimilarityView matchedGenes;
+    private PatientGenotypeSimilarityView matchedGenes;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -187,9 +185,9 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Get pairs of matching disorders, one from the current patient and one from the reference patient. Unmatched
      * values from either side are paired with a {@code null} value.
      *
-     * @return an unmodifiable collection of matched disorders.
+     * @return an unmodifiable set of matched disorders.
      */
-    protected Collection<DisorderSimilarityView> getMatchedDisorders()
+    protected Set<DisorderSimilarityView> getMatchedDisorders()
     {
         if (this.matchedDisorders == null) {
             Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
@@ -316,27 +314,30 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return a collection of the names of candidate genes listed for the patient.
+     * Adjust the similarity score by taking into account common disorders. Matching disorders will boost the base score
+     * given by the phenotypic similarity, while unmatched disorders don't affect the score at all.
      *
-     * @param p the patient
-     * @return a (potentially-empty) unmodifiable collection of the names of candidate genes
+     * @param baseScore the score given by features alone, a number between {@code 0} and {@code 1}
+     * @return the adjusted similarity score, boosted closer to {@code 1} if there are common disorders between this
+     *         patient and the reference patient, or the unmodified base score otherwise; the score is never lowered,
+     *         and never goes above {@code 1}
+     * @see #getScore()
      */
-    private Collection<String> getCandidateGeneNames(Patient p)
+    private double adjustScoreWithDisordersScore(double baseScore)
     {
-        PatientData<Map<String, String>> genesData = p.getData("genes");
-        if (genesData != null) {
-            Set<String> geneNames = new HashSet<String>();
-            Iterator<Map<String, String>> iterator = genesData.iterator();
-            while (iterator.hasNext()) {
-                Map<String, String> geneInfo = iterator.next();
-                String geneName = geneInfo.get("gene");
-                if (geneName != null) {
-                    geneNames.add(geneName);
-                }
-            }
-            return Collections.unmodifiableSet(geneNames);
+        Set<DisorderSimilarityView> disorders = getMatchedDisorders();
+        if (disorders.isEmpty()) {
+            return baseScore;
         }
-        return Collections.emptySet();
+        double adjustedScore = baseScore;
+        double bias = 3;
+        for (DisorderSimilarityView disorder : disorders) {
+            if (disorder.isMatchingPair()) {
+                // For each disorder match, reduce the distance between the current score to 1 by 1/3
+                adjustedScore = adjustedScore + (1 - adjustedScore) / bias;
+            }
+        }
+        return adjustedScore;
     }
 
     @Override
@@ -344,14 +345,14 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     {
         // Memoize the score
         if (this.score == null) {
-            double phenotypeScore = this.getPhenotypeScore();
+            double phenotypeScore = getPhenotypeScore();
+            phenotypeScore = adjustScoreWithDisordersScore(phenotypeScore);
 
-            // Factor in candidate genes
-            Collection<String> matchGenes = getCandidateGeneNames(match);
-            Collection<String> refGenes = getCandidateGeneNames(reference);
-            Set<String> sharedGenes = new HashSet<String>();
-            sharedGenes.addAll(matchGenes);
-            sharedGenes.retainAll(refGenes);
+            // Factor in overlap between candidate genes
+            PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
+            Collection<String> sharedGenes = new HashSet<String>();
+            sharedGenes = genotypeSimilarity.getCandidateGenes();
+
             double geneBoost = 0.0;
             if (!sharedGenes.isEmpty()) {
                 geneBoost = 0.7;
@@ -368,10 +369,10 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      *
      * @return the genotype similarity view for this pair of patients
      */
-    private GenotypeSimilarityView getGenotypeSimilarity()
+    private PatientGenotypeSimilarityView getGenotypeSimilarity()
     {
         if (this.matchedGenes == null) {
-            this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
+            this.matchedGenes = new RestrictedPatientGenotypeSimilarityView(this.match, this.reference, this.access);
         }
         return this.matchedGenes;
     }

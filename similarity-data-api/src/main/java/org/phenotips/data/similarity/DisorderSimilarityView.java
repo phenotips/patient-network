@@ -25,7 +25,7 @@ import org.xwiki.stability.Unstable;
  * View of a disorder as related to another reference disorder.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Unstable
 public interface DisorderSimilarityView extends Disorder

@@ -29,7 +29,7 @@ import java.util.List;
  * Allows searching for patients similar to a reference patient in the current PhenoTips instance.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Unstable
 @Role

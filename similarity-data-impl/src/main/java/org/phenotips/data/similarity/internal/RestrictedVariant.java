@@ -17,30 +17,27 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
-
-import org.xwiki.component.annotation.Component;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.phenotips.data.similarity.Variant;
 
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which only allows access to
- * public or shared information.
+ * A restricted-view implementation of a Variant.
  *
  * @version $Id$
- * @since 1.0M1
+ * @since 1.0M6
  */
-@Component
-@Named("restricted")
-@Singleton
-public class RestrictedPatientSimilarityViewFactory extends DefaultPatientSimilarityViewFactory
+public class RestrictedVariant extends AbstractVariant
 {
-    @Override
-    protected PatientSimilarityView createPatientSimilarityView(Patient match, Patient reference, AccessType access)
+    /**
+     * Create an empty {@link Variant}.
+     *
+     * @param variant the {@link Variant} to restrict
+     */
+    RestrictedVariant(Variant variant)
     {
-        return new RestrictedPatientSimilarityView(match, reference, access);
+        // Only store the effect and score
+        if (variant != null) {
+            setEffect(variant.getEffect());
+            setScore(variant.getScore());
+        }
     }
 }

@@ -24,6 +24,7 @@ import org.xwiki.stability.Unstable;
  * Configuration for the patient similarity feature.
  *
  * @version $Id$
+ * @since 1.0M1
  */
 @Unstable
 @Role

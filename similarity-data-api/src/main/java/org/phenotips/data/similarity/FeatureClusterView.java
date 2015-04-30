@@ -30,7 +30,7 @@ import net.sf.json.JSONObject;
  * View of the relationship between a collection of features in each of two patients.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 @Unstable
 public interface FeatureClusterView extends Feature

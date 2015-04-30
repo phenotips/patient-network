@@ -26,7 +26,7 @@ import org.xwiki.stability.Unstable;
  * View of a patient as related to another reference patient.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 @Unstable
 public interface PatientSimilarityView extends Patient

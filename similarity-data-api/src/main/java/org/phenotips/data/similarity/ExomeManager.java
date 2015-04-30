@@ -15,32 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.phenotips.data.similarity.internal;
+package org.phenotips.data.similarity;
 
 import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
 
-import org.xwiki.component.annotation.Component;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which only allows access to
- * public or shared information.
+ * This class allows access to an {@link Exome} object for a given patient.
  *
  * @version $Id$
- * @since 1.0M1
+ * @since 1.0M6
  */
-@Component
-@Named("restricted")
-@Singleton
-public class RestrictedPatientSimilarityViewFactory extends DefaultPatientSimilarityViewFactory
+@Unstable
+@Role
+public interface ExomeManager
 {
-    @Override
-    protected PatientSimilarityView createPatientSimilarityView(Patient match, Patient reference, AccessType access)
-    {
-        return new RestrictedPatientSimilarityView(match, reference, access);
-    }
+    /**
+     * Get the (potentially-cached) {@link Exome} for the given {@link Patient}.
+     *
+     * @param p the patient for which the {@link Exome} will be retrieved
+     * @return the corresponding {@link Exome}, or {@code null} if no exome available
+     */
+    Exome getExome(Patient p);
 }

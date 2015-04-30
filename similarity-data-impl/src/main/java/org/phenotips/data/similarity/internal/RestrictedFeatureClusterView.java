@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
  * patient is matchable.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
 {

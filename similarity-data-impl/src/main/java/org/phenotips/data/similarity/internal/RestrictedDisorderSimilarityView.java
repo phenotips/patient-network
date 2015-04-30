@@ -30,7 +30,7 @@ import net.sf.json.JSONObject;
  * patient.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M1
  */
 public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
 {

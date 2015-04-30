@@ -27,6 +27,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
@@ -60,7 +61,6 @@ import java.util.Set;
 import javax.inject.Provider;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -286,12 +286,20 @@ public class RestrictedPatientSimilarityViewTest
         phenotypes.add(mid);
         phenotypes.add(cat);
 
+        when(mockPatient.getData("genes")).thenReturn(null);
+
+        return mockPatient;
+    }
+
+    /** Get simple reference patient. */
+    private Patient getMockReferenceWithDisease()
+    {
+        Patient mockPatient = getBasicMockReference();
+
         Set<Disorder> diseases = new HashSet<Disorder>();
         diseases.add(new MockDisorder("MIM:123", "Some disease"));
         diseases.add(new MockDisorder("MIM:345", "Some new disease"));
         Mockito.<Set<? extends Disorder>>when(mockPatient.getDisorders()).thenReturn(diseases);
-
-        when(mockPatient.getData("genes")).thenReturn(null);
 
         return mockPatient;
     }
@@ -340,7 +348,7 @@ public class RestrictedPatientSimilarityViewTest
     public void testGetDiseasesWithPublicAccess()
     {
         Patient mockMatch = getBasicMockMatch();
-        Patient mockReference = getBasicMockReference();
+        Patient mockReference = getMockReferenceWithDisease();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
@@ -352,11 +360,30 @@ public class RestrictedPatientSimilarityViewTest
     public void testGetDiseasesWithMatchAccess()
     {
         Patient mockMatch = getBasicMockMatch();
-        Patient mockReference = getBasicMockReference();
+        Patient mockReference = getMockReferenceWithDisease();
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
         Assert.assertTrue(matchedDiseases.isEmpty());
+    }
+
+    /** Matching diseases should boost match score. */
+    @Test
+    public void testDiseaseMatchBoost()
+    {
+        Patient mockMatch = getBasicMockMatch();
+        Patient mockReference1 = getBasicMockReference();
+        Patient mockReference2 = getMockReferenceWithDisease();
+
+        PatientSimilarityView o1 = new RestrictedPatientSimilarityView(mockMatch, mockReference1, limited);
+        double score1 = o1.getScore();
+        Assert.assertTrue(score1 > 0);
+
+        PatientSimilarityView o2 = new RestrictedPatientSimilarityView(mockMatch, mockReference2, limited);
+        double score2 = o2.getScore();
+        Assert.assertTrue(score2 > 0);
+
+        Assert.assertTrue(score2 > score1 + 0.1);
     }
 
     /**
@@ -392,7 +419,10 @@ public class RestrictedPatientSimilarityViewTest
 
         PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         double scoreBefore = view1.getScore();
+        Assert.assertTrue(scoreBefore > 0);
 
+        mockMatch = getBasicMockMatch();
+        mockReference = getBasicMockReference();
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("Another gene");
         matchGenes.add("Matching gene");
@@ -401,7 +431,9 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
 
         double scoreAfter = view2.getScore();
-        Assert.assertTrue(scoreAfter > scoreBefore + 0.01);
+        Assert.assertTrue(scoreAfter > 0);
+        Assert.assertTrue(String.format("after (%.4f) <= before (%.4f)", scoreAfter, scoreBefore),
+            scoreAfter > scoreBefore + 0.1);
     }
 
     /** Non-matching candidate genes doesn't affect score. */
@@ -414,6 +446,8 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
         double scoreBefore = view1.getScore();
 
+        mockMatch = getBasicMockMatch();
+        mockReference = getBasicMockReference();
         setPatientCandidateGenes(mockMatch, Collections.singleton("Gene A"));
         setPatientCandidateGenes(mockReference, Collections.singleton("Gene B"));
         PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
@@ -507,9 +541,9 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertFalse(result.has("disorders"));
     }
 
-    @Before
+    @BeforeClass
     @SuppressWarnings("unchecked")
-    public void setupComponents() throws ComponentLookupException, CacheException
+    public static void setupComponents() throws ComponentLookupException, CacheException
     {
         ComponentManagerRegistry registry = new ComponentManagerRegistry();
         ComponentManager componentManager = mock(ComponentManager.class);
@@ -535,6 +569,10 @@ public class RestrictedPatientSimilarityViewTest
         Connection c = mock(Connection.class);
         when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(c);
         when(c.getId()).thenReturn(Long.valueOf(42));
+
+        // Wire up mocked genetics
+        PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
+        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
 
         // Setup the ontology manager
         OntologyManager ontologyManager = mock(OntologyManager.class);

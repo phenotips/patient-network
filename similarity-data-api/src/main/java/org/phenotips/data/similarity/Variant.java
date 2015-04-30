@@ -25,7 +25,7 @@ import net.sf.json.JSONObject;
  * A simple representation of a variant from a VCF file.
  *
  * @version $Id$
- * @since
+ * @since 1.0M1
  */
 @Unstable
 public interface Variant extends Comparable<Variant>
@@ -40,7 +40,7 @@ public interface Variant extends Comparable<Variant>
     /**
      * Get the position of the variant (1-indexed).
      *
-     * @return the (1-indexed) position or null if not available
+     * @return the (1-indexed) position or {@code null} if not available
      */
     Integer getPosition();
 
@@ -48,7 +48,7 @@ public interface Variant extends Comparable<Variant>
      * Get the reference allele for the variant (e.g. "A", "CCT"). If the variant is a simple insertion, this might be
      * "-".
      *
-     * @return the reference genotype as a string, or null if not available
+     * @return the reference genotype as a string, or {@code null} if not available
      */
     String getRef();
 
@@ -56,14 +56,14 @@ public interface Variant extends Comparable<Variant>
      * Get the alternate allele for the variant (e.g. "A", "CCT"). If the variant is a simple deletion, this might be
      * "-".
      *
-     * @return the alternate genotype as a string, or null if not available
+     * @return the alternate genotype as a string, or {@code null} if not available
      */
     String getAlt();
 
     /**
      * Return whether the variant is homozygous or not.
      *
-     * @return true if the variant is homozygous, false otherwise, null if unspecified
+     * @return {@code true} if the variant is homozygous, {@code false} otherwise, {@code null} if unspecified
      */
     Boolean isHomozygous();
 
@@ -71,22 +71,22 @@ public interface Variant extends Comparable<Variant>
      * Get the value associated with a particular annotation (such as the INFO field of a VCF file).
      *
      * @param key the key to search for
-     * @return the value, an empty string if the key exists without a value, and null if the key does not exist.
+     * @return the value, an empty string if the key exists without a value, and {@code null} if the key does not exist.
      */
     String getAnnotation(String key);
 
     /**
      * Get the harmfulness score of the variant.
      *
-     * @return the harmfulness score of the variant, default 0.0
+     * @return the harmfulness score of the variant, or {@code null} if not available
      */
-    double getScore();
+    Double getScore();
 
     /**
      * Get the variant effect (e.g. "SPLICING", "FS_INSERTION"). If the variant falls into multiple classes, the most
      * harmful should be provided, based upon a reasonable ordering such as Exomiser output.
      *
-     * @return the effect of the variant as a string, potentially null
+     * @return the effect of the variant as a string, potentially {@code null}
      */
     String getEffect();
 

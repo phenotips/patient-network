@@ -19,18 +19,19 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
+import java.util.List;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
 
 /**
- * A basic representation of a genotype of a patient, with scored Variant objects in scored genes.
+ * A basic representation of a exome of a patient, with scored {@link Variant} objects in scored genes.
  *
  * @version $Id$
- * @since 1.0M8
+ * @since 1.0M6
  */
 @Unstable
-public interface Genotype
+public interface Exome
 {
     /**
      * Get the names of all genes with variants in the patient.
@@ -43,18 +44,25 @@ public interface Genotype
      * Return the score for a gene.
      *
      * @param gene the gene in question
-     * @return the score of the gene, between 0 and 1, where 1 is better (may be null if no variants for gene)
+     * @return the score of the gene, between 0 and 1, where 1 is better (or {@code null} if no variants for gene)
      */
     Double getGeneScore(String gene);
 
     /**
-     * Get the kth highest scoring variant in the given gene.
+     * Get {@link Variant}s for a gene.
      *
-     * @param gene the gene to return variants for
-     * @param k the ranked position of the variant to get (0 is the 1st, 1 is the 2nd, ..., etc)
-     * @return get the kth highest scoring variant (or null)
+     * @param gene the gene to get {@link Variant}s for.
+     * @return an unmodifiable (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score
      */
-    Variant getTopVariant(String gene, int k);
+    List<Variant> getTopVariants(String gene);
+
+    /**
+     * Get the n highest genes, in descending order of score. If there are fewer than n genes, all will be returned.
+     *
+     * @param n the number of genes to return (specify 0 for all)
+     * @return an unmodifiable (potentially-empty) list of gene names
+     */
+    List<String> getTopGenes(int n);
 
     /**
      * Retrieve all variant information in a JSON format. For example:

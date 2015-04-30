@@ -32,6 +32,7 @@ import javax.inject.Singleton;
  * {@link org.phenotips.data.permissions.internal.access.ViewAccessLevel view access}.
  *
  * @version $Id$
+ * @since 1.0M1
  */
 @Component
 @Named("match")

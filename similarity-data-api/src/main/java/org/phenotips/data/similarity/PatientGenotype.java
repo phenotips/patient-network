@@ -17,44 +17,39 @@
  */
 package org.phenotips.data.similarity;
 
-import org.phenotips.data.permissions.AccessLevel;
-
 import org.xwiki.stability.Unstable;
 
+import java.util.Set;
+
 /**
- * Helper class providing quick information about an {@link AccessLevel access level}.
+ * This class represents the combined genetics (manually entered genes and exome sequence data) for a Patient.
  *
  * @version $Id$
- * @since 1.0M1
+ * @since 1.0M6
  */
 @Unstable
-public interface AccessType
+public interface PatientGenotype extends Exome
 {
     /**
-     * The real level of access the user has on the patient's data.
+     * Return whether the patient has any genotype data available (manually entered genes or exome data).
      *
-     * @return the computed access level, can not be {@code null}
+     * @return true iff the patient has any manually entered genes or exome data
      */
-    AccessLevel getAccessLevel();
+    boolean hasGenotypeData();
 
     /**
-     * Indicates full access to the patient's data.
+     * Return a set of the names of candidate genes listed for the patient.
      *
-     * @return {@code true} if the patient has full access to the patient data, {@code false} otherwise
+     * @return a (potentially-empty) set of the names of candidate genes
      */
-    boolean isOpenAccess();
+    Set<String> getCandidateGenes();
 
     /**
-     * Indicates limited, obfuscated access to the patient's data.
+     * Get the genes likely mutated in the patient, both from manually entered genes and exome data.
      *
-     * @return {@code true} if the patient has only limited access to the patient data, {@code false} otherwise
+     * @return a (potentially-empty) set of gene names
+     * @see org.phenotips.data.similarity.Exome#getGenes()
      */
-    boolean isLimitedAccess();
-
-    /**
-     * Indicates no access to the patient's data.
-     *
-     * @return {@code true} if the patient has no access to the patient data, {@code false} otherwise
-     */
-    boolean isPrivateAccess();
+    @Override
+    Set<String> getGenes();
 }

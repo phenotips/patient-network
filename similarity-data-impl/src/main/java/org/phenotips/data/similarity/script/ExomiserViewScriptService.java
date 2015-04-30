@@ -20,17 +20,14 @@ package org.phenotips.data.similarity.script;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.Genotype;
+import org.phenotips.data.similarity.Exome;
+import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.Variant;
-import org.phenotips.data.similarity.internal.PatientGenotype;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -44,7 +41,7 @@ import net.sf.json.JSONObject;
  * Allows management of patient phenotype and genotype matching features.
  *
  * @version $Id$
- * @since
+ * @since 1.0M5
  */
 @Unstable
 @Component
@@ -63,91 +60,60 @@ public class ExomiserViewScriptService implements ScriptService
     @Named("edit")
     private AccessLevel editAccess;
 
-    /**
-     * Gets the top K genes by score from a patient.
-     *
-     * @param patient A valid patient
-     * @param k The wanted number of genes
-     * @return A sorted list of k gene names with descending scores
-     */
-    public List<String> getKTopGenes(Patient patient, int k)
-    {
-        if (patient == null) {
-            return null;
-        }
-        final Genotype patientGenotype = PatientGenotype.getPatientGenotype(patient);
-        List<String> genes = new ArrayList<>(patientGenotype.getGenes());
-        Collections.sort(genes, new Comparator<String>()
-        {
-            @Override
-            public int compare(String g1, String g2)
-            {
-                // Sort by score, descending, nulls last
-                return org.apache.commons.lang3.ObjectUtils.compare(patientGenotype.getGeneScore(g2),
-                    patientGenotype.getGeneScore(g1), true);
-            }
-        });
-        List<String> result = new ArrayList<String>();
-
-        boolean restrictNumber =
-            (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) && k > MAXIMUM_UNPRIVILEGED_GENES);
-        int n = restrictNumber ? MAXIMUM_UNPRIVILEGED_GENES : k;
-        for (int i = 0; i < n; i++) {
-            if (genes.get(i) != null) {
-                result.add(genes.get(i));
-            }
-        }
-        return result;
-    }
+    /** Manager to allow access to patient exome data. */
+    @Inject
+    @Named("exomiser")
+    private ExomeManager exomeManager;
 
     /**
-     * Checks if a patient has a valid exomiser genotype.
+     * Checks if a patient has a valid Exomiser genotype.
      *
-     * @param patient A valid patient
-     * @return boolean value
+     * @param patient a valid {@link Patient}
+     * @return boolean {@code true} iff the patient has a valid Exomiser genotype
      */
     public boolean hasGenotype(Patient patient)
     {
         if (patient == null) {
             return false;
         }
-        return PatientGenotype.getPatientGenotype(patient) != null;
+        return exomeManager.getExome(patient) != null;
     }
 
     /**
      * Outputs the k top genes from a patient as a JSON array.
      *
-     * @param patient A valid patient
-     * @param g The wanted number of genes
-     * @param v The number of variants per gene
-     * @return An array of "g" JSON objects representing the top genes for the patient
+     * @param patient a valid patient
+     * @param g the number of genes to report
+     * @param v the maximum number of variants to report per gene
+     * @return an array of "g" JSON objects representing the top genes for the patient
      */
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {
         JSONArray result = new JSONArray();
-        if (patient == null) {
+        if (patient == null || g < 0) {
             return result;
         }
-        List<String> topGeneNames = this.getKTopGenes(patient, g);
-        Genotype patientGenotype = PatientGenotype.getPatientGenotype(patient);
 
-        for (String geneName : topGeneNames) {
-            JSONObject gene = new JSONObject();
-            gene.element("name", geneName);
-            gene.element("score", patientGenotype.getGeneScore(geneName));
+        Exome patientExome = exomeManager.getExome(patient);
+        for (String geneName : patientExome.getTopGenes(g)) {
+            JSONObject geneJSON = new JSONObject();
+            geneJSON.element("name", geneName);
+            geneJSON.element("score", patientExome.getGeneScore(geneName));
 
-            JSONArray variants = new JSONArray();
+            JSONArray variantsJSON = new JSONArray();
             boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
                 && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
             int n = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
-            for (int i = 0; i < v; i++) {
-                Variant variant = patientGenotype.getTopVariant(geneName, i);
+            List<Variant> topVariants = patientExome.getTopVariants(geneName);
+            n = Math.min(n, topVariants.size());
+            for (int i = 0; i < n; i++) {
+                Variant variant = topVariants.get(i);
                 if (variant != null) {
-                    variants.add(variant.toJSON());
+                    variantsJSON.add(variant.toJSON());
                 }
             }
-            gene.element("variants", variants);
-            result.add(gene);
+            geneJSON.element("variants", variantsJSON);
+            result.add(geneJSON);
         }
         return result;
     }

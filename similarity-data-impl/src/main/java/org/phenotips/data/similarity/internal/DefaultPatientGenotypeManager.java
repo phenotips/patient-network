@@ -18,29 +18,42 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
-import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientGenotype;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 
-import javax.inject.Named;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+
 /**
- * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityViewFactory} which only allows access to
- * public or shared information.
+ * This is an implementation of the {@link PatientGenotypeManager}, and allows accessing the {@link PatientGenotype} for
+ * the given {@link Patient}.
  *
  * @version $Id$
- * @since 1.0M1
+ * @since 1.0M6
  */
 @Component
-@Named("restricted")
 @Singleton
-public class RestrictedPatientSimilarityViewFactory extends DefaultPatientSimilarityViewFactory
+public class DefaultPatientGenotypeManager implements PatientGenotypeManager, Initializable
 {
+    /** Logging helper object. */
+    @Inject
+    protected static Logger logger;
+
     @Override
-    protected PatientSimilarityView createPatientSimilarityView(Patient match, Patient reference, AccessType access)
+    public void initialize() throws InitializationException
     {
-        return new RestrictedPatientSimilarityView(match, reference, access);
+        logger.info("Initializing DefaultPatientGenotypeManager");
+    }
+
+    @Override
+    public PatientGenotype getGenotype(Patient patient)
+    {
+        return new DefaultPatientGenotype(patient);
     }
 }

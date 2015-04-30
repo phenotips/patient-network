@@ -38,7 +38,7 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
  * have a clean mechanism for auto-registering optional modular entities at runtime.
  *
  * @version $Id$
- * @since 1.0M10
+ * @since 1.0M1
  */
 @Component
 @Named("phenotips-messaging-orm-registration")
