@@ -35,7 +35,7 @@ import net.sf.json.JSONArray;
  * @version $Id$
  * @since 1.0M1
  */
-public class RestrictedGenotypeSimilarityView extends DefaultGenotypeSimilarityView
+public class RestrictedPatientGenotypeSimilarityView extends DefaultPatientGenotypeSimilarityView
 {
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
@@ -46,7 +46,7 @@ public class RestrictedGenotypeSimilarityView extends DefaultGenotypeSimilarityV
      * @param access the access type the user has to the match patient
      * @throws IllegalArgumentException if one of the patients or access is {@code null}
      */
-    public RestrictedGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
+    public RestrictedPatientGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
     {
         super(match, reference, access);

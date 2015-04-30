@@ -46,13 +46,13 @@ import net.sf.json.JSONObject;
  * @version $Id$
  * @since 1.0M6
  */
-public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityView
+public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotypeSimilarityView
 {
     /** Manager to allow access to underlying genotype data. */
     protected static PatientGenotypeManager genotypeManager;
 
     /** Logging helper object. */
-    private static Logger logger = LoggerFactory.getLogger(DefaultGenotypeSimilarityView.class);
+    private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotypeSimilarityView.class);
 
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
@@ -63,7 +63,7 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
      * @param access the access type the user has to the match patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
-    public DefaultGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
+    public DefaultPatientGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
     {
         super(match, reference, access);

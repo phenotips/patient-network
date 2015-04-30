@@ -33,7 +33,7 @@ import org.junit.Test;
  *
  * @version $Id$
  */
-public class ExomiserGenotypeTest
+public class ExomiserExomeTest
 {
     // Lines intentionally shuffled
     private static final String TEST_FILE =

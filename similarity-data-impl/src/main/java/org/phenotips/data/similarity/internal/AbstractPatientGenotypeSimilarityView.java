@@ -34,7 +34,8 @@ import java.util.Set;
  * @version $Id$
  * @since 1.0M6
  */
-public abstract class AbstractGenotypeSimilarityView extends AbstractExome implements PatientGenotypeSimilarityView
+public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExome
+    implements PatientGenotypeSimilarityView
 {
     /** The matched patient to represent. */
     protected final Patient match;
@@ -60,7 +61,7 @@ public abstract class AbstractGenotypeSimilarityView extends AbstractExome imple
      * @param access the access type the user has to the match patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
      */
-    public AbstractGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
+    public AbstractPatientGenotypeSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
     {
         if (match == null || reference == null) {

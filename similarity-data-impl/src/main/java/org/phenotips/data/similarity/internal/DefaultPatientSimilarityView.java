@@ -372,7 +372,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private PatientGenotypeSimilarityView getGenotypeSimilarity()
     {
         if (this.matchedGenes == null) {
-            this.matchedGenes = new RestrictedGenotypeSimilarityView(this.match, this.reference, this.access);
+            this.matchedGenes = new RestrictedPatientGenotypeSimilarityView(this.match, this.reference, this.access);
         }
         return this.matchedGenes;
     }

@@ -66,11 +66,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format
- * 
+ * Tests for the "restricted" {@link PatientGenotypeSimilarityView} implementation,
+ * {@link RestrictedPatientGenotypeSimilarityView}.
+ *
  * @version $Id$
  */
-public class RestrictedGenotypeSimilarityViewTest
+public class RestrictedPatientGenotypeSimilarityViewTest
 {
     /** The reference patient document. */
     private static final DocumentReference PATIENT_1 = new DocumentReference("xwiki", "data", "P0000001");
@@ -170,7 +171,7 @@ public class RestrictedGenotypeSimilarityViewTest
 
     /**
      * Set candidate genes and exome data for mock patient.
-     * 
+     *
      * @param mockPatient
      * @param geneNames
      * @param exomeData
@@ -273,7 +274,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("SRCAP");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView o = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView o =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         Set<String> genes = o.getGenes();
         Assert.assertEquals(1, genes.size());
@@ -306,7 +308,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("HEXA");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         assertNoMatch(view);
     }
@@ -327,7 +330,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("  ");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         assertNoMatch(view);
     }
@@ -344,7 +348,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("  SRCAP  ");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         Set<String> genes = view.getGenes();
         Assert.assertEquals(1, genes.size());
@@ -364,7 +369,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("HEXA");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         assertNoGenetics(view);
     }
@@ -380,7 +386,8 @@ public class RestrictedGenotypeSimilarityViewTest
 
         setupPatientGenetics(mockReference, null);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         assertNoGenetics(view);
     }
@@ -402,7 +409,8 @@ public class RestrictedGenotypeSimilarityViewTest
         // No exome for reference patient
         setupPatientGenetics(mockReference, refGenes, null);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         // SRCAP (candidate + exome vs. candidate) should match
         Set<String> genes = view.getGenes();
@@ -436,7 +444,8 @@ public class RestrictedGenotypeSimilarityViewTest
         // Include exome with variant in NOTCH2, SRCAP in reference patient
         setupPatientGenetics(mockReference, null, EXOME_2);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, open);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         // Both NOTCH2 (candidate vs. exome) and SRCAP (exome vs. exome) should match.
         Set<String> genes = view.getGenes();
@@ -480,7 +489,8 @@ public class RestrictedGenotypeSimilarityViewTest
         refGenes.add("HLA-DQB1");
         setupPatientGenetics(mockReference, refGenes);
 
-        PatientGenotypeSimilarityView view = new RestrictedGenotypeSimilarityView(mockMatch, mockReference, limited);
+        PatientGenotypeSimilarityView view =
+            new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, limited);
 
         // HLA-DQB1 (candidate vs. exome) should match.
         Set<String> genes = view.getGenes();
