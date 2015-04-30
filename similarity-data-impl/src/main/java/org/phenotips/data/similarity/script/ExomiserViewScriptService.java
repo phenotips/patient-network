@@ -69,8 +69,7 @@ public class ExomiserViewScriptService implements ScriptService
      * Checks if a patient has a valid Exomiser genotype.
      *
      * @param patient a valid {@link Patient}
-     * @param k the wanted number of genes
-     * @return a sorted list of k gene names with descending scores
+     * @return boolean {@code true} iff the patient has a valid Exomiser genotype
      */
     public boolean hasGenotype(Patient patient)
     {
