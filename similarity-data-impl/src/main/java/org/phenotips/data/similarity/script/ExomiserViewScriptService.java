@@ -2,24 +2,24 @@
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This software is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.Variant;
@@ -49,6 +49,17 @@ import net.sf.json.JSONObject;
 @Singleton
 public class ExomiserViewScriptService implements ScriptService
 {
+    private static final int MAXIMUM_UNPRIVILEGED_GENES = 10;
+
+    private static final int MAXIMUM_UNPRIVILEGED_VARIANTS = 5;
+
+    @Inject
+    private PermissionsManager pm;
+
+    @Inject
+    @Named("edit")
+    private AccessLevel editAccess;
+
     /** Manager to allow access to patient exome data. */
     @Inject
     @Named("exomiser")
@@ -58,7 +69,8 @@ public class ExomiserViewScriptService implements ScriptService
      * Checks if a patient has a valid Exomiser genotype.
      *
      * @param patient A valid {@link #Patient}
-     * @return boolean true iff the patient has a valid Exomiser genotype
+     * @param k The wanted number of genes
+     * @return A sorted list of k gene names with descending scores
      */
     public boolean hasGenotype(Patient patient)
     {
@@ -90,8 +102,12 @@ public class ExomiserViewScriptService implements ScriptService
             geneJSON.element("score", patientExome.getGeneScore(geneName));
 
             JSONArray variantsJSON = new JSONArray();
+            boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
+                && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
+            int n = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
+            n = Math.min(n, topVariants.size());
             List<Variant> topVariants = patientExome.getTopVariants(geneName);
-            for (int j = 0; j < Math.min(v, topVariants.size()); j++) {
+            for (int i = 0; i < n; i++) {
                 Variant variant = topVariants.get(j);
                 if (variant != null) {
                     variantsJSON.add(variant.toJSON());

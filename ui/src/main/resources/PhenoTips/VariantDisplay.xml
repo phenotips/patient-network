@@ -4,20 +4,18 @@
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This software is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <xwikidoc version="1.1">
@@ -131,21 +129,21 @@
     </property>
     <property>
       <code>var PhenoTips = (function (PhenoTips) {
-	var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
-	widgets.VariantDisplay = Class.create({
-		variantDisplayServiceURL : "${xwiki.getURL('PhenoTips.VariantDisplay', 'get')}",
-		DEFAULT_NUMBER_OF_GENES : "5",
-		DEFAULT_NUMBER_OF_VARIANTS : "3",
-		RESULTS_TABLE_MARKER : "variant-display-table",
+    var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+    widgets.VariantDisplay = Class.create({
+        variantDisplayServiceURL : "${xwiki.getURL('PhenoTips.VariantDisplay', 'get')}",
+        DEFAULT_NUMBER_OF_GENES : "5",
+        DEFAULT_NUMBER_OF_VARIANTS : "3",
+        RESULTS_TABLE_MARKER : "variant-display-table",
 
-		initialize    : function (query, resultsContainer, options) {
-   	 		if (!query || !resultsContainer) {return;}
-     		this.query = query;
-    	 	this.container = resultsContainer;
-     		if (options) {
-      			this.numberOfGenes = options.numberOfGenes || this.DEFAULT_NUMBER_OF_GENES;
-      			this.numberOfVariants = options.numberOfVariants ||this.DEFAULT_NUMBER_OF_VARIANTS;
-      		}
+        initialize    : function (query, resultsContainer, options) {
+                if (!query || !resultsContainer) {return;}
+             this.query = query;
+             this.container = resultsContainer;
+             if (options) {
+                  this.numberOfGenes = options.numberOfGenes || this.DEFAULT_NUMBER_OF_GENES;
+                  this.numberOfVariants = options.numberOfVariants ||this.DEFAULT_NUMBER_OF_VARIANTS;
+              }
 
             this.launchSearch();
 
@@ -153,7 +151,7 @@
             this.container.insert({bottom : this.optionsContainer});
             this.initializeOptionsContainer();
             
-    	},
+        },
         initializeOptionsContainer : function(event){
             if (event) {event.stop();}
 
@@ -167,14 +165,16 @@
             this.optionsButton.update(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Strings["hideOptionsButton"])).stopObserving('click', this.showOptions).observe('click', this.hideOptions.bind(this));
             
             var numberOfGenesInput = new Element('select', {'id' : 'variant-display-number-of-genes'});
-            for (var i = 1; i &lt;= 20; i++) {
-                numberOfGenesInput.insert(new Element('option', {'value' : i}).update(i));
+            // FIXME This is not the proper way of checking access, but there is no other way at the moment
+            var maxGeneLevels = $('prActionEdit') ? [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 75, 100, 150, 200, 300, 500] : [1, 2, 3, 4, 5, 10];
+            for (var i = 0; i &lt; maxGeneLevels.length; i++) {
+                numberOfGenesInput.insert(new Element('option', {'value' : maxGeneLevels[i]}).update(maxGeneLevels[i]));
             };
             numberOfGenesInput.value = this.DEFAULT_NUMBER_OF_GENES;
             var numberOfGenesInput = new Element('label').insert(this.Strings["options.numberOfGenes"]).insert(numberOfGenesInput);
             
             var numberOfVariantsInput = new Element('select', {'id' : 'variant-display-number-of-variants'});
-            for (var i = 1; i &lt;= 10; i++) {
+            for (var i = 1; i &lt;= 5; i++) {
                 numberOfVariantsInput.insert(new Element('option', {'value' : i}).update(i));
             };
             numberOfVariantsInput.value = this.DEFAULT_NUMBER_OF_VARIANTS;
@@ -191,33 +191,33 @@
             this.initializeOptionsContainer();
         },
 
-    	launchSearch   : function (event) {
-	        if (event) {event.stop();}
-	        if (this.activeSearch) {return;}
-	    	var _this = this;
-	    	this.activeSearch = new Ajax.Request(
-	        this.variantDisplayServiceURL,
-	        {
-	          parameters: {
-	            'query' : this.query,
-	            'outputSyntax' : "plain",
-	            'numberOfGenes' : this.numberOfGenes,
-	            'numberOfVariants' : this.numberOfVariants
-	          },
-	          method: "post",
-	          onCreate : function() {
-	            _this.container.addClassName('loading');
-	          },
-	          onSuccess: function(response) {
-	            _this.displayResults(response.responseJSON);
-	          },
-	          onComplete : function() {
-	            _this.container.removeClassName('loading');
-	            _this.activeSearch = false;
-	          }
-	        }
-	      );
-	    },
+        launchSearch   : function (event) {
+            if (event) {event.stop();}
+            if (this.activeSearch) {return;}
+            var _this = this;
+            this.activeSearch = new Ajax.Request(
+            this.variantDisplayServiceURL,
+            {
+              parameters: {
+                'query' : this.query,
+                'outputSyntax' : "plain",
+                'numberOfGenes' : this.numberOfGenes,
+                'numberOfVariants' : this.numberOfVariants
+              },
+              method: "post",
+              onCreate : function() {
+                _this.container.addClassName('loading');
+              },
+              onSuccess: function(response) {
+                _this.displayResults(response.responseJSON);
+              },
+              onComplete : function() {
+                _this.container.removeClassName('loading');
+                _this.activeSearch = false;
+              }
+            }
+          );
+        },
 
         refreshDisplay  : function(event) {
             if (event) {event.stop();}
@@ -230,218 +230,218 @@
             this.launchSearch();
         },
 
-	    displayResults : function (data) {
-	    	this._data = data;
+        displayResults : function (data) {
+            this._data = data;
 
-	    	// Make sure the results are for this query
-	    	if (!data.query) {return;}
-	    	if (data.query.id != this.query) {return;}
+            // Make sure the results are for this query
+            if (!data.query) {return;}
+            if (data.query.id != this.query) {return;}
 
-	    	// Empty the container to make room for the new results
-	    	if (this.resultsTable) {
+            // Empty the container to make room for the new results
+            if (this.resultsTable) {
                 this.resultsTable.remove();
             }
 
-	    	// Show result summary
-	    	data.featuresCount = data.results.size();
-	    	if (data.resultsCount &lt;= 0) {
-	        	this.displaySummary("No genotype information found for this patient");
-	        	return;
-	    	}
+            // Show result summary
+            data.featuresCount = data.results.size();
+            if (data.resultsCount &lt;= 0) {
+                this.displaySummary("No genotype information found for this patient");
+                return;
+            }
 
-	    	// Process results
-	    	var _this = this;
-	    	this.resultsTable = new Element('table', {'class' : this.RESULTS_TABLE_MARKER});
-	    	this.container.insert({top : this.resultsTable});
+            // Process results
+            var _this = this;
+            this.resultsTable = new Element('table', {'class' : this.RESULTS_TABLE_MARKER});
+            this.container.insert({top : this.resultsTable});
 
-	    	var columns = {
+            var columns = {
                 "GeneScore" : {
                     display: _this._displayResultGeneScore.bind(_this),
                     headings  : [_this.Strings["geneScoreHeading"]]
                 },
-	        	"Gene"      : {
-	        		display: _this._displayResultGene.bind(_this),
-	        		headings  : [_this.Strings["geneHeading"]]
-	        	},
-	        	"Variant": {
-	        		display: _this._displayResultVariant.bind(_this),
-	        		headings  : [_this.Strings["variantPosition"], _this.Strings["variantChange"], _this.Strings["variantType"]]
-	        	}
-	        };
+                "Gene"      : {
+                    display: _this._displayResultGene.bind(_this),
+                    headings  : [_this.Strings["geneHeading"]]
+                },
+                "Variant": {
+                    display: _this._displayResultVariant.bind(_this),
+                    headings  : [_this.Strings["variantPosition"], _this.Strings["variantChange"], _this.Strings["variantType"]]
+                }
+            };
 
-			this._displayTableHeader(columns, this.resultsTable);
-			data.results.each(function(r) {
-				_this._displayResultRow(r, columns, _this.resultsTable);
-			});
-			delete this._queryFeatures;
-			delete this._data;
-	    },
-	    _displayTableHeader : function (columns, table) {
-    		var row = this._getEmptyTableRow(table);
-    		for (var c in columns) {
-    			if (!columns.hasOwnProperty(c)) {
-    				continue;
-    			}
-    			var headings = columns[c].headings;
-    			for (var h in headings) {
-    				if (!headings.hasOwnProperty(h)) {
-    					continue;
-    				}
-        			row.insert(new Element("th", {"class" : "variant-display-heading"}).update(headings[h]).addClassName(c));
-        		}
-      		}
-      	return row;
-    	},
-    	_getEmptyTableRow  : function (table) {
-    		//small trick for styling the tables, empty rows are divisions between genes
-    		if (table.lastChild &amp;&amp; table.lastChild.childElements().length == 0){
-    			table.lastChild.previous().addClassName("last-row-for-gene");
-    		}
-    		var row = new Element('tr');
-     		table.insert(row);
-    		return row;
-    	},
-    	_displayResultRow  : function (result, columns, table) {
-    		var row = this._getEmptyTableRow(table);
-    		for (var c in columns) {
-    			row.insert(columns[c].display(result));
-    		}
-    		return row;
-    	},
-    	_getLastRow        : function (table) {
-    		var row = table.rows[table.rows.length-1];
-    		return row;
-    	},
-    	_addToResultRow    : function (result, columns, table) {
-    		var row = this._getLastRow(table);
-    		for (var c in columns) {
-    			row.insert(columns[c].display(result));
-    		}
-    		return row;
-    	},
-    	_displayResultGene : function (r) {
-    		var content = new Element('td', {'class' : 'gene-name', 'rowspan' : r.variants.length});
-    		var geneName = new Element('p', {'class' : 'gene-name'});
-    		geneName.update(r.name);
-    		content.insert(geneName)
-    		return content;
-    	},
-    	_displayResultGeneScore : function (r) {
+            this._displayTableHeader(columns, this.resultsTable);
+            data.results.each(function(r) {
+                _this._displayResultRow(r, columns, _this.resultsTable);
+            });
+            delete this._queryFeatures;
+            delete this._data;
+        },
+        _displayTableHeader : function (columns, table) {
+            var row = this._getEmptyTableRow(table);
+            for (var c in columns) {
+                if (!columns.hasOwnProperty(c)) {
+                    continue;
+                }
+                var headings = columns[c].headings;
+                for (var h in headings) {
+                    if (!headings.hasOwnProperty(h)) {
+                        continue;
+                    }
+                    row.insert(new Element("th", {"class" : "variant-display-heading"}).update(headings[h]).addClassName(c));
+                }
+              }
+          return row;
+        },
+        _getEmptyTableRow  : function (table) {
+            //small trick for styling the tables, empty rows are divisions between genes
+            if (table.lastChild &amp;&amp; table.lastChild.childElements().length == 0){
+                table.lastChild.previous().addClassName("last-row-for-gene");
+            }
+            var row = new Element('tr');
+             table.insert(row);
+            return row;
+        },
+        _displayResultRow  : function (result, columns, table) {
+            var row = this._getEmptyTableRow(table);
+            for (var c in columns) {
+                row.insert(columns[c].display(result));
+            }
+            return row;
+        },
+        _getLastRow        : function (table) {
+            var row = table.rows[table.rows.length-1];
+            return row;
+        },
+        _addToResultRow    : function (result, columns, table) {
+            var row = this._getLastRow(table);
+            for (var c in columns) {
+                row.insert(columns[c].display(result));
+            }
+            return row;
+        },
+        _displayResultGene : function (r) {
+            var content = new Element('td', {'class' : 'gene-name', 'rowspan' : r.variants.length});
+            var geneName = new Element('p', {'class' : 'gene-name'});
+            geneName.update(r.name);
+            content.insert(geneName)
+            return content;
+        },
+        _displayResultGeneScore : function (r) {
             var content = new Element('td', {'class' : 'gene-score', 'rowspan' : r.variants.length});
-    		var functionality = r.score;
-    		var geneScore = new Element('div', {'class' : 'gene-score'});
-    		geneScore.insert(this.Utils.generateSegmentedBar(5, functionality));
+            var functionality = r.score;
+            var geneScore = new Element('div', {'class' : 'gene-score'});
+            geneScore.insert(this.Utils.generateSegmentedBar(5, functionality));
             content.insert(geneScore);
-    		return content;
-    	},
-    	_displayResultVariant : function (r) {
-    		var variantSubTable = new Element ('table');
-    		var _this = this;
-    		var variantColumns = {
-    			"Position" : {
-    				display: this._displayResultVariantPosition.bind(this)
-    			},
-    			"Change" : {
-    				display: this._displayResultVariantChange.bind(this)
-    			},
-    			"Type" : {
-    				display: this._displayResultVariantType.bind(this)
-    			},
-    		};
+            return content;
+        },
+        _displayResultVariant : function (r) {
+            var variantSubTable = new Element ('table');
+            var _this = this;
+            var variantColumns = {
+                "Position" : {
+                    display: this._displayResultVariantPosition.bind(this)
+                },
+                "Change" : {
+                    display: this._displayResultVariantChange.bind(this)
+                },
+                "Type" : {
+                    display: this._displayResultVariantType.bind(this)
+                },
+            };
 
-    		for (var i = 0; i&lt;r.variants.length; i++){
-    			_this._addToResultRow(r.variants[i], variantColumns, _this.resultsTable);
-    			if (!r.variants[i+1]){
-		    		//adding a class for styling the table
-		    		_this.resultsTable.lastChild.addClassName("last-row-for-gene");
-    			} else {
-    				_this.resultsTable.insertRow();
-    			}
-    		}
-    	},
+            for (var i = 0; i&lt;r.variants.length; i++){
+                _this._addToResultRow(r.variants[i], variantColumns, _this.resultsTable);
+                if (!r.variants[i+1]){
+                    //adding a class for styling the table
+                    _this.resultsTable.lastChild.addClassName("last-row-for-gene");
+                } else {
+                    _this.resultsTable.insertRow();
+                }
+            }
+        },
 
-    	_displayResultVariantPosition : function (r) {
-    		var content = new Element('td', {'class' : 'variant-position'});
-    		var _this = this;
-    		if (r.chrom &amp;&amp; r.position &amp;&amp; r.ref) {
-	    		var start = r.position;
-	    		var end = r.position + r.ref.length;
-	    		var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()[0]).replace("__START__", start).replace("__STOP__", end);
-	    		var positionURLFragment = "Chr" + r.chrom.toUpperCase()[0] + ": " + start + "-" + end;
-	            var assembly = r.assembly || "hg19";
-	            var position = new Element('a', {
-	                 'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
-	                 'class' : 'button secondary',
-	                 'target' : '__blank',
-	                 'title' : _this.Strings["variantPositionLinkTitle"]
-	            }).update(positionText).wrap('span', {'class' : 'buttonwrapper'});
-	        	content.insert(position);
-	        }
-	        return content;
+        _displayResultVariantPosition : function (r) {
+            var content = new Element('td', {'class' : 'variant-position'});
+            var _this = this;
+            if (r.chrom &amp;&amp; r.position &amp;&amp; r.ref) {
+                var start = r.position;
+                var end = r.position + r.ref.length;
+            var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()).replace("__START__", start).replace("__STOP__", end);
+                var positionURLFragment = "chr" + r.chrom.toUpperCase() + ":" + start + "-" + end;
+                var assembly = r.assembly || "hg19";
+                var position = new Element('a', {
+                     'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
+                     'class' : 'button secondary',
+                     'target' : '__blank',
+                     'title' : _this.Strings["variantPositionLinkTitle"]
+                }).update(positionText).wrap('span', {'class' : 'buttonwrapper'});
+                content.insert(position);
+            }
+            return content;
 
-    	},
+        },
 
-    	_displayResultVariantChange : function (r) {
-    		var content = new Element('td', {'class' : 'variant-change'});
-    		var displayedRef = (r.ref.length &gt; 10) ? (r.ref.substring(0,10)+"...") : r.ref;
-    		var displayedAlt = (r.alt.length &gt; 10) ? (r.alt.substring(0,10)+"...") : r.alt;
-    		content.update("&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;");
-    		return content;
-    	},
+        _displayResultVariantChange : function (r) {
+            var content = new Element('td', {'class' : 'variant-change'});
+            var displayedRef = (r.ref.length &gt; 10) ? (r.ref.substring(0,10)+"...") : r.ref;
+            var displayedAlt = (r.alt.length &gt; 10) ? (r.alt.substring(0,10)+"...") : r.alt;
+            content.update("&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;");
+            return content;
+        },
 
-    	_displayResultVariantType : function (r) {
-    		var content = new Element('td', {'class' : 'variant-type'}).update("&lt;span class='variant-type-text'&gt;" + r.type + "&lt;/span&gt;");
-    		return content;
-    	},
+        _displayResultVariantType : function (r) {
+            var content = new Element('td', {'class' : 'variant-type'}).update("&lt;span class='variant-type-text'&gt;" + r.type + "&lt;/span&gt;");
+            return content;
+        },
 
-    	Utils : {
-		    generateSegmentedBar : function (count, value) {
-		        var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
-		        var valueUnit = 1 / count;
-		        for (var i = 0; i &lt; count; ++i) {
-		          var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
-		          var segment = new Element('span', {'class' : 'segmented-unit'}).update(
-		                        new Element('span', {
-		                        	'class' : 'segmented-unit-fill',
-		                        	'style' : "width: " + segmentFill + "%"
-		                        })
-		          );
-		          bar.insert(segment);
-		        }
-		        return bar.insert(' ' + Math.round(value * 100) + '%');
-		      },
-    	},
+        Utils : {
+            generateSegmentedBar : function (count, value) {
+                var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
+                var valueUnit = 1 / count;
+                for (var i = 0; i &lt; count; ++i) {
+                  var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
+                  var segment = new Element('span', {'class' : 'segmented-unit'}).update(
+                                new Element('span', {
+                                    'class' : 'segmented-unit-fill',
+                                    'style' : "width: " + segmentFill + "%"
+                                })
+                  );
+                  bar.insert(segment);
+                }
+                return bar.insert(' ' + Math.round(value * 100) + '%');
+              },
+        },
 
-    	Strings : {
+        Strings : {
             "options.numberOfGenes": "Maximum number of genes: ",
             "options.numberOfVariants": "Maximum variants per gene: ",
-    		"positionPhrase"  : "Chr __CHROMOSOME__: __START__-__STOP__",
-    		"variantPositionLinkTitle" : 'Visualize in the UCSC Genome Browser',
+            "positionPhrase"  : "chr__CHROMOSOME__: __START__ - __STOP__",
+            "variantPositionLinkTitle" : 'Visualize in the UCSC Genome Browser',
             "geneScoreHeading": "Score",
-    		"geneHeading"     : "Gene",
-    		"variantPosition" : "Variant Position",
-    		"variantChange"   : "Variant",
-    		"variantType"     : "Effect",
+            "geneHeading"     : "Gene",
+            "variantPosition" : "Variant Position",
+            "variantChange"   : "Variant",
+            "variantType"     : "Effect",
             "optionsButton"   : "Options",
             "hideOptionsButton": "Hide Options",
             "refreshButton"   : "Refresh"
-    	}
+        }
 
-	});
+    });
 
-	var init = function() {
-		var container = $('variant_display_container');
-		new PhenoTips.widgets.VariantDisplay(new XWiki.Document().page, container, {
-			numberOfGenes : 5,
-			numberOfVariants : 3
-		});
-	};
+    var init = function() {
+        var container = $('variant_display_container');
+        new PhenoTips.widgets.VariantDisplay(new XWiki.Document().page, container, {
+            numberOfGenes : 5,
+            numberOfVariants : 3
+        });
+    };
 
 
-	(XWiki &amp;&amp; XWiki.domIsLoaded &amp;&amp; init()) || document.observe("xwiki:dom:loaded", init);
+    (XWiki &amp;&amp; XWiki.domIsLoaded &amp;&amp; init()) || document.observe("xwiki:dom:loaded", init);
 
-	// End PhenoTips augmentation.
-	return PhenoTips;
+    // End PhenoTips augmentation.
+    return PhenoTips;
 }(PhenoTips || {}));</code>
     </property>
     <property>
@@ -604,6 +604,10 @@ table.variant-display-table td{
 
 .variant-display-table &gt; .last-row-for-gene &gt; td {
   border-bottom: 1px solid $theme.textColor;
+}
+
+.variant-display-table .variant-position .button.secondary {
+  text-transform: none;
 }
 </code>
     </property>
