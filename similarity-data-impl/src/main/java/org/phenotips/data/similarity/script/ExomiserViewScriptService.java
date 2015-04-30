@@ -105,10 +105,10 @@ public class ExomiserViewScriptService implements ScriptService
             boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
                 && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
             int n = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
-            n = Math.min(n, topVariants.size());
             List<Variant> topVariants = patientExome.getTopVariants(geneName);
+            n = Math.min(n, topVariants.size());
             for (int i = 0; i < n; i++) {
-                Variant variant = topVariants.get(j);
+                Variant variant = topVariants.get(i);
                 if (variant != null) {
                     variantsJSON.add(variant.toJSON());
                 }
