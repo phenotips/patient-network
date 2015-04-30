@@ -29,7 +29,6 @@ import org.xwiki.component.manager.ComponentManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +78,6 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         }
 
         // Match candidate genes and any genotype available
-        this.geneScores = new HashMap<String, Double>();
         if (this.matchGenotype != null && this.refGenotype != null && this.matchGenotype.hasGenotypeData()
             && this.refGenotype.hasGenotypeData()) {
             matchGenes();
@@ -103,11 +101,10 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     }
 
     /**
-     * Score genes with variants in both patients, and sets 'geneScores' and 'geneVariants' fields accordingly.
+     * Score genes with variants in both patients, and sets 'geneScores' accordingly.
      */
     private void matchGenes()
     {
-        this.geneScores = new HashMap<String, Double>();
         for (String gene : getGenes()) {
             // Compute gene score based on the genotype scores for the two patients
             Double refScore = this.refGenotype.getGeneScore(gene);

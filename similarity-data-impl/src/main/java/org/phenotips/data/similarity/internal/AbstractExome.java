@@ -23,6 +23,7 @@ import org.phenotips.data.similarity.Variant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,10 +40,10 @@ import net.sf.json.JSONObject;
 public abstract class AbstractExome implements Exome
 {
     /** The overall score for each gene with a variant. */
-    protected Map<String, Double> geneScores;
+    protected Map<String, Double> geneScores = new HashMap<>();
 
     /** The variants in each gene. */
-    protected Map<String, List<Variant>> variants;
+    protected Map<String, List<Variant>> variants = new HashMap<>();
 
     @Override
     public Set<String> getGenes()

@@ -30,7 +30,6 @@ import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -85,11 +84,8 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         this.candidateGenes = getPatientCandidateGeneNames(patient);
 
         // Score all genes
-        if (this.geneScores == null) {
-            this.geneScores = new HashMap<String, Double>();
-            for (String gene : this.getGenes()) {
-                this.geneScores.put(gene, this.getGeneScore(gene));
-            }
+        for (String gene : this.getGenes()) {
+            this.geneScores.put(gene, this.getGeneScore(gene));
         }
     }
 

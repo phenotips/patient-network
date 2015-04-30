@@ -26,7 +26,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -56,8 +55,6 @@ public class ExomiserExome extends AbstractExome implements Exome
      */
     ExomiserExome()
     {
-        this.variants = new HashMap<String, List<Variant>>();
-        this.geneScores = new HashMap<String, Double>();
     }
 
     /**
@@ -68,8 +65,6 @@ public class ExomiserExome extends AbstractExome implements Exome
      */
     ExomiserExome(Reader exomiserOutput) throws IOException
     {
-        this.variants = new HashMap<String, List<Variant>>();
-        this.geneScores = new HashMap<String, Double>();
         BufferedReader reader = new BufferedReader(exomiserOutput);
 
         // Parse column names from header
