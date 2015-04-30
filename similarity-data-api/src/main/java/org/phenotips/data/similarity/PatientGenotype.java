@@ -22,7 +22,7 @@ import org.xwiki.stability.Unstable;
 import java.util.Set;
 
 /**
- * This class represents the combined genetics (candidate genes and exome sequence data) for a Patient.
+ * This class represents the combined genetics (manually entered genes and exome sequence data) for a Patient.
  *
  * @version $Id$
  * @since 1.0M6
@@ -31,9 +31,9 @@ import java.util.Set;
 public interface PatientGenotype extends Exome
 {
     /**
-     * Return whether the patient has any genotype data available (candidate genes or exome data).
+     * Return whether the patient has any genotype data available (manually entered genes or exome data).
      *
-     * @return true iff the patient has any candidate genes or exome data
+     * @return true iff the patient has any manually entered genes or exome data
      */
     boolean hasGenotypeData();
 
@@ -45,7 +45,7 @@ public interface PatientGenotype extends Exome
     Set<String> getCandidateGenes();
 
     /**
-     * Get the genes likely mutated in the patient, both from candidate genes and exome data.
+     * Get the genes likely mutated in the patient, both from manually entered genes and exome data.
      *
      * @return a (potentially-empty) set of gene names
      * @see org.phenotips.data.similarity.Exome#getGenes()

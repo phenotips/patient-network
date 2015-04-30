@@ -33,7 +33,7 @@ import org.xwiki.stability.Unstable;
 public interface ExomeManager
 {
     /**
-     * Get the (potentially-cached) {@link Exome} for the patient with the given id.
+     * Get the (potentially-cached) {@link Exome} for the given {@link Patient}.
      *
      * @param p the patient for which the {@link Exome} will be retrieved
      * @return the corresponding {@link Exome}, or {@code null} if no exome available

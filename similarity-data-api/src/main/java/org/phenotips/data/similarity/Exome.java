@@ -36,7 +36,7 @@ public interface Exome
     /**
      * Get the names of all genes with variants in the patient.
      *
-     * @return a set of gene names with variants in the patient
+     * @return an unmodifiable set of gene names with variants in the patient
      */
     Set<String> getGenes();
 
@@ -44,15 +44,15 @@ public interface Exome
      * Return the score for a gene.
      *
      * @param gene the gene in question
-     * @return the score of the gene, between 0 and 1, where 1 is better (or null if no variants for gene)
+     * @return the score of the gene, between 0 and 1, where 1 is better (or {@code null} if no variants for gene)
      */
     Double getGeneScore(String gene);
 
     /**
      * Get {@link Variant}s for a gene.
      *
-     * @param gene the gene to get {@link Variant}s for
-     * @return a (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score
+     * @param gene the gene to get {@link Variant}s for.
+     * @return an unmodifiable (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score
      */
     List<Variant> getTopVariants(String gene);
 
@@ -60,7 +60,7 @@ public interface Exome
      * Get the n highest genes, in descending order of score. If there are fewer than n genes, all will be returned.
      *
      * @param n the number of genes to return (specify 0 for all)
-     * @return a (potentially-empty) list of gene names
+     * @return an unmodifiable (potentially-empty) list of gene names
      */
     List<String> getTopGenes(int n);
 

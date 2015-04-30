@@ -33,7 +33,7 @@ import org.xwiki.stability.Unstable;
 public interface PatientGenotypeManager
 {
     /**
-     * Get the (potentially-cached) {@link PatientGenotype} for the {@link Patient} with the given id.
+     * Get the (potentially-cached) {@link PatientGenotype} for the given {@link Patient}.
      *
      * @param p the {@link Patient} for which the {@link PatientGenotype} will be retrieved
      * @return the corresponding {@link PatientGenotype}, or {@code null} if no genotype available
