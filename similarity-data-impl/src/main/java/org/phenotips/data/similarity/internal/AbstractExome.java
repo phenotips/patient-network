@@ -59,11 +59,11 @@ public abstract class AbstractExome implements Exome
     @Override
     public List<Variant> getTopVariants(String gene)
     {
-        List<Variant> vs = this.variants.get(gene);
-        if (vs == null) {
-            vs = Collections.emptyList();
+        List<Variant> result = this.variants.get(gene);
+        if (result == null) {
+            result = Collections.emptyList();
         }
-        return vs;
+        return result;
     }
 
     @Override

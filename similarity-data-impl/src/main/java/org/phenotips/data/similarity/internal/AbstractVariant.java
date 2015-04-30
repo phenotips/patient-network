@@ -24,7 +24,7 @@ import java.util.Map;
 import net.sf.json.JSONObject;
 
 /**
- * A base implementation of a Variant.
+ * A base implementation of a {@link Variant}.
  *
  * @version $Id$
  * @since 1.0M6
