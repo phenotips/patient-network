@@ -367,7 +367,7 @@
                 var start = r.position;
                 var end = r.position + r.ref.length;
             var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()).replace("__START__", start).replace("__STOP__", end);
-                var positionURLFragment = "Chr" + r.chrom.toUpperCase()[0] + ": " + start + "-" + end;
+                var positionURLFragment = "chr" + r.chrom.toUpperCase() + ":" + start + "-" + end;
                 var assembly = r.assembly || "hg19";
                 var position = new Element('a', {
                      'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
@@ -415,7 +415,7 @@
         Strings : {
             "options.numberOfGenes": "Maximum number of genes: ",
             "options.numberOfVariants": "Maximum variants per gene: ",
-            "positionPhrase"  : "Chr __CHROMOSOME__: __START__-__STOP__",
+            "positionPhrase"  : "chr__CHROMOSOME__: __START__ - __STOP__",
             "variantPositionLinkTitle" : 'Visualize in the UCSC Genome Browser',
             "geneScoreHeading": "Score",
             "geneHeading"     : "Gene",
@@ -604,6 +604,10 @@ table.variant-display-table td{
 
 .variant-display-table &gt; .last-row-for-gene &gt; td {
   border-bottom: 1px solid $theme.textColor;
+}
+
+.variant-display-table .variant-position .button.secondary {
+  text-transform: none;
 }
 </code>
     </property>
