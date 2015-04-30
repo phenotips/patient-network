@@ -61,8 +61,8 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     protected Exome exome;
 
     /**
-     * Constructor for a {@link #PatientGenotype} object, representing the candidate genes and exome sequence data for
-     * the given Patient.
+     * Constructor for a {@link PatientGenotype} object, representing the candidate genes and exome sequence data for
+     * the given {@link Patient}.
      *
      * @param patient the patient object
      */
@@ -95,7 +95,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     /**
      * Return a set of the names of candidate genes listed for the given patient.
      *
-     * @param p the {@link #Patient}
+     * @param p the {@link Patient}
      * @return a (potentially-empty) unmodifiable set of the names of candidate genes
      */
     private static Set<String> getPatientCandidateGeneNames(Patient p)

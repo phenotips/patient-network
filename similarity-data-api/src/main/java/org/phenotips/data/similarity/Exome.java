@@ -25,7 +25,7 @@ import java.util.Set;
 import net.sf.json.JSONArray;
 
 /**
- * A basic representation of a exome of a patient, with scored {@link #Variant} objects in scored genes.
+ * A basic representation of a exome of a patient, with scored {@link Variant} objects in scored genes.
  *
  * @version $Id$
  * @since
@@ -49,10 +49,10 @@ public interface Exome
     Double getGeneScore(String gene);
 
     /**
-     * Get {@link #Variant}s for a gene.
+     * Get {@link Variant}s for a gene.
      *
-     * @param gene the gene to get {@link #Variant}s for.
-     * @return a (potentially-empty) list of top {@link #Variant}s for the gene, by decreasing score
+     * @param gene the gene to get {@link Variant}s for
+     * @return a (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score
      */
     List<Variant> getTopVariants(String gene);
 

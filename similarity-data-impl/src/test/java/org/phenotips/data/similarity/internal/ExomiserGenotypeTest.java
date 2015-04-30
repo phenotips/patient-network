@@ -44,7 +44,7 @@ public class ExomiserGenotypeTest
             + "chr1\t120611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\n"
             + "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
 
-    /** Parse an {@link #Exome} object from a raw String */
+    /** Parse an {@link Exome} object from a raw String */
     private Exome parseExomeFromString(String exomeString)
     {
         Exome exome = null;

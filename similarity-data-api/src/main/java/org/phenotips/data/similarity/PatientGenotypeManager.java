@@ -22,7 +22,7 @@ import org.phenotips.data.Patient;
 import org.xwiki.stability.Unstable;
 
 /**
- * This class allows access to an {@link #PatientGenotype} object for a given {@link #Patient}.
+ * This class allows access to an {@link PatientGenotype} object for a given {@link Patient}.
  *
  * @version $Id$
  * @since 1.0M6
@@ -31,10 +31,10 @@ import org.xwiki.stability.Unstable;
 public interface PatientGenotypeManager
 {
     /**
-     * Get the (potentially-cached) {@link #PatientGenotype} for the {@link #Patient} with the given id.
+     * Get the (potentially-cached) {@link PatientGenotype} for the {@link Patient} with the given id.
      *
-     * @param p the {@link #Patient} for which the {@link #PatientGenotype} will be retrieved
-     * @return the corresponding {@link #PatientGenotype}, or null if no genotype available
+     * @param p the {@link Patient} for which the {@link PatientGenotype} will be retrieved
+     * @return the corresponding {@link PatientGenotype}, or {@code null} if no genotype available
      */
     PatientGenotype getGenotype(Patient p);
 }

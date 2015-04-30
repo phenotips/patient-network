@@ -43,8 +43,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * This is an implementation of the {@link #ExomeManager}, and allows accessing {@link #ExomiserExome} objects for the
- * given {@link #Patient}.
+ * This is an implementation of the {@link ExomeManager}, and allows accessing {@link ExomiserExome} objects for the
+ * given {@link Patient}.
  *
  * @version $Id$
  */
@@ -135,10 +135,10 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     }
 
     /**
-     * Load a patient's {@link #ExomiserExome}, based on the patient's id.
+     * Load a patient's {@link ExomiserExome}, based on the patient's id.
      *
      * @param id the patient record identifier
-     * @return the {@link #ExomiserExome} for the corresponding patient
+     * @return the {@link ExomiserExome} for the corresponding patient
      */
     private Exome loadExomeById(String id)
     {

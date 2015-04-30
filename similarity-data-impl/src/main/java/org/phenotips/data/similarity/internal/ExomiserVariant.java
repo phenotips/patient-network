@@ -34,7 +34,7 @@ public class ExomiserVariant extends AbstractVariant
     private static final String VARIANT_SCORE_KEY = "EXOMISER_VARIANT_SCORE";
 
     /**
-     * Create a {@link #Variant} from a line of an Exomiser variant TSV file.
+     * Create a {@link Variant} from a line of an Exomiser variant TSV file.
      *
      * @param columns the names of the TSV columns
      * @param values the value in each TSV column

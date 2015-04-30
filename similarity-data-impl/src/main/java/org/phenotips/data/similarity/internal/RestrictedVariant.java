@@ -27,9 +27,9 @@ import org.phenotips.data.similarity.Variant;
 public class RestrictedVariant extends AbstractVariant
 {
     /**
-     * Create an empty {@link #Variant}.
+     * Create an empty {@link Variant}.
      *
-     * @param variant the {@link #Variant} to restrict
+     * @param variant the {@link Variant} to restrict
      */
     RestrictedVariant(Variant variant)
     {

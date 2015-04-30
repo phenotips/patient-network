@@ -51,7 +51,7 @@ public class ExomiserExome extends AbstractExome implements Exome
     private static final String FIELD_DELIMITER = "\t";
 
     /**
-     * Constructor for empty {@link #Exome} object.
+     * Constructor for empty {@link Exome} object.
      */
     ExomiserExome()
     {
@@ -60,7 +60,7 @@ public class ExomiserExome extends AbstractExome implements Exome
     }
 
     /**
-     * Create a {@link #Exome} object from an Exomiser output file.
+     * Create an {@link Exome} object from an Exomiser output file.
      *
      * @param exomiserOutput an exomiser-annotated VCF file
      * @throws IOException if the file does not follow the Exomiser format

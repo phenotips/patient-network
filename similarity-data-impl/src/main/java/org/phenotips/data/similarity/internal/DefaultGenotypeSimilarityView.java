@@ -89,7 +89,7 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
     /**
      * Lookup component genotype manager.
      *
-     * @return {@link #PatientGenotypeManager} component
+     * @return {@link PatientGenotypeManager} component
      */
     private PatientGenotypeManager getGenotypeManager()
     {
@@ -138,7 +138,7 @@ public class DefaultGenotypeSimilarityView extends AbstractGenotypeSimilarityVie
     /**
      * Serialize the variants in a particular patient in a single gene.
      *
-     * @param variants a list of {@link #Variant}s to serialize
+     * @param variants a list of {@link Variant}s to serialize
      * @return JSON for the patient's variants, an empty object if there are no variants
      */
     protected JSONObject getVariantsJSON(List<Variant> variants)

@@ -68,9 +68,9 @@ public class ExomiserViewScriptService implements ScriptService
     /**
      * Checks if a patient has a valid Exomiser genotype.
      *
-     * @param patient A valid {@link #Patient}
-     * @param k The wanted number of genes
-     * @return A sorted list of k gene names with descending scores
+     * @param patient a valid {@link Patient}
+     * @param k the wanted number of genes
+     * @return a sorted list of k gene names with descending scores
      */
     public boolean hasGenotype(Patient patient)
     {
@@ -83,10 +83,10 @@ public class ExomiserViewScriptService implements ScriptService
     /**
      * Outputs the k top genes from a patient as a JSON array.
      *
-     * @param patient A valid patient
-     * @param g The number of genes to report
-     * @param v The maximum number of variants to report per gene
-     * @return An array of "g" JSON objects representing the top genes for the patient
+     * @param patient a valid patient
+     * @param g the number of genes to report
+     * @param v the maximum number of variants to report per gene
+     * @return an array of "g" JSON objects representing the top genes for the patient
      */
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {

@@ -31,8 +31,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * This is an implementation of the {@link #PatientGenotypeManager}, and allows accessing the {@link #PatientGenotype} for the
- * given {@link #Patient}.
+ * This is an implementation of the {@link PatientGenotypeManager}, and allows accessing the {@link PatientGenotype} for
+ * the given {@link Patient}.
  *
  * @version $Id$
  * @since 1.0M6
