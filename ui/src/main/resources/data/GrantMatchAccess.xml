@@ -18,29 +18,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<xwikidoc>
+<xwikidoc version="1.1">
   <web>data</web>
   <name>GrantMatchAccess</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>data.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1430385642000</creationDate>
+  <parent>data.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
-  <customClass/>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <creationDate>1393534111000</creationDate>
-  <date>1393536548000</date>
-  <contentUpdateDate>1393536538000</contentUpdateDate>
+  <date>1430385642000</date>
+  <contentUpdateDate>1430385642000</contentUpdateDate>
   <version>1.1</version>
   <title>Grant mutual access to similar patients</title>
-  <defaultTemplate/>
-  <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
+  <content>{{velocity}}
+#if ("$!{request.id}" != '')
+  #set ($accessRequest = $services.anonymousCommunication.grantAccess($request.id))
+  #set ($patient = $accessRequest.getTargetPatient().getDocument())
+  #if ($accessRequest)
+    {{html}}You have granted user &lt;b&gt;$accessRequest.getInitiatingUser().getName()&lt;/b&gt; access to patient
+    &lt;a href="$xwiki.getURL($patient)"&gt;$patient.getName()&lt;/a&gt;{{/html}}
+  #else
+    {{error}}An error occurred.{{/error}}
+  #end
+#end
+{{/velocity}}</content>
   <object>
+    <name>data.GrantMatchAccess</name>
+    <number>0</number>
+    <className>XWiki.XWikiRights</className>
+    <guid>564211c2-bf21-4151-a34b-1477024f783d</guid>
     <class>
       <name>XWiki.XWikiRights</name>
       <customClass/>
@@ -106,10 +119,6 @@
         <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
       </users>
     </class>
-    <name>data.GrantMatchAccess</name>
-    <number>0</number>
-    <className>XWiki.XWikiRights</className>
-    <guid>564211c2-bf21-4151-a34b-1477024f783d</guid>
     <property>
       <allow>1</allow>
     </property>
@@ -123,16 +132,4 @@
       <users/>
     </property>
   </object>
-  <content>{{velocity}}
-#if ("$!{request.id}" != '')
-  #set ($accessRequest = $services.anonymousCommunication.grantAccess($request.id))
-  #set ($patient = $accessRequest.getTargetPatient().getDocument())
-  #if ($accessRequest)
-    {{html}}You have granted user &lt;b&gt;$accessRequest.getInitiatingUser().getName()&lt;/b&gt; access to patient
-    &lt;a href="$xwiki.getURL($patient)"&gt;$patient.getName()&lt;/a&gt;{{/html}}
-  #else
-    {{error}}An error occurred.{{/error}}
-  #end
-#end
-{{/velocity}}</content>
 </xwikidoc>
