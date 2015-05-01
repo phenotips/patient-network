@@ -76,7 +76,7 @@ public class ExomiserViewScriptService implements ScriptService
         if (patient == null) {
             return false;
         }
-        return exomeManager.getExome(patient) != null;
+        return this.exomeManager.getExome(patient) != null;
     }
 
     /**
@@ -94,7 +94,7 @@ public class ExomiserViewScriptService implements ScriptService
             return result;
         }
 
-        Exome patientExome = exomeManager.getExome(patient);
+        Exome patientExome = this.exomeManager.getExome(patient);
         for (String geneName : patientExome.getTopGenes(g)) {
             JSONObject geneJSON = new JSONObject();
             geneJSON.element("name", geneName);
