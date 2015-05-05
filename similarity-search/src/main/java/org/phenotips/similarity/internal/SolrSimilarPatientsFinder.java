@@ -30,6 +30,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,8 +40,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -83,7 +84,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private SolrCoreContainerHandler cores;
 
     /** The Solr server instance used. */
-    private SolrServer server;
+    private SolrClient server;
 
     @Override
     public void initialize() throws InitializationException
@@ -181,8 +182,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     {
         try {
             return this.server.query(query).getResults();
-        } catch (SolrServerException ex) {
-            this.logger.warn("Failed to query the patients index: {}", ex.getMessage());
+        } catch (IOException | SolrServerException ex) {
+            this.logger.warn("Failed to query the patients index: {}",
+                    ex.getMessage());
             return null;
         }
     }
