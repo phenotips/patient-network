@@ -536,25 +536,25 @@
     <property>
       <code>#template("colorThemeInit.vm")
 
-.segmented-bar {
+table.variant-display-table .segmented-bar {
   color: $theme.textColor;
   font-size: 75%;
   white-space: nowrap;
   width: auto;
 }
 
-.segmented-bar .segmented-unit {
-  width: 5px;
-  height: 5px;
+table.variant-display-table .segmented-bar .segmented-unit {
+  width: 8px;
+  height: 8px;
   display: inline-block;
   margin: 0 1px;
   border: 1px solid black;
   border-radius: 1px;
 }
 
-.segmented-bar .segmented-unit-fill {
-  width: 5px;
-  height: 5px;
+table.variant-display-table .segmented-bar .segmented-unit-fill {
+  width: 8px;
+  height: 8px;
   display: block;
   background-color: $theme.textColor;
   border-radius: 1px;
