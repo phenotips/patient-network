@@ -228,9 +228,9 @@
     </class>
     <property>
       <html>#if ("$!{config.matchCaseId}" == '')
-    #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
-    #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
-    #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
 #end
 
 &lt;p&gt;Hello ${config.recipientName},&lt;/p&gt;
@@ -242,24 +242,26 @@
 
 
 #if ($!{config.diagnosis} || $!{config.summary})
-  My patient
-  #if ($!{config.diagnosis})
-    #if($patient.disorders.size() == 0)
-      is undiagnosed
-    #else
-      is diagnosed with
-      #set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
-      &lt;ul&gt;
-      #foreach ($d in $sortedDisorders)
-        &lt;li&gt;$d.name&lt;/li&gt;
-      #end
-      &lt;/ul&gt;
-      #if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
-        and
-      #end
-    #end
-  #end
-  #if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+My patient##
+#if ($!{config.diagnosis})
+#if($patient.disorders.size() == 0)
+ is undiagnosed##
+#else
+ is diagnosed with
+#set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
+&lt;ul&gt;
+#foreach ($d in $sortedDisorders)
+&lt;li&gt;$d.name&lt;/li&gt;
+#end
+&lt;/ul&gt;
+#end
+#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+ and##
+#else
+.
+#end
+#end
+#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
     #set($sortedFeatures = [])
     #foreach ($f in $patient.features)
       #set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
@@ -314,9 +316,9 @@ The ${platformName} team&lt;/p&gt;</html>
     </property>
     <property>
       <text>#if ("$!{config.matchCaseId}" == '')
-    #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
-    #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
-    #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('recipientName', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('matchCaseId', 'TODO: retrieve from TOKEN'))
+  #set ($discard = $config.put('matchCaseAccessLink', 'TODO: retrieve from TOKEN'))
 #end
 
 Hello ${config.recipientName},
@@ -327,20 +329,30 @@ A ${platformName} user is interested in one of your non-public cases: ${config.m
 ${platformName} has identified significant similarities between one of your cases and one of mine.
 
 #if ($!{config.diagnosis} || $!{config.summary})
-My patient #if ($!{config.diagnosis})#if($patient.disorders.size() == 0)is undiagnosed #{else}is diagnosed with
+My patient##
+#if ($!{config.diagnosis})
+#if($patient.disorders.size() == 0)
+ is undiagnosed##
+#else
+ is diagnosed with
 #set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
 #foreach ($d in $sortedDisorders)
 * $d.name
 #end
-#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
-and ##
-#end
-#end
 #end
 #if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
-#set($sortedFeatures = [])#foreach ($f in $patient.features)#set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))#end
+ and##
+#else
+.
+#end
+#end
+#if ($!{config.summary} &amp;&amp; $patient.features.size() &gt; 0)
+#set($sortedFeatures = [])
+#foreach ($f in $patient.features)
+#set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
+#end
 #set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
-presents the following phenotypic features:
+ presents the following phenotypic features:
 #foreach ($f in $sortedFeatures)
 * #if (!$f.feature.isPresent())NO #end$f.name
 #if ($f.feature.metadata.size() &gt; 0)
@@ -358,11 +370,10 @@ I would like#if ($!{config.share}) to grant you the rights to view my case and t
 
 $!config.message
 #if ("$!{config.name}$!{config.email}" != '')
-
 Regards,
-$!{config.name}
-$!{config.email}
-$!{config.groups}
+  $!{config.name}
+  $!{config.email}
+  $!{config.groups}
 #end
 -----------------------------------------------------------------------------
 
