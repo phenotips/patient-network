@@ -21,7 +21,7 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     /** The access level the user has to the patient. */
     protected final AccessType access;
 
-    protected final OntologyTerm ancestor;
+    protected final VocabularyTerm ancestor;
 
     protected final double score;
 
@@ -65,7 +65,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
      * @throws IllegalArgumentException if match or reference are null
      */
     public DefaultFeatureClusterView(Collection<Feature> match, Collection<Feature> reference, AccessType access,
-        OntologyTerm root, double score)
+        VocabularyTerm root, double score)
     {
         if (match == null || reference == null) {
             throw new IllegalArgumentException("match and reference must not be null");
@@ -90,7 +90,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     }
 
     @Override
-    public OntologyTerm getRoot()
+    public VocabularyTerm getRoot()
     {
         return this.ancestor;
     }
@@ -131,14 +131,14 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     @Override
     public String getId()
     {
-        OntologyTerm term = getRoot();
+        VocabularyTerm term = getRoot();
         return term == null ? "" : term.getId();
     }
 
     @Override
     public String getName()
     {
-        OntologyTerm term = getRoot();
+        VocabularyTerm term = getRoot();
         return term == null ? "Unmatched" : term.getName();
     }
 

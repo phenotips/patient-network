@@ -21,7 +21,7 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,7 +80,7 @@ public class RestrictedFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<Feature>();
         Collection<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -105,7 +105,7 @@ public class RestrictedFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<Feature>();
         Collection<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -133,13 +133,13 @@ public class RestrictedFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<Feature>();
         Collection<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
 
         // Parent ancestor whose details should be shown
-        OntologyTerm ancestorParent = mock(OntologyTerm.class);
+        VocabularyTerm ancestorParent = mock(VocabularyTerm.class);
         when(ancestorParent.getName()).thenReturn("Abnormality of the lens");
         when(ancestorParent.getId()).thenReturn("HP:0000517");
         when(ancestor.getParents()).thenReturn(Collections.singleton(ancestorParent));
@@ -167,7 +167,7 @@ public class RestrictedFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<Feature>();
         Collection<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -263,7 +263,7 @@ public class RestrictedFeatureClusterViewTest
         List<Feature> match = new ArrayList<Feature>();
         List<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -316,7 +316,7 @@ public class RestrictedFeatureClusterViewTest
         List<Feature> match = new ArrayList<Feature>();
         List<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -366,7 +366,7 @@ public class RestrictedFeatureClusterViewTest
         List<Feature> match = new ArrayList<Feature>();
         List<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;

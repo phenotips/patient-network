@@ -122,7 +122,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         FULL,
         LIMITED,
         NONE
-    };
+    }
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -538,7 +538,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
         // Wire up mocked genetics
         exomeManager = mock(ExomeManager.class);
-        when(componentManager.getInstance(ExomeManager.class)).thenReturn(exomeManager);
+        when(componentManager.getInstance(ExomeManager.class, "exomiser")).thenReturn(exomeManager);
 
         // Use a real GenotypeManager
         PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();

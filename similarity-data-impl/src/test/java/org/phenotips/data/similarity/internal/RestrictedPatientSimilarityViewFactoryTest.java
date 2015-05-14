@@ -30,11 +30,11 @@ import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
-import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
+import org.phenotips.data.similarity.internal.mocks.MockVocabularyTerm;
 import org.phenotips.messaging.Connection;
 import org.phenotips.messaging.ConnectionManager;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheFactory;
@@ -123,8 +123,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
         PatientAccess pa = mock(PatientAccess.class);
         when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
-        AccessLevel match = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "match");
-        AccessLevel view = this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view");
+        AccessLevel match = this.mocker.getInstance(AccessLevel.class, "match");
+        AccessLevel view = this.mocker.getInstance(AccessLevel.class, "view");
         when(pa.getAccessLevel()).thenReturn(match);
         when(match.compareTo(view)).thenReturn(-5);
 
@@ -214,77 +214,77 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(conn);
         when(conn.getId()).thenReturn(Long.valueOf(42));
 
-        // Setup the ontology manager
-        OntologyManager ontologyManager = mock(OntologyManager.class);
-        Map<OntologyTerm, Double> termICs = new HashMap<OntologyTerm, Double>();
-        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>();
+        // Setup the vocabulary manager
+        VocabularyManager vocabularyManager = mock(VocabularyManager.class);
+        Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
+        Set<VocabularyTerm> ancestors = new HashSet<VocabularyTerm>();
 
-        OntologyTerm all = new MockOntologyTerm("HP:0000001", Collections.<OntologyTerm>emptySet(),
-            Collections.<OntologyTerm>emptySet());
+        VocabularyTerm all = new MockVocabularyTerm("HP:0000001", Collections.<VocabularyTerm>emptySet(),
+            Collections.<VocabularyTerm>emptySet());
         ancestors.add(all);
-        OntologyTerm phenotypes =
-            new MockOntologyTerm("HP:0000118", Collections.singleton(all), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm phenotypes =
+            new MockVocabularyTerm("HP:0000118", Collections.singleton(all), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(phenotypes);
         termICs.put(phenotypes, 0.000001);
-        OntologyTerm abnormalNS =
-            new MockOntologyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm abnormalNS =
+            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalNS);
         termICs.put(abnormalNS, 0.00001);
-        OntologyTerm abnormalCNS =
-            new MockOntologyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm abnormalCNS =
+            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalCNS);
         termICs.put(abnormalCNS, 0.0001);
-        OntologyTerm abnormalHMF =
-            new MockOntologyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm abnormalHMF =
+            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalHMF);
         termICs.put(abnormalHMF, 0.001);
-        OntologyTerm cognImp =
-            new MockOntologyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm cognImp =
+            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(cognImp);
         termICs.put(cognImp, 0.005);
-        OntologyTerm intDis =
-            new MockOntologyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm intDis =
+            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(intDis);
         termICs.put(intDis, 0.005);
-        OntologyTerm mildIntDis =
-            new MockOntologyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm mildIntDis =
+            new MockVocabularyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(mildIntDis);
         termICs.put(intDis, 0.01);
-        for (OntologyTerm term : ancestors) {
-            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+        for (VocabularyTerm term : ancestors) {
+            when(vocabularyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
         ancestors.clear();
         ancestors.add(all);
         ancestors.add(phenotypes);
-        OntologyTerm abnormalSkelS =
-            new MockOntologyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<OntologyTerm>(ancestors));
+        VocabularyTerm abnormalSkelS =
+            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalSkelS);
         termICs.put(abnormalSkelS, 0.00001);
-        OntologyTerm abnormalSkelM =
-            new MockOntologyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<OntologyTerm>(
+        VocabularyTerm abnormalSkelM =
+            new MockVocabularyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalSkelM);
         termICs.put(abnormalSkelM, 0.0001);
-        OntologyTerm abnormalJointMorph =
-            new MockOntologyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<OntologyTerm>(
+        VocabularyTerm abnormalJointMorph =
+            new MockVocabularyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalJointMorph);
         termICs.put(abnormalJointMorph, 0.001);
-        OntologyTerm abnormalJointMob =
-            new MockOntologyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<OntologyTerm>(
+        VocabularyTerm abnormalJointMob =
+            new MockVocabularyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalJointMob);
         termICs.put(abnormalJointMob, 0.005);
-        OntologyTerm jointHyperm =
-            new MockOntologyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<OntologyTerm>(
+        VocabularyTerm jointHyperm =
+            new MockVocabularyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(jointHyperm);
         termICs.put(jointHyperm, 0.005);
-        for (OntologyTerm term : ancestors) {
-            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+        for (VocabularyTerm term : ancestors) {
+            when(vocabularyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
-        DefaultPatientSimilarityView.initializeStaticData(termICs, ontologyManager);
+        DefaultPatientSimilarityView.initializeStaticData(termICs, vocabularyManager);
     }
 }

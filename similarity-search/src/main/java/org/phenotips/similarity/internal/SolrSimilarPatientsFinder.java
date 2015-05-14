@@ -23,8 +23,8 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
-import org.phenotips.ontology.SolrCoreContainerHandler;
 import org.phenotips.similarity.SimilarPatientsFinder;
+import org.phenotips.vocabulary.SolrCoreContainerHandler;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
