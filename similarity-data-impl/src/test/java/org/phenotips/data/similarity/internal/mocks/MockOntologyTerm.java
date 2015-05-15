@@ -17,8 +17,8 @@
  */
 package org.phenotips.data.similarity.internal.mocks;
 
-import org.phenotips.ontology.OntologyService;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,48 +33,48 @@ import net.sf.json.JSONObject;
  *
  * @version $Id$
  */
-public class MockOntologyTerm implements OntologyTerm
+public class MockOntologyTerm implements VocabularyTerm
 {
     private final String id;
 
-    private final Set<OntologyTerm> parents;
+    private final Set<VocabularyTerm> parents;
 
-    private final Set<OntologyTerm> ancestors;
+    private final Set<VocabularyTerm> ancestors;
 
     /**
-     * Create a simple Mock OntologyTerm.
+     * Create a simple Mock VocabularyTerm.
      *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      */
-    public MockOntologyTerm(String id, Collection<OntologyTerm> parents)
+    public MockOntologyTerm(String id, Collection<VocabularyTerm> parents)
     {
         this.id = id;
-        this.parents = new HashSet<OntologyTerm>();
-        this.ancestors = new HashSet<OntologyTerm>();
+        this.parents = new HashSet<VocabularyTerm>();
+        this.ancestors = new HashSet<VocabularyTerm>();
 
         if (parents != null) {
             this.parents.addAll(parents);
             // Add parents and ancestors of parents to get all ancestors
             this.ancestors.addAll(parents);
-            for (OntologyTerm parent : this.parents) {
+            for (VocabularyTerm parent : this.parents) {
                 this.ancestors.addAll(parent.getAncestors());
             }
         }
     }
 
     /**
-     * Create a simple Mock OntologyTerm.
+     * Create a simple Mock VocabularyTerm.
      *
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      * @param ancestors the ancestors of the term (or null)
      */
-    public MockOntologyTerm(String id, Collection<OntologyTerm> parents, Collection<OntologyTerm> ancestors)
+    public MockOntologyTerm(String id, Collection<VocabularyTerm> parents, Collection<VocabularyTerm> ancestors)
     {
         this.id = id;
-        this.parents = new HashSet<OntologyTerm>();
-        this.ancestors = new HashSet<OntologyTerm>();
+        this.parents = new HashSet<VocabularyTerm>();
+        this.ancestors = new HashSet<VocabularyTerm>();
 
         if (parents != null) {
             this.parents.addAll(parents);
@@ -105,22 +105,22 @@ public class MockOntologyTerm implements OntologyTerm
     }
 
     @Override
-    public Set<OntologyTerm> getParents()
+    public Set<VocabularyTerm> getParents()
     {
         return this.parents;
     }
 
     @Override
-    public Set<OntologyTerm> getAncestorsAndSelf()
+    public Set<VocabularyTerm> getAncestorsAndSelf()
     {
-        Set<OntologyTerm> result = new LinkedHashSet<OntologyTerm>();
+        Set<VocabularyTerm> result = new LinkedHashSet<VocabularyTerm>();
         result.add(this);
         result.addAll(this.ancestors);
         return result;
     }
 
     @Override
-    public Set<OntologyTerm> getAncestors()
+    public Set<VocabularyTerm> getAncestors()
     {
         return this.ancestors;
     }
@@ -133,14 +133,14 @@ public class MockOntologyTerm implements OntologyTerm
     }
 
     @Override
-    public OntologyService getOntology()
+    public Vocabulary getOntology()
     {
         // Not used
         return null;
     }
 
     @Override
-    public long getDistanceTo(OntologyTerm arg0)
+    public long getDistanceTo(VocabularyTerm arg0)
     {
         // Not used
         return 0;

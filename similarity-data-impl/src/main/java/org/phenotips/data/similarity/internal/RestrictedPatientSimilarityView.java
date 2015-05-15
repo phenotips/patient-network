@@ -24,7 +24,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.model.reference.DocumentReference;
 
@@ -117,7 +117,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 
     @Override
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access, OntologyTerm root, double score)
+        AccessType access, VocabularyTerm root, double score)
     {
         return new RestrictedFeatureClusterView(match, reference, access, root, score);
     }

@@ -21,7 +21,7 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +33,6 @@ import org.junit.Test;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +76,7 @@ public class DefaultFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<Feature>();
         Collection<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
@@ -189,7 +188,7 @@ public class DefaultFeatureClusterViewTest
         List<Feature> match = new ArrayList<Feature>();
         List<Feature> reference = new ArrayList<Feature>();
 
-        OntologyTerm ancestor = mock(OntologyTerm.class);
+        VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;

@@ -24,8 +24,8 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
-import org.phenotips.ontology.OntologyManager;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,13 +56,13 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private static final String PHENOTYPE_ROOT = "HP:0000118";
 
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
-    private static Map<OntologyTerm, Double> termICs;
+    private static Map<VocabularyTerm, Double> termICs;
 
     /** The largest IC found, for normalizing. */
     private static Double maxIC;
 
-    /** Provides access to the term ontology. */
-    private static OntologyManager ontologyManager;
+    /** Provides access to the term vocabulary. */
+    private static VocabularyManager vocabularyManager;
 
     /** Memoized match score. */
     private Double score;
@@ -81,7 +81,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param access the access level the current user has on the matched patient
      * @throws IllegalArgumentException if one of the patients is {@code null}
      * @throws NullPointerException if the class was not statically initialized with {#initializeStaticData(Map, Map,
-     *             OntologyManager, Logger)} before use
+     *             VocabularyManager, Logger)} before use
      */
     public DefaultPatientSimilarityView(Patient match, Patient reference, AccessType access)
         throws IllegalArgumentException
@@ -101,19 +101,19 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     public static boolean isInitialized()
     {
-        return termICs != null && ontologyManager != null;
+        return termICs != null && vocabularyManager != null;
     }
 
     /**
      * Set the static information for the class. Must be run before creating instances of this class.
      *
      * @param termICs the information content of each term
-     * @param ontologyManager the ontology manager
+     * @param vocabularyManager the ontology manager
      */
-    public static void initializeStaticData(Map<OntologyTerm, Double> termICs, OntologyManager ontologyManager)
+    public static void initializeStaticData(Map<VocabularyTerm, Double> termICs, VocabularyManager vocabularyManager)
     {
         DefaultPatientSimilarityView.termICs = termICs;
-        DefaultPatientSimilarityView.ontologyManager = ontologyManager;
+        DefaultPatientSimilarityView.vocabularyManager = vocabularyManager;
         DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
     }
 
@@ -127,7 +127,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param score the score of the feature matching
      */
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access, OntologyTerm root, double score)
+        AccessType access, VocabularyTerm root, double score)
     {
         return new DefaultFeatureClusterView(match, reference, access, root, score);
     }
@@ -211,15 +211,15 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param patient
      * @return a collection of terms present in the patient
      */
-    private Collection<OntologyTerm> getPresentPatientTerms(Patient patient)
+    private Collection<VocabularyTerm> getPresentPatientTerms(Patient patient)
     {
-        Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
+        Set<VocabularyTerm> terms = new HashSet<VocabularyTerm>();
         for (Feature feature : patient.getFeatures()) {
             if (!feature.isPresent()) {
                 continue;
             }
 
-            OntologyTerm term = ontologyManager.resolveTerm(feature.getId());
+            VocabularyTerm term = vocabularyManager.resolveTerm(feature.getId());
             if (term != null) {
                 // Only add resolvable terms
                 terms.add(term);
@@ -229,8 +229,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return a (potentially empty) mapping from OntologyTerm IDs back to features in the patient. Un-mappable features
-     * are not included.
+     * Return a (potentially empty) mapping from VocabularyTerm IDs back to features in the patient. Un-mappable
+     * features are not included.
      *
      * @param patient
      * @return a mapping from term IDs to features in the patient
@@ -251,12 +251,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Return the set of terms implied by a collection of features in the ontology.
      *
      * @param terms a collection of terms
-     * @return all provided OntologyTerm terms and their ancestors
+     * @return all provided VocabularyTerm terms and their ancestors
      */
-    private Set<OntologyTerm> getAncestors(Collection<OntologyTerm> terms)
+    private Set<VocabularyTerm> getAncestors(Collection<VocabularyTerm> terms)
     {
-        Set<OntologyTerm> ancestors = new HashSet<OntologyTerm>(terms);
-        for (OntologyTerm term : terms) {
+        Set<VocabularyTerm> ancestors = new HashSet<VocabularyTerm>(terms);
+        for (VocabularyTerm term : terms) {
             // Add all ancestors
             ancestors.addAll(term.getAncestorsAndSelf());
         }
@@ -269,10 +269,10 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param terms (should include implied ancestors) that are present in the patient
      * @return the total IC for all the terms
      */
-    private double getTermICs(Collection<OntologyTerm> terms)
+    private double getTermICs(Collection<VocabularyTerm> terms)
     {
         double cost = 0;
-        for (OntologyTerm term : terms) {
+        for (VocabularyTerm term : terms) {
             Double ic = termICs.get(term);
             if (ic == null) {
                 ic = 0.0;
@@ -293,18 +293,18 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             return 0.0;
         } else {
             // Get ancestors for both patients
-            Set<OntologyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
-            Set<OntologyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
+            Set<VocabularyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
+            Set<VocabularyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
 
             if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
                 return 0.0;
             } else {
                 // Score overlapping ancestors
-                Set<OntologyTerm> commonAncestors = new HashSet<OntologyTerm>();
+                Set<VocabularyTerm> commonAncestors = new HashSet<VocabularyTerm>();
                 commonAncestors.addAll(refAncestors);
                 commonAncestors.retainAll(matchAncestors);
 
-                Set<OntologyTerm> allAncestors = new HashSet<OntologyTerm>();
+                Set<VocabularyTerm> allAncestors = new HashSet<VocabularyTerm>();
                 allAncestors.addAll(refAncestors);
                 allAncestors.addAll(matchAncestors);
 
@@ -425,10 +425,10 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param ancestor the ancestor to search for
      * @return the terms with the given ancestor (removed from given terms)
      */
-    private Collection<OntologyTerm> popTermsWithAncestor(Collection<OntologyTerm> terms, OntologyTerm ancestor)
+    private Collection<VocabularyTerm> popTermsWithAncestor(Collection<VocabularyTerm> terms, VocabularyTerm ancestor)
     {
-        Collection<OntologyTerm> matched = new HashSet<OntologyTerm>();
-        for (OntologyTerm term : terms) {
+        Collection<VocabularyTerm> matched = new HashSet<VocabularyTerm>();
+        for (VocabularyTerm term : terms) {
             if (term.getAncestorsAndSelf().contains(ancestor)) {
                 matched.add(term);
             }
@@ -442,23 +442,23 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      *
      * @param refTerms the terms in the reference
      * @param matchTerms the terms in the match
-     * @param matchFeatureLookup a mapping from OntologyTerm IDs back to the original Features in the match patient
-     * @param refFeatureLookup a mapping from OntologyTerm IDs back to the original Features in the reference patient
+     * @param matchFeatureLookup a mapping from VocabularyTerm IDs back to the original Features in the match patient
+     * @param refFeatureLookup a mapping from VocabularyTerm IDs back to the original Features in the reference patient
      * @return the FeatureClusterView of the best-matching features from refTerms and matchTerms (removes the matched
      *         terms from the passed lists) or null if the terms are not a good match (the term collections are then
      *         unchanged)
      */
-    private FeatureClusterView popBestFeatureCluster(Collection<OntologyTerm> matchTerms,
-        Collection<OntologyTerm> refTerms, Map<String, Feature> matchFeatureLookup,
+    private FeatureClusterView popBestFeatureCluster(Collection<VocabularyTerm> matchTerms,
+        Collection<VocabularyTerm> refTerms, Map<String, Feature> matchFeatureLookup,
         Map<String, Feature> refFeatureLookup)
     {
-        Collection<OntologyTerm> sharedAncestors = getAncestors(refTerms);
+        Collection<VocabularyTerm> sharedAncestors = getAncestors(refTerms);
         sharedAncestors.retainAll(getAncestors(matchTerms));
 
         // Find ancestor with highest (normalized) information content
-        OntologyTerm ancestor = null;
+        VocabularyTerm ancestor = null;
         double ancestorScore = Double.NEGATIVE_INFINITY;
-        for (OntologyTerm term : sharedAncestors) {
+        for (VocabularyTerm term : sharedAncestors) {
             Double termIC = termICs.get(term);
             if (termIC == null) {
                 termIC = 0.0;
@@ -477,8 +477,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         }
 
         // Find, remove, and return all ref and match terms under the selected ancestor
-        Collection<OntologyTerm> matchMatched = popTermsWithAncestor(matchTerms, ancestor);
-        Collection<OntologyTerm> refMatched = popTermsWithAncestor(refTerms, ancestor);
+        Collection<VocabularyTerm> matchMatched = popTermsWithAncestor(matchTerms, ancestor);
+        Collection<VocabularyTerm> refMatched = popTermsWithAncestor(refTerms, ancestor);
 
         // Return match json from matched terms
         FeatureClusterView cluster = createFeatureClusterView(termsToFeatures(matchMatched, matchFeatureLookup),
@@ -495,8 +495,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         Map<String, Feature> refFeatureLookup = getTermLookup(this.reference);
 
         // Get the present ontology terms
-        Collection<OntologyTerm> matchTerms = getPresentPatientTerms(this.match);
-        Collection<OntologyTerm> refTerms = getPresentPatientTerms(this.reference);
+        Collection<VocabularyTerm> matchTerms = getPresentPatientTerms(this.match);
+        Collection<VocabularyTerm> refTerms = getPresentPatientTerms(this.reference);
 
         // Keep removing most-related sets of terms until none match lower than HP roots
         while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
@@ -524,10 +524,10 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @param termLookup a mapping from term IDs to features in the patient
      * @return a Collection of features in the patients corresponding to the given terms
      */
-    private Collection<Feature> termsToFeatures(Collection<OntologyTerm> terms, Map<String, Feature> termLookup)
+    private Collection<Feature> termsToFeatures(Collection<VocabularyTerm> terms, Map<String, Feature> termLookup)
     {
         Collection<Feature> features = new ArrayList<Feature>();
-        for (OntologyTerm term : terms) {
+        for (VocabularyTerm term : terms) {
             String id = term.getId();
             if (id != null) {
                 Feature feature = termLookup.get(id);

@@ -19,7 +19,7 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,7 +51,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
      * @throws IllegalArgumentException if match or reference are null
      */
     public RestrictedFeatureClusterView(Collection<Feature> match, Collection<Feature> reference, AccessType access,
-        OntologyTerm root, double score) throws IllegalArgumentException
+        VocabularyTerm root, double score) throws IllegalArgumentException
     {
         super(match, reference, access, root, score);
     }
@@ -63,7 +63,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
      * @see org.phenotips.data.similarity.internal.DefaultFeatureClusterView#getRoot()
      */
     @Override
-    public OntologyTerm getRoot()
+    public VocabularyTerm getRoot()
     {
         if (this.access.isPrivateAccess()) {
             return null;
@@ -72,17 +72,17 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
             String ancestorId = this.ancestor.getId();
             // Check if the reference and ancestor terms are the same term
             if (refId != null && StringUtils.equals(refId, ancestorId)) {
-                Set<OntologyTerm> parents = this.ancestor.getParents();
+                Set<VocabularyTerm> parents = this.ancestor.getParents();
                 if (parents.isEmpty()) {
                     return null;
                 } else if (parents.size() == 1) {
                     return parents.iterator().next();
                 } else {
                     // Get an arbitrary parent in a deterministic manner (lowest ID)
-                    OntologyTerm parent = Collections.min(parents, new Comparator<OntologyTerm>()
+                    VocabularyTerm parent = Collections.min(parents, new Comparator<VocabularyTerm>()
                     {
                         @Override
-                        public int compare(OntologyTerm o1, OntologyTerm o2)
+                        public int compare(VocabularyTerm o1, VocabularyTerm o2)
                         {
                             String id1 = o1.getId();
                             String id2 = o2.getId();

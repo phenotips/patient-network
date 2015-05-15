@@ -18,7 +18,7 @@
 package org.phenotips.data.similarity;
 
 import org.phenotips.data.Feature;
-import org.phenotips.ontology.OntologyTerm;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.stability.Unstable;
 
@@ -55,7 +55,7 @@ public interface FeatureClusterView extends Feature
      *
      * @return the root feature for the reference and match features
      */
-    OntologyTerm getRoot();
+    VocabularyTerm getRoot();
 
     /**
      * How similar are the match and reference features.
