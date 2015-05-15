@@ -48,6 +48,7 @@ public class PatientMatchingScriptService implements ScriptService
     private PatientSimilarityViewFactory patientViewFactory;
 
     @Inject
+    @Named("exomiser")
     private ExomeManager exomeManager;
 
     @Inject
