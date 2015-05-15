@@ -32,7 +32,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
-import org.phenotips.data.similarity.internal.mocks.MockOntologyTerm;
+import org.phenotips.data.similarity.internal.mocks.MockVocabularyTerm;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
 import org.phenotips.messaging.Connection;
 import org.phenotips.messaging.ConnectionManager;
@@ -574,77 +574,77 @@ public class RestrictedPatientSimilarityViewTest
         PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
         when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
 
-        // Setup the ontology manager
-        VocabularyManager ontologyManager = mock(VocabularyManager.class);
+        // Setup the vocabulary manager
+        VocabularyManager vocabularyManager = mock(VocabularyManager.class);
         Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
         Set<VocabularyTerm> ancestors = new HashSet<VocabularyTerm>();
 
-        VocabularyTerm all = new MockOntologyTerm("HP:0000001", Collections.<VocabularyTerm>emptySet(),
+        VocabularyTerm all = new MockVocabularyTerm("HP:0000001", Collections.<VocabularyTerm>emptySet(),
             Collections.<VocabularyTerm>emptySet());
         ancestors.add(all);
         VocabularyTerm phenotypes =
-            new MockOntologyTerm("HP:0000118", Collections.singleton(all), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000118", Collections.singleton(all), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(phenotypes);
         termICs.put(phenotypes, 0.000001);
         VocabularyTerm abnormalNS =
-            new MockOntologyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalNS);
         termICs.put(abnormalNS, 0.00001);
         VocabularyTerm abnormalCNS =
-            new MockOntologyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalCNS);
         termICs.put(abnormalCNS, 0.0001);
         VocabularyTerm abnormalHMF =
-            new MockOntologyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalHMF);
         termICs.put(abnormalHMF, 0.001);
         VocabularyTerm cognImp =
-            new MockOntologyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(cognImp);
         termICs.put(cognImp, 0.005);
         VocabularyTerm intDis =
-            new MockOntologyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(intDis);
         termICs.put(intDis, 0.005);
         VocabularyTerm mildIntDis =
-            new MockOntologyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(mildIntDis);
         termICs.put(intDis, 0.01);
         for (VocabularyTerm term : ancestors) {
-            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+            when(vocabularyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
         ancestors.clear();
         ancestors.add(all);
         ancestors.add(phenotypes);
         VocabularyTerm abnormalSkelS =
-            new MockOntologyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalSkelS);
         termICs.put(abnormalSkelS, 0.00001);
         VocabularyTerm abnormalSkelM =
-            new MockOntologyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalSkelM);
         termICs.put(abnormalSkelM, 0.0001);
         VocabularyTerm abnormalJointMorph =
-            new MockOntologyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalJointMorph);
         termICs.put(abnormalJointMorph, 0.001);
         VocabularyTerm abnormalJointMob =
-            new MockOntologyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(abnormalJointMob);
         termICs.put(abnormalJointMob, 0.005);
         VocabularyTerm jointHyperm =
-            new MockOntologyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<VocabularyTerm>(
                 ancestors));
         ancestors.add(jointHyperm);
         termICs.put(jointHyperm, 0.005);
         for (VocabularyTerm term : ancestors) {
-            when(ontologyManager.resolveTerm(term.getId())).thenReturn(term);
+            when(vocabularyManager.resolveTerm(term.getId())).thenReturn(term);
         }
 
-        DefaultPatientSimilarityView.initializeStaticData(termICs, ontologyManager);
+        DefaultPatientSimilarityView.initializeStaticData(termICs, vocabularyManager);
     }
 }

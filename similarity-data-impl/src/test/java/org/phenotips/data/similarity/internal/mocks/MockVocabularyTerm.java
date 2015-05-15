@@ -29,11 +29,11 @@ import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 
 /**
- * Simple mock for an ontology term, responding with pre-specified values.
+ * Simple mock for an vocabulary term, responding with pre-specified values.
  *
  * @version $Id$
  */
-public class MockOntologyTerm implements VocabularyTerm
+public class MockVocabularyTerm implements VocabularyTerm
 {
     private final String id;
 
@@ -47,7 +47,7 @@ public class MockOntologyTerm implements VocabularyTerm
      * @param id the id of the term (e.g. "HP:0123456")
      * @param parents the parents of the term (or null)
      */
-    public MockOntologyTerm(String id, Collection<VocabularyTerm> parents)
+    public MockVocabularyTerm(String id, Collection<VocabularyTerm> parents)
     {
         this.id = id;
         this.parents = new HashSet<VocabularyTerm>();
@@ -70,7 +70,7 @@ public class MockOntologyTerm implements VocabularyTerm
      * @param parents the parents of the term (or null)
      * @param ancestors the ancestors of the term (or null)
      */
-    public MockOntologyTerm(String id, Collection<VocabularyTerm> parents, Collection<VocabularyTerm> ancestors)
+    public MockVocabularyTerm(String id, Collection<VocabularyTerm> parents, Collection<VocabularyTerm> ancestors)
     {
         this.id = id;
         this.parents = new HashSet<VocabularyTerm>();

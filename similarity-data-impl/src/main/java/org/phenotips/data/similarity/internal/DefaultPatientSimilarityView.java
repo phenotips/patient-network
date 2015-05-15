@@ -108,7 +108,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Set the static information for the class. Must be run before creating instances of this class.
      *
      * @param termICs the information content of each term
-     * @param vocabularyManager the ontology manager
+     * @param vocabularyManager the vocabulary manager
      */
     public static void initializeStaticData(Map<VocabularyTerm, Double> termICs, VocabularyManager vocabularyManager)
     {
@@ -248,7 +248,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return the set of terms implied by a collection of features in the ontology.
+     * Return the set of terms implied by a collection of features in the vocabulary.
      *
      * @param terms a collection of terms
      * @return all provided VocabularyTerm terms and their ancestors
@@ -494,7 +494,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         Map<String, Feature> matchFeatureLookup = getTermLookup(this.match);
         Map<String, Feature> refFeatureLookup = getTermLookup(this.reference);
 
-        // Get the present ontology terms
+        // Get the present vocabulary terms
         Collection<VocabularyTerm> matchTerms = getPresentPatientTerms(this.match);
         Collection<VocabularyTerm> refTerms = getPresentPatientTerms(this.reference);
 
@@ -518,7 +518,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
-     * Return the original patient features for a set of OntologyTerms.
+     * Return the original patient features for a set of VocabularyTerms.
      *
      * @param terms the terms to look up features for
      * @param termLookup a mapping from term IDs to features in the patient

@@ -81,9 +81,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @Named("match")
     protected AccessLevel matchAccess;
 
-    /** Provides access to the term ontology. */
+    /** Provides access to the term vocabulary. */
     @Inject
-    protected VocabularyManager ontologyManager;
+    protected VocabularyManager vocabularyManager;
 
     /** Cache for patient similarity views. */
     private PairCache<PatientSimilarityView> viewCache;
@@ -169,34 +169,34 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     }
 
     /**
-     * Return all terms in the ontology.
+     * Return all terms in the vocabulary.
      *
-     * @param ontology the ontology to query
-     * @return a Collection of all OntologyTerms in the ontology
+     * @param vocabulary the vocabulary to query
+     * @return a Collection of all VocabularyTerms in the vocabulary
      */
-    private Collection<VocabularyTerm> queryAllTerms(Vocabulary ontology)
+    private Collection<VocabularyTerm> queryAllTerms(Vocabulary vocabulary)
     {
-        this.logger.info("Querying all terms in ontology: " + ontology.getAliases().iterator().next());
+        this.logger.info("Querying all terms in vocabulary: " + vocabulary.getAliases().iterator().next());
         Map<String, String> queryAll = new HashMap<String, String>();
         queryAll.put("id", "*");
         Map<String, String> queryAllParams = new HashMap<String, String>();
-        queryAllParams.put(CommonParams.ROWS, String.valueOf(ontology.size()));
-        Collection<VocabularyTerm> results = ontology.search(queryAll, queryAllParams);
+        queryAllParams.put(CommonParams.ROWS, String.valueOf(vocabulary.size()));
+        Collection<VocabularyTerm> results = vocabulary.search(queryAll, queryAllParams);
         this.logger.info(String.format("  ... found %d entries.", results.size()));
         return results;
     }
 
     /**
-     * Return a mapping from OntologyTerms to their children in the given ontology.
+     * Return a mapping from VocabularyTerms to their children in the given vocabulary.
      *
-     * @param ontology the ontology
-     * @return a map from each term to the children in ontology
+     * @param vocabulary the vocabulary
+     * @return a map from each term to the children in vocabulary
      */
-    private Map<VocabularyTerm, Collection<VocabularyTerm>> getChildrenMap(Vocabulary ontology)
+    private Map<VocabularyTerm, Collection<VocabularyTerm>> getChildrenMap(Vocabulary vocabulary)
     {
         Map<VocabularyTerm, Collection<VocabularyTerm>> children = new HashMap<>();
-        this.logger.info("Getting all children of ontology terms...");
-        Collection<VocabularyTerm> terms = queryAllTerms(ontology);
+        this.logger.info("Getting all children of vocabulary terms...");
+        Collection<VocabularyTerm> terms = queryAllTerms(vocabulary);
         for (VocabularyTerm term : terms) {
             for (VocabularyTerm parent : term.getParents()) {
                 // Add term to parent's set of children
@@ -208,15 +208,15 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                 parentChildren.add(term);
             }
         }
-        this.logger.info(String.format("cached children of %d ontology terms.", children.size()));
+        this.logger.info(String.format("cached children of %d vocabulary terms.", children.size()));
         return children;
     }
 
     /**
      * Helper method to recursively fill a map with the descendants of all terms under a root term.
      *
-     * @param root the root of the ontology to explore
-     * @param termChildren a map from each ontology term to its children
+     * @param root the root of the vocabulary to explore
+     * @param termChildren a map from each vocabulary term to its children
      * @param termDescendants a partially-complete map of terms to descendants, filled in by this method
      */
     private void setDescendantsMap(VocabularyTerm root, Map<VocabularyTerm, Collection<VocabularyTerm>> termChildren,
@@ -246,11 +246,11 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     }
 
     /**
-     * Return a mapping from OntologyTerms to their descendants in the part of the ontology under root.
+     * Return a mapping from VocabularyTerms to their descendants in the part of the vocabulary under root.
      *
-     * @param root the root of the ontology to explore
-     * @param termChildren a map from each ontology term to its children
-     * @return a map from each term to the descendants in ontology
+     * @param root the root of the vocabulary to explore
+     * @param termChildren a map from each vocabulary term to its children
+     * @return a map from each term to the descendants in vocabulary
      */
     private Map<VocabularyTerm, Collection<VocabularyTerm>> getDescendantsMap(VocabularyTerm root,
         Map<VocabularyTerm, Collection<VocabularyTerm>> termChildren)
@@ -264,7 +264,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /**
      * Return the observed frequency distribution across provided HPO terms seen in MIM.
      *
-     * @param mim the MIM ontology with diseases and symptom frequencies
+     * @param mim the MIM vocabulary with diseases and symptom frequencies
      * @param hpo the human phenotype ontology
      * @param allowedTerms only frequencies for a subset of these terms will be returned
      * @return a map from VocabularyTerm to the absolute frequency (sum over all terms ~1)
@@ -371,8 +371,8 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         }
         if (!DefaultPatientSimilarityView.isInitialized()) {
             // Load the OMIM/HPO mappings
-            Vocabulary mim = this.ontologyManager.getVocabulary("MIM");
-            Vocabulary hpo = this.ontologyManager.getVocabulary("HPO");
+            Vocabulary mim = this.vocabularyManager.getVocabulary("MIM");
+            Vocabulary hpo = this.vocabularyManager.getVocabulary("HPO");
             VocabularyTerm hpRoot = hpo.getTerm(HP_ROOT);
 
             // Pre-compute HPO descendant lookups
@@ -387,7 +387,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
             // Give data to views to use
             this.logger.info("Setting view globals...");
-            DefaultPatientSimilarityView.initializeStaticData(termICs, this.ontologyManager);
+            DefaultPatientSimilarityView.initializeStaticData(termICs, this.vocabularyManager);
         }
         this.logger.info("Initialized.");
     }
