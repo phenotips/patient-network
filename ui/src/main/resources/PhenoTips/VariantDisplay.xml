@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--
+<xwikidoc version="1.1">
+  <!--
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -18,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<xwikidoc version="1.1">
   <web>PhenoTips</web>
   <name>VariantDisplay</name>
   <language/>
@@ -134,7 +134,6 @@
         variantDisplayServiceURL : "${xwiki.getURL('PhenoTips.VariantDisplay', 'get')}",
         DEFAULT_NUMBER_OF_GENES : "5",
         DEFAULT_NUMBER_OF_VARIANTS : "3",
-        RESULTS_TABLE_MARKER : "variant-display-table",
 
         initialize    : function (query, resultsContainer, options) {
                 if (!query || !resultsContainer) {return;}
@@ -146,8 +145,9 @@
               }
 
             this.launchSearch();
-
+            this.tableContainer = new Element('div');
             this.optionsContainer = new Element('div', {'class' : 'variant-display-options'});
+            this.container.insert({top : this.tableContainer});
             this.container.insert({bottom : this.optionsContainer});
             this.initializeOptionsContainer();
             
@@ -238,8 +238,8 @@
             if (data.query.id != this.query) {return;}
 
             // Empty the container to make room for the new results
-            if (this.resultsTable) {
-                this.resultsTable.remove();
+            if (this.container.select('.variant-display-table')[0]) {
+                this.container.select('.variant-display-table')[0].remove();
             }
 
             // Show result summary
@@ -251,177 +251,19 @@
 
             // Process results
             var _this = this;
-            this.resultsTable = new Element('table', {'class' : this.RESULTS_TABLE_MARKER});
-            this.container.insert({top : this.resultsTable});
 
-            var columns = {
-                "GeneScore" : {
-                    display: _this._displayResultGeneScore.bind(_this),
-                    headings  : [_this.Strings["geneScoreHeading"]]
-                },
-                "Gene"      : {
-                    display: _this._displayResultGene.bind(_this),
-                    headings  : [_this.Strings["geneHeading"]]
-                },
-                "Variant": {
-                    display: _this._displayResultVariant.bind(_this),
-                    headings  : [_this.Strings["variantPosition"], _this.Strings["variantChange"], _this.Strings["variantType"]]
-                }
-            };
-
-            this._displayTableHeader(columns, this.resultsTable);
-            data.results.each(function(r) {
-                _this._displayResultRow(r, columns, _this.resultsTable);
-            });
-            delete this._queryFeatures;
+            if (PhenoTips &amp;&amp; PhenoTips.widgets &amp;&amp; PhenoTips.widgets.VariantDisplayTable) { 
+              var variantColumns =["GENE", "EXOMISER_GENE_VARIANT_SCORE", "B_UCSC_POSITION_LINK","chr", "pos", "ref", "alt", "GENE_EFFECT"];
+              new PhenoTips.widgets.VariantDisplayTable(data.results, variantColumns, this.tableContainer);
+            } else {
+              console.log("Unable to display top exomiser hits: VariantTableWidget not found");
+            }
             delete this._data;
-        },
-        _displayTableHeader : function (columns, table) {
-            var row = this._getEmptyTableRow(table);
-            for (var c in columns) {
-                if (!columns.hasOwnProperty(c)) {
-                    continue;
-                }
-                var headings = columns[c].headings;
-                for (var h in headings) {
-                    if (!headings.hasOwnProperty(h)) {
-                        continue;
-                    }
-                    row.insert(new Element("th", {"class" : "variant-display-heading"}).update(headings[h]).addClassName(c));
-                }
-              }
-          return row;
-        },
-        _getEmptyTableRow  : function (table) {
-            //small trick for styling the tables, empty rows are divisions between genes
-            if (table.lastChild &amp;&amp; table.lastChild.childElements().length == 0){
-                table.lastChild.previous().addClassName("last-row-for-gene");
-            }
-            var row = new Element('tr');
-             table.insert(row);
-            return row;
-        },
-        _displayResultRow  : function (result, columns, table) {
-            var row = this._getEmptyTableRow(table);
-            for (var c in columns) {
-                row.insert(columns[c].display(result));
-            }
-            return row;
-        },
-        _getLastRow        : function (table) {
-            var row = table.rows[table.rows.length-1];
-            return row;
-        },
-        _addToResultRow    : function (result, columns, table) {
-            var row = this._getLastRow(table);
-            for (var c in columns) {
-                row.insert(columns[c].display(result));
-            }
-            return row;
-        },
-        _displayResultGene : function (r) {
-            var content = new Element('td', {'class' : 'gene-name', 'rowspan' : r.variants.length});
-            var geneName = new Element('p', {'class' : 'gene-name'});
-            geneName.update(r.name);
-            content.insert(geneName)
-            return content;
-        },
-        _displayResultGeneScore : function (r) {
-            var content = new Element('td', {'class' : 'gene-score', 'rowspan' : r.variants.length});
-            var functionality = r.score;
-            var geneScore = new Element('div', {'class' : 'gene-score'});
-            geneScore.insert(this.Utils.generateSegmentedBar(5, functionality));
-            content.insert(geneScore);
-            return content;
-        },
-        _displayResultVariant : function (r) {
-            var variantSubTable = new Element ('table');
-            var _this = this;
-            var variantColumns = {
-                "Position" : {
-                    display: this._displayResultVariantPosition.bind(this)
-                },
-                "Change" : {
-                    display: this._displayResultVariantChange.bind(this)
-                },
-                "Type" : {
-                    display: this._displayResultVariantType.bind(this)
-                },
-            };
-
-            for (var i = 0; i&lt;r.variants.length; i++){
-                _this._addToResultRow(r.variants[i], variantColumns, _this.resultsTable);
-                if (!r.variants[i+1]){
-                    //adding a class for styling the table
-                    _this.resultsTable.lastChild.addClassName("last-row-for-gene");
-                } else {
-                    _this.resultsTable.insertRow();
-                }
-            }
-        },
-
-        _displayResultVariantPosition : function (r) {
-            var content = new Element('td', {'class' : 'variant-position'});
-            var _this = this;
-            if (r.chrom &amp;&amp; r.position &amp;&amp; r.ref) {
-                var start = r.position;
-                var end = r.position + r.ref.length;
-            var positionText = _this.Strings["positionPhrase"].replace("__CHROMOSOME__",r.chrom.toUpperCase()).replace("__START__", start).replace("__STOP__", end);
-                var positionURLFragment = "chr" + r.chrom.toUpperCase() + ":" + start + "-" + end;
-                var assembly = r.assembly || "hg19";
-                var position = new Element('a', {
-                     'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
-                     'class' : 'button secondary',
-                     'target' : '__blank',
-                     'title' : _this.Strings["variantPositionLinkTitle"]
-                }).update(positionText).wrap('span', {'class' : 'buttonwrapper'});
-                content.insert(position);
-            }
-            return content;
-
-        },
-
-        _displayResultVariantChange : function (r) {
-            var content = new Element('td', {'class' : 'variant-change'});
-            var displayedRef = (r.ref.length &gt; 10) ? (r.ref.substring(0,10)+"...") : r.ref;
-            var displayedAlt = (r.alt.length &gt; 10) ? (r.alt.substring(0,10)+"...") : r.alt;
-            content.update("&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;");
-            return content;
-        },
-
-        _displayResultVariantType : function (r) {
-            var content = new Element('td', {'class' : 'variant-type'}).update("&lt;span class='variant-type-text'&gt;" + r.type + "&lt;/span&gt;");
-            return content;
-        },
-
-        Utils : {
-            generateSegmentedBar : function (count, value) {
-                var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
-                var valueUnit = 1 / count;
-                for (var i = 0; i &lt; count; ++i) {
-                  var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
-                  var segment = new Element('span', {'class' : 'segmented-unit'}).update(
-                                new Element('span', {
-                                    'class' : 'segmented-unit-fill',
-                                    'style' : "width: " + segmentFill + "%"
-                                })
-                  );
-                  bar.insert(segment);
-                }
-                return bar.insert(' ' + Math.round(value * 100) + '%');
-              },
         },
 
         Strings : {
             "options.numberOfGenes": "Maximum number of genes: ",
             "options.numberOfVariants": "Maximum variants per gene: ",
-            "positionPhrase"  : "chr__CHROMOSOME__: __START__ - __STOP__",
-            "variantPositionLinkTitle" : 'Visualize in the UCSC Genome Browser',
-            "geneScoreHeading": "Score",
-            "geneHeading"     : "Gene",
-            "variantPosition" : "Variant Position",
-            "variantChange"   : "Variant",
-            "variantType"     : "Effect",
             "optionsButton"   : "Options",
             "hideOptionsButton": "Hide Options",
             "refreshButton"   : "Refresh"
@@ -446,173 +288,6 @@
     </property>
     <property>
       <name>VariantDisplayer</name>
-    </property>
-    <property>
-      <parse>1</parse>
-    </property>
-    <property>
-      <use>onDemand</use>
-    </property>
-  </object>
-  <object>
-    <name>PhenoTips.VariantDisplay</name>
-    <number>0</number>
-    <className>XWiki.StyleSheetExtension</className>
-    <guid>dbe38413-4d80-48f3-875f-0e854b822384</guid>
-    <class>
-      <name>XWiki.StyleSheetExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators> ,|</separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <disabled>0</disabled>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators> ,|</separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>default</cache>
-    </property>
-    <property>
-      <code>#template("colorThemeInit.vm")
-
-.segmented-bar {
-  color: $theme.textColor;
-  font-size: 75%;
-  white-space: nowrap;
-  width: auto;
-}
-
-.segmented-bar .segmented-unit {
-  width: 5px;
-  height: 5px;
-  display: inline-block;
-  margin: 0 1px;
-  border: 1px solid black;
-  border-radius: 1px;
-}
-
-.segmented-bar .segmented-unit-fill {
-  width: 5px;
-  height: 5px;
-  display: block;
-  background-color: $theme.textColor;
-  border-radius: 1px;
-}
-
-td.gene-score {
-  border-bottom : 1px solid $theme.textColor;
-  border-right: none;
-}
-
-td.gene-name {
-  border-bottom: 1px solid $theme.textColor;
-}
-
-td.gene-name, td.variant-position, td.variant-change, td.variant-type {
-  text-align: left;
-}
-
-th.variant-display-heading{
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-}
-
-th.variant-display-heading:first-child {
-  border: 1px solid black;
-  border-right: none;
-}
-
-th.variant-display-heading:last-child {
-  border-right: 1px solid black;
-}
-
-table.variant-display-table{
-  margin:0;
-  margin-bottom: 1px;
-  width: 100%;
-}
-
-table.variant-display-table td{
-  padding: 10px;
-}
-
-#variant_display_container{
-  display:inline-block;
-  width: 100%;
-}
-
-.variant-display-table &gt; .last-row-for-gene &gt; td {
-  border-bottom: 1px solid $theme.textColor;
-}
-
-.variant-display-table .variant-position .button.secondary {
-  text-transform: none;
-}
-</code>
-    </property>
-    <property>
-      <name>VariantTableStyle</name>
     </property>
     <property>
       <parse>1</parse>
@@ -792,6 +467,8 @@ table.variant-display-table td{
 #if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.VariantDisplay') &amp;&amp; $services.patientVariantView.hasGenotype($patient))
       $xwiki.jsx.use('PhenoTips.VariantDisplay', {'minify' : false})##
       $xwiki.ssx.use('PhenoTips.VariantDisplay')##
+      $xwiki.jsx.use('PhenoTips.VariantTableWidget', {'minify' : false})##
+      $xwiki.ssx.use('PhenoTips.VariantTableWidget')##
       === Top genes in VCF ===
       {{html clean=false}}&lt;p class=box hint"&gt;Gene scores are computed from the uploaded VCF file and patient phenotypes using &lt;a href="http://www.sanger.ac.uk/resources/software/exomiser/" target="_blank"&gt;the Exomiser&lt;/a&gt;. Each score reflects the phenotypic relevance of the gene and the harmfulness and allele frequency of the variants.&lt;/p&gt;
 &lt;div id="variant_display_container"&gt;&lt;/div&gt;{{/html}}##
