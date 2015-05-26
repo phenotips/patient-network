@@ -1668,6 +1668,10 @@
     <property>
       <content>{{velocity}}
 #if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
+  #set($privacyLevelObject = $doc.getObject('PhenoTips.PatientConsent'))
+  #if ($privacyLevelObject &amp;&amp; "$!{privacyLevelObject.getProperty('real').value}" != '1')
+    #break
+  #end
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
     #set ($patient = $services.patients.getPatientById($doc.name))
