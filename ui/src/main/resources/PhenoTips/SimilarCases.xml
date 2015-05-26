@@ -1163,6 +1163,10 @@
   border: 0 none;
   background: transparent
 }
+.similarity-results th.details {
+  text-align: right;
+  width: 300px;
+}
 .similarity-results td {
   border: 0 none;
   border-top: 1px solid $theme.borderColor;
