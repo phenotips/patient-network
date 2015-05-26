@@ -133,7 +133,7 @@ public class MockVocabularyTerm implements VocabularyTerm
     }
 
     @Override
-    public Vocabulary getOntology()
+    public Vocabulary getVocabulary()
     {
         // Not used
         return null;
