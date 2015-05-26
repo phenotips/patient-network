@@ -214,32 +214,49 @@
         if (options.enableRefresh) {
           var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(' Refresh'));
           this.container.insert({before : refreshButton});
-          this.launchSearch = this.launchSearch.bindAsEventListener(this);
-          refreshButton.observe('click', this.launchSearch);
+          this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
+          refreshButton.observe('click', this.launchSearchRefresh);
         }
         this.matchServiceURL = options.serviceURL || this.matchServiceURL;
         this._maxResults = options.maxResults || '';
         this._minScore = options.minScore || '';
+        this._mmeServer = options.mmeServer || "";
+        this._mmeMode = (this._mmeServer != "");
       }
-      this.launchSearch();
+      this.launchSearchExisting();
 
       this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
       this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact a non-public case owner', 'verticalPosition': 'top', 'removeOnClose': false});
     },
 
-    launchSearch : function(event) {
+    launchSearchRefresh: function(event) {
       if (event) {event.stop();}
+      this.launchSearch(true);
+    },
+
+    launchSearchExisting: function() {
+      this.launchSearch(false);
+    },
+
+    launchSearch : function(refresh) {
       if (this.activeSearch) {return;}
       var _this = this;
-      this.activeSearch = new Ajax.Request(
-        this.matchServiceURL,
-        {
-          parameters: {
+      var searchParams = this._mmeMode ? {
+            'patientId' : this.query,
+            'server' : this._mmeServer,
+            'maxResults' : this._maxResults,
+            'minScore' : this._minScore,
+            'sendNewRequest' : refresh ? "true" : "false"
+          } : {
             'query' : this.query,
             'outputSyntax' : "plain",
             'maxResults' : this._maxResults,
             'minScore' : this._minScore
-          },
+          }
+      this.activeSearch = new Ajax.Request(
+        this.matchServiceURL,
+        {
+          parameters: searchParams,
           method: "post",
           onCreate : function() {
             _this.container.addClassName('loading');
@@ -259,23 +276,33 @@
     displayResults : function(data) {
       this._data = data;
 
-      // Make sure the results are for this query
-      if (!data.query) {return;}
-      if (data.query.id != this.query) {return;}
-
       // Empty the container to make room for the new results
       this.container.update('');
 
-      // Process features
-      this._queryFeatures = this._createFeatureIndex(data.query.features);
-
       // Show result summary
-      data.featuresCount = data.query.features.size();
-      if (data.resultsCount &lt;= 0 || data.featuresCount &lt;= 0) {
+      if (data &amp;&amp; data.nodata) {
+        this.displaySummary("Match request was never sent.");
+        return;
+      }
+      if (!data || data.resultsCount &lt;= 0) {
         this.displaySummary("No similar cases found.");
         return;
       }
+      // Make sure the results are for this query
+      if (!data.query || !data.query.id || data.query.id != this.query) {
+        this.displaySummary("Can't display results (no query reported).");
+        return;
+      }
+      data.featuresCount = data.query.features ? data.query.features.size() : 0;
+      if (!this._mmeMode &amp;&amp; data.featuresCount &lt;= 0) {
+        this.displaySummary("No similar cases found.");
+        return;
+      }
+
       this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
+
+      // Process features
+      this._queryFeatures = this._createFeatureIndex(data.query.features);
 
       // Process results
       var _this = this;
@@ -283,34 +310,46 @@
       this.container.insert(resultsTable);
 
       var columns = {
-        "access"  : {
-           title  : "",
-           display: _this._displayResultAccess.bind(_this),
-           field  : "access"
+        "access"   : {
+           title   : "",
+           display : _this._displayResultAccess.bind(_this),
+           field   : "access",
+           enabled : !this._mmeMode
         },
-        "id"      : {
-           title  : "Case ID",
-           display: _this._displayResultIdentifier.bind(_this),
-           field  : "id"
+        "id"       : {
+           title   : this._mmeMode ? "Remote Case ID" : "Case ID",
+           display : _this._displayResultIdentifier.bind(_this),
+           field   : "id",
+           enabled : true
         },
         "diagnosis": {
-           title  : "Diagnosis",
-           display: _this._displayResultDiagnosis.bind(_this),
-           field  : "disorders"
+           title   : "Potential diagnoses",
+           display : _this._displayResultDiagnosis.bind(_this),
+           field   : "disorders",
+           enabled : true
         },
-        "contact" : {
-           title  : "Contact",
-           display: _this._displayResultContactInfo.bind(_this),
-           field  : "owner"
+        "contact"  : {
+           title   : "Contact",
+           display : this._mmeMode ? _this._displayRemoteContactInfo.bind(_this) : _this._displayResultContactInfo.bind(_this),
+           field   : this._mmeMode ? "contact" : "owner",
+           enabled : true
         },
-        "score"   : {
-           title  : "Relevance",
-           display: _this._displayResultRelevance.bind(_this),
-           field  : "score"
+        "score"    : {
+           title   : (this._mmeMode ? "Local relevance score" : "Relevance"),
+           display : _this._displayResultRelevance.bind(_this),
+           field   : "score",
+           enabled : true
         },
-        "details" : {
-           title  : "Details",
-           display: _this._displayResultDetails.bind(_this)
+        "remotescore"    : {
+           title   : "Remote relevance score",
+           display : _this._displayResultRelevance.bind(_this),
+           field   : "remoteScore",
+           enabled : this._mmeMode
+        },
+        "details"  : {
+           title   : "Details",
+           display : _this._displayResultDetails.bind(_this),
+           enabled : true
         }
       };
 
@@ -358,7 +397,7 @@
     _displayTableHeader : function (columns, table) {
       var row = this._getEmptyTableRow(table);
       for (var c in columns) {
-        row.insert(new Element("th", {"class" : c}).update(columns[c].title));
+        columns[c].enabled &amp;&amp; row.insert(new Element("th", {"class" : c}).update(columns[c].title));
       }
       return row;
     },
@@ -366,10 +405,11 @@
     _displayResultRow : function(result, columns, table) {
       var row = this._getEmptyTableRow(table);
       for (var c in columns) {
+        columns[c].enabled &amp;&amp;
         row.insert(new Element("td", {
            "class" : c + (columns[c].field &amp;&amp; !result[columns[c].field] ? " " + this._UNKNOWN_INFO_MARKER : ""),
            "title" : columns[c].title
-        }).update(columns[c].display(result)));
+        }).update(columns[c].display(result, columns[c].field)));
       }
       var detailsRow =  this._getEmptyTableRow(table);
       detailsRow.insert(row.down('.match-details').wrap('td', {'class' : 'details-only details', 'colspan' : row.childElements().size()}));
@@ -382,23 +422,23 @@
     },
 
     _displayResultIdentifier : function (r) {
-      return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "Undisclosed identifier");
+      if (this._mmeMode) {
+        return (r.id ? r.id : "");
+      } else {
+        return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "Undisclosed identifier");
+      }
     },
 
     _displayResultDiagnosis : function (r) {
-      if (r.access != 'match') {
-        if (!r.disorders || !r.disorders.length) {
-          return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
-        } else {
-          var dList = new Element('ul');
-          r.disorders.each(function(d) {
-            // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
-            dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name.substring(0, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length))));
-          })
-          return dList;
-        }
+      if (!r.disorders || !r.disorders.length) {
+        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
       } else {
-        return "Undisclosed diagnosis"
+        var dList = new Element('ul');
+        r.disorders.each(function(d) {
+          // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
+          dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name.substring(0, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length))));
+        })
+        return dList;
       }
     },
 
@@ -423,6 +463,34 @@
         });
       }
       return contactInfo.insert({top: " "}).insert({top: icon});
+    },
+
+    _displayRemoteContactInfo : function (r) {
+      if (!r.hasOwnProperty("contact") || !r.contact.hasOwnProperty("href") || !r.contact.href) {
+        return "No contact info";
+      }
+      var hasName = (r.contact.name &amp;&amp; r.contact.name != "");
+      var hasInstitution = (r.contact.institution &amp;&amp; r.contact.institution != "");
+
+      var contactLabel = "";
+      if (hasName) {
+         contactLabel = r.contact.name;
+         if (hasInstitution) {
+           contactLabel += " @ ";
+      }
+      if (hasInstitution) {
+           contactLabel += r.contact.institution;
+      }
+      if (!hasName &amp;&amp; !hasInstitution) {
+        contactLabel = "contact URL";
+      }
+      var contactInfo = new Element("a", {
+           "href"  : r.contact.href,
+           "title" : "Contact owner for further information",
+           "class" : "owner-info "
+        }).update(contactLabel);
+      }
+      return contactInfo.insert({top: " "});
     },
 
     _launchContactDialog : function (token) {
@@ -479,8 +547,8 @@
       });
     },
 
-    _displayResultRelevance : function (r) {
-      return new Element("div").insert(new Element("p")).insert(this.Utils.generateSegmentedBar(5, r.score));
+    _displayResultRelevance : function (r, fieldName) {
+      return new Element("div").insert(new Element("p")).insert(this.Utils.generateSegmentedBar(5, r[fieldName]));
     },
 
     _displayResultDetails : function (r) {
@@ -854,11 +922,13 @@
     var minScore = $('similarity_results__min_score');
     $$('.similarity-results-container').each(function (container) {
       var serviceInfo = container.down('input[name="service"]');
+      var mmeServer = container.down('input[name="mmeServer"]');
       new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
         enableRefresh: true,
         serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
         maxResults: maxResults &amp;&amp; maxResults.value,
-        minScore: minScore &amp;&amp; minScore.value
+        minScore: minScore &amp;&amp; minScore.value,
+        mmeServer: mmeServer &amp;&amp; mmeServer.value
       });
     });
   };
