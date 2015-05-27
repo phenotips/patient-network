@@ -197,6 +197,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             }
         });
 
+        int numGenesReported = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
             String gene = geneEntry.getKey();
             Double score = geneEntry.getValue();
@@ -206,6 +207,12 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             geneObject.element("score", score);
             geneObject.accumulateAll(getGeneJSON(gene));
             genesJSON.add(geneObject);
+
+            // FIXME: quick emergency fix to make PhenomeCentral responsive
+            numGenesReported++;
+            if (numGenesReported > 15) {
+                break;
+            }
         }
         return genesJSON;
     }
