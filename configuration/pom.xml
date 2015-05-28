@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-milestone-6</version>
   </parent>
   <artifactId>patient-similarity-configuration</artifactId>
   <name>PhenoTips - Patient network - Java APIs for reading the configuration</name>
