@@ -896,19 +896,10 @@
       },
 
       generateSegmentedBar : function(count, value) {
-        var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
-        var valueUnit = 1 / count;
-        for (var i = 0; i &lt; count; ++i) {
-          var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
-          var segment = new Element('span', {'class' : 'segmented-unit'}).update(
-                        new Element('span', {
-                            'class' : 'segmented-unit-fill',
-                            'style' : "width: " + segmentFill + "%"
-                        })
-          );
-          bar.insert(segment);
-        }
-        return bar.insert(' ' + Math.round(value * 100) + '%');
+        var barOptions = {
+          'segments' : count
+        };
+        return new PhenoTips.widgets.SegmentedBar(value, barOptions).generateSegmentedBar();
       },
 
       generateIcon : function (name, text, size) {
@@ -1297,25 +1288,6 @@
 .similarity-results .details .tool {
   color: $theme.linkColor;
   cursor: pointer;
-}
-.segmented-bar {
-  white-space: nowrap;
-  width: auto;
-}
-.segmented-bar .segmented-unit {
-  width: 8px;
-  height: 8px;
-  display: inline-block;
-  margin: 0 1px;
-  border: 1px solid $theme.borderColor;
-  border-radius: 1px;
-}
-.segmented-bar .segmented-unit-fill {
-  width: 8px;
-  height: 8px;
-  display: block;
-  background-color: $theme.textColor;
-  border-radius: 1px;
 }</code>
     </property>
     <property>
@@ -1558,7 +1530,6 @@
 }
 .match-details .variants-data .segmented-bar .segmented-unit-fill {
     background-color: $theme.notificationErrorColor;
-    verical-align: middle;
 }
 .match-details .gene-matches .gene .segmented-bar .segmented-unit-fill,
 .match-details .phenotype-matches .segmented-bar .segmented-unit-fill {
@@ -1575,7 +1546,6 @@
     float: right;
 }
 .match-details .variants-data .segmented-bar {
-    color: $theme.notificationErrorColor;
     font-size: .87em;
 }
 .match-details table.phenotype-matches .query,
