@@ -17,7 +17,6 @@
  */
 package org.phenotips.similarity.internal;
 
-import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
@@ -25,6 +24,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
 import org.phenotips.vocabulary.SolrCoreContainerHandler;
+import org.phenotips.vocabulary.Vocabulary;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -34,12 +34,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -79,6 +79,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Inject
     @Named("restricted")
     private PatientSimilarityViewFactory factory;
+
+    @Inject
+    @Named("hpo")
+    private Vocabulary ontologyService;
 
     @Inject
     private SolrCoreContainerHandler cores;
@@ -151,16 +155,28 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      * @param referencePatient the reference patient
      * @return a query populated with terms from the patient phenotype
      */
+    @SuppressWarnings("unchecked")
     private SolrQuery generateQuery(Patient referencePatient, boolean prototypes)
     {
+        SolrQuery queryt = new SolrQuery();
+        StringBuilder qr = new StringBuilder();
+        if (referencePatient.getDocument() != null) {
+            qr.append("(document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()) + " )");
+        }
+        queryt.add(CommonParams.Q, qr.toString());
+        SolrDocument doc = search(queryt).get(0);
+        List<String> ancestorsList =  (List<String>) doc.getFieldValue("phenotype_ancestors");
+
         SolrQuery query = new SolrQuery();
         StringBuilder q = new StringBuilder();
-        // FIXME This is a very basic implementation, to be revisited
-        for (Feature phenotype : referencePatient.getFeatures()) {
-            if (StringUtils.isNotBlank(phenotype.getId())) {
-                q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
-            }
+        Iterator<String> iterator = ancestorsList.iterator();
+        q.append("(phenotype_ancestors" + ":" + ClientUtils.escapeQueryChars(iterator.next()));
+        while (iterator.hasNext()) {
+            q.append(" OR phenotype_ancestors:"
+                + ClientUtils.escapeQueryChars(iterator.next()));
         }
+        q.append(")");
+
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
         if (referencePatient.getDocument() != null) {
