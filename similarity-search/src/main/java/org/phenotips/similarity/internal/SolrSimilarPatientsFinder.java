@@ -25,6 +25,8 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
 import org.phenotips.vocabulary.SolrCoreContainerHandler;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -34,7 +36,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -79,6 +83,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Inject
     @Named("restricted")
     private PatientSimilarityViewFactory factory;
+
+    @Inject
+    @Named("hpo")
+    private Vocabulary ontologyService;
 
     @Inject
     private SolrCoreContainerHandler cores;
@@ -158,7 +166,18 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         // FIXME This is a very basic implementation, to be revisited
         for (Feature phenotype : referencePatient.getFeatures()) {
             if (StringUtils.isNotBlank(phenotype.getId())) {
-                q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
+                //construct a query based on ancestors
+                VocabularyTerm term = this.ontologyService.getTerm(phenotype.getId());
+                if (term != null) {
+                    Set<VocabularyTerm> parents = term.getAncestorsAndSelf();
+                    Iterator<VocabularyTerm> iterator = parents.iterator();
+                    q.append("(phenotype_ancestors" + ":" + ClientUtils.escapeQueryChars(iterator.next().getId()));
+                    while (iterator.hasNext()) {
+                        q.append(" OR phenotype_ancestors:"
+                            + ClientUtils.escapeQueryChars(iterator.next().getId()));
+                    }
+                    q.append(")");
+                }
             }
         }
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
