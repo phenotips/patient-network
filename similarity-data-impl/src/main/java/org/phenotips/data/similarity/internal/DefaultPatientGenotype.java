@@ -171,8 +171,12 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         Double score = null;
         if (this.exome != null) {
             score = this.exome.getGeneScore(gene);
+            // Score exome-based gene candidates from 0-0.5
+            if (score != null) {
+                score *= 0.5;
+            }
         }
-        // Boost score if candidate gene
+        // Boost score closer to 1.0 if manual candidate gene
         if (this.candidateGenes != null && this.candidateGenes.contains(gene)) {
             if (score == null) {
                 score = Math.pow(0.9, this.candidateGenes.size() - 1);

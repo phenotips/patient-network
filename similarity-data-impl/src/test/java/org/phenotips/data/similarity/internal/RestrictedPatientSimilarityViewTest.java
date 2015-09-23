@@ -383,7 +383,7 @@ public class RestrictedPatientSimilarityViewTest
         double score2 = o2.getScore();
         Assert.assertTrue(score2 > 0);
 
-        Assert.assertTrue(score2 > score1 + 0.1);
+        Assert.assertTrue(score2 > score1 + 0.01);
     }
 
     /**

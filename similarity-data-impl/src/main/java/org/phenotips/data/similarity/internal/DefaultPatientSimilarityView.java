@@ -350,16 +350,9 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
             // Factor in overlap between candidate genes
             PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
-            Collection<String> sharedGenes = new HashSet<String>();
-            sharedGenes = genotypeSimilarity.getCandidateGenes();
-
-            double geneBoost = 0.0;
-            if (!sharedGenes.isEmpty()) {
-                geneBoost = 0.7;
-            }
-
+            double genotypeScore = genotypeSimilarity.getScore();
             // Return boosted score
-            return Math.pow(phenotypeScore, 1.0 - geneBoost);
+            return 0.5 * (phenotypeScore + genotypeScore);
         }
         return this.score;
     }

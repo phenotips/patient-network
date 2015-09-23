@@ -19,6 +19,7 @@ package org.phenotips.similarity.internal;
 
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -30,11 +31,15 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -62,6 +67,11 @@ import groovy.lang.Singleton;
 @Singleton
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
+    /** Resolves class names to the current wiki. */
+    @Inject
+    @Named("current")
+    private DocumentReferenceResolver<EntityReference> entityResolver;
+
     /** Logging helper object. */
     @Inject
     private Logger logger;
@@ -115,6 +125,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     {
         //logger.error("Searching for patients using access level: {}", this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
+        //neither phenotypes nor genes are present and q='()', returning empty list
+        if (query.getQuery().length() < 3) {
+            return new ArrayList<PatientSimilarityView>(0);
+        }
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
         for (SolrDocument doc : docs) {
@@ -153,14 +167,32 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      */
     private SolrQuery generateQuery(Patient referencePatient, boolean prototypes)
     {
+        SolrQuery queryt = new SolrQuery();
+        StringBuilder qr = new StringBuilder();
+        qr.append("(document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()) + " )");
+        queryt.add(CommonParams.Q, qr.toString());
+        SolrDocument doc = search(queryt).get(0);
+
         SolrQuery query = new SolrQuery();
         StringBuilder q = new StringBuilder();
-        // FIXME This is a very basic implementation, to be revisited
-        for (Feature phenotype : referencePatient.getFeatures()) {
-            if (StringUtils.isNotBlank(phenotype.getId())) {
-                q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
+        List<String> ancestorsList = (List<String>) doc.getFieldValue("phenotype_ancestors");
+        q.append("(");
+
+        if (ancestorsList != null && !ancestorsList.isEmpty()) {
+            Iterator<String> iterator = ancestorsList.iterator();
+            q.append("phenotype_ancestors :" + ClientUtils.escapeQueryChars(iterator.next()));
+            while (iterator.hasNext()) {
+                q.append(" OR phenotype_ancestors:"
+                    + ClientUtils.escapeQueryChars(iterator.next()));
             }
         }
+
+        PatientData<Map<String, String>> allGenes = referencePatient.getData("genes");
+        if (allGenes != null && allGenes.size() > 0) {
+            appendGenesToQuery(allGenes, q);
+        }
+        q.append(")");
+
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
         if (referencePatient.getDocument() != null) {
@@ -180,6 +212,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      */
     private SolrDocumentList search(SolrQuery query)
     {
+        query.setRows(50);
         try {
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
@@ -203,5 +236,25 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return response.getNumFound();
         }
         return 0;
+    }
+
+    private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
+    {
+        if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
+            for (Map<String, String> gene : allGenes) {
+                String geneName = gene.get("gene");
+                String status = gene.get("status");
+                if ("solved".equals(status) || "candidate".equals(status)) {
+                    q.append(" OR solved_genes:"
+                        + ClientUtils.escapeQueryChars(geneName));
+                    q.append(" OR candidate_genes:"
+                        + ClientUtils.escapeQueryChars(geneName));
+                }
+            }
+        }
+
+        if (q.indexOf(" OR ") == 1) {
+            q.delete(1, 5);
+        }
     }
 }
