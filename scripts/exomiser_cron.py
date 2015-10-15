@@ -239,7 +239,9 @@ def phenotypes_to_exomiser(phenotypes):
     return ','.join(phenotypes)
 
 def parse_inheritance(data):
-    return data.get('global_mode_of_inheritance', {}).get('id')
+    inheritances = data.get('global_mode_of_inheritance', [])
+    if len(inheritances) == 1:
+        return inheritances[0].get('id')
 
 def inheritance_to_exomiser(inheritance):
     """Convert HPO terms to Exomiser-supported inheritance codes
