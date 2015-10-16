@@ -52,9 +52,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-localization-api</artifactId>
-      <version>${xwiki.version}</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>xwiki-translation-manager</artifactId>
+      <version>${phenotips.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

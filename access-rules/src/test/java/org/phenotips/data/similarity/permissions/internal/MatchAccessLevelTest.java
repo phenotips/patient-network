@@ -18,24 +18,17 @@
 package org.phenotips.data.similarity.permissions.internal;
 
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.translation.TranslationManager;
 
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.localization.LocalizationContext;
-import org.xwiki.localization.LocalizationManager;
-import org.xwiki.localization.Translation;
-import org.xwiki.rendering.block.Block;
-import org.xwiki.rendering.renderer.BlockRenderer;
-import org.xwiki.rendering.renderer.printer.WikiPrinter;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
-import java.util.Locale;
-
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.same;
@@ -52,6 +45,13 @@ public class MatchAccessLevelTest
     @Rule
     public final MockitoComponentMockingRule<AccessLevel> mocker =
         new MockitoComponentMockingRule<AccessLevel>(MatchAccessLevel.class);
+
+    @Before
+    public void setup() throws ComponentLookupException
+    {
+        TranslationManager tm = this.mocker.getInstance(TranslationManager.class);
+        when(tm.translate(Matchers.anyString())).thenReturn("");
+    }
 
     /** Basic test for {@link AccessLevel#getName()}. */
     @Test
@@ -71,24 +71,8 @@ public class MatchAccessLevelTest
     @Test
     public void getLabel() throws ComponentLookupException
     {
-        LocalizationContext lc = this.mocker.getInstance(LocalizationContext.class);
-        LocalizationManager lm = this.mocker.getInstance(LocalizationManager.class);
-        Translation t = mock(Translation.class);
-        Block b = mock(Block.class);
-        BlockRenderer r = this.mocker.getInstance(BlockRenderer.class, "plain/1.0");
-        when(lc.getCurrentLocale()).thenReturn(Locale.US);
-        when(lm.getTranslation("phenotips.permissions.accessLevels.match.label", Locale.US)).thenReturn(t);
-        when(t.render(Locale.US)).thenReturn(b);
-        Mockito.doAnswer(new Answer<Object>()
-        {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable
-            {
-                WikiPrinter printer = (WikiPrinter) invocation.getArguments()[1];
-                printer.print("Match");
-                return null;
-            }
-        }).when(r).render(same(b), any(WikiPrinter.class));
+        TranslationManager tm = this.mocker.getInstance(TranslationManager.class);
+        when(tm.translate("phenotips.permissions.accessLevels.match.label")).thenReturn("Match");
         Assert.assertEquals("Match", this.mocker.getComponentUnderTest().getLabel());
     }
 
@@ -103,24 +87,9 @@ public class MatchAccessLevelTest
     @Test
     public void getDescription() throws ComponentLookupException
     {
-        LocalizationContext lc = this.mocker.getInstance(LocalizationContext.class);
-        LocalizationManager lm = this.mocker.getInstance(LocalizationManager.class);
-        Translation t = mock(Translation.class);
-        Block b = mock(Block.class);
-        BlockRenderer r = this.mocker.getInstance(BlockRenderer.class, "plain/1.0");
-        when(lc.getCurrentLocale()).thenReturn(Locale.US);
-        when(lm.getTranslation("phenotips.permissions.accessLevels.match.description", Locale.US)).thenReturn(t);
-        when(t.render(Locale.US)).thenReturn(b);
-        Mockito.doAnswer(new Answer<Object>()
-        {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable
-            {
-                WikiPrinter printer = (WikiPrinter) invocation.getArguments()[1];
-                printer.print("Only features similar to a reference patient are accessible.");
-                return null;
-            }
-        }).when(r).render(same(b), any(WikiPrinter.class));
+        TranslationManager tm = this.mocker.getInstance(TranslationManager.class);
+        when(tm.translate("phenotips.permissions.accessLevels.match.description"))
+            .thenReturn("Only features similar to a reference patient are accessible.");
         Assert.assertEquals("Only features similar to a reference patient are accessible.",
             this.mocker.getComponentUnderTest().getDescription());
     }
