@@ -46,6 +46,13 @@ public interface PatientSimilarityView extends Patient
     AccessLevel getAccess();
 
     /**
+     * The name of the owner of the matching patient.
+     *
+     * @return the name of the owner of the matching patient, or {@code null} if not available
+     */
+    String getOwnerName();
+
+    /**
      * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
      * token as an identifier for the pair (reference patient<->matched patient).
      *

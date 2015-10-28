@@ -130,6 +130,18 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
+    public String getOwnerName()
+    {
+        // TODO: Update once there is a convenient method for accessing the owner of the patient record.
+        // In the meantime, we can access the data we need through the serialized controller data.
+        PatientData<String> data = this.match.getData("contact");
+        if (data == null || !data.isNamed()) {
+            return null;
+        }
+        return data.get("name");
+    }
+
+    @Override
     public <T> PatientData<T> getData(String name)
     {
         return this.match.getData(name);
@@ -180,8 +192,9 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         result.element("id", getId());
         result.element("token", getContactToken());
-        if (getReporter() != null) {
-            result.element("owner", getReporter().getName());
+        String owner = getOwnerName();
+        if (owner != null) {
+            result.element("owner", owner);
         }
         if (this.access != null) {
             result.element("access", this.access.toString());
