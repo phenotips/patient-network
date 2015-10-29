@@ -135,10 +135,19 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         // TODO: Update once there is a convenient method for accessing the owner of the patient record.
         // In the meantime, we can access the data we need through the serialized controller data.
         PatientData<String> data = this.match.getData("contact");
-        if (data == null || !data.isNamed()) {
-            return null;
+        String contact = null;
+
+        if (data != null && data.isNamed()) {
+            contact = data.get("name");
         }
-        return data.get("name");
+        // Fall back on reporter
+        if (contact == null) {
+            DocumentReference reporter = getReporter();
+            if (reporter != null) {
+                contact = reporter.getName();
+            }
+        }
+        return contact;
     }
 
     @Override

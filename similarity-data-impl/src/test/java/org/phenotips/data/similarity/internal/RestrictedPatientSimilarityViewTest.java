@@ -239,6 +239,32 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertNull(o.getReporter());
     }
 
+    /** The referrer's name is used when there is no Owner controller. */
+    @Test
+    public void testGetOwnerWithNoOwnerController()
+    {
+        Patient mockMatch = getEmptyMockMatch();
+        when(mockMatch.getData("contact")).thenReturn(null);
+        Patient mockReference = mock(Patient.class);
+
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        Assert.assertEquals(USER_1.getName(), o.getOwnerName());
+    }
+
+    /** The referrer's name is used when the owner does not have a name. */
+    @Test
+    public void testGetOwnerWithNoOwnerName()
+    {
+        Patient mockMatch = getEmptyMockMatch();
+        PatientData<String> ownerPatientData =
+            new DictionaryPatientData<String>("contact", Collections.<String, String>emptyMap());
+        doReturn(ownerPatientData).when(mockMatch).getData("contact");
+        Patient mockReference = mock(Patient.class);
+
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        Assert.assertEquals(USER_1.getName(), o.getOwnerName());
+    }
+
     /** The owner is disclosed for public patients. */
     @Test
     public void testGetOwnerWithPublicAccess()
