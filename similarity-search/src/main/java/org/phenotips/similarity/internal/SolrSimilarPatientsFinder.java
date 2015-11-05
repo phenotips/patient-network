@@ -25,6 +25,8 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
 import org.phenotips.vocabulary.SolrCoreContainerHandler;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -32,9 +34,11 @@ import org.xwiki.component.phase.InitializationException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -81,6 +85,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private PatientSimilarityViewFactory factory;
 
     @Inject
+    @Named("hpo")
+    private Vocabulary ontologyService;
+
+    @Inject
     private SolrCoreContainerHandler cores;
 
     /** The Solr server instance used. */
@@ -115,6 +123,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     {
         //logger.error("Searching for patients using access level: {}", this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
+        if (query == null) {
+            return Collections.emptyList();
+        }
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
         for (SolrDocument doc : docs) {
@@ -155,20 +166,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     {
         SolrQuery query = new SolrQuery();
         StringBuilder q = new StringBuilder();
-        // FIXME This is a very basic implementation, to be revisited
-        for (Feature phenotype : referencePatient.getFeatures()) {
-            if (StringUtils.isNotBlank(phenotype.getId())) {
-                q.append(phenotype.getType() + ":" + ClientUtils.escapeQueryChars(phenotype.getId()) + " ");
-            }
+        // Whitespace-delimiter terms querying the extended phenotype field
+        Collection<String> termIds = getPresentPhenotypeTerms(referencePatient);
+        if (!termIds.isEmpty()) {
+            q.append(" extended_phenotype: " + getQueryFromTerms(termIds));
         }
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
         if (referencePatient.getDocument() != null) {
-            q.append("-document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+            q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
         }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
-        //logger.error("SOLRQUERY generated: {}", query.toString());
+        logger.error("SOLRQUERY generated: {}", query.toString());
         return query;
     }
 
@@ -203,5 +213,37 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return response.getNumFound();
         }
         return 0;
+    }
+
+    private Collection<String> getPresentPhenotypeTerms(Patient patient)
+    {
+        Collection<String> termIds = new ArrayList<String>();
+        for (Feature phenotype : patient.getFeatures()) {
+            if (phenotype != null && phenotype.isPresent()) {
+                String termId = phenotype.getId();
+                if (StringUtils.isNotBlank(termId)) {
+                    VocabularyTerm term = this.ontologyService.getTerm(termId);
+                    if (term != null) {
+                        Set<VocabularyTerm> ancestors = term.getAncestorsAndSelf();
+                        for (VocabularyTerm ancestor : ancestors) {
+                            termIds.add(ancestor.getId());
+                        }
+                    }
+                }
+            }
+        }
+        return termIds;
+    }
+
+    private String getQueryFromTerms(Collection<String> terms)
+    {
+        if (terms == null || terms.isEmpty()) {
+            return "";
+        }
+        Collection<String> escaped = new ArrayList<String>(terms.size());
+        for (String term : terms) {
+            escaped.add(ClientUtils.escapeQueryChars(term));
+        }
+        return "(" + StringUtils.join(escaped, " ") + ")";
     }
 }
