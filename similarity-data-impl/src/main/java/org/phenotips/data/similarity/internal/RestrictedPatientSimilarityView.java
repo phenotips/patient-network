@@ -90,6 +90,12 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     }
 
     @Override
+    public String getOwnerName()
+    {
+        return this.access.isPrivateAccess() ? null : super.getOwnerName();
+    }
+
+    @Override
     public Set<? extends Feature> getFeatures()
     {
         if (this.access.isOpenAccess()) {
