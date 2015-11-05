@@ -336,7 +336,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         assertNoMatch(view);
     }
 
-    /** Candidate genes intersected properly. */
+    /** Candidate gene whitespace behavior. */
     @Test
     public void testCandidateGeneMatchIgnoreWhitespace()
     {
