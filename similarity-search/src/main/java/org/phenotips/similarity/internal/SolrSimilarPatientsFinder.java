@@ -180,6 +180,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      */
     private SolrDocumentList search(SolrQuery query)
     {
+        query.setRows(50);
         try {
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
