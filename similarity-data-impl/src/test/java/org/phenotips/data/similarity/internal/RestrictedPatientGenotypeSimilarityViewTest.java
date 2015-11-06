@@ -457,7 +457,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
         Assert.assertTrue(top.getDouble("score") > 0.5);
 
-        // Ensure match shows underlying variant details
+        // Ensure match doesn't show underlying variant details
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("match"), 0);
 
         // Ensure reference shows underlying exome variant details
