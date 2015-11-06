@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.plugin.mailsender.Mail;
 import com.xpn.xwiki.plugin.mailsender.MailSenderPlugin;
 import com.xpn.xwiki.web.Utils;
 
@@ -70,6 +71,8 @@ public class DefaultActionManager implements ActionManager
 
     private static final String SUBJECT = "Access to patient record granted";
 
+    private static final String SUBJECT_STRING = "subject";
+
     @Inject
     private PermissionsManager permissionsManager;
 
@@ -88,13 +91,14 @@ public class DefaultActionManager implements ActionManager
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
-            options.put(RECIPIENT_NAME,
-                xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
-            options.put(MATCH_CASE_ID, connection.getTargetPatient().getDocument().getName());
-            options.put(MATCH_CASE_LINK,
-                xwiki.getExternalURL("data.GrantMatchAccess", EXTERNAL_LINK_MODE, "id=" + connection.getId(), context));
-            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", PHENOMECENTRAL_EMAIL, to,
-                "qc@phenomecentral.org", null, "", options, context);
+            Mail mail = new Mail();
+            mail.setTo(to);
+            mail.setFrom(PHENOMECENTRAL_EMAIL);
+            mail.setBcc("qc@phenomecentral.org");
+            mail.setTextPart((String) options.get("message"));
+            mail.setSubject((String) options.get(SUBJECT_STRING));
+            mailsender.sendMail(mail, context);
+
             return 0;
         } catch (Exception ex) {
             this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
@@ -128,7 +132,7 @@ public class DefaultActionManager implements ActionManager
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
             options.put("platformName", PLATFORM);
-            options.put("subject", SUBJECT);
+            options.put(SUBJECT_STRING, SUBJECT);
             options.put(RECIPIENT_NAME,
                 xwiki.getUserName(connection.getInitiatingUser().toString(), null, false, context));
             options.put(CONTACTED_USER_NAME,

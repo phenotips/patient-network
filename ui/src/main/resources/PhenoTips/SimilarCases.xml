@@ -468,14 +468,14 @@
         contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
       } else {
         contactInfo = new Element("a", {
-           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token,
+           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner || "",
            "title" : "Contact owner for further information",
            "class" : "owner-info "/* + contactType*/
         }).update(r.owner || "Undisclosed owner. Initiate anonymous contact");
         var _this = this;
         contactInfo.observe('click', function (event) {
            event.stop();
-           _this._launchContactDialog(r.token);
+           _this._launchContactDialog(r.token, r.owner);
         });
       }
       return contactInfo.insert({top: " "}).insert({top: icon});
@@ -509,12 +509,13 @@
       return contactInfo.insert({top: " "});
     },
 
-    _launchContactDialog : function (token) {
+    _launchContactDialog : function (token, contact) {
       var _this = this;
       new Ajax.Request(this.matchContactURL, {
         parameters : {
           'patient': _this.query,
-          'token' : token
+          'token' : token,
+          'contact': contact
         },
         onCreate : function() {
           _this._contactContainer.update('&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')"/&gt;');
