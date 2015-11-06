@@ -178,7 +178,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
-        logger.error("SOLRQUERY generated: {}", query.toString());
+        //logger.error("SOLRQUERY generated: {}", query.toString());
         return query;
     }
 
