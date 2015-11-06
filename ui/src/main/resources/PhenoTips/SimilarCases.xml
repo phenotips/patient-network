@@ -204,6 +204,7 @@
     _NEGATIVE_MARKER : "negative",
     _NOMATCH_MARKER : "no-match",
     _NOMATCH_TEXT : "No match",
+    _DEFAULT_REFRESH_BUTTON_TEXT : "Refresh Matches",
 
     initialize : function(query, resultsContainer, options) {
       if (!query || !resultsContainer) {return;}
@@ -212,10 +213,11 @@
 
       if (options) {
         if (options.enableRefresh) {
-          var refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(' Refresh'));
-          this.container.insert({before : refreshButton});
+          var buttonLabel = new Element('label',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
+          this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
+          this.container.insert({before : this.refreshButton});
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
-          refreshButton.observe('click', this.launchSearchRefresh);
+          this.refreshButton.observe('click', this.launchSearchRefresh);
         }
         this.matchServiceURL = options.serviceURL || this.matchServiceURL;
         this._maxResults = options.maxResults || '';
@@ -280,10 +282,22 @@
       this.container.update('');
 
       // Show result summary
-      if (data &amp;&amp; data.nodata) {
-        this.displaySummary("Match request was never sent.");
+      if (data &amp;&amp; (data.nodata || data.error)) {
+        this.refreshButton.down('label').innerHTML = 'Find Matches';
+        this.refreshButton.down('span').removeClassName('fa-refresh');
+        this.refreshButton.down('span').addClassName('fa-search');
+        if (data.nodata) {
+          this.displaySummary("Match request was never sent.");
+        } else {
+          this.displaySummary("Error sending request: " + data.error);
+        }
         return;
+      } else {
+        this.refreshButton.down('span').removeClassName('fa-search');
+        this.refreshButton.down('span').addClassName('fa-refresh');
+        this.refreshButton.down('label').innerHTML = this._DEFAULT_REFRESH_BUTTON_TEXT;
       }
+
       if (!data || data.resultsCount &lt;= 0) {
         this.displaySummary("No similar cases found.");
         return;
@@ -1316,6 +1330,10 @@
   display: block;
   background-color: $theme.textColor;
   border-radius: 1px;
+}
+.similarity-info .refresh-matches-button {
+  margin-left: 5px;
+  white-space: nowrap;
 }</code>
     </property>
     <property>
