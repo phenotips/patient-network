@@ -80,7 +80,7 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
     }
 
     /**
-     * Return the candidate genes shared by both patients in the view.
+     * Return the set of genes listed as a candidate in either patient in the view.
      *
      * @return {@inheritDoc}
      * @see org.phenotips.data.similarity.PatientGenotype#getCandidateGenes()
@@ -93,7 +93,7 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
             Set<String> matchGenes = this.matchGenotype.getCandidateGenes();
             Set<String> refGenes = this.refGenotype.getCandidateGenes();
             sharedGenes.addAll(matchGenes);
-            sharedGenes.retainAll(refGenes);
+            sharedGenes.addAll(refGenes);
         }
         return sharedGenes;
     }

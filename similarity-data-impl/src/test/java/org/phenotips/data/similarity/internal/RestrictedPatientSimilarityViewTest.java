@@ -459,7 +459,7 @@ public class RestrictedPatientSimilarityViewTest
         double score2 = o2.getScore();
         Assert.assertTrue(score2 > 0);
 
-        Assert.assertTrue(score2 > score1 + 0.1);
+        Assert.assertTrue(score2 > score1 + 0.01);
     }
 
     /**
@@ -476,6 +476,7 @@ public class RestrictedPatientSimilarityViewTest
             for (String gene : geneNames) {
                 Map<String, String> fakeGene = new HashMap<String, String>();
                 fakeGene.put("gene", gene);
+                fakeGene.put("status", "solved");
                 fakeGenes.add(fakeGene);
             }
         }

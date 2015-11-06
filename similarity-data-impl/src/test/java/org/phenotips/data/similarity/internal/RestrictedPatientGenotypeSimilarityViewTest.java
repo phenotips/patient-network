@@ -184,6 +184,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
             for (String gene : geneNames) {
                 Map<String, String> fakeGene = new HashMap<String, String>();
                 fakeGene.put("gene", gene);
+                fakeGene.put("status", "candidate");
                 fakeGenes.add(fakeGene);
             }
         }
@@ -213,7 +214,6 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
     private void assertNoMatch(PatientGenotypeSimilarityView view)
     {
-        Assert.assertTrue(view.getCandidateGenes().isEmpty());
         Assert.assertTrue(view.getGenes().isEmpty());
         Assert.assertEquals(0, view.getScore(), 0.0001);
     }
@@ -402,8 +402,6 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         setupPatientGenetics(this.mockMatch, matchGenes, EXOME_1);
 
         Collection<String> refGenes = new ArrayList<String>();
-        refGenes.add("Corf27");
-        refGenes.add("HEXA");
         refGenes.add("SRCAP");
         // No exome for reference patient
         setupPatientGenetics(this.mockReference, refGenes, null);
@@ -422,7 +420,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
         double score = top.getDouble("score");
-        Assert.assertTrue(String.format("Unexpected score: %.4f", score), score > 0.9);
+        Assert.assertTrue(String.format("Unexpected score: %.4f", score), score > 0.5);
 
         // Ensure match shows underlying exome variant details
         assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("match"), 1);
@@ -456,25 +454,25 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertEquals(2, results.length());
 
         JSONObject top = results.getJSONObject(0);
-        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
-        Assert.assertTrue(top.getDouble("score") > 0.9);
+        Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
+        Assert.assertTrue(top.getDouble("score") > 0.5);
 
         // Ensure match shows underlying variant details
-        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("match"), 1);
-
-        // Ensure reference shows underlying exome variant details
-        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 1);
-
-        // NOTCH2 match
-        top = results.getJSONObject(1);
-        Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
-        Assert.assertTrue(top.getDouble("score") > 0.7);
-
-        // Ensure match shows candidate gene level
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("match"), 0);
 
         // Ensure reference shows underlying exome variant details
         assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 2);
+
+        // SRCAP match
+        top = results.getJSONObject(1);
+        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
+        Assert.assertTrue(top.getDouble("score") < 0.5);
+
+        // Ensure match shows candidate gene level
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("match"), 1);
+
+        // Ensure reference shows underlying exome variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 1);
     }
 
     /** Only score shown for variant when matchable. */
@@ -497,7 +495,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(genes.contains("HLA-DQB1"));
 
         Collection<String> candidateGenes = view.getCandidateGenes();
-        Assert.assertTrue(candidateGenes.isEmpty());
+        Assert.assertEquals(1, candidateGenes.size());
 
         JSONArray results = view.toJSON();
         Assert.assertEquals(1, results.length());

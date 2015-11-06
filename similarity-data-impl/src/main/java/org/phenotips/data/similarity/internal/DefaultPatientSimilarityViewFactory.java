@@ -32,12 +32,10 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -187,174 +185,78 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     }
 
     /**
-     * Return a mapping from VocabularyTerms to their children in the given vocabulary.
+     * Return all terms associated with a particular disease.
      *
-     * @param vocabulary the vocabulary
-     * @return a map from each term to the children in vocabulary
+     * @param hpo the human phenotype ontology
+     * @param disease the MIM disease vocabulary term
+     * @return a collection of resolved VocabularyTerms associated with the disease, excluding terms that could not be
+     *         resolved to a VocubularyTerm
      */
-    private Map<VocabularyTerm, Collection<VocabularyTerm>> getChildrenMap(Vocabulary vocabulary)
+    @SuppressWarnings("unchecked")
+    private Collection<VocabularyTerm> getDiseaseVocabularyTerms(Vocabulary hpo, VocabularyTerm disease)
     {
-        Map<VocabularyTerm, Collection<VocabularyTerm>> children = new HashMap<>();
-        this.logger.info("Getting all children of vocabulary terms...");
-        Collection<VocabularyTerm> terms = queryAllTerms(vocabulary);
-        for (VocabularyTerm term : terms) {
-            for (VocabularyTerm parent : term.getParents()) {
-                // Add term to parent's set of children
-                Collection<VocabularyTerm> parentChildren = children.get(parent);
-                if (parentChildren == null) {
-                    parentChildren = new ArrayList<VocabularyTerm>();
-                    children.put(parent, parentChildren);
+        Collection<VocabularyTerm> terms = new LinkedList<VocabularyTerm>();
+        Object symptomNames = disease.get("actual_symptom");
+        if (symptomNames != null) {
+            if (symptomNames instanceof Collection<?>) {
+                for (String symptomName : ((Collection<String>) symptomNames)) {
+                    VocabularyTerm symptom = hpo.getTerm(symptomName);
+                    // Ideally use frequency with which symptom occurs in disease
+                    // This information isn't prevalent or reliable yet, however
+                    if (symptom == null) {
+                        logger.warn("Unable to find term in HPO: " + symptomName);
+                    } else {
+                        terms.add(symptom);
+                    }
                 }
-                parentChildren.add(term);
+            } else {
+                String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
+                this.logger.error(err);
+                throw new RuntimeException(err);
             }
         }
-        this.logger.info(String.format("cached children of %d vocabulary terms.", children.size()));
-        return children;
+        return terms;
     }
 
     /**
-     * Helper method to recursively fill a map with the descendants of all terms under a root term.
-     *
-     * @param root the root of the vocabulary to explore
-     * @param termChildren a map from each vocabulary term to its children
-     * @param termDescendants a partially-complete map of terms to descendants, filled in by this method
-     */
-    private void setDescendantsMap(VocabularyTerm root, Map<VocabularyTerm, Collection<VocabularyTerm>> termChildren,
-        Map<VocabularyTerm, Collection<VocabularyTerm>> termDescendants)
-    {
-        if (termDescendants.containsKey(root)) {
-            return;
-        }
-        // Compute descendants from children
-        Collection<VocabularyTerm> descendants = new HashSet<VocabularyTerm>();
-        Collection<VocabularyTerm> children = termChildren.get(root);
-        if (children != null) {
-            for (VocabularyTerm child : children) {
-                // Recurse on child
-                setDescendantsMap(child, termChildren, termDescendants);
-                // On return, termDescendants[child] should be non-null
-                Collection<VocabularyTerm> childDescendants = termDescendants.get(child);
-                if (childDescendants != null) {
-                    descendants.addAll(childDescendants);
-                } else {
-                    this.logger.warn("Descendants were null after recursion");
-                }
-            }
-        }
-        descendants.add(root);
-        termDescendants.put(root, descendants);
-    }
-
-    /**
-     * Return a mapping from VocabularyTerms to their descendants in the part of the vocabulary under root.
-     *
-     * @param root the root of the vocabulary to explore
-     * @param termChildren a map from each vocabulary term to its children
-     * @return a map from each term to the descendants in vocabulary
-     */
-    private Map<VocabularyTerm, Collection<VocabularyTerm>> getDescendantsMap(VocabularyTerm root,
-        Map<VocabularyTerm, Collection<VocabularyTerm>> termChildren)
-    {
-        Map<VocabularyTerm, Collection<VocabularyTerm>> termDescendants =
-            new HashMap<VocabularyTerm, Collection<VocabularyTerm>>();
-        setDescendantsMap(root, termChildren, termDescendants);
-        return termDescendants;
-    }
-
-    /**
-     * Return the observed frequency distribution across provided HPO terms seen in MIM.
+     * Return the observed information content across provided HPO terms seen in MIM.
      *
      * @param mim the MIM vocabulary with diseases and symptom frequencies
      * @param hpo the human phenotype ontology
-     * @param allowedTerms only frequencies for a subset of these terms will be returned
      * @return a map from VocabularyTerm to the absolute frequency (sum over all terms ~1)
      */
-    @SuppressWarnings("unchecked")
-    private Map<VocabularyTerm, Double> getTermFrequencies(Vocabulary mim, Vocabulary hpo,
-        Collection<VocabularyTerm> allowedTerms)
+    private Map<VocabularyTerm, Double> getTermICs(Vocabulary mim, Vocabulary hpo)
     {
         Map<VocabularyTerm, Double> termFreq = new HashMap<VocabularyTerm, Double>();
-        double freqDenom = 0.0;
+        Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
         // Add up frequencies of each term across diseases
         Collection<VocabularyTerm> diseases = queryAllTerms(mim);
-        Set<VocabularyTerm> ignoredSymptoms = new HashSet<VocabularyTerm>();
         for (VocabularyTerm disease : diseases) {
             // Get a Collection<String> of symptom HP IDs, or null
-            Object symptomNames = disease.get("actual_symptom");
-            if (symptomNames != null) {
-                if (symptomNames instanceof Collection<?>) {
-                    for (String symptomName : ((Collection<String>) symptomNames)) {
-                        VocabularyTerm symptom = hpo.getTerm(symptomName);
-                        if (!allowedTerms.contains(symptom)) {
-                            ignoredSymptoms.add(symptom);
-                            continue;
-                        }
-                        // Ideally use frequency with which symptom occurs in disease
-                        // This information isn't prevalent or reliable yet, however
-                        double freq = 1.0;
-                        freqDenom += freq;
-                        // Add to accumulated term frequency
-                        Double prevFreq = termFreq.get(symptom);
-                        if (prevFreq != null) {
-                            freq += prevFreq;
-                        }
-                        termFreq.put(symptom, freq);
+            Collection<VocabularyTerm> symptoms = getDiseaseVocabularyTerms(hpo, disease);
+
+            for (VocabularyTerm symptom : symptoms) {
+                for (VocabularyTerm impliedTerm : symptom.getAncestorsAndSelf()) {
+                    double freq = 1.0;
+                    // Add to accumulated term frequency
+                    Double prevFreq = termFreq.get(impliedTerm);
+                    if (prevFreq != null) {
+                        freq += prevFreq;
                     }
-                } else {
-                    String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
-                    this.logger.error(err);
-                    throw new RuntimeException(err);
+                    termFreq.put(impliedTerm, freq);
                 }
             }
-        }
-        if (!ignoredSymptoms.isEmpty()) {
-            this.logger.warn(String.format("Ignored %d symptoms", ignoredSymptoms.size()));
         }
 
         this.logger.info("Normalizing term frequency distribution...");
         // Normalize all the term frequencies to be a proper distribution
+        VocabularyTerm root = hpo.getTerm(HP_ROOT);
+        double maxFreq = termFreq.get(root);
         for (Map.Entry<VocabularyTerm, Double> entry : termFreq.entrySet()) {
-            entry.setValue(limitProb(entry.getValue() / freqDenom));
+            double p = limitProb(entry.getValue() / maxFreq);
+            termICs.put(entry.getKey(), -Math.log(p));
         }
 
-        return termFreq;
-    }
-
-    /**
-     * Return the information content of each VocabularyTerm in termFreq.
-     *
-     * @param termFreq the absolute frequency of each VocabularyTerm
-     * @param termDescendants the descendants of each VocabularyTerm
-     * @return a map from each term to the information content of that term
-     */
-    private Map<VocabularyTerm, Double> getTermICs(Map<VocabularyTerm, Double> termFreq,
-        Map<VocabularyTerm, Collection<VocabularyTerm>> termDescendants)
-    {
-        Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
-
-        for (VocabularyTerm term : termFreq.keySet()) {
-            Collection<VocabularyTerm> descendants = termDescendants.get(term);
-            if (descendants == null) {
-                this.logger.warn("Found no descendants of term: " + term.getId());
-            }
-            // Sum up frequencies of all descendants
-            double probMass = 0.0;
-            for (VocabularyTerm descendant : descendants) {
-                Double freq = termFreq.get(descendant);
-                if (freq != null) {
-                    probMass += freq;
-                }
-            }
-
-            if (HP_ROOT.equals(term.getId())) {
-                this.logger.warn(String
-                    .format("Probability mass under %s should be 1.0, was: %.6f", HP_ROOT, probMass));
-            }
-            if (probMass > EPS) {
-                probMass = limitProb(probMass);
-                termICs.put(term, -Math.log(probMass));
-            }
-        }
         return termICs;
     }
 
@@ -373,17 +275,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             // Load the OMIM/HPO mappings
             Vocabulary mim = this.vocabularyManager.getVocabulary("MIM");
             Vocabulary hpo = this.vocabularyManager.getVocabulary("HPO");
-            VocabularyTerm hpRoot = hpo.getTerm(HP_ROOT);
-
-            // Pre-compute HPO descendant lookups
-            Map<VocabularyTerm, Collection<VocabularyTerm>> termChildren = getChildrenMap(hpo);
-            Map<VocabularyTerm, Collection<VocabularyTerm>> termDescendants = getDescendantsMap(hpRoot, termChildren);
-
-            // Compute prior frequencies of phenotypes (based on disease frequencies and phenotype prevalence)
-            Map<VocabularyTerm, Double> termFreq = getTermFrequencies(mim, hpo, termDescendants.keySet());
 
             // Pre-compute term information content (-logp), for each node t (i.e. t.inf).
-            Map<VocabularyTerm, Double> termICs = getTermICs(termFreq, termDescendants);
+            Map<VocabularyTerm, Double> termICs = getTermICs(mim, hpo);
 
             // Give data to views to use
             this.logger.info("Setting view globals...");

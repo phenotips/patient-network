@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -104,7 +105,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      */
     private void matchGenes()
     {
-        for (String gene : getGenes()) {
+        Set<String> genes = getGenes();
+        for (String gene : genes) {
             // Compute gene score based on the genotype scores for the two patients
             Double refScore = this.refGenotype.getGeneScore(gene);
             Double matchScore = this.matchGenotype.getGeneScore(gene);
@@ -127,7 +129,14 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         if (this.geneScores.isEmpty()) {
             return 0.0;
         } else {
-            return Collections.max(this.geneScores.values());
+            double maxScore = 0.0;
+            for (String gene : getCandidateGenes()) {
+                Double score = this.geneScores.get(gene);
+                if (score != null && score > maxScore) {
+                    maxScore = score;
+                }
+            }
+            return maxScore;
         }
     }
 
@@ -212,7 +221,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
 
             // FIXME: quick emergency fix to make PhenomeCentral responsive
             numGenesReported++;
-            if (numGenesReported > 15) {
+            if (numGenesReported > 5) {
                 break;
             }
         }
