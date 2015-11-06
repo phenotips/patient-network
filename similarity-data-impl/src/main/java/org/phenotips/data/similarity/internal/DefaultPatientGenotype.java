@@ -104,11 +104,10 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
      */
     private static Set<String> getManualGeneNames(Patient patient)
     {
-        Set<String> geneNames = new HashSet<String>();
-       
         PatientData<Map<String, String>> allGenes = patient.getData("genes");
         if (allGenes != null && allGenes.isIndexed()) {
             Set<String> geneCandidateNames = new HashSet<String>();
+            Set<String> geneSolvedNames = new HashSet<String>();
             for (Map<String, String> gene : allGenes) {
                 String geneName = gene.get("gene");
                 if (StringUtils.isBlank(geneName)) {
@@ -120,13 +119,15 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
                 if (StringUtils.isBlank(status) || "candidate".equals(status)) {
                     geneCandidateNames.add(geneName);
                 } else if ("solved".equals(status)) {
-                    geneNames.add(geneName);
+                    geneSolvedNames.add(geneName);
                 }
             }
-            if (geneNames.isEmpty() && !geneCandidateNames.isEmpty()) {
-                geneNames.addAll(geneCandidateNames);
+            if (!geneCandidateNames.isEmpty()) {
+                return Collections.unmodifiableSet(geneCandidateNames);
+            } else if (!geneSolvedNames.isEmpty()) {
+                return Collections.unmodifiableSet(geneSolvedNames);
             }
-            return Collections.unmodifiableSet(geneNames);
+
         }
         return Collections.emptySet();
     }
@@ -146,12 +147,8 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         }
         if (variants != null && variants.isIndexed()) {
             for (Map<String, String> variant : variants) {
-                String variantName = variant.get("cdna");
-                if (variantName == null) {
-                    continue;
-                }
                 String geneSymbol = variant.get("genesymbol");
-                if (geneSymbol == null) {
+                if (StringUtils.isBlank(geneSymbol)) {
                     continue;
                 }
                 geneSymbol = geneSymbol.trim();
