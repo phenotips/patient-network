@@ -185,6 +185,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
             for (String gene : geneNames) {
                 Map<String, String> fakeGene = new HashMap<String, String>();
                 fakeGene.put("gene", gene);
+                fakeGene.put("status", "candidate");
                 fakeGenes.add(fakeGene);
             }
         }

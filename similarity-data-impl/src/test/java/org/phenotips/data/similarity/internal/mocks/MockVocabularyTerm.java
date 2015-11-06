@@ -149,6 +149,6 @@ public class MockVocabularyTerm implements VocabularyTerm
     @Override
     public JSON toJSON()
     {
-         return new JSONObject();
+        return new JSONObject();
     }
 }
