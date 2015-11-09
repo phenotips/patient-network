@@ -224,6 +224,7 @@
         this._minScore = options.minScore || '';
         this._mmeServer = options.mmeServer || "";
         this._mmeMode = (this._mmeServer != "");
+        this._omimPrototypeMode = ((options.omimSection || "") != "");
       }
       this.launchSearchExisting();
 
@@ -337,7 +338,7 @@
            enabled : true
         },
         "diagnosis": {
-           title   : "Potential diagnoses",
+           title   : this._omimPrototypeMode ? "Diagnosis" : "Potential diagnosis",
            display : _this._displayResultDiagnosis.bind(_this),
            field   : "disorders",
            enabled : true
@@ -937,12 +938,14 @@
     $$('.similarity-results-container').each(function (container) {
       var serviceInfo = container.down('input[name="service"]');
       var mmeServer = container.down('input[name="mmeServer"]');
+      var omimSection = container.down('input[name="omimSection"]');
       new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
         enableRefresh: true,
         serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
         maxResults: maxResults &amp;&amp; maxResults.value,
         minScore: minScore &amp;&amp; minScore.value,
-        mmeServer: mmeServer &amp;&amp; mmeServer.value
+        mmeServer: mmeServer &amp;&amp; mmeServer.value,
+        omimSection: omimSection &amp;&amp; omimSection.value
       });
     });
   };

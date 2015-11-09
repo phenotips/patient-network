@@ -133,7 +133,7 @@
     <property>
       <content>{{velocity}}
 === OMIM disorder prototypes ===
-(% class="similarity-results-container" id="similar-prototypes-container" %)((({{html clean=false}}&lt;input type="hidden" name="service" value="${xwiki.getURL('PhenoTips.SimilarOMIMPrototypes', 'get')}"/&gt;{{/html}})))##
+(% class="similarity-results-container" id="similar-prototypes-container" %)((({{html clean=false}}&lt;input type="hidden" name="omimSection" value="true"/&gt;&lt;input type="hidden" name="service" omimSection="true" value="${xwiki.getURL('PhenoTips.SimilarOMIMPrototypes', 'get')}"/&gt;{{/html}})))##
 {{/velocity}}</content>
     </property>
     <property>
