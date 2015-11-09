@@ -215,7 +215,12 @@
         if (options.enableRefresh) {
           var buttonLabel = new Element('label',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
-          this.container.insert({before : this.refreshButton});
+          if (options.refreshButtonContainer) {
+            var container = $(options.refreshButtonContainer);
+            container.insert({top: this.refreshButton});
+          } else {
+            this.container.insert({before : this.refreshButton});
+          }
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
           this.refreshButton.observe('click', this.launchSearchRefresh);
         }
@@ -939,13 +944,15 @@
       var serviceInfo = container.down('input[name="service"]');
       var mmeServer = container.down('input[name="mmeServer"]');
       var omimSection = container.down('input[name="omimSection"]');
+      var buttonContainer = container.down('input[name="refreshButtonContainer"]');
       new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
         enableRefresh: true,
         serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
         maxResults: maxResults &amp;&amp; maxResults.value,
         minScore: minScore &amp;&amp; minScore.value,
         mmeServer: mmeServer &amp;&amp; mmeServer.value,
-        omimSection: omimSection &amp;&amp; omimSection.value
+        omimSection: omimSection &amp;&amp; omimSection.value,
+        refreshButtonContainer: buttonContainer &amp;&amp; buttonContainer.value
       });
     });
   };
