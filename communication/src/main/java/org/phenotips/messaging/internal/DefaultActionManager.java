@@ -71,7 +71,7 @@ public class DefaultActionManager implements ActionManager
 
     private static final String SUBJECT = "Access to patient record granted";
 
-    private static final String SUBJECT_STRING = "subject";
+    private static final String SUBJECT_FIELD_STRING = "subject";
 
     @Inject
     private PermissionsManager permissionsManager;
@@ -91,14 +91,16 @@ public class DefaultActionManager implements ActionManager
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
+            String replyTo = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
             Mail mail = new Mail();
             mail.setTo(to);
+            mail.setHeader("Reply-To", replyTo);
+            mail.setHeader("Return-Path", replyTo);
             mail.setFrom(PHENOMECENTRAL_EMAIL);
             mail.setBcc("qc@phenomecentral.org");
             mail.setTextPart((String) options.get("message"));
-            mail.setSubject((String) options.get(SUBJECT_STRING));
+            mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
-
             return 0;
         } catch (Exception ex) {
             this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
@@ -132,7 +134,7 @@ public class DefaultActionManager implements ActionManager
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
             options.put("platformName", PLATFORM);
-            options.put(SUBJECT_STRING, SUBJECT);
+            options.put(SUBJECT_FIELD_STRING, SUBJECT);
             options.put(RECIPIENT_NAME,
                 xwiki.getUserName(connection.getInitiatingUser().toString(), null, false, context));
             options.put(CONTACTED_USER_NAME,
