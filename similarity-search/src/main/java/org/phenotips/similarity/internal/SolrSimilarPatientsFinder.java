@@ -194,8 +194,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         try {
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
-            this.logger.warn("Failed to query the patients index: {}",
-                ex.getMessage());
+            this.logger.warn("Failed to query the patients index: {}", ex.getMessage());
             return null;
         }
     }
