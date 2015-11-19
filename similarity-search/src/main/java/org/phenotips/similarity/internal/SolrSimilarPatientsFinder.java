@@ -169,7 +169,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         // Whitespace-delimiter terms querying the extended phenotype field
         Collection<String> termIds = getPresentPhenotypeTerms(referencePatient);
         if (!termIds.isEmpty()) {
-            q.append(" extended_phenotype: " + getQueryFromTerms(termIds));
+            q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
         }
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
