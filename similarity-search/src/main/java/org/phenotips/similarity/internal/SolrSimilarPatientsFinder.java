@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -217,15 +217,14 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private Collection<String> getPresentPhenotypeTerms(Patient patient)
     {
-        Collection<String> termIds = new ArrayList<String>();
+        Collection<String> termIds = new HashSet<>();
         for (Feature phenotype : patient.getFeatures()) {
             if (phenotype != null && phenotype.isPresent()) {
                 String termId = phenotype.getId();
                 if (StringUtils.isNotBlank(termId)) {
                     VocabularyTerm term = this.vocabularies.resolveTerm(termId);
                     if (term != null) {
-                        Set<VocabularyTerm> ancestors = term.getAncestorsAndSelf();
-                        for (VocabularyTerm ancestor : ancestors) {
+                        for (VocabularyTerm ancestor : term.getAncestorsAndSelf()) {
                             termIds.add(ancestor.getId());
                         }
                     }
@@ -240,7 +239,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         if (terms == null || terms.isEmpty()) {
             return "";
         }
-        Collection<String> escaped = new ArrayList<String>(terms.size());
+        Collection<String> escaped = new HashSet<>(terms.size());
         for (String term : terms) {
             escaped.add(ClientUtils.escapeQueryChars(term));
         }
