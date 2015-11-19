@@ -25,7 +25,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
 import org.phenotips.vocabulary.SolrCoreContainerHandler;
-import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.annotation.Component;
@@ -85,8 +85,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private PatientSimilarityViewFactory factory;
 
     @Inject
-    @Named("hpo")
-    private Vocabulary ontologyService;
+    private VocabularyManager vocabularies;
 
     @Inject
     private SolrCoreContainerHandler cores;
@@ -223,7 +222,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             if (phenotype != null && phenotype.isPresent()) {
                 String termId = phenotype.getId();
                 if (StringUtils.isNotBlank(termId)) {
-                    VocabularyTerm term = this.ontologyService.getTerm(termId);
+                    VocabularyTerm term = this.vocabularies.resolveTerm(termId);
                     if (term != null) {
                         Set<VocabularyTerm> ancestors = term.getAncestorsAndSelf();
                         for (VocabularyTerm ancestor : ancestors) {
