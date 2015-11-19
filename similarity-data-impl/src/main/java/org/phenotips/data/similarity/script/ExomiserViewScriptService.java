@@ -89,9 +89,10 @@ public class ExomiserViewScriptService implements ScriptService
      */
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {
-        JSONArray result = new JSONArray();
+        JSONArray variantsJSON = new JSONArray();
+
         if (patient == null || g < 0) {
-            return result;
+            return variantsJSON;
         }
 
         boolean restrictGenes =
@@ -99,26 +100,45 @@ public class ExomiserViewScriptService implements ScriptService
         int maxGenes = restrictGenes ? MAXIMUM_UNPRIVILEGED_GENES : g;
 
         Exome patientExome = this.exomeManager.getExome(patient);
-        for (String geneName : patientExome.getTopGenes(maxGenes)) {
-            JSONObject geneJSON = new JSONObject();
-            geneJSON.element("name", geneName);
-            geneJSON.element("score", patientExome.getGeneScore(geneName));
 
-            JSONArray variantsJSON = new JSONArray();
+        for (String geneName : patientExome.getTopGenes(maxGenes)) {
+
+            Double geneScore = patientExome.getGeneScore(geneName);
+
+
+            List<Variant> topVariants = patientExome.getTopVariants(geneName);
+
             boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
                 && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
             int maxVars = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
-            List<Variant> topVariants = patientExome.getTopVariants(geneName);
             maxVars = Math.min(maxVars, topVariants.size());
+
             for (int i = 0; i < maxVars; i++) {
                 Variant variant = topVariants.get(i);
                 if (variant != null) {
-                    variantsJSON.add(variant.toJSON());
+                    variantsJSON.add(this.mapToGAVariantJSON(variant, geneName, geneScore));
                 }
             }
-            geneJSON.element("variants", variantsJSON);
-            result.add(geneJSON);
         }
-        return result;
+        return variantsJSON;
+    }
+
+    private JSONObject mapToGAVariantJSON(Variant variant, String geneName, Double geneScore)
+    {
+        JSONObject resultJson = new JSONObject();
+        resultJson.put("start", variant.getPosition());
+        resultJson.put("referenceBases", variant.getRef());
+        resultJson.put("alternateBases", variant.getAlt());
+        resultJson.put("referenceName", variant.getChrom());
+        resultJson.put("end", variant.getPosition() + variant.getAlt().length());
+
+        JSONObject infoJson = new JSONObject();
+        infoJson.put("EXOMISER_VARIANT_SCORE", variant.getScore());
+        infoJson.put("EXOMISER_GENE_VARIANT_SCORE", geneScore);
+        infoJson.put("GENE_EFFECT", variant.getAnnotation("FUNCTIONAL_CLASS"));
+        infoJson.put("GENE", geneName);
+
+        resultJson.put("info", infoJson);
+        return resultJson;
     }
 }
