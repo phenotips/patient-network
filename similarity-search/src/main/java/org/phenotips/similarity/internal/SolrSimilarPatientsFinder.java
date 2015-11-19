@@ -120,7 +120,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private List<PatientSimilarityView> find(Patient referencePatient, boolean prototypes)
     {
-        //logger.error("Searching for patients using access level: {}", this.accessLevelThreshold.getName());
+        this.logger.debug("Searching for patients similar to [{}] using access level {}",
+            referencePatient.getDocument(), this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
         if (query == null) {
             return Collections.emptyList();
@@ -135,11 +136,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
                 continue;
             }
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            //logger.error("Found match: found {}, score: {}, accessLevel: {}, accessCompare: {}",
-            //             name, result.getScore(), result.getAccess().getName(),
-            //             this.accessLevelThreshold.compareTo(result.getAccess()));
+            this.logger.debug("Found match: [{}] with score: {}, accessLevel: {}, accessCompare: {}",
+                name, result.getScore(), result.getAccess().getName(),
+                this.accessLevelThreshold.compareTo(result.getAccess()));
             if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0 && result.getScore() > 0) {
-                //logger.error("added match");
                 results.add(result);
             }
         }
@@ -177,7 +177,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
-        //logger.error("SOLRQUERY generated: {}", query.toString());
+        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getDocument(),
+            query.toString());
         return query;
     }
 
@@ -194,7 +195,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
             this.logger.warn("Failed to query the patients index: {}",
-                    ex.getMessage());
+                ex.getMessage());
             return null;
         }
     }
