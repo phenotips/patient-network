@@ -1290,7 +1290,11 @@
 }
 .similarity-results .details .match-type {
   display: inline-block;
-  width: 100%;
+  width: 50%;
+  box-sizing: border-box;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin-bottom: 10px;
 }
 .similarity-results .details table tr:nth-child(2n) {
   background-color: #F9F9F9;

@@ -537,7 +537,7 @@
       <code>#template("colorThemeInit.vm")
 
 .segmented-bar {
-  color: $theme.textColor;
+  color: #FFFFFF;
   font-size: 75%;
   white-space: nowrap;
   width: auto;
