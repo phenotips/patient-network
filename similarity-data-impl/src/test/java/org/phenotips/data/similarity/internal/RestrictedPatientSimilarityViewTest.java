@@ -100,26 +100,26 @@ public class RestrictedPatientSimilarityViewTest
     @Before
     public void setupAccessTypes()
     {
-        open = mock(AccessType.class);
-        when(open.isOpenAccess()).thenReturn(true);
-        when(open.isLimitedAccess()).thenReturn(false);
-        when(open.isPrivateAccess()).thenReturn(false);
-        when(open.toString()).thenReturn("owner");
-        when(open.getAccessLevel()).thenReturn(new OwnerAccessLevel());
+        this.open = mock(AccessType.class);
+        when(this.open.isOpenAccess()).thenReturn(true);
+        when(this.open.isLimitedAccess()).thenReturn(false);
+        when(this.open.isPrivateAccess()).thenReturn(false);
+        when(this.open.toString()).thenReturn("owner");
+        when(this.open.getAccessLevel()).thenReturn(new OwnerAccessLevel());
 
-        limited = mock(AccessType.class);
-        when(limited.isOpenAccess()).thenReturn(false);
-        when(limited.isLimitedAccess()).thenReturn(true);
-        when(limited.isPrivateAccess()).thenReturn(false);
-        when(limited.toString()).thenReturn("match");
-        when(limited.getAccessLevel()).thenReturn(new MatchAccessLevel());
+        this.limited = mock(AccessType.class);
+        when(this.limited.isOpenAccess()).thenReturn(false);
+        when(this.limited.isLimitedAccess()).thenReturn(true);
+        when(this.limited.isPrivateAccess()).thenReturn(false);
+        when(this.limited.toString()).thenReturn("match");
+        when(this.limited.getAccessLevel()).thenReturn(new MatchAccessLevel());
 
-        priv = mock(AccessType.class);
-        when(priv.isOpenAccess()).thenReturn(false);
-        when(priv.isLimitedAccess()).thenReturn(false);
-        when(priv.isPrivateAccess()).thenReturn(true);
-        when(priv.toString()).thenReturn("none");
-        when(priv.getAccessLevel()).thenReturn(new NoAccessLevel());
+        this.priv = mock(AccessType.class);
+        when(this.priv.isOpenAccess()).thenReturn(false);
+        when(this.priv.isLimitedAccess()).thenReturn(false);
+        when(this.priv.isPrivateAccess()).thenReturn(true);
+        when(this.priv.toString()).thenReturn("none");
+        when(this.priv.getAccessLevel()).thenReturn(new NoAccessLevel());
     }
 
     /** Missing match throws exception. */
@@ -127,7 +127,7 @@ public class RestrictedPatientSimilarityViewTest
     public void testConstructorWithMissingMatch()
     {
         Patient mockReference = mock(Patient.class);
-        new RestrictedPatientSimilarityView(null, mockReference, open);
+        new RestrictedPatientSimilarityView(null, mockReference, this.open);
     }
 
     /** Missing reference throws exception. */
@@ -135,7 +135,7 @@ public class RestrictedPatientSimilarityViewTest
     public void testConstructorWithMissingReference()
     {
         Patient mockMatch = mock(Patient.class);
-        new RestrictedPatientSimilarityView(mockMatch, null, open);
+        new RestrictedPatientSimilarityView(mockMatch, null, this.open);
     }
 
     /** Missing access throws exception. */
@@ -154,7 +154,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertEquals("match", o.getAccess().getName());
     }
 
@@ -180,7 +180,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Assert.assertSame(PATIENT_1, o.getDocument());
     }
 
@@ -191,7 +191,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertNull(o.getDocument());
     }
 
@@ -202,7 +202,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Assert.assertNull(o.getDocument());
     }
 
@@ -213,7 +213,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Assert.assertSame(USER_1, o.getReporter());
     }
 
@@ -224,7 +224,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertNull(o.getReporter());
     }
 
@@ -235,7 +235,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Assert.assertNull(o.getReporter());
     }
 
@@ -247,7 +247,7 @@ public class RestrictedPatientSimilarityViewTest
         when(mockMatch.getData("contact")).thenReturn(null);
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Assert.assertEquals(USER_1.getName(), o.getOwnerName());
     }
 
@@ -261,7 +261,7 @@ public class RestrictedPatientSimilarityViewTest
         doReturn(ownerPatientData).when(mockMatch).getData("contact");
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Assert.assertEquals(USER_1.getName(), o.getOwnerName());
     }
 
@@ -272,7 +272,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Assert.assertEquals(OWNER_1, o.getOwnerName());
     }
 
@@ -283,7 +283,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertEquals(OWNER_1, o.getOwnerName());
     }
 
@@ -294,7 +294,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Assert.assertNull(o.getOwnerName());
     }
 
@@ -304,7 +304,7 @@ public class RestrictedPatientSimilarityViewTest
     {
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Assert.assertSame(mockReference, o.getReference());
     }
 
@@ -388,7 +388,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Set<? extends Feature> phenotypes = o.getFeatures();
         Assert.assertEquals(4, phenotypes.size());
         for (Feature p : phenotypes) {
@@ -403,7 +403,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Set<? extends Feature> phenotypes = o.getFeatures();
         Assert.assertEquals(0, phenotypes.size());
     }
@@ -415,7 +415,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Set<? extends Feature> phenotypes = o.getFeatures();
         Assert.assertTrue(phenotypes.isEmpty());
     }
@@ -427,7 +427,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getMockReferenceWithDisease();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
         Assert.assertEquals(2, matchedDiseases.size());
     }
@@ -439,7 +439,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getMockReferenceWithDisease();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
         Assert.assertTrue(matchedDiseases.isEmpty());
     }
@@ -452,11 +452,11 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference1 = getBasicMockReference();
         Patient mockReference2 = getMockReferenceWithDisease();
 
-        PatientSimilarityView o1 = new RestrictedPatientSimilarityView(mockMatch, mockReference1, limited);
+        PatientSimilarityView o1 = new RestrictedPatientSimilarityView(mockMatch, mockReference1, this.limited);
         double score1 = o1.getScore();
         Assert.assertTrue(score1 > 0);
 
-        PatientSimilarityView o2 = new RestrictedPatientSimilarityView(mockMatch, mockReference2, limited);
+        PatientSimilarityView o2 = new RestrictedPatientSimilarityView(mockMatch, mockReference2, this.limited);
         double score2 = o2.getScore();
         Assert.assertTrue(score2 > 0);
 
@@ -494,7 +494,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         double scoreBefore = view1.getScore();
         Assert.assertTrue(scoreBefore > 0);
 
@@ -505,7 +505,7 @@ public class RestrictedPatientSimilarityViewTest
         matchGenes.add("Matching gene");
         setPatientCandidateGenes(mockMatch, matchGenes);
         setPatientCandidateGenes(mockReference, Collections.singleton("Matching gene"));
-        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
 
         double scoreAfter = view2.getScore();
         Assert.assertTrue(scoreAfter > 0);
@@ -520,14 +520,14 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView view1 = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         double scoreBefore = view1.getScore();
 
         mockMatch = getBasicMockMatch();
         mockReference = getBasicMockReference();
         setPatientCandidateGenes(mockMatch, Collections.singleton("Gene A"));
         setPatientCandidateGenes(mockReference, Collections.singleton("Gene B"));
-        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView view2 = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
 
         double scoreAfter = view2.getScore();
         Assert.assertTrue(Math.abs(scoreAfter - scoreBefore) < 0.00001);
@@ -540,7 +540,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, priv);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
 
         // Nothing at all
         Assert.assertTrue(o.toJSON().isNullObject());
@@ -553,7 +553,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
 
         JSONObject result = o.toJSON();
         JSONArray clusters = result.getJSONArray("featureMatches");
@@ -580,7 +580,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getBasicMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, limited);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
 
         JSONObject result = o.toJSON();
         JSONArray clusters = result.getJSONArray("featureMatches");
@@ -611,7 +611,7 @@ public class RestrictedPatientSimilarityViewTest
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
 
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, open);
+        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
 
         JSONObject result = o.toJSON();
         Assert.assertFalse(result.has("features"));
@@ -664,23 +664,28 @@ public class RestrictedPatientSimilarityViewTest
         ancestors.add(phenotypes);
         termICs.put(phenotypes, 0.000001);
         VocabularyTerm abnormalNS =
-            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalNS);
         termICs.put(abnormalNS, 0.00001);
         VocabularyTerm abnormalCNS =
-            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalCNS);
         termICs.put(abnormalCNS, 0.0001);
         VocabularyTerm abnormalHMF =
-            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalHMF);
         termICs.put(abnormalHMF, 0.001);
         VocabularyTerm cognImp =
-            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(cognImp);
         termICs.put(cognImp, 0.005);
         VocabularyTerm intDis =
-            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(intDis);
         termICs.put(intDis, 0.005);
         VocabularyTerm mildIntDis =
@@ -695,7 +700,8 @@ public class RestrictedPatientSimilarityViewTest
         ancestors.add(all);
         ancestors.add(phenotypes);
         VocabularyTerm abnormalSkelS =
-            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalSkelS);
         termICs.put(abnormalSkelS, 0.00001);
         VocabularyTerm abnormalSkelM =

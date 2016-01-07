@@ -81,11 +81,11 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     @Override
     public void initialize() throws InitializationException
     {
-        exomeDirectory = getExomeDirectory();
+        this.exomeDirectory = getExomeDirectory();
 
         // Set up exome cache
         try {
-            exomeCache = cacheManager.createNewLocalCache(new CacheConfiguration());
+            this.exomeCache = this.cacheManager.createNewLocalCache(new CacheConfiguration());
         } catch (CacheException e) {
             logger.error("Unable to create patient genotype cache: " + e.toString());
         }
@@ -100,16 +100,16 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
             return null;
         }
         Exome exome = null;
-        if (exomeCache != null) {
-            exome = exomeCache.get(id);
+        if (this.exomeCache != null) {
+            exome = this.exomeCache.get(id);
         }
 
-        if (exome == null && exomeDirectory != null) {
+        if (exome == null && this.exomeDirectory != null) {
             // Attempt to load exome from file
             exome = loadExomeById(id);
             // Cache exome
-            if (exome != null && exomeCache != null) {
-                exomeCache.set(id, exome);
+            if (exome != null && this.exomeCache != null) {
+                this.exomeCache.set(id, exome);
             }
         }
         return exome;
@@ -122,8 +122,8 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
      */
     private File getExomeDirectory()
     {
-        if (environment != null) {
-            File rootDir = environment.getPermanentDirectory();
+        if (this.environment != null) {
+            File rootDir = this.environment.getPermanentDirectory();
             File dataDir = new File(rootDir, GENOTYPE_SUBDIR);
             if (!dataDir.isDirectory() && dataDir.exists()) {
                 logger.error("Expected directory but found file: " + dataDir.getAbsolutePath());
@@ -143,7 +143,7 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
      */
     private Exome loadExomeById(String id)
     {
-        File patientDirectory = new File(exomeDirectory, id);
+        File patientDirectory = new File(this.exomeDirectory, id);
         File exomeFile = new File(patientDirectory, id + GENOTYPE_SUFFIX);
         if (patientDirectory.isDirectory() && exomeFile.isFile()) {
             try {
@@ -165,8 +165,8 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
      */
     public void clearCache()
     {
-        if (exomeCache != null) {
-            exomeCache.removeAll();
+        if (this.exomeCache != null) {
+            this.exomeCache.removeAll();
             logger.info("Cleared cache.");
         }
     }
@@ -178,8 +178,8 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
      */
     public void clearPatientCache(String id)
     {
-        if (exomeCache != null) {
-            exomeCache.remove(id);
+        if (this.exomeCache != null) {
+            this.exomeCache.remove(id);
             logger.info("Cleared patient from cache: " + id);
         }
     }

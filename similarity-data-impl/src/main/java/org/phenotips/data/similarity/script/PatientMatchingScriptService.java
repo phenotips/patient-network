@@ -59,9 +59,9 @@ public class PatientMatchingScriptService implements ScriptService
      */
     public void clearCache()
     {
-        ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearCache();
-        ((ExomiserExomeManager) exomeManager).clearCache();
-        logger.info("Cleared caches.");
+        ((DefaultPatientSimilarityViewFactory) this.patientViewFactory).clearCache();
+        ((ExomiserExomeManager) this.exomeManager).clearCache();
+        this.logger.info("Cleared caches.");
     }
 
     /**
@@ -72,9 +72,9 @@ public class PatientMatchingScriptService implements ScriptService
     public void clearPatientCache(String id)
     {
         if (id != null) {
-            ((DefaultPatientSimilarityViewFactory) patientViewFactory).clearPatientCache(id);
-            ((ExomiserExomeManager) exomeManager).clearPatientCache(id);
-            logger.info("Cleared cache for patient: " + id);
+            ((DefaultPatientSimilarityViewFactory) this.patientViewFactory).clearPatientCache(id);
+            ((ExomiserExomeManager) this.exomeManager).clearPatientCache(id);
+            this.logger.info("Cleared cache for patient: " + id);
         }
     }
 }

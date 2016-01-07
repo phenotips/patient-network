@@ -266,13 +266,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setupPatientGenetics(mockMatch, matchGenes);
+        setupPatientGenetics(this.mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         refGenes.add("SRCAP");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView o =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -301,12 +301,12 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setupPatientGenetics(mockMatch, matchGenes);
+        setupPatientGenetics(this.mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -322,13 +322,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         matchGenes.add("SRCAP");
         matchGenes.add("   ");
         matchGenes.add("");
-        setupPatientGenetics(mockMatch, matchGenes);
+        setupPatientGenetics(this.mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("");
         refGenes.add("HEXA");
         refGenes.add("  ");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -342,11 +342,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     {
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
-        setupPatientGenetics(mockMatch, matchGenes);
+        setupPatientGenetics(this.mockMatch, matchGenes);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("  SRCAP  ");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -362,12 +362,12 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneWithoutMatchGenetics()
     {
-        setupPatientGenetics(mockMatch, null);
+        setupPatientGenetics(this.mockMatch, null);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -382,9 +382,9 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
-        setupPatientGenetics(mockMatch, matchGenes);
+        setupPatientGenetics(this.mockMatch, matchGenes);
 
-        setupPatientGenetics(mockReference, null);
+        setupPatientGenetics(this.mockReference, null);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -400,14 +400,14 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         matchGenes.add("SRCAP");
         matchGenes.add("TTN");
         // Include exome with variant in SRCAP in match patient
-        setupPatientGenetics(mockMatch, matchGenes, EXOME_1);
+        setupPatientGenetics(this.mockMatch, matchGenes, EXOME_1);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         refGenes.add("SRCAP");
         // No exome for reference patient
-        setupPatientGenetics(mockReference, refGenes, null);
+        setupPatientGenetics(this.mockReference, refGenes, null);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -439,10 +439,10 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Collection<String> matchGenes = new ArrayList<String>();
         matchGenes.add("NOTCH2");
         // Include exome with variant in SRCAP in match patient
-        setupPatientGenetics(mockMatch, matchGenes, EXOME_1);
+        setupPatientGenetics(this.mockMatch, matchGenes, EXOME_1);
 
         // Include exome with variant in NOTCH2, SRCAP in reference patient
-        setupPatientGenetics(mockReference, null, EXOME_2);
+        setupPatientGenetics(this.mockReference, null, EXOME_2);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
@@ -483,11 +483,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testMultipleVariantsMatchVisibility()
     {
         // Include exome with variants in HLA-DQB1 in match patient
-        setupPatientGenetics(mockMatch, null, EXOME_1);
+        setupPatientGenetics(this.mockMatch, null, EXOME_1);
 
         Collection<String> refGenes = new ArrayList<String>();
         refGenes.add("HLA-DQB1");
-        setupPatientGenetics(mockReference, refGenes);
+        setupPatientGenetics(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, limited);
@@ -548,14 +548,14 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Before
     public void setupMockPatients()
     {
-        mockMatch = getBasicMockMatch();
-        mockReference = getBasicMockReference();
+        this.mockMatch = getBasicMockMatch();
+        this.mockReference = getBasicMockReference();
     }
 
     @After
     public void tearDownComponents()
     {
-        mockMatch = null;
-        mockReference = null;
+        this.mockMatch = null;
+        this.mockReference = null;
     }
 }

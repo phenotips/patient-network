@@ -227,23 +227,28 @@ public class RestrictedPatientSimilarityViewFactoryTest
         ancestors.add(phenotypes);
         termICs.put(phenotypes, 0.000001);
         VocabularyTerm abnormalNS =
-            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalNS);
         termICs.put(abnormalNS, 0.00001);
         VocabularyTerm abnormalCNS =
-            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalCNS);
         termICs.put(abnormalCNS, 0.0001);
         VocabularyTerm abnormalHMF =
-            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalHMF);
         termICs.put(abnormalHMF, 0.001);
         VocabularyTerm cognImp =
-            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(cognImp);
         termICs.put(cognImp, 0.005);
         VocabularyTerm intDis =
-            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(intDis);
         termICs.put(intDis, 0.005);
         VocabularyTerm mildIntDis =
@@ -258,7 +263,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         ancestors.add(all);
         ancestors.add(phenotypes);
         VocabularyTerm abnormalSkelS =
-            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes),
+                new HashSet<VocabularyTerm>(ancestors));
         ancestors.add(abnormalSkelS);
         termICs.put(abnormalSkelS, 0.00001);
         VocabularyTerm abnormalSkelM =

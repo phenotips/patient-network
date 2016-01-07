@@ -169,7 +169,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
                 // This should not happen
             } catch (Exception ex) {
                 // FIXME: this happens when an attempt to establish a connection between
-                //        a local and remote patient owners is made
+                // a local and remote patient owners is made
             }
             this.contactToken = token;
         }
