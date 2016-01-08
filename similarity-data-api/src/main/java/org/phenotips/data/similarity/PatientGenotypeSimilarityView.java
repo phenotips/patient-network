@@ -77,7 +77,7 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
      *     ]
      * </pre>
      *
-     * @return the data about this value, using the json-lib classes, empty if there are no matches and null if the
+     * @return the data about this value, using the org.json classes, empty if there are no matches and null if the
      *         necessary genetic information is not available or visible
      */
     @Override

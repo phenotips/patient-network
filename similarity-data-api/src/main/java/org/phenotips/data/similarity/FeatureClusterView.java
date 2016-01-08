@@ -84,7 +84,7 @@ public interface FeatureClusterView extends Feature
      * }
      * </pre>
      *
-     * @return the feature data, using the json-lib classes
+     * @return the feature data, using the org.json classes
      */
     @Override
     JSONObject toJSON();
