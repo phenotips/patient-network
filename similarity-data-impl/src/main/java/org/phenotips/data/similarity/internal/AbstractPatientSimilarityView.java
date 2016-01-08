@@ -31,8 +31,8 @@ import org.xwiki.model.reference.DocumentReference;
 import java.util.Collection;
 import java.util.Objects;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -199,35 +199,35 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     {
         JSONObject result = new JSONObject();
 
-        result.element("id", getId());
-        result.element("token", getContactToken());
+        result.put("id", getId());
+        result.put("token", getContactToken());
         String owner = getOwnerName();
         if (owner != null) {
-            result.element("owner", owner);
+            result.put("owner", owner);
         }
         if (this.access != null) {
-            result.element("access", this.access.toString());
+            result.put("access", this.access.toString());
         }
-        result.element("myCase", Objects.equals(this.reference.getReporter(), getReporter()));
-        result.element("score", getScore());
-        result.element("featuresCount", getFeatures().size());
+        result.put("myCase", Objects.equals(this.reference.getReporter(), getReporter()));
+        result.put("score", getScore());
+        result.put("featuresCount", getFeatures().size());
         // Features visible in the match
         JSONArray featuresJSON = getFeaturesJSON();
-        if (!featuresJSON.isEmpty()) {
-            result.element("features", featuresJSON);
+        if (featuresJSON.length() > 0) {
+            result.put("features", featuresJSON);
         }
         // Feature matching
         JSONArray featureMatchesJSON = getFeatureMatchesJSON();
-        if (!featureMatchesJSON.isEmpty()) {
-            result.element("featureMatches", featureMatchesJSON);
+        if (featureMatchesJSON.length() > 0) {
+            result.put("featureMatches", featureMatchesJSON);
         }
         // Disorder matching
         JSONArray disorderJSON = getDisordersJSON();
-        if (!disorderJSON.isEmpty()) {
-            result.element("disorders", disorderJSON);
+        if (disorderJSON.length() > 0) {
+            result.put("disorders", disorderJSON);
         }
         // Gene variant matching
-        result.elementOpt("genes", getGenesJSON());
+        result.putOpt("genes", getGenesJSON());
 
         return result;
     }

@@ -23,12 +23,11 @@ import org.phenotips.data.similarity.DisorderSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import net.sf.json.JSONObject;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -297,7 +296,7 @@ public class RestrictedDisorderSimilarityViewTest
     {
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, null, open);
         JSONObject result = o.toJSON();
-        Assert.assertTrue(result.isNullObject());
+        Assert.assertNull(result);
     }
 
     /** A null JSON is returned for private patients. */
@@ -307,7 +306,7 @@ public class RestrictedDisorderSimilarityViewTest
         Disorder mockMatch = mock(Disorder.class);
         Disorder mockReference = mock(Disorder.class);
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, priv);
-        Assert.assertTrue(o.toJSON().isNullObject());
+        Assert.assertNull(o.toJSON());
     }
 
     /** A null JSON is returned for matchable patients. */
@@ -317,7 +316,7 @@ public class RestrictedDisorderSimilarityViewTest
         Disorder mockMatch = mock(Disorder.class);
         Disorder mockReference = mock(Disorder.class);
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, limited);
-        Assert.assertTrue(o.toJSON().isNullObject());
+        Assert.assertNull(o.toJSON());
     }
 
     /** Tests for isMatchingPair. */

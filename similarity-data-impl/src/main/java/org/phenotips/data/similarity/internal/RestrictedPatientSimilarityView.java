@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that reveals the full patient
@@ -141,7 +141,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     public JSONObject toJSON()
     {
         if (this.access.isPrivateAccess()) {
-            return new JSONObject(true);
+            return new JSONObject();
         } else {
             return super.toJSON();
         }

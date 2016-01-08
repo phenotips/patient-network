@@ -21,7 +21,7 @@ import org.phenotips.data.similarity.Variant;
 
 import java.util.Map;
 
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * A base implementation of a {@link Variant}.
@@ -177,12 +177,12 @@ public abstract class AbstractVariant implements Variant
     public JSONObject toJSON()
     {
         JSONObject result = new JSONObject();
-        result.element("score", getScore());
-        result.element("chrom", getChrom());
-        result.element("position", getPosition());
-        result.element("ref", getRef());
-        result.element("alt", getAlt());
-        result.element("type", getEffect());
+        result.put("score", getScore());
+        result.put("chrom", getChrom());
+        result.put("position", getPosition());
+        result.put("ref", getRef());
+        result.put("alt", getAlt());
+        result.put("type", getEffect());
         return result;
     }
 }

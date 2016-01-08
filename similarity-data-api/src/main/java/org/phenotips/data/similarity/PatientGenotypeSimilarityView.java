@@ -19,7 +19,7 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
-import net.sf.json.JSONArray;
+import org.json.JSONArray;
 
 /**
  * View of a patient genotype as related to another reference genotype.

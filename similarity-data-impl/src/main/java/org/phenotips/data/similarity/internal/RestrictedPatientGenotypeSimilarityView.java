@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.sf.json.JSONArray;
+import org.json.JSONArray;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientGenotypeSimilarityView} that reveals the full patient

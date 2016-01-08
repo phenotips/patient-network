@@ -51,15 +51,14 @@ import java.util.Set;
 
 import javax.inject.Provider;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -228,12 +227,12 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     private void assertVariantDetailLevel(VariantDetailLevel detailLevel, JSONObject result, int nVariants)
     {
         if (detailLevel.equals(VariantDetailLevel.NONE)) {
-            Assert.assertTrue(result.isEmpty());
+            Assert.assertEquals(0, result.length());
         } else {
-            Assert.assertEquals(1, result.size());
+            Assert.assertEquals(1, result.length());
             JSONArray variants = result.getJSONArray("variants");
             // Ensure expected number of variants
-            Assert.assertEquals(nVariants, variants.size());
+            Assert.assertEquals(nVariants, variants.length());
 
             for (int i = 0; i < nVariants; i++) {
                 JSONObject v = variants.getJSONObject(i);
@@ -241,7 +240,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
                 if (detailLevel.equals(VariantDetailLevel.FULL)) {
                     // Ensure full variant details displayed
-                    Assert.assertTrue(v.size() > 4);
+                    Assert.assertTrue(v.length() > 4);
 
                     Assert.assertTrue(v.getDouble("score") > 0);
                     Assert.assertFalse(v.getString("chrom").isEmpty());
@@ -251,7 +250,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
                     Assert.assertFalse(v.getString("type").isEmpty());
                 } else if (detailLevel.equals(VariantDetailLevel.LIMITED)) {
                     // Ensure limited variant details displayed
-                    Assert.assertEquals(2, v.size());
+                    Assert.assertEquals(2, v.length());
                     Assert.assertTrue(v.getDouble("score") > 0);
                     Assert.assertFalse(v.getString("type").isEmpty());
                 }
@@ -282,7 +281,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(genes.contains("SRCAP"));
 
         JSONArray results = o.toJSON();
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(1, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
@@ -355,7 +354,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertEquals(1, genes.size());
 
         JSONArray results = view.toJSON();
-        Assert.assertTrue(!results.isEmpty());
+        Assert.assertTrue(results.length() > 0);
     }
 
     /** Candidate genes work if match is missing genotype data. */
@@ -418,7 +417,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(genes.contains("SRCAP"));
 
         JSONArray results = view.toJSON();
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(1, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
@@ -454,7 +453,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(genes.contains("SRCAP"));
 
         JSONArray results = view.toJSON();
-        Assert.assertEquals(2, results.size());
+        Assert.assertEquals(2, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("SRCAP"));
@@ -501,7 +500,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         Assert.assertTrue(candidateGenes.isEmpty());
 
         JSONArray results = view.toJSON();
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(1, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("HLA-DQB1"));

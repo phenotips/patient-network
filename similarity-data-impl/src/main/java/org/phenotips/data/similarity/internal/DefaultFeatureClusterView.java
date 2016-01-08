@@ -28,9 +28,8 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Implementation of {@link FeatureClusterView} that always reveals the full patient information; for use in trusted
@@ -160,12 +159,12 @@ public class DefaultFeatureClusterView implements FeatureClusterView
     {
         // Add ancestor info
         JSONObject featureMatchJSON = new JSONObject();
-        featureMatchJSON.element("score", getScore());
+        featureMatchJSON.put("score", getScore());
 
         JSONObject sharedParentJSON = new JSONObject();
-        sharedParentJSON.element("id", getId());
-        sharedParentJSON.element("name", getName());
-        featureMatchJSON.element("category", sharedParentJSON);
+        sharedParentJSON.put("id", getId());
+        sharedParentJSON.put("name", getName());
+        featureMatchJSON.put("category", sharedParentJSON);
 
         // Add reference features
         JSONArray referenceJSON = new JSONArray();
@@ -174,10 +173,10 @@ public class DefaultFeatureClusterView implements FeatureClusterView
             if (term != null) {
                 termId = term.getId();
             }
-            referenceJSON.add(termId);
+            referenceJSON.put(termId);
         }
-        if (!referenceJSON.isEmpty()) {
-            featureMatchJSON.element("reference", referenceJSON);
+        if (referenceJSON.length() > 0) {
+            featureMatchJSON.put("reference", referenceJSON);
         }
 
         // Add match features
@@ -187,10 +186,10 @@ public class DefaultFeatureClusterView implements FeatureClusterView
             if (term != null) {
                 termId = term.getId();
             }
-            matchJSON.add(termId);
+            matchJSON.put(termId);
         }
-        if (!matchJSON.isEmpty()) {
-            featureMatchJSON.element("match", matchJSON);
+        if (matchJSON.length() > 0) {
+            featureMatchJSON.put("match", matchJSON);
         }
 
         return featureMatchJSON;

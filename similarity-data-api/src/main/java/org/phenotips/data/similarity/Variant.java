@@ -19,7 +19,7 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * A simple representation of a variant from a VCF file.

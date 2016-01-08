@@ -20,8 +20,7 @@ package org.phenotips.data.similarity.internal.mocks;
 import org.phenotips.data.Disorder;
 
 import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Simple mock for a disorder, responding with pre-specified values.

@@ -27,12 +27,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -205,27 +205,27 @@ public class DefaultFeatureClusterViewTest
         FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, ancestor, score);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(4, result.size());
+        Assert.assertEquals(4, result.length());
 
         // Score at root level
         Assert.assertEquals(score, result.getDouble("score"), 1E-10);
 
         // Category information (for unmatched terms)
         JSONObject category = result.getJSONObject("category");
-        Assert.assertEquals(2, category.size());
+        Assert.assertEquals(2, category.length());
         Assert.assertEquals(ancestor.getId(), category.getString("id"));
         Assert.assertEquals(ancestor.getName(), category.getString("name"));
 
         // Reference term ids
         JSONArray ref = result.getJSONArray("reference");
-        Assert.assertEquals(reference.size(), ref.size());
+        Assert.assertEquals(reference.size(), ref.length());
         for (int i = 0; i < reference.size(); i++) {
             Assert.assertEquals(reference.get(i).getId(), ref.getString(i));
         }
 
         // Match term ids
         JSONArray mat = result.getJSONArray("match");
-        Assert.assertEquals(match.size(), mat.size());
+        Assert.assertEquals(match.size(), mat.length());
         for (int i = 0; i < match.size(); i++) {
             Assert.assertEquals(match.get(i).getId(), mat.getString(i));
         }
@@ -251,27 +251,27 @@ public class DefaultFeatureClusterViewTest
         FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null, score);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(4, result.size());
+        Assert.assertEquals(4, result.length());
 
         // Score at root level
         Assert.assertEquals(score, result.getDouble("score"), 1E-10);
 
         // Category information (for unmatched terms)
         JSONObject category = result.getJSONObject("category");
-        Assert.assertEquals(2, category.size());
+        Assert.assertEquals(2, category.length());
         Assert.assertEquals("", category.getString("id"));
         Assert.assertEquals("Unmatched", category.getString("name"));
 
         // Reference term ids
         JSONArray ref = result.getJSONArray("reference");
-        Assert.assertEquals(reference.size(), ref.size());
+        Assert.assertEquals(reference.size(), ref.length());
         for (int i = 0; i < reference.size(); i++) {
             Assert.assertEquals(reference.get(i).getId(), ref.getString(i));
         }
 
         // Match term ids
         JSONArray mat = result.getJSONArray("match");
-        Assert.assertEquals(match.size(), mat.size());
+        Assert.assertEquals(match.size(), mat.length());
         for (int i = 0; i < match.size(); i++) {
             Assert.assertEquals(match.get(i).getId(), mat.getString(i));
         }
@@ -293,23 +293,23 @@ public class DefaultFeatureClusterViewTest
         FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null, score);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(3, result.size());
+        Assert.assertEquals(3, result.length());
 
         // Score at root level
         Assert.assertEquals(score, result.getDouble("score"), 1E-10);
 
         // Category information (for unmatched terms)
         JSONObject category = result.getJSONObject("category");
-        Assert.assertEquals(2, category.size());
+        Assert.assertEquals(2, category.length());
         Assert.assertEquals("", category.getString("id"));
         Assert.assertEquals("Unmatched", category.getString("name"));
 
         // No reference key at all
-        Assert.assertFalse(result.containsKey("reference"));
+        Assert.assertFalse(result.has("reference"));
 
         // Match term ids
         JSONArray mat = result.getJSONArray("match");
-        Assert.assertEquals(match.size(), mat.size());
+        Assert.assertEquals(match.size(), mat.length());
         for (int i = 0; i < match.size(); i++) {
             Assert.assertEquals(match.get(i).getId(), mat.getString(i));
         }
@@ -330,19 +330,19 @@ public class DefaultFeatureClusterViewTest
         FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null, score);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(3, result.size());
+        Assert.assertEquals(3, result.length());
 
         // Score at root level
         Assert.assertEquals(score, result.getDouble("score"), 1E-10);
 
         // Reference term ids
         JSONArray ref = result.getJSONArray("reference");
-        Assert.assertEquals(reference.size(), ref.size());
+        Assert.assertEquals(reference.size(), ref.length());
         for (int i = 0; i < reference.size(); i++) {
             Assert.assertEquals(reference.get(i).getId(), ref.getString(i));
         }
 
         // Match term ids
-        Assert.assertFalse(result.containsKey("match"));
+        Assert.assertFalse(result.has("match"));
     }
 }

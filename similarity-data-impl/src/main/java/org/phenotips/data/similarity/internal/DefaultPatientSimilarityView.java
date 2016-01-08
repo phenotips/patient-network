@@ -37,8 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONArray;
+import org.json.JSONArray;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
@@ -402,7 +401,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         JSONArray featuresJSON = new JSONArray();
         for (Feature f : getFeatures()) {
             if (f.isPresent()) {
-                featuresJSON.add(f.toJSON());
+                featuresJSON.put(f.toJSON());
             }
         }
         return featuresJSON;
@@ -413,7 +412,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     {
         JSONArray disordersJSON = new JSONArray();
         for (Disorder disorder : getDisorders()) {
-            disordersJSON.add(disorder.toJSON());
+            disordersJSON.put(disorder.toJSON());
         }
         return disordersJSON;
     }
@@ -546,7 +545,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         JSONArray matchesJSON = new JSONArray();
         Collection<FeatureClusterView> clusters = getMatchedFeatures();
         for (FeatureClusterView cluster : clusters) {
-            matchesJSON.add(cluster.toJSON());
+            matchesJSON.put(cluster.toJSON());
         }
         return matchesJSON;
     }

@@ -34,8 +34,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Allows management of patient phenotype and genotype matching features.
@@ -101,8 +101,8 @@ public class ExomiserViewScriptService implements ScriptService
         Exome patientExome = this.exomeManager.getExome(patient);
         for (String geneName : patientExome.getTopGenes(maxGenes)) {
             JSONObject geneJSON = new JSONObject();
-            geneJSON.element("name", geneName);
-            geneJSON.element("score", patientExome.getGeneScore(geneName));
+            geneJSON.put("name", geneName);
+            geneJSON.put("score", patientExome.getGeneScore(geneName));
 
             JSONArray variantsJSON = new JSONArray();
             boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
@@ -113,11 +113,11 @@ public class ExomiserViewScriptService implements ScriptService
             for (int i = 0; i < maxVars; i++) {
                 Variant variant = topVariants.get(i);
                 if (variant != null) {
-                    variantsJSON.add(variant.toJSON());
+                    variantsJSON.put(variant.toJSON());
                 }
             }
-            geneJSON.element("variants", variantsJSON);
-            result.add(geneJSON);
+            geneJSON.put("variants", variantsJSON);
+            result.put(geneJSON);
         }
         return result;
     }

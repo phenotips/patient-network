@@ -25,8 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Simple mock for an vocabulary term, responding with pre-specified values.
@@ -147,7 +146,7 @@ public class MockVocabularyTerm implements VocabularyTerm
     }
 
     @Override
-    public JSON toJSON()
+    public JSONObject toJSON()
     {
         return new JSONObject();
     }

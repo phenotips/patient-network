@@ -32,11 +32,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientGenotypeSimilarityView} that always reveals the full
@@ -146,13 +145,13 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         if (variants != null && !variants.isEmpty()) {
             // Show the top variants in the patient
             for (Variant v : variants) {
-                variantsJSON.add(v.toJSON());
+                variantsJSON.put(v.toJSON());
             }
         }
 
         // Only add element if there are variants
-        if (!variantsJSON.isEmpty()) {
-            geneJSON.element("variants", variantsJSON);
+        if (variantsJSON.length() > 0) {
+            geneJSON.put("variants", variantsJSON);
         }
         return geneJSON;
     }
@@ -168,12 +167,12 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         JSONObject variantsJSON = new JSONObject();
         if (this.refGenotype != null) {
             List<Variant> variants = this.refGenotype.getTopVariants(gene);
-            variantsJSON.element("reference", getVariantsJSON(variants));
+            variantsJSON.put("reference", getVariantsJSON(variants));
         }
         if (this.matchGenotype != null) {
             // Use potentially access-controlled method to try to get variants
             List<Variant> variants = this.getTopVariants(gene);
-            variantsJSON.element("match", getVariantsJSON(variants));
+            variantsJSON.put("match", getVariantsJSON(variants));
         }
         return variantsJSON;
     }
@@ -203,10 +202,13 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             Double score = geneEntry.getValue();
 
             JSONObject geneObject = new JSONObject();
-            geneObject.element("gene", gene);
-            geneObject.element("score", score);
-            geneObject.accumulateAll(getGeneJSON(gene));
-            genesJSON.add(geneObject);
+            geneObject.put("gene", gene);
+            geneObject.put("score", score);
+            JSONObject geneJSON = getGeneJSON(gene);
+            for (String key : geneJSON.keySet()) {
+                geneObject.put(key, geneJSON.get(key));
+            }
+            genesJSON.put(geneObject);
 
             // FIXME: quick emergency fix to make PhenomeCentral responsive
             numGenesReported++;

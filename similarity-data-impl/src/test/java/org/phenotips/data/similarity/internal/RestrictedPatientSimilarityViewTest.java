@@ -61,15 +61,14 @@ import java.util.Set;
 
 import javax.inject.Provider;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -543,7 +542,7 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
 
         // Nothing at all
-        Assert.assertTrue(o.toJSON().isNullObject());
+        Assert.assertEquals(0, o.toJSON().length());
     }
 
     /** Direct phenotype information is disclosed for public access. */
@@ -557,16 +556,16 @@ public class RestrictedPatientSimilarityViewTest
 
         JSONObject result = o.toJSON();
         JSONArray clusters = result.getJSONArray("featureMatches");
-        Assert.assertTrue(clusters.size() >= 2);
-        for (int i = 0; i < clusters.size(); i++) {
+        Assert.assertTrue(clusters.length() >= 2);
+        for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; i < match.size(); i++) {
+            for (int j = 0; i < match.length(); i++) {
                 String id = match.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }
             JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; i < reference.size(); i++) {
+            for (int j = 0; i < reference.length(); i++) {
                 String id = reference.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }
@@ -584,16 +583,16 @@ public class RestrictedPatientSimilarityViewTest
 
         JSONObject result = o.toJSON();
         JSONArray clusters = result.getJSONArray("featureMatches");
-        Assert.assertTrue(clusters.size() >= 2);
-        for (int i = 0; i < clusters.size(); i++) {
+        Assert.assertTrue(clusters.length() >= 2);
+        for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; i < match.size(); i++) {
+            for (int j = 0; i < match.length(); i++) {
                 String id = match.getString(j);
                 Assert.assertEquals("", id);
             }
             JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; i < reference.size(); i++) {
+            for (int j = 0; i < reference.length(); i++) {
                 String id = reference.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }

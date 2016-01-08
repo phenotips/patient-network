@@ -22,7 +22,7 @@ import org.xwiki.stability.Unstable;
 import java.util.List;
 import java.util.Set;
 
-import net.sf.json.JSONArray;
+import org.json.JSONArray;
 
 /**
  * A basic representation of a exome of a patient, with scored {@link Variant} objects in scored genes.

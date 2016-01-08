@@ -29,8 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This class represents the exome information from an Exomiser-annotated TSV file. Specifically, a collection of
@@ -167,17 +167,17 @@ public class ExomiserExome extends AbstractExome implements Exome
         JSONArray geneList = new JSONArray();
         for (String geneName : this.variants.keySet()) {
             JSONObject gene = new JSONObject();
-            gene.element("gene", geneName);
-            gene.element("score", getGeneScore(geneName));
+            gene.put("gene", geneName);
+            gene.put("score", getGeneScore(geneName));
 
             JSONArray variantList = new JSONArray();
             List<Variant> vs = this.variants.get(geneName);
             for (Variant v : vs) {
-                variantList.add(v.toJSON());
+                variantList.put(v.toJSON());
             }
-            gene.element("variants", variantList);
+            gene.put("variants", variantList);
 
-            geneList.add(gene);
+            geneList.put(gene);
         }
         return geneList;
     }

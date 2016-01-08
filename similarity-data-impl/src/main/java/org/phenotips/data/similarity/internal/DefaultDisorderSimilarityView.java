@@ -22,8 +22,7 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 
 import org.apache.commons.lang3.StringUtils;
-
-import net.sf.json.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Implementation of {@link DisorderSimilarityView} that always reveals its information.
@@ -91,15 +90,15 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 
         JSONObject result = new JSONObject();
         if (this.match != null) {
-            result.element("id", this.match.getId());
-            result.element("name", this.match.getName());
+            result.put("id", this.match.getId());
+            result.put("name", this.match.getName());
         }
         if (this.reference != null) {
-            result.element("queryId", this.reference.getId());
+            result.put("queryId", this.reference.getId());
         }
         double score = getScore();
         if (!Double.isNaN(score)) {
-            result.element("score", score);
+            result.put("score", score);
         }
 
         return result;
