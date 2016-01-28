@@ -24,7 +24,6 @@ import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.Variant;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -75,39 +74,26 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
     @Override
     public boolean hasGenotypeData()
     {
-        return this.refGenotype != null && this.matchGenotype != null && this.refGenotype.hasGenotypeData()
-            && this.matchGenotype.hasGenotypeData();
+        return this.matchGenotype != null && this.matchGenotype.hasGenotypeData();
     }
 
-    /**
-     * Return the set of genes listed as a candidate in either patient in the view.
-     *
-     * @return {@inheritDoc}
-     * @see org.phenotips.data.similarity.PatientGenotype#getCandidateGenes()
-     */
     @Override
     public Set<String> getCandidateGenes()
     {
-        Set<String> sharedGenes = new HashSet<String>();
-        if (this.matchGenotype != null && this.refGenotype != null) {
-            Set<String> matchGenes = this.matchGenotype.getCandidateGenes();
-            Set<String> refGenes = this.refGenotype.getCandidateGenes();
-            sharedGenes.addAll(matchGenes);
-            sharedGenes.addAll(refGenes);
+        if (this.matchGenotype == null) {
+            return Collections.emptySet();
+        } else {
+            return Collections.unmodifiableSet(this.matchGenotype.getCandidateGenes());
         }
-        return sharedGenes;
     }
 
     @Override
     public Set<String> getGenes()
     {
-        if (this.matchGenotype == null || this.refGenotype == null) {
+        if (this.matchGenotype == null) {
             return Collections.emptySet();
         } else {
-            // Get intersection of genes mutated/candidate in both patients
-            Set<String> sharedGenes = new HashSet<String>(this.refGenotype.getGenes());
-            sharedGenes.retainAll(this.matchGenotype.getGenes());
-            return Collections.unmodifiableSet(sharedGenes);
+            return Collections.unmodifiableSet(this.matchGenotype.getGenes());
         }
     }
 

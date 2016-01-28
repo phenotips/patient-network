@@ -29,6 +29,7 @@ import org.xwiki.component.manager.ComponentManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,25 +102,56 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     }
 
     /**
-     * Score genes with variants in both patients, and sets 'geneScores' accordingly.
+     * Return the set of candidate genes found in either the match or reference patient.
+     *
+     * @return a (potentially-empty) set of gene names
+     */
+    private Set<String> getCandidateGeneUnion()
+    {
+        Set<String> sharedGenes = new HashSet<String>();
+        if (this.matchGenotype != null && this.refGenotype != null) {
+            Set<String> matchGenes = this.matchGenotype.getCandidateGenes();
+            Set<String> refGenes = this.refGenotype.getCandidateGenes();
+            sharedGenes.addAll(matchGenes);
+            sharedGenes.addAll(refGenes);
+        }
+        return sharedGenes;
+    }
+
+    @Override
+    public Set<String> getMatchingGenes()
+    {
+        // Assumes this.geneScores was initialized via {@link matchGenes()}
+        if (this.geneScores == null) {
+            return Collections.emptySet();
+        } else {
+            return Collections.unmodifiableSet(this.geneScores.keySet());
+        }
+    }
+
+    /**
+     * Score gene matches in both patients, and sets 'geneScores' accordingly.
      */
     private void matchGenes()
     {
-        Set<String> genes = getGenes();
+        // Only consider genes listed as a candidate in at least one of the two patients
+        Set<String> genes = getCandidateGeneUnion();
         for (String gene : genes) {
             // Compute gene score based on the genotype scores for the two patients
             Double refScore = this.refGenotype.getGeneScore(gene);
             Double matchScore = this.matchGenotype.getGeneScore(gene);
-            if (refScore == null) {
-                refScore = 0.0;
+            double geneScore;
+            // Average the scores as long as the gene is listed for both patients (candidate or exome)
+            if (refScore == null || matchScore == null) {
+                geneScore = 0.0;
+            } else {
+                geneScore = (refScore + matchScore) / 2.0;
             }
-            if (matchScore == null) {
-                matchScore = 0.0;
-            }
-            double geneScore = (refScore + matchScore) / 2.0;
 
-            // Save score and variants for display
-            this.geneScores.put(gene, geneScore);
+            if (geneScore > 0) {
+                // Save score and variants for display
+                this.geneScores.put(gene, geneScore);
+            }
         }
     }
 
@@ -130,7 +162,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             return 0.0;
         } else {
             double maxScore = 0.0;
-            for (String gene : getCandidateGenes()) {
+            for (String gene : getMatchingGenes()) {
                 Double score = this.geneScores.get(gene);
                 if (score != null && score > maxScore) {
                     maxScore = score;
@@ -189,7 +221,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     @Override
     public JSONArray toJSON()
     {
-        if (!this.hasGenotypeData()) {
+        if (!this.matchGenotype.hasGenotypeData() || !this.refGenotype.hasGenotypeData()) {
             return null;
         }
 
