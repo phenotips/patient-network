@@ -29,13 +29,14 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,10 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
 {
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
+
+    /** List of genes variant interpretations of pathogenic status 3-5 (VUS or higher). */
+    private static final String[] TOP_INTERPRETATIONS =
+    {"pathogenic", "likely_pathogenic", "variant_u_s"};
 
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
@@ -81,7 +86,9 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         if (exomeManager != null) {
             this.exome = exomeManager.getExome(patient);
         }
-        this.candidateGenes = getPatientCandidateGeneNames(patient);
+        this.candidateGenes = new HashSet<String>();
+        this.candidateGenes.addAll(getManualGeneNames(patient));
+        this.candidateGenes.addAll(getManualVariantGeneNames(patient));
 
         // Score all genes
         for (String gene : this.getGenes()) {
@@ -90,31 +97,65 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     }
 
     /**
-     * Return a set of the names of candidate genes listed for the given patient.
+     * Return a set of the names of solved (candidate if no solved) genes listed for the given patient.
      *
      * @param p the {@link Patient}
-     * @return a (potentially-empty) unmodifiable set of the names of candidate genes
+     * @return a (potentially-empty) unmodifiable set of the names of genes
      */
-    private static Set<String> getPatientCandidateGeneNames(Patient p)
+    private static Set<String> getManualGeneNames(Patient patient)
     {
-        PatientData<Map<String, String>> genesData = null;
-        if (p != null) {
-            genesData = p.getData("genes");
-        }
-        if (genesData != null) {
-            Set<String> geneNames = new HashSet<String>();
-            Iterator<Map<String, String>> iterator = genesData.iterator();
-            while (iterator.hasNext()) {
-                Map<String, String> geneInfo = iterator.next();
-                String geneName = geneInfo.get("gene");
-                if (geneName == null) {
+        PatientData<Map<String, String>> allGenes = patient.getData("genes");
+        if (allGenes != null && allGenes.isIndexed()) {
+            Set<String> geneCandidateNames = new HashSet<String>();
+            Set<String> geneSolvedNames = new HashSet<String>();
+            for (Map<String, String> gene : allGenes) {
+                String geneName = gene.get("gene");
+                if (StringUtils.isBlank(geneName)) {
                     continue;
                 }
+
                 geneName = geneName.trim();
-                if (geneName.isEmpty()) {
+                String status = gene.get("status");
+                if (StringUtils.isBlank(status) || "candidate".equals(status)) {
+                    geneCandidateNames.add(geneName);
+                } else if ("solved".equals(status)) {
+                    geneSolvedNames.add(geneName);
+                }
+            }
+            if (!geneCandidateNames.isEmpty()) {
+                return Collections.unmodifiableSet(geneCandidateNames);
+            } else if (!geneSolvedNames.isEmpty()) {
+                return Collections.unmodifiableSet(geneSolvedNames);
+            }
+
+        }
+        return Collections.emptySet();
+    }
+
+    /**
+     * Return a set of the gene symbols of variants with pathogenic status 3-5 (VUS or higher).
+     *
+     * @param p the {@link Patient}
+     * @return a (potentially-empty) unmodifiable set of the names of genes
+     */
+    private static Set<String> getManualVariantGeneNames(Patient p)
+    {
+        PatientData<Map<String, String>> variants = null;
+        Set<String> geneNames = new HashSet<String>();
+        if (p != null) {
+            variants = p.getData("variants");
+        }
+        if (variants != null && variants.isIndexed()) {
+            for (Map<String, String> variant : variants) {
+                String geneSymbol = variant.get("genesymbol");
+                if (StringUtils.isBlank(geneSymbol)) {
                     continue;
                 }
-                geneNames.add(geneName);
+                geneSymbol = geneSymbol.trim();
+                String interpretation = variant.get("interpretation");
+                if (interpretation != null && Arrays.asList(TOP_INTERPRETATIONS).contains(interpretation)) {
+                    geneNames.add(geneSymbol);
+                }
             }
             return Collections.unmodifiableSet(geneNames);
         }
@@ -153,6 +194,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     @Override
     public List<Variant> getTopVariants(String gene)
     {
+        //TODO add manually entered variants
         List<Variant> variants;
         if (this.exome == null) {
             variants = new ArrayList<Variant>();
