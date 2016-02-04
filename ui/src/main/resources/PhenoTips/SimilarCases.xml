@@ -1594,11 +1594,14 @@
     verical-align: middle;
 }
 
+.match-details .segmented-bar {
+    color: white;
+}
 .match-details .gene-matches .gene .segmented-bar {
     float: left;
     padding-right: 1em;
 }
-.match-details .gene-matches .segmented-bar,
+.match-details .variants-data .segmented-bar,
 .match-details .phenotype-matches .segmented-bar {
     float: right;
 }
