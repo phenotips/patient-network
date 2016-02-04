@@ -1200,9 +1200,6 @@
 .similarity-results &gt; tr &gt; td {
   padding-bottom: 0;
 }
-.similarity-results &gt; tr &gt; td.details {
-  ##vertical-align: bottom;
-}
 .similarity-results &gt; tr &gt; td.details-only {
   border-top: 0 none;
   padding-bottom: 0.3em;
