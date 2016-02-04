@@ -1200,9 +1200,6 @@
 .similarity-results &gt; tr &gt; td {
   padding-bottom: 0;
 }
-.similarity-results &gt; tr &gt; td.details {
-  ##vertical-align: bottom;
-}
 .similarity-results &gt; tr &gt; td.details-only {
   border-top: 0 none;
   padding-bottom: 0.3em;
@@ -1261,9 +1258,6 @@
   position: relative;
   z-index: 100;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
-  -moz-column-count: 2;
-  -webkit-column-count: 2;
-  column-count: 2;
 }
 .similarity-results .details .match-details:before, .similarity-results .details .match-details:after {
   content: "";
@@ -1290,7 +1284,12 @@
 }
 .similarity-results .details .match-type {
   display: inline-block;
-  width: 100%;
+  width: 50%;
+  vertical-align: top;
+  box-sizing: border-box;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin-bottom: 10px;
 }
 .similarity-results .details table tr:nth-child(2n) {
   background-color: #F9F9F9;
