@@ -396,19 +396,10 @@
 
         Utils : {
             generateSegmentedBar : function (count, value) {
-                var bar = new Element('div', {'class' : 'segmented-bar', title : Math.round(value * 100) + '%' || ''});
-                var valueUnit = 1 / count;
-                for (var i = 0; i &lt; count; ++i) {
-                  var segmentFill = Math.round(100 * Math.min(Math.max((value - i * valueUnit) / valueUnit, 0), 1));
-                  var segment = new Element('span', {'class' : 'segmented-unit'}).update(
-                                new Element('span', {
-                                    'class' : 'segmented-unit-fill',
-                                    'style' : "width: " + segmentFill + "%"
-                                })
-                  );
-                  bar.insert(segment);
-                }
-                return bar.insert(' ' + Math.round(value * 100) + '%');
+                var barOptions = {
+                  'segments' : count
+                };
+                return new PhenoTips.widgets.SegmentedBar(value, barOptions).generateSegmentedBar();
               },
         },
 
@@ -535,31 +526,6 @@
     </property>
     <property>
       <code>#template("colorThemeInit.vm")
-
-.segmented-bar {
-  color: $theme.textColor;
-  font-size: 75%;
-  white-space: nowrap;
-  width: auto;
-}
-
-.segmented-bar .segmented-unit {
-  width: 5px;
-  height: 5px;
-  display: inline-block;
-  margin: 0 1px;
-  border: 1px solid black;
-  border-radius: 1px;
-}
-
-.segmented-bar .segmented-unit-fill {
-  width: 5px;
-  height: 5px;
-  display: block;
-  background-color: $theme.textColor;
-  border-radius: 1px;
-}
-
 td.gene-score {
   border-bottom : 1px solid $theme.textColor;
   border-right: none;
@@ -608,6 +574,10 @@ table.variant-display-table td{
 
 .variant-display-table .variant-position .button.secondary {
   text-transform: none;
+}
+
+.variant-display-table .segmented-bar {
+  font-size: 90%;
 }
 </code>
     </property>
