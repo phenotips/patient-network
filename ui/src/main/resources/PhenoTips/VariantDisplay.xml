@@ -543,10 +543,6 @@
   width: auto;
 }
 
-.gene .segmented-bar {
-  color: white;
-}
-
 .segmented-bar .segmented-unit {
   width: 5px;
   height: 5px;
