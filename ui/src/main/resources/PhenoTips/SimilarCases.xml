@@ -878,11 +878,6 @@
         var v = (value &gt; .5 - neutralRange &amp;&amp; value &lt;  .5 + neutralRange) ? (1 - neutralRange) + Math.abs(.5 - value) : ((value &gt; .5 + neutralRange) ? (1 - 0.2 * value) : 1);
         var rgb = this.hsv2rgb(h, s, v);
         return rgb;
-        /*var h = this._colorTranslation.getHue(value);
-        var s = this._colorTranslation.getSaturation(value);
-        var v = this._colorTranslation.getValue(value);
-        var rgb = this.hsv2rgb(h, s, v);*/
-        return rgb;
       },
 
       // For a value in [0, 1], generate the representation of a color from red to green, where low = red and high = green
