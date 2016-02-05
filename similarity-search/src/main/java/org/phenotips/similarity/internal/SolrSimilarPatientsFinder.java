@@ -260,8 +260,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         if (!genesToSearch.isEmpty()) {
             String geneQuery = getQueryFromTerms(genesToSearch);
-            q.append(" solved_genes: " + geneQuery);
-            q.append(" candidate_genes: " + geneQuery);
+            q.append(" solved_genes:" + geneQuery);
+            q.append(" candidate_genes:" + geneQuery);
         }
     }
 
