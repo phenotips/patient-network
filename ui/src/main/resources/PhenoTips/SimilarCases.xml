@@ -314,10 +314,6 @@
         return;
       }
       data.featuresCount = data.query.features ? data.query.features.size() : 0;
-      if (!this._mmeMode &amp;&amp; data.featuresCount &lt;= 0) {
-        this.displaySummary("No similar cases found.");
-        return;
-      }
 
       this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
 
@@ -600,7 +596,9 @@
         matchBreakdown.hide();
       });
 
-      this._data.query.features.each(function(f){f.match = []});
+      if (this._data.query.features) {
+        this._data.query.features.each(function(f){f.match = []});
+      }
       return details;
     },
 
@@ -1671,7 +1669,7 @@
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
     #set ($patient = $services.patients.getPatientById($doc.name))
     #set ($patientAccess = $services.permissions.getPatientAccess($patient))
-    #if (!$patient.features.isEmpty() &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
+    #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
       ## Can see similar cases for this patient
       $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
       $xwiki.ssx.use('PhenoTips.SimilarCases')##

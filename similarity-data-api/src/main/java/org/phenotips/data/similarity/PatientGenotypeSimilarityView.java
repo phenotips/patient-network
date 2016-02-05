@@ -19,6 +19,8 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
+import java.util.Set;
+
 import org.json.JSONArray;
 
 /**
@@ -36,6 +38,39 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
      * @return a similarity score, between {@code 0} for no related genes and {@code 1} for a perfect candidate.
      */
     double getScore();
+
+    /**
+     * Return whether the matching patient has any genotype data available (manually entered genes or exome data).
+     *
+     * @return true iff the patient has any manually entered genes or exome data
+     */
+    @Override
+    boolean hasGenotypeData();
+
+    /**
+     * Return a set of the names of candidate genes listed for the matching patient.
+     *
+     * @return a (potentially-empty) set of the names of candidate genes
+     */
+    @Override
+    Set<String> getCandidateGenes();
+
+    /**
+     * Get the genes likely mutated in the matching patient, both from manually entered genes and exome data.
+     *
+     * @return a (potentially-empty) set of gene names
+     * @see org.phenotips.data.similarity.Exome#getGenes()
+     */
+    @Override
+    Set<String> getGenes();
+
+    /**
+     * Get the genes that are candidates for the match between the two patients, based on both manually entered genes
+     * and exome data of the patients.
+     *
+     * @return a (potentially-empty) set of gene names
+     */
+    Set<String> getMatchingGenes();
 
     /**
      * Retrieve all genotype match information in a JSON format. For example:

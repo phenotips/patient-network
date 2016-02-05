@@ -19,6 +19,7 @@ package org.phenotips.similarity.internal;
 
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -39,6 +40,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -170,6 +172,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         if (!termIds.isEmpty()) {
             q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
         }
+
+        PatientData<Map<String, String>> allGenes = referencePatient.getData("genes");
+        appendGenesToQuery(allGenes, q);
+
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
         if (referencePatient.getDocument() != null) {
@@ -232,6 +238,31 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
         return termIds;
+    }
+
+    private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
+    {
+        Collection<String> genesToSearch = new ArrayList<String>();
+        if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
+            for (Map<String, String> gene : allGenes) {
+                String geneName = gene.get("gene");
+                if (StringUtils.isBlank(geneName)) {
+                    continue;
+                }
+
+                geneName = geneName.trim();
+                String status = gene.get("status");
+                // Treat empty status as candidate
+                if (StringUtils.isBlank(status) || "solved".equals(status) || "candidate".equals(status)) {
+                    genesToSearch.add(geneName);
+                }
+            }
+        }
+        if (!genesToSearch.isEmpty()) {
+            String geneQuery = getQueryFromTerms(genesToSearch);
+            q.append(" solved_genes:" + geneQuery);
+            q.append(" candidate_genes:" + geneQuery);
+        }
     }
 
     private String getQueryFromTerms(Collection<String> terms)
