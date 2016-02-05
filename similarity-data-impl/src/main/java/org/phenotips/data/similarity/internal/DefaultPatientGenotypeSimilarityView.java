@@ -55,6 +55,11 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotypeSimilarityView.class);
 
     /**
+     * Maximum number of genes to report in JSON (0 for all). TODO: pull out into configuration.
+     */
+    private static final int MAX_GENES_REPORTED_IN_JSON = 20;
+
+    /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
      *
@@ -250,9 +255,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             }
             genesJSON.put(geneObject);
 
-            // FIXME: quick emergency fix to make PhenomeCentral responsive
             numGenesReported++;
-            if (numGenesReported > 5) {
+            if (numGenesReported > MAX_GENES_REPORTED_IN_JSON && MAX_GENES_REPORTED_IN_JSON > 0) {
                 break;
             }
         }
