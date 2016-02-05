@@ -90,15 +90,15 @@ public class RestrictedDisorderSimilarityViewTest
         Mockito.verify(mockMatch, Mockito.never()).getId();
     }
 
-    /** The ID is not disclosed for matchable patients. */
+    /** The ID is disclosed for matchable patients. */
     @Test
     public void testGetIdWithMatchAccess()
     {
         Disorder mockMatch = mock(Disorder.class);
+        when(mockMatch.getId()).thenReturn("MIM:136240");
 
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, limited);
-        Assert.assertNull(o.getId());
-        Mockito.verify(mockMatch, Mockito.never()).getId();
+        Assert.assertEquals("MIM:136240", o.getId());
     }
 
     /** Trying to retrieve the ID doesn't throw NPE when the match is null, and doesn't access the reference. */
@@ -134,14 +134,15 @@ public class RestrictedDisorderSimilarityViewTest
         Mockito.verify(mockMatch, Mockito.never()).getName();
     }
 
-    /** The name is not disclosed for matchable patients. */
+    /** The name is disclosed for matchable patients. */
     @Test
     public void testGetNameWithMatchAccess()
     {
         Disorder mockMatch = mock(Disorder.class);
+        when(mockMatch.getName()).thenReturn("Some disease");
+
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, null, limited);
-        Assert.assertNull(o.getName());
-        Mockito.verify(mockMatch, Mockito.never()).getName();
+        Assert.assertEquals("Some disease", o.getName());
     }
 
     /** Trying to retrieve the name doesn't throw NPE when the match is null, and doesn't access the reference. */
@@ -306,16 +307,6 @@ public class RestrictedDisorderSimilarityViewTest
         Disorder mockMatch = mock(Disorder.class);
         Disorder mockReference = mock(Disorder.class);
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, priv);
-        Assert.assertNull(o.toJSON());
-    }
-
-    /** A null JSON is returned for matchable patients. */
-    @Test
-    public void testToJSONWithMatchAccess()
-    {
-        Disorder mockMatch = mock(Disorder.class);
-        Disorder mockReference = mock(Disorder.class);
-        DisorderSimilarityView o = new RestrictedDisorderSimilarityView(mockMatch, mockReference, limited);
         Assert.assertNull(o.toJSON());
     }
 

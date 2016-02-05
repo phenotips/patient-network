@@ -440,7 +440,7 @@ public class RestrictedPatientSimilarityViewTest
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Set<? extends Disorder> matchedDiseases = o.getDisorders();
-        Assert.assertTrue(matchedDiseases.isEmpty());
+        Assert.assertEquals(2, matchedDiseases.size());
     }
 
     /** Matching diseases should boost match score. */

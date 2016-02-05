@@ -108,10 +108,10 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public Set<? extends Disorder> getDisorders()
     {
-        if (this.access.isOpenAccess()) {
-            return super.getDisorders();
-        } else {
+        if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
+        } else {
+            return super.getDisorders();
         }
     }
 

@@ -33,10 +33,10 @@ import org.json.JSONObject;
 public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 {
     /** The matched disorder to represent. */
-    private Disorder match;
+    protected Disorder match;
 
     /** The reference disorder against which to compare. */
-    private Disorder reference;
+    protected Disorder reference;
 
     /**
      * Simple constructor passing the {@link #match matched disorder} and the {@link #reference reference disorder}.
