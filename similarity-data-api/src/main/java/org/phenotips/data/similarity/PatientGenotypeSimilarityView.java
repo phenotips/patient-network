@@ -19,6 +19,8 @@ package org.phenotips.data.similarity;
 
 import org.xwiki.stability.Unstable;
 
+import java.util.Set;
+
 import org.json.JSONArray;
 
 /**
@@ -36,7 +38,6 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
      * @return a similarity score, between {@code 0} for no related genes and {@code 1} for a perfect candidate.
      */
     double getScore();
-
 
     /**
      * Return whether the matching patient has any genotype data available (manually entered genes or exome data).
