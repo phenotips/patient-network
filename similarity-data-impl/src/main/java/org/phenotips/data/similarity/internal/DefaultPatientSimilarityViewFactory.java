@@ -185,40 +185,6 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     }
 
     /**
-     * Return all terms associated with a particular disease.
-     *
-     * @param hpo the human phenotype ontology
-     * @param disease the MIM disease vocabulary term
-     * @return a collection of resolved VocabularyTerms associated with the disease, excluding terms that could not be
-     *         resolved to a VocubularyTerm
-     */
-    @SuppressWarnings("unchecked")
-    private Collection<VocabularyTerm> getDiseaseVocabularyTerms(Vocabulary hpo, VocabularyTerm disease)
-    {
-        Collection<VocabularyTerm> terms = new LinkedList<VocabularyTerm>();
-        Object symptomNames = disease.get("actual_symptom");
-        if (symptomNames != null) {
-            if (symptomNames instanceof Collection<?>) {
-                for (String symptomName : ((Collection<String>) symptomNames)) {
-                    VocabularyTerm symptom = hpo.getTerm(symptomName);
-                    // Ideally use frequency with which symptom occurs in disease
-                    // This information isn't prevalent or reliable yet, however
-                    if (symptom == null) {
-                        logger.warn("Unable to find term in HPO: " + symptomName);
-                    } else {
-                        terms.add(symptom);
-                    }
-                }
-            } else {
-                String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
-                this.logger.error(err);
-                throw new RuntimeException(err);
-            }
-        }
-        return terms;
-    }
-
-    /**
      * Return the observed information content across provided HPO terms seen in MIM.
      *
      * @param mim the MIM vocabulary with diseases and symptom frequencies
@@ -258,6 +224,40 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         }
 
         return termICs;
+    }
+
+    /**
+     * Return all terms associated with a particular disease.
+     *
+     * @param hpo the human phenotype ontology
+     * @param disease the MIM disease vocabulary term
+     * @return a collection of resolved VocabularyTerms associated with the disease, excluding terms that could not be
+     *         resolved to a VocubularyTerm
+     */
+    @SuppressWarnings("unchecked")
+    private Collection<VocabularyTerm> getDiseaseVocabularyTerms(Vocabulary hpo, VocabularyTerm disease)
+    {
+        Collection<VocabularyTerm> terms = new LinkedList<VocabularyTerm>();
+        Object symptomNames = disease.get("actual_symptom");
+        if (symptomNames != null) {
+            if (symptomNames instanceof Collection<?>) {
+                for (String symptomName : ((Collection<String>) symptomNames)) {
+                    VocabularyTerm symptom = hpo.getTerm(symptomName);
+                    // Ideally use frequency with which symptom occurs in disease
+                    // This information isn't prevalent or reliable yet, however
+                    if (symptom == null) {
+                        logger.warn("Unable to find term in HPO: " + symptomName);
+                    } else {
+                        terms.add(symptom);
+                    }
+                }
+            } else {
+                String err = "Solr returned non-collection symptoms: " + String.valueOf(symptomNames);
+                this.logger.error(err);
+                throw new RuntimeException(err);
+            }
+        }
+        return terms;
     }
 
     @Override
