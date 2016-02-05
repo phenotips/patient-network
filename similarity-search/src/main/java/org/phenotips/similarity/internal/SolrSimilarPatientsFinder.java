@@ -41,6 +41,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -68,6 +69,12 @@ import groovy.lang.Singleton;
 @Singleton
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
+    /** The number of records to fully score. */
+    private static final int SEED_QUERY_SIZE = 50;
+
+    /** The number of records to return after full scoring. */
+    private static final int MAX_RESPONSE_SIZE = 10;
+
     /** Logging helper object. */
     @Inject
     private Logger logger;
@@ -146,15 +153,31 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
 
-        Collections.sort(results, new Comparator<PatientSimilarityView>()
-        {
-            @Override
-            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+        return getTopResults(results, MAX_RESPONSE_SIZE);
+    }
+
+    private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults, int k)
+    {
+        // Select top k via PriorityQueue
+        PriorityQueue<PatientSimilarityView> pq =
+            new PriorityQueue<PatientSimilarityView>(allResults.size(), new Comparator<PatientSimilarityView>()
             {
-                return (int) Math.signum(o2.getScore() - o1.getScore());
+                @Override
+                public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+                {
+                    return (int) Math.signum(o2.getScore() - o1.getScore());
+                }
+            });
+        pq.addAll(allResults);
+
+        List<PatientSimilarityView> topResults = new ArrayList<PatientSimilarityView>(k);
+        for (int i = 0; i < k; i++) {
+            PatientSimilarityView item = pq.poll();
+            if (item != null) {
+                topResults.add(item);
             }
-        });
-        return results;
+        }
+        return topResults;
     }
 
     /**
@@ -196,7 +219,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      */
     private SolrDocumentList search(SolrQuery query)
     {
-        query.setRows(50);
+        query.setRows(SEED_QUERY_SIZE);
         try {
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
