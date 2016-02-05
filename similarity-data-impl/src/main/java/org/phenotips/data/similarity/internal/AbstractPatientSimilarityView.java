@@ -202,9 +202,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put("id", getId());
         result.put("token", getContactToken());
         String owner = getOwnerName();
-        if (owner != null) {
-            result.put("owner", owner);
-        }
+        result.putOpt("owner", owner);
         if (this.access != null) {
             result.put("access", this.access.toString());
         }

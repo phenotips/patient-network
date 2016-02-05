@@ -33,10 +33,10 @@ import org.json.JSONObject;
 public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 {
     /** The matched disorder to represent. */
-    private Disorder match;
+    protected Disorder match;
 
     /** The reference disorder against which to compare. */
-    private Disorder reference;
+    protected Disorder reference;
 
     /**
      * Simple constructor passing the {@link #match matched disorder} and the {@link #reference reference disorder}.
@@ -90,11 +90,11 @@ public class DefaultDisorderSimilarityView implements DisorderSimilarityView
 
         JSONObject result = new JSONObject();
         if (this.match != null) {
-            result.put("id", this.match.getId());
-            result.put("name", this.match.getName());
+            result.putOpt("id", this.match.getId());
+            result.putOpt("name", this.match.getName());
         }
         if (this.reference != null) {
-            result.put("queryId", this.reference.getId());
+            result.putOpt("queryId", this.reference.getId());
         }
         double score = getScore();
         if (!Double.isNaN(score)) {

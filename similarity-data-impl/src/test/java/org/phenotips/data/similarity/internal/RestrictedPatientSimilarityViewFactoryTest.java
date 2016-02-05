@@ -172,7 +172,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Assert.assertSame(mockReference, result.getReference());
         Assert.assertNull(result.getDocument());
         Assert.assertEquals(0, result.getFeatures().size());
-        Assert.assertEquals(0, result.getDisorders().size());
+        Assert.assertEquals(2, result.getDisorders().size());
     }
 
     /** Missing reference throws exception. */

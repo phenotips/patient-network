@@ -21,26 +21,19 @@ import org.phenotips.data.Disorder;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 /**
- * Implementation of {@link DisorderSimilarityView} that only reveals information if the user has full access to the
+ * Implementation of {@link DisorderSimilarityView} that reveals information if the user has sufficient access to the
  * patient.
  *
  * @version $Id$
  * @since 1.0M1
  */
-public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
+public class RestrictedDisorderSimilarityView extends DefaultDisorderSimilarityView implements DisorderSimilarityView
 {
-    /** The matched disorder to represent. */
-    private Disorder match;
-
-    /** The reference disorder against which to compare. */
-    private Disorder reference;
-
     /** The access type the user has to the patient having this disorder. */
-    private AccessType access;
+    protected AccessType access;
 
     /**
      * Simple constructor passing the {@link #match matched disorder}, the {@link #reference reference disorder}, and
@@ -52,73 +45,31 @@ public class RestrictedDisorderSimilarityView implements DisorderSimilarityView
      */
     public RestrictedDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
     {
-        this.match = match;
-        this.reference = reference;
+        super(match, reference);
         this.access = access;
     }
 
     @Override
     public String getId()
     {
-        return this.access.isOpenAccess() && this.match != null ? this.match.getId() : null;
+        return this.access.isPrivateAccess() ? null : super.getId();
     }
 
     @Override
     public String getName()
     {
-        return this.access.isOpenAccess() && this.match != null ? this.match.getName() : null;
+        return this.access.isPrivateAccess() ? null : super.getName();
     }
 
     @Override
     public String getValue()
     {
-        return this.access.isOpenAccess() && this.match != null ? this.match.getValue() : null;
+        return this.access.isPrivateAccess() ? null : super.getValue();
     }
 
     @Override
     public JSONObject toJSON()
     {
-        if (this.match == null && this.reference == null || !this.access.isOpenAccess()) {
-            return null;
-        }
-
-        JSONObject result = new JSONObject();
-        if (this.match != null) {
-            result.put("id", this.match.getId());
-            result.put("name", this.match.getName());
-        }
-        if (this.reference != null) {
-            result.put("queryId", this.reference.getId());
-        }
-        double score = getScore();
-        if (!Double.isNaN(score)) {
-            result.put("score", score);
-        }
-
-        return result;
-    }
-
-    @Override
-    public boolean isMatchingPair()
-    {
-        return this.match != null && this.reference != null;
-    }
-
-    @Override
-    public Disorder getReference()
-    {
-        return this.reference;
-    }
-
-    @Override
-    public double getScore()
-    {
-        if (this.reference == null || this.match == null) {
-            return Double.NaN;
-        }
-        if (StringUtils.equals(this.match.getId(), this.reference.getId())) {
-            return 1;
-        }
-        return -1;
+        return this.access.isPrivateAccess() ? null : super.toJSON();
     }
 }
