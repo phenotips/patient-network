@@ -91,7 +91,7 @@
       'groups'    : true
       })
     #if ($!{request.contact} != '')
-      #set ($recipientUserName = $xwiki.getUser($!{request.contact}).getUser())
+      #set ($recipientUserName = $xwiki.getUserName($!{request.contact}))
       #set ($recipientUserDoc = $xwiki.getDocument("XWiki.$!{recipientUserName}"))
       #set ($recipientUserObj = $recipientUserDoc.getObject("XWiki.XWikiUsers"))
       #set ($recipientFirstName = $recipientUserObj.getProperty("first_name").getValue())
@@ -200,7 +200,7 @@ My patient##
 #end
 #end
 #if ($patient.features.size() &gt; 0)
-and##
+ and##
 #else
 .
 #end
@@ -255,7 +255,7 @@ $!{config.groups}
         <prettyName>Caching policy</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
-        <separators> ,|</separators>
+        <separators>|, </separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>long|short|default|forbid</values>

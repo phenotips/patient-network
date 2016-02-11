@@ -90,9 +90,9 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     }
 
     @Override
-    public String getOwnerName()
+    public JSONObject getOwnerJSON()
     {
-        return this.access.isPrivateAccess() ? null : super.getOwnerName();
+        return this.access.isPrivateAccess() ? new JSONObject() : super.getOwnerJSON();
     }
 
     @Override

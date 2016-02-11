@@ -247,7 +247,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(USER_1.getName(), o.getOwnerName());
+        Assert.assertEquals(USER_1.getName(), o.getOwnerJSON().getString("id"));
     }
 
     /** The referrer's name is used when the owner does not have a name. */
@@ -261,7 +261,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(USER_1.getName(), o.getOwnerName());
+        Assert.assertEquals(USER_1.getName(), o.getOwnerJSON().getString("id"));
     }
 
     /** The owner is disclosed for public patients. */
@@ -272,7 +272,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(OWNER_1, o.getOwnerName());
+        Assert.assertEquals(OWNER_1, o.getOwnerJSON().getString("name"));
     }
 
     /** The owner is disclosed for matchable patients. */
@@ -283,7 +283,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertEquals(OWNER_1, o.getOwnerName());
+        Assert.assertEquals(OWNER_1, o.getOwnerJSON().getString("name"));
     }
 
     /** The owner is not disclosed for private patients. */
@@ -294,7 +294,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertNull(o.getOwnerName());
+        Assert.assertTrue(o.getOwnerJSON().length() == 0);
     }
 
     /** The reference is always disclosed. */

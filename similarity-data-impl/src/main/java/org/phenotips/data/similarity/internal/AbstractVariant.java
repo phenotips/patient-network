@@ -21,6 +21,7 @@ import org.phenotips.data.similarity.Variant;
 
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**

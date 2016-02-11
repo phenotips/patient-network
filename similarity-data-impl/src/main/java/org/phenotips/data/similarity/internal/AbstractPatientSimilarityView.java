@@ -42,6 +42,8 @@ import org.json.JSONObject;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
+    private static final String OWNER_ID_KEY = "id";
+    private static final String OWNER_NAME_KEY = "name";
     /** The matched patient to represent. */
     protected final Patient match;
 
@@ -130,21 +132,22 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
-    public String getOwnerName()
+    public JSONObject getOwnerJSON()
     {
         // TODO: Update once there is a convenient method for accessing the owner of the patient record.
         // In the meantime, we can access the data we need through the serialized controller data.
         PatientData<String> data = this.match.getData("contact");
-        String contact = null;
+        JSONObject contact = new JSONObject();
 
         if (data != null && data.isNamed()) {
-            contact = data.get("name");
+            contact.accumulate(OWNER_ID_KEY, data.get("user_id"));
+            contact.accumulate(OWNER_NAME_KEY, data.get("name"));
         }
         // Fall back on reporter
-        if (contact == null) {
+        if (contact.length() == 0) {
             DocumentReference reporter = getReporter();
             if (reporter != null) {
-                contact = reporter.getName();
+                contact.accumulate(OWNER_ID_KEY, reporter.getName());
             }
         }
         return contact;
@@ -201,8 +204,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
         result.put("id", getId());
         result.put("token", getContactToken());
-        String owner = getOwnerName();
-        result.putOpt("owner", owner);
+        result.put("owner", getOwnerJSON());
         if (this.access != null) {
             result.put("access", this.access.toString());
         }

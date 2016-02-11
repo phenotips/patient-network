@@ -22,6 +22,8 @@ import org.phenotips.data.permissions.AccessLevel;
 
 import org.xwiki.stability.Unstable;
 
+import org.json.JSONObject;
+
 /**
  * View of a patient as related to another reference patient.
  *
@@ -46,11 +48,12 @@ public interface PatientSimilarityView extends Patient
     AccessLevel getAccess();
 
     /**
-     * The name of the owner of the matching patient.
+     * A JSON-formated string containing the matching patient's owners information. "id" key stores
+     * owner's username. "name" key stores owner's full name (First Last).
      *
      * @return the name of the owner of the matching patient, or {@code null} if not available
      */
-    String getOwnerName();
+    JSONObject getOwnerJSON();
 
     /**
      * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
