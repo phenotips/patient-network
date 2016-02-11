@@ -53,7 +53,7 @@
       'email'    : "#if($options.email)$!{email}#end",
       'groups'   : "#if($options.groups)${groups}#end",
 
-      'subject'  : "[$!{platformName}]$!{options.subject}",
+      'subject'  : "[$!{platformName}] $!{options.subject}",
       'message'  : "$!{options.message}"
   })
 #end

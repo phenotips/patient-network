@@ -76,6 +76,8 @@ public class DefaultActionManager implements ActionManager
 
     private static final String SUBJECT_FIELD_STRING = "subject";
 
+    private static final String OPTIONS_MESSAGE_FIELD = "message";
+
     @Inject
     private PermissionsManager permissionsManager;
 
@@ -101,7 +103,7 @@ public class DefaultActionManager implements ActionManager
             mail.setHeader("Return-Path", replyTo);
             mail.setFrom(PHENOMECENTRAL_EMAIL);
             mail.setBcc("qc@phenomecentral.org");
-            mail.setTextPart((String) options.get("message"));
+            mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
             return 0;
