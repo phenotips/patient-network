@@ -100,6 +100,18 @@
       #set ($recipientFirstName = $recipientUserObj.getProperty("first_name").getValue())
       #set ($recipientLastName = $recipientUserObj.getProperty("last_name").getValue())
       #set ($recipientAffiliation  = $recipientUserObj.getProperty("company").getValue())
+      #set ($toText = "")
+      #if ("$!{recipientFirstName}" != "")
+        #set ($toText = $!{recipientLastName})
+        #if ("$!{recipientLastName}" != '')
+          #set ($toText = $toText + " $!{recipientLastName}")
+        #end
+      #else
+        #set ($toText = $toText + $recipientUserName)
+      #end
+      #if ("$!{recipientAffiliation}" != '' &amp;&amp; "$!{toText}" != '')
+        #set ($toText = $toText + " at $!{recipientAffiliation}")
+      #end
     #end
     #set ($email = $xwiki.getDocument($xcontext.user).getObject('XWiki.XWikiUsers').getProperty('email').value)
     {{html clean=false}}
@@ -107,7 +119,7 @@
       &lt;div&gt;
         &lt;h2&gt;Send a message.&lt;/h2&gt;
         &lt;dt&gt;&lt;label&gt;To&lt;/label&gt;&lt;/dt&gt;
-        &lt;dd&gt;&lt;input type="text" value="#if("$!{recipientFirstName}" != '')$!{recipientFirstName}#if("$!{recipientLastName}" != '') $!{recipientLastName}#end#if ("$!{recipientAffiliation}" != '') at $affiliation#end#end" disabled&gt;&lt;/input&gt;
+        &lt;dd&gt;&lt;input type="text" value="$!{toText}" disabled&gt;&lt;/input&gt;
         &lt;dt&gt;&lt;label&gt;From&lt;/label&gt;&lt;/dt&gt;
         &lt;dd&gt;&lt;input type="text" value="$xwiki.getUserName($xcontext.user, false) &amp;lt;$email&amp;gt;" disabled&gt;&lt;/input&gt;&lt;/dd&gt;
         &lt;div id="contact-message-preview"&gt;
