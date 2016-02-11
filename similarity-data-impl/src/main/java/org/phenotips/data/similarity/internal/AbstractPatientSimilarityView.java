@@ -42,8 +42,8 @@ import org.json.JSONObject;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
-    private static final String OWNER_ID_KEY = "id";
-    private static final String OWNER_NAME_KEY = "name";
+    private static final String ID_KEY = "id";
+    private static final String NAME_KEY = "name";
     /** The matched patient to represent. */
     protected final Patient match;
 
@@ -140,14 +140,14 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         JSONObject contact = new JSONObject();
 
         if (data != null && data.isNamed()) {
-            contact.accumulate(OWNER_ID_KEY, data.get("user_id"));
-            contact.accumulate(OWNER_NAME_KEY, data.get("name"));
+            contact.accumulate(ID_KEY, data.get("user_id"));
+            contact.accumulate(NAME_KEY, data.get(NAME_KEY));
         }
         // Fall back on reporter
         if (contact.length() == 0) {
             DocumentReference reporter = getReporter();
             if (reporter != null) {
-                contact.accumulate(OWNER_ID_KEY, reporter.getName());
+                contact.accumulate(ID_KEY, reporter.getName());
             }
         }
         return contact;
@@ -202,7 +202,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     {
         JSONObject result = new JSONObject();
 
-        result.put("id", getId());
+        result.put(ID_KEY, getId());
         result.put("token", getContactToken());
         result.put("owner", getOwnerJSON());
         if (this.access != null) {
