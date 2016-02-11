@@ -24,17 +24,20 @@ import org.phenotips.messaging.Connection;
 
 import org.xwiki.component.annotation.Component;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.mail.MessagingException;
 
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.plugin.mailsender.Mail;
 import com.xpn.xwiki.plugin.mailsender.MailSenderPlugin;
 import com.xpn.xwiki.web.Utils;
@@ -102,9 +105,15 @@ public class DefaultActionManager implements ActionManager
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
             return 0;
-        } catch (Exception ex) {
-            this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
-            return 1;
+        } catch (MessagingException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 500;
+        } catch (XWikiException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 500;
+        } catch (UnsupportedEncodingException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 400;
         }
     }
 

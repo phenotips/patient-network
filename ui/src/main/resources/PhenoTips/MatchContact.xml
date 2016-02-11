@@ -83,7 +83,10 @@
   #set ($platformName = 'PhenomeCentral')## TODO: get this from a configuration
   #if ($request.send)
     #_prepareConfig($request)
-    $services.anonymousCommunication.sendInitialMail($request.token, $config)
+    #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $config))
+    #if ($result != 0)
+      $response.setStatus($result)
+    #end
   #else
     #set ($defaults = {
       'name'      : true,
