@@ -102,7 +102,7 @@
       #set ($recipientAffiliation  = $recipientUserObj.getProperty("company").getValue())
       #set ($toText = "")
       #if ("$!{recipientFirstName}" != "")
-        #set ($toText = $!{recipientLastName})
+        #set ($toText = $!{recipientFirstName})
         #if ("$!{recipientLastName}" != '')
           #set ($toText = $toText + " $!{recipientLastName}")
         #end
