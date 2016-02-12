@@ -297,7 +297,7 @@ public class RestrictedDisorderSimilarityViewTest
     {
         DisorderSimilarityView o = new RestrictedDisorderSimilarityView(null, null, open);
         JSONObject result = o.toJSON();
-        Assert.assertNull(result);
+        Assert.assertTrue(result.length() == 0);
     }
 
     /** A null JSON is returned for private patients. */

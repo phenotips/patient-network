@@ -24,17 +24,21 @@ import org.phenotips.messaging.Connection;
 
 import org.xwiki.component.annotation.Component;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.mail.MessagingException;
 
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.plugin.mailsender.Mail;
 import com.xpn.xwiki.plugin.mailsender.MailSenderPlugin;
 import com.xpn.xwiki.web.Utils;
 
@@ -70,6 +74,10 @@ public class DefaultActionManager implements ActionManager
 
     private static final String SUBJECT = "Access to patient record granted";
 
+    private static final String SUBJECT_FIELD_STRING = "subject";
+
+    private static final String OPTIONS_MESSAGE_FIELD = "message";
+
     @Inject
     private PermissionsManager permissionsManager;
 
@@ -88,17 +96,26 @@ public class DefaultActionManager implements ActionManager
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
-            options.put(RECIPIENT_NAME,
-                xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
-            options.put(MATCH_CASE_ID, connection.getTargetPatient().getDocument().getName());
-            options.put(MATCH_CASE_LINK,
-                xwiki.getExternalURL("data.GrantMatchAccess", EXTERNAL_LINK_MODE, "id=" + connection.getId(), context));
-            mailsender.sendMailFromTemplate("PhenoTips.MatchContact", PHENOMECENTRAL_EMAIL, to,
-                "qc@phenomecentral.org", null, "", options, context);
+            String replyTo = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
+            Mail mail = new Mail();
+            mail.setTo(to);
+            mail.setHeader("Reply-To", replyTo);
+            mail.setHeader("Return-Path", replyTo);
+            mail.setFrom(PHENOMECENTRAL_EMAIL);
+            mail.setBcc("qc@phenomecentral.org");
+            mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
+            mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
+            mailsender.sendMail(mail, context);
             return 0;
-        } catch (Exception ex) {
-            this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
-            return 1;
+        } catch (MessagingException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 500;
+        } catch (XWikiException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 500;
+        } catch (UnsupportedEncodingException e) {
+            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
+            return 400;
         }
     }
 
@@ -128,7 +145,7 @@ public class DefaultActionManager implements ActionManager
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
             String to = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
             options.put("platformName", PLATFORM);
-            options.put("subject", SUBJECT);
+            options.put(SUBJECT_FIELD_STRING, SUBJECT);
             options.put(RECIPIENT_NAME,
                 xwiki.getUserName(connection.getInitiatingUser().toString(), null, false, context));
             options.put(CONTACTED_USER_NAME,

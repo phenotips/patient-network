@@ -55,17 +55,13 @@ public class AnonymousCommunicationScriptService implements ScriptService
      * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
      *            involved in this connection
      * @param options the mail content options selected by the user
-     * @return {@code 0} if the mail was successfully sent, other numbers in case of errors
+     * @return {@code 0} if the mail was successfully sent, http response codes in case of errors
      */
     public int sendInitialMail(String connectionId, Map<String, Object> options)
     {
-        try {
-            Connection c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
-            // FIXME! Add rights check: only the initiating user can do this
-            return this.actionManager.sendInitialMails(c, options);
-        } catch (Exception ex) {
-            return -1;
-        }
+        Connection c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
+        // FIXME! Add rights check: only the initiating user can do this
+        return this.actionManager.sendInitialMails(c, options);
     }
 
     /**
