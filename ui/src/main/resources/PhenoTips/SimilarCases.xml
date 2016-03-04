@@ -1662,9 +1662,7 @@
     <property>
       <content>{{velocity}}
 #if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
-  #set($privacyLevelObject = $doc.getObject('PhenoTips.PatientConsent'))
-  #set($consents = "$!{privacyLevelObject.getProperty('granted').value}")
-  #if ($consents &amp;&amp; !$consents.contains('real'))
+  #if (!$services.patientconsents.hasConsent($doc.getName(), "real"))
     #break
   #end
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
