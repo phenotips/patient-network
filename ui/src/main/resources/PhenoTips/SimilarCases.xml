@@ -260,7 +260,7 @@
             'outputSyntax' : "plain",
             'maxResults' : this._maxResults,
             'minScore' : this._minScore
-          }
+          };
       this.activeSearch = new Ajax.Request(
         this.matchServiceURL,
         {
@@ -373,7 +373,7 @@
 
     displaySummary : function (message, container) {
       var c = container || this.container;
-      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message)
+      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message);
       c.insert(summary);
       return summary;
     },
@@ -447,7 +447,7 @@
         r.disorders.each(function(d) {
           // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
           dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name.substring(0, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length))));
-        })
+        });
         return dList;
       }
     },
@@ -532,7 +532,7 @@
                new Ajax.Request(generateAction.value, {
                  parameters : form.serialize({'hash': true, 'submit': false}),
                  onSuccess : function (response) {
-                   userMessage.update(response.responseText)
+                   userMessage.update(response.responseText);
                  }
                });
              });
@@ -611,10 +611,10 @@
     },
 
     _displayFeatureMatches : function (r) {
-      var container = new Element('div', {'class' : 'match-type features'})
-      container.insert(new Element('h3').update('Phenotypic features breakdown'))
+      var container = new Element('div', {'class' : 'match-type features'});
+      container.insert(new Element('h3').update('Phenotypic features breakdown'));
       if (!r.featureMatches) {
-        container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'))
+        container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'));
         return container;
       }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
@@ -626,7 +626,7 @@
         "result" : {
           "title" : '&lt;strong&gt;' + this._getDisplayedResultId(r, true) + "&lt;/strong&gt; presented with:",
         }
-      }
+      };
       var resultFeatures = _this._createFeatureIndex(r.features);
       r.featureMatches.each(function (featureMatch) {
            var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
@@ -637,8 +637,8 @@
            labelsRow.insert(new Element('td', {'class' : 'hint query'}).update(columns.query.title));
            labelsRow.insert(new Element('td', {'class' : 'hint result'}).update(columns.result.title));
            var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           var crtPFeatures = new Element('td', {'class' : 'phenotypes query'})
-           var otherPFeatures = new Element('td', {'class' : 'phenotypes result'})
+           var crtPFeatures = new Element('td', {'class' : 'phenotypes query'});
+           var otherPFeatures = new Element('td', {'class' : 'phenotypes result'});
            phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
            if (featureMatch.reference) {
              featureMatch.reference.each(function (fId) {
@@ -696,15 +696,15 @@
     },
 
     _displayGeneMatches : function(r, container) {
-      var container = new Element('div', {'class' : 'match-type genes'})
-      container.insert(new Element('h3').update('Gene matching breakdown'))
+      var container = new Element('div', {'class' : 'match-type genes'});
+      container.insert(new Element('h3').update('Gene matching breakdown'));
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genetic information available'))
+        container.insert(new Element('p', {'class' : 'hint'}).update('No genetic information available'));
       } else if (r.genes.length == 0) {
         // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genotype matches found'))
+        container.insert(new Element('p', {'class' : 'hint'}).update('No genotype matches found'));
       } else {
         // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
@@ -821,7 +821,7 @@
           } else if (var_i == 2) {
             r = var_1;
             g = v;
-            b = var_3
+            b = var_3;
           } else if (var_i == 3) {
             r = var_1;
             g = var_2;
@@ -833,7 +833,7 @@
           } else {
             r = v;
             g = var_1;
-            b = var_2
+            b = var_2;
           }
         }
         return {r : Math.round(r * 255), g : Math.round(g * 255), b : Math.round(b * 255)};
@@ -843,7 +843,7 @@
         h: {min : 0, max : 0.4},
         s: {min : 0, max : 0.7},
         v: {min : 0, max : 1},
-        neutralSpan: .2,
+        neutralSpan: 0.2,
 
         getHue : function (value) {
            return this.h.min + (this.h.max - this.h.min) * value;
@@ -858,10 +858,10 @@
         },
 
         _getComponentValue : function(component, value, neutralSpan) {
-          if (value &gt; .5 - neutralSpan &amp;&amp; value &lt;  .5 + neutralSpan) {
-            return component.min + (component.max - component.min) * Math.abs(.5 - value)/.5
+          if (value &gt; 0.5 - neutralSpan &amp;&amp; value &lt;  0.5 + neutralSpan) {
+            return component.min + (component.max - component.min) * Math.abs(0.5 - value)/0.5;
           } else {
-            return ((value &gt; .5 + neutralSpan) ? component.min + (component.max - component.min) : 1);
+            return ((value &gt; 0.5 + neutralSpan) ? component.min + (component.max - component.min) : 1);
           }
         }
       },
@@ -871,10 +871,10 @@
       // @param neutralMiddle optional indicator of whether for middle values the color is yellow or gray (neutral); defaults to false
       // @return an object with the fields r, g, b, holding integer values in [0, 255]
       getRGBForValue : function(value, neutralMiddle) {
-        var neutralRange = neutralMiddle ? .2 : 0;
+        var neutralRange = neutralMiddle ? 0.2 : 0;
         var h = 0.4 * value;
-        var s = (value &gt; .5 - neutralRange &amp;&amp; value &lt;  .5 + neutralRange) ? .9 * Math.abs(.5 - value)/.5 : ((value &gt; .5 + neutralRange) ? (1 - 0.0000025 * value) : 1);
-        var v = (value &gt; .5 - neutralRange &amp;&amp; value &lt;  .5 + neutralRange) ? (1 - neutralRange) + Math.abs(.5 - value) : ((value &gt; .5 + neutralRange) ? (1 - 0.2 * value) : 1);
+        var s = (value &gt; 0.5 - neutralRange &amp;&amp; value &lt;  0.5 + neutralRange) ? 0.9 * Math.abs(0.5 - value)/0.5 : ((value &gt; 0.5 + neutralRange) ? (1 - 0.0000025 * value) : 1);
+        var v = (value &gt; 0.5 - neutralRange &amp;&amp; value &lt;  0.5 + neutralRange) ? (1 - neutralRange) + Math.abs(0.5 - value) : ((value &gt; 0.5 + neutralRange) ? (1 - 0.2 * value) : 1);
         var rgb = this.hsv2rgb(h, s, v);
         return rgb;
       },
@@ -892,8 +892,8 @@
       // @param value the value in [0, 1]
       // @return an string "rgb(&lt;r&gt;, &lt;g&gt;, &lt;b&gt;)" where r, g, b are integer values in [0, 255]
       getContrastColorForValue : function(value) {
-        var h = .4 * value;
-        var contrast = (h &lt; .1 || h &gt; .6) ? 1 : 0;
+        var h = 0.4 * value;
+        var contrast = (h &lt; 0.1 || h &gt; 0.6) ? 1 : 0;
         return "rgb(" + contrast * 255 + "," + contrast * 255 + "," + contrast * 255 + ")";
       },
 
