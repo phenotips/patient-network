@@ -479,27 +479,33 @@
       if (!r.hasOwnProperty("contact") || !r.contact.hasOwnProperty("href") || !r.contact.href) {
         return "No contact info";
       }
-      var hasName = (r.contact.name &amp;&amp; r.contact.name != "");
+      var contactName = r.contact.name;
+      // Handle GeneMatcher returning "None" as name for organization contacts e.g. GeneDx
+      if (contactName == "None") {
+          contactName = "";
+      }
+
+      var hasName = (contactName &amp;&amp; contactName != "");
       var hasInstitution = (r.contact.institution &amp;&amp; r.contact.institution != "");
 
       var contactLabel = "";
       if (hasName) {
-         contactLabel = r.contact.name;
+         contactLabel = contactName;
          if (hasInstitution) {
-           contactLabel += " @ ";
+            contactLabel += ", ";
+         }
       }
       if (hasInstitution) {
            contactLabel += r.contact.institution;
       }
       if (!hasName &amp;&amp; !hasInstitution) {
-        contactLabel = "contact URL";
+        contactLabel = "Anonymous";
       }
       var contactInfo = new Element("a", {
            "href"  : r.contact.href,
            "title" : "Contact owner for further information",
            "class" : "owner-info "
         }).update(contactLabel);
-      }
       return contactInfo.insert({top: " "});
     },
 
