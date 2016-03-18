@@ -351,16 +351,10 @@
            enabled : true
         },
         "score"    : {
-           title   : (this._mmeMode ? "Local relevance score" : "Relevance"),
+           title   : "Relevance",
            display : _this._displayResultRelevance.bind(_this),
-           field   : "score",
+           field   : (this._mmeMode ? "remoteScore" : "score"),
            enabled : true
-        },
-        "remotescore"    : {
-           title   : "Remote relevance score",
-           display : _this._displayResultRelevance.bind(_this),
-           field   : "remoteScore",
-           enabled : this._mmeMode
         },
         "details"  : {
            title   : "Details",
