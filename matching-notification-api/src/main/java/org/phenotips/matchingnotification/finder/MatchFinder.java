@@ -17,6 +17,10 @@
  */
 package org.phenotips.matchingnotification.finder;
 
+import org.phenotips.matchingnotification.match.PatientMatch;
+
+import java.util.List;
+
 /**
  * @version $Id$
  */
@@ -28,8 +32,10 @@ public interface MatchFinder
     int getPriority();
 
     /**
-     * Find matches.
+     * Find matches of patients.
+     *
+     * @return list of matches
      */
-    void findMatches();
+    List<PatientMatch> findMatches();
 
 }
