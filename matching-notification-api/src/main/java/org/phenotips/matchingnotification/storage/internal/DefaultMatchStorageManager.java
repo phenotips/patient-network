@@ -18,9 +18,11 @@
 package org.phenotips.matchingnotification.storage.internal;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.storage.PatientMatchStorageManager;
+import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
+
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -37,7 +39,7 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
  */
 @Component
 @Singleton
-public class DefaultPatientMatchStorageManager implements PatientMatchStorageManager
+public class DefaultMatchStorageManager implements MatchStorageManager
 {
     /** Handles persistence. */
     @Inject
@@ -48,16 +50,16 @@ public class DefaultPatientMatchStorageManager implements PatientMatchStorageMan
     private Logger logger;
 
     @Override
-    public void saveMatch(PatientMatch match) {
+    public void saveMatches(List<PatientMatch> matches) {
         Session session = this.sessionFactory.getSessionFactory().openSession();
         Transaction t = session.beginTransaction();
         try {
-            Long id = (Long) session.save(match);
+            for (PatientMatch match : matches) {
+                session.save(match);
+            }
             t.commit();
-            this.logger
-            .info("Stored a match for patient [{}] with id [{}]", match.getPatientId(), id);
         } catch (HibernateException ex) {
-            this.logger.error("ERROR storing a match for patient [{}]: [{}]", match.getPatientId(), ex);
+            this.logger.error("ERROR storing matches: [{}]", ex);
             if (t != null) {
                 t.rollback();
             }
