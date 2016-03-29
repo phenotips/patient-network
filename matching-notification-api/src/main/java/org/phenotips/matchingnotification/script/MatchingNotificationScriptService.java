@@ -17,9 +17,16 @@
  */
 package org.phenotips.matchingnotification.script;
 
+import org.phenotips.matchingnotification.finder.MatchFinderManager;
+import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.storage.MatchStorageManager;
+
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -31,13 +38,21 @@ import javax.inject.Singleton;
 @Singleton
 public class MatchingNotificationScriptService implements ScriptService
 {
+    @Inject
+    private MatchFinderManager matchFinderManager;
+
+    @Inject
+    private MatchStorageManager matchStorageManager;
+
     /**
      * Find patient matches and populate matches table.
      *
      * @return true if successful
      */
     public boolean findMatches() {
-        return false;
+        List<PatientMatch> matches = matchFinderManager.findMatches();
+        matchStorageManager.saveMatches(matches);
+        return true;
     }
 
     /**
