@@ -19,11 +19,14 @@ package org.phenotips.matchingnotification.finder;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
 
+import org.xwiki.component.annotation.Role;
+
 import java.util.List;
 
 /**
  * @version $Id$
  */
+@Role
 public interface MatchFinderManager
 {
     /**
