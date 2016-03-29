@@ -21,16 +21,18 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
 
+import java.util.List;
+
 /**
  * @version $Id$
  */
 @Role
-public interface PatientMatchStorageManager
+public interface MatchStorageManager
 {
     /**
      * Stores match.
      *
-     * @param match to store
+     * @param matches to store
      */
-    void saveMatch(PatientMatch match);
+    void saveMatches(List<PatientMatch> matches);
 }
