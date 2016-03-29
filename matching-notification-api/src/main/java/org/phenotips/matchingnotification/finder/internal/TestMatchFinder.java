@@ -18,8 +18,11 @@
 package org.phenotips.matchingnotification.finder.internal;
 
 import org.phenotips.matchingnotification.finder.MatchFinder;
+import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
+
+import java.util.List;
 
 import javax.inject.Singleton;
 
@@ -36,7 +39,7 @@ public class TestMatchFinder implements MatchFinder
     }
 
     @Override
-    public void findMatches() {
+    public List<PatientMatch> findMatches() {
+        return null;
     }
-
 }

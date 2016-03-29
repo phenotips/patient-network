@@ -19,9 +19,11 @@ package org.phenotips.matchingnotification.finder.internal;
 
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
+import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -44,15 +46,19 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     private Provider<List<MatchFinder>> matchFinderProvider;
 
     @Override
-    public void findMatches() {
+    public List<PatientMatch> findMatches() {
+        List<PatientMatch> matches = new LinkedList<PatientMatch>();
+
         for (MatchFinder service : this.matchFinderProvider.get()) {
             try {
-                service.findMatches();
+                matches.addAll(service.findMatches());
             } catch (Exception ex) {
                 this.logger.warn("Failed to invoke matches finder [{}]: {}",
                         service.getClass().getCanonicalName(), ex.getMessage());
             }
         }
+
+        return matches;
     }
 
 }
