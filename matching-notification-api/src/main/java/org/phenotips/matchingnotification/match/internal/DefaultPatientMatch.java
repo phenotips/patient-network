@@ -80,4 +80,15 @@ public class DefaultPatientMatch implements PatientMatch
     public String getMatchedPatientId() {
         return matchedPatientId;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("id: ").append(this.id);
+        sb.append(", patientId:").append(patientId);
+        sb.append(", matchedPatientId:").append(matchedPatientId);
+        sb.append(", notified:").append(notified);
+        sb.append("}");
+        return sb.toString();
+    }
 }
