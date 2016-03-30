@@ -68,4 +68,18 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             session.close();
         }
     }
+
+    @Override
+    public List<PatientMatch> loadAllMatches() {
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        try {
+            List<PatientMatch> matches = session.createCriteria(PatientMatch.class).list();
+            return matches;
+        } catch (HibernateException ex) {
+            this.logger.error("loadAllMatches: ERROR: [{}]", ex);
+        } finally {
+            session.close();
+        }
+        return null;
+    }
 }
