@@ -19,9 +19,11 @@ package org.phenotips.matchingnotification.finder.internal;
 
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -40,6 +42,19 @@ public class TestMatchFinder implements MatchFinder
 
     @Override
     public List<PatientMatch> findMatches() {
-        return null;
+        List<PatientMatch> matches = new LinkedList<>();
+
+        String otherPatient = "Q0000001";
+
+        PatientMatch match1 = new DefaultPatientMatch("P0000001", otherPatient);
+        matches.add(match1);
+
+        PatientMatch match2 = new DefaultPatientMatch("P0000002", otherPatient);
+        matches.add(match2);
+
+        PatientMatch match3 = new DefaultPatientMatch("P0000003", "Q0000003");
+        matches.add(match3);
+
+        return matches;
     }
 }
