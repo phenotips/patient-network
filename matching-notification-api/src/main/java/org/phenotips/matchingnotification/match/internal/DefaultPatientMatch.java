@@ -25,6 +25,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.json.JSONObject;
+
 /**
  * @version $Id$
  */
@@ -82,13 +84,17 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        json.accumulate("id", this.id);
+        json.accumulate("patientId", this.patientId);
+        json.accumulate("matchedPatientId", this.matchedPatientId);
+        json.accumulate("notifed", this.notified);
+        return json;
+    }
+
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        sb.append("id: ").append(this.id);
-        sb.append(", patientId:").append(patientId);
-        sb.append(", matchedPatientId:").append(matchedPatientId);
-        sb.append(", notified:").append(notified);
-        sb.append("}");
-        return sb.toString();
+        return toJSON().toString();
     }
 }

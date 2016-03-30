@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.json.JSONObject;
 
 /**
  * @version $Id$
@@ -42,4 +43,9 @@ public interface PatientMatch
      * Marks that notifications regarding this match were sent.
      */
     void setNotified();
+
+    /**
+     * @return object in JSON format.
+     */
+    JSONObject toJSON();
 }
