@@ -35,4 +35,11 @@ public interface MatchStorageManager
      * @param matches to store
      */
     void saveMatches(List<PatientMatch> matches);
+
+    /**
+     * Loads and returns all matches in a table.
+     *
+     * @return a list of all matches in the table
+     */
+    List<PatientMatch> loadAllMatches();
 }
