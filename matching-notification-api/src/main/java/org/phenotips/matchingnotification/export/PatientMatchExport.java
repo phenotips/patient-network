@@ -35,7 +35,7 @@ import org.json.JSONObject;
 @Singleton
 public class PatientMatchExport
 {
-    /** Key for matches array */
+    /** Key for matches array. */
     public static final String MATCHES = "matches";
 
     /**
