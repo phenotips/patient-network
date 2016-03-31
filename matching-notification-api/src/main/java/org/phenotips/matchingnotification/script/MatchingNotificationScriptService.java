@@ -25,6 +25,7 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -84,18 +85,20 @@ public class MatchingNotificationScriptService implements ScriptService
      * @return true if successful
      */
     public boolean sendNotifications(String idsForNotification) {
-        long[] ids = null;
+        List<Long> ids = null;
         try {
             JSONArray idsJSONArray = new JSONObject(idsForNotification).getJSONArray("ids");
             int idsNum = idsJSONArray.length();
-            ids = new long[idsNum];
+            ids = new ArrayList<Long>(idsNum);
             for (int i = 0; i < idsNum; i++) {
-                ids[i] = idsJSONArray.getLong(i);
+                ids.add(idsJSONArray.getLong(i));
             }
         } catch (JSONException ex) {
             this.logger.error("Error on converting input {} to JSON in sendNotification: {}", idsForNotification, ex);
             return false;
         }
+
+        List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(ids);
 
         return true;
     }
