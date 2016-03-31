@@ -5,3 +5,4 @@ org.phenotips.matchingnotification.finder.internal.TestMatchFinder
 org.phenotips.matchingnotification.storage.internal.DefaultMatchStorageManager
 org.phenotips.matchingnotification.storage.internal.ORMRegistrationHandler
 org.phenotips.matchingnotification.export.PatientMatchExport
+org.phenotips.matchingnotification.notification.internal.PatientMatchEmailNotifier
