@@ -25,6 +25,11 @@ import org.json.JSONObject;
 public interface PatientMatch
 {
     /**
+     * @return unique id of match
+     */
+    long getId();
+
+    /**
      * @return id of patient that was matched. The owner of this patient is notified.
      */
     String getPatientId();
@@ -48,4 +53,5 @@ public interface PatientMatch
      * @return object in JSON format.
      */
     JSONObject toJSON();
+
 }

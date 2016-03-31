@@ -64,6 +64,11 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
+    public long getId() {
+        return this.id;
+    }
+
+    @Override
     public boolean isNotified() {
         return notified;
     }
