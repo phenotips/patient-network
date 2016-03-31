@@ -43,7 +43,8 @@
    #set ($discard = $services.matchingNotification.findMatches())
    $services.matchingNotification.getAllMatches()
 #elseif ($request.action == 'send-notifications')
-   #set ($discard = $services.matchingNotification.sendNotifications())
+   #set ($idsForNotification = $!request.idsForNotification)
+   #set ($discard = $services.matchingNotification.sendNotifications($idsForNotification))
 #end
 {{/velocity}}</content>
   <object>
@@ -466,9 +467,12 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
     </property>
     <property>
       <code>document.observe("xwiki:dom:loaded", function () {
+   var sendNotificationsURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
    $('send-notifications-button').observe('click', function() {
-      new Ajax.Request(new XWiki.Document('WebHome', 'MatchingNotification').getURL('get'),
-         {   parameters : {action : 'send-notifications'},
+      new Ajax.Request(sendNotificationsURL,
+         {   parameters : {action : 'send-notifications',
+                           idsForNotification : "{'ids':[]}"
+                          },
              onSuccess : function (response) {
              },
              onFailure : function (response) {
