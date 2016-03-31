@@ -36,12 +36,14 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{velocity}}
+#set ($discard = $response.setContentType('application/json'))
 #if ($request.action == 'find-matches')
-   $services.matchingNotification.findMatches()
+   #set ($discard = $services.matchingNotification.findMatches())
+   $services.matchingNotification.getAllMatches()
 #elseif ($request.action == 'send-notifications')
-   $services.matchingNotification.sendNotifications()
+   #set ($discard = $services.matchingNotification.sendNotifications())
 #end
 {{/velocity}}</content>
   <object>
@@ -360,8 +362,9 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
     </property>
     <property>
       <code>document.observe("xwiki:dom:loaded", function () {
+   var findMatchURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
    $('find-matches-button').observe('click', function() {
-      new Ajax.Request(new XWiki.Document('WebHome', 'MatchingNotification').getURL('get'),
+     new Ajax.Request(findMatchURL,
          {   parameters : {action : 'find-matches'},
              onSuccess : function (response) {
              },

@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.script;
 
+import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
@@ -29,6 +30,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import org.json.JSONObject;
 
 /**
  * @version $Id$
@@ -44,6 +47,9 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private MatchStorageManager matchStorageManager;
 
+    @Inject
+    private PatientMatchExport patientMatchExport;
+
     /**
      * Find patient matches and populate matches table.
      *
@@ -53,6 +59,15 @@ public class MatchingNotificationScriptService implements ScriptService
         List<PatientMatch> matches = matchFinderManager.findMatches();
         matchStorageManager.saveMatches(matches);
         return true;
+    }
+
+    /**
+     * @return a JSON object with a list of all matches
+     */
+    public String getAllMatches() {
+        List<PatientMatch> allMatches = matchStorageManager.loadAllMatches();
+        JSONObject json = patientMatchExport.toJSON(allMatches);
+        return json.toString();
     }
 
     /**
