@@ -27,9 +27,11 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
@@ -71,15 +73,29 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     public List<PatientMatch> loadAllMatches() {
+        return loadMatchesByIds(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds) {
+        List<PatientMatch> matches = null;
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
-            List<PatientMatch> matches = session.createCriteria(PatientMatch.class).list();
-            return matches;
+            Criteria criteria = session.createCriteria(PatientMatch.class);
+            if (matchesIds != null && matchesIds.size() > 0) {
+                // The string "patientId" depends on the implementation of PatientMatch. But I felt that
+                // making it more general is excessive.
+                criteria.add(Restrictions.in("id", matchesIds.toArray()));
+            }
+
+            matches = criteria.list();
         } catch (HibernateException ex) {
             this.logger.error("loadAllMatches: ERROR: [{}]", ex);
         } finally {
             session.close();
         }
-        return null;
+        return matches;
     }
+
 }
