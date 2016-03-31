@@ -31,7 +31,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
 
 /**
  * @version $Id$
@@ -49,6 +52,9 @@ public class MatchingNotificationScriptService implements ScriptService
 
     @Inject
     private PatientMatchExport patientMatchExport;
+
+    @Inject
+    private Logger logger;
 
     /**
      * Find patient matches and populate matches table.
@@ -73,9 +79,24 @@ public class MatchingNotificationScriptService implements ScriptService
     /**
      * Sends email notifications for each match.
      *
+     * @param idsForNotification JSON list of ids of matching that should be notified. For example,
+     *        {'ids': ['1,'2','3']}.
      * @return true if successful
      */
-    public boolean sendNotifications() {
-        return false;
+    public boolean sendNotifications(String idsForNotification) {
+        long[] ids = null;
+        try {
+            JSONArray idsJSONArray = new JSONObject(idsForNotification).getJSONArray("ids");
+            int idsNum = idsJSONArray.length();
+            ids = new long[idsNum];
+            for (int i = 0; i < idsNum; i++) {
+                ids[i] = idsJSONArray.getLong(i);
+            }
+        } catch (JSONException ex) {
+            this.logger.error("Error on converting input {} to JSON in sendNotification: {}", idsForNotification, ex);
+            return false;
+        }
+
+        return true;
     }
 }
