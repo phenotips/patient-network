@@ -42,4 +42,12 @@ public interface MatchStorageManager
      * @return a list of all matches in the table
      */
     List<PatientMatch> loadAllMatches();
+
+    /**
+     * Load all matches with ids in {@link matchesIds}.
+     *
+     * @param matchesIds list of ids of matches to load
+     * @return list of matches
+     */
+    List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
 }
