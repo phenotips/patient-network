@@ -20,6 +20,7 @@ package org.phenotips.matchingnotification.script;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
@@ -53,6 +54,9 @@ public class MatchingNotificationScriptService implements ScriptService
 
     @Inject
     private PatientMatchExport patientMatchExport;
+
+    @Inject
+    private PatientMatchNotifier notifier;
 
     @Inject
     private Logger logger;
@@ -99,6 +103,7 @@ public class MatchingNotificationScriptService implements ScriptService
         }
 
         List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(ids);
+        notifier.notify(matches);
 
         return true;
     }

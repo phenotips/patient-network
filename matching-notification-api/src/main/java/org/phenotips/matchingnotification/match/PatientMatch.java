@@ -17,6 +17,9 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.EntityReference;
+
 import org.json.JSONObject;
 
 /**
@@ -24,6 +27,9 @@ import org.json.JSONObject;
  */
 public interface PatientMatch
 {
+    /** The space where family data is stored. */
+    EntityReference DATA_SPACE = new EntityReference("MatchingNotification", EntityType.SPACE);
+
     /**
      * @return unique id of match
      */
