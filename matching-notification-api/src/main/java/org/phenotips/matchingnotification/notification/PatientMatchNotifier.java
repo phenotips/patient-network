@@ -24,6 +24,8 @@ import org.xwiki.component.annotation.Role;
 import java.util.List;
 
 /**
+ * Send a notification per patient.
+ *
  * @version $Id$
  */
 @Role

@@ -28,9 +28,19 @@
   <name>PhenoTips - Patient Network - Matching Notification - API</name>
   <artifactId>matching-notification-api</artifactId>
   <dependencies>
-      <dependency>
+    <dependency>
+      <groupId>org.phenotips</groupId>
+      <artifactId>xwiki-translation-manager</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-script</artifactId>
+      <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-mail-send-default</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
