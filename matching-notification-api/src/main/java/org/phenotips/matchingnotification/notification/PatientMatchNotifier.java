@@ -35,7 +35,7 @@ public interface PatientMatchNotifier
      * Sends notification for all the matches in {@link matches}.
      *
      * @param matches list of matches to notify
-     * @return true if successful
+     * @return list of {@PatientMatchNotificationResponse} for every notification sent.
      */
-    boolean notify(List<PatientMatch> matches);
+    List<PatientMatchNotificationResponse> notify(List<PatientMatch> matches);
 }

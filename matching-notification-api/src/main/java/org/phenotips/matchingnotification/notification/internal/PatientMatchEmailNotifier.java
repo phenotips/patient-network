@@ -18,8 +18,8 @@
 package org.phenotips.matchingnotification.notification.internal;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
-import org.phenotips.translation.TranslationManager;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentManager;
@@ -33,6 +33,8 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -45,8 +47,10 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.mail.Address;
 import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
+import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWikiContext;
 
@@ -67,9 +71,6 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     protected Provider<ComponentManager> componentManagerProvider;
 
     @Inject
-    private TranslationManager translationManager;
-
-    @Inject
     @Named("mailsender")
     private ScriptService mailScriptService;
 
@@ -83,24 +84,85 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Inject
     private Execution execution;
 
-    @Override
-    public boolean notify(List<PatientMatch> matches) {
-        Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
-        for (String patientId : matchesByPatient.keySet()) {
+    @Inject
+    private Logger logger;
 
-            List<PatientMatch> matchesList = matchesByPatient.get(patientId);
-            try {
-                notifyByEmail(patientId, matchesList);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        return false;
+    @Override
+    public List<PatientMatchNotificationResponse> notify(List<PatientMatch> matches) {
+
+        Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
+        List<ScriptMimeMessage> emails = this.createEmailsList(matchesByPatient);
+
+        MailSenderScriptService mailService = (MailSenderScriptService) this.mailScriptService;
+        ScriptMailResult mailResult = mailService.send(emails);
+
+        List<PatientMatchNotificationResponse> allResponses = processEmailResult(mailResult, matchesByPatient);
+
+        return allResponses;
     }
 
-    private void notifyByEmail(String patientId, List<PatientMatch> matchesList)
-            throws MessagingException {
+    private List<PatientMatchNotificationResponse> processEmailResult(
+            ScriptMailResult mailResult, Map<String, List<PatientMatch>> matchesByPatient) {
+
+        // The MailStatus-es from mailResult are in the natural order of patient ids from matchesByPatient.
+        // That is, the first MailStatus is the status for the email notifying about the first patient in
+        // matches by patient (in the natural order of String-s). See createEmailsList.
+        List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
+        Collections.sort(patientIds);
+        Iterator<String> patientIdIterator = patientIds.iterator();
+
+        MailStatusResult statusResult = mailResult.getStatusResult();
+        List<PatientMatchNotificationResponse> responses =
+                new ArrayList<PatientMatchNotificationResponse>(patientIds.size());
+
+        Iterator<MailStatus> all = statusResult.getAll();
+        while (all.hasNext()) {
+            MailStatus mailStatus = all.next();
+
+            if (!patientIdIterator.hasNext()) {
+                this.logger.error("Error creating email reponses list.");
+                return null;
+            }
+            String patientId = patientIdIterator.next();
+            List<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
+
+            for (PatientMatch match : matchesForPatient) {
+                PatientMatchEmailNotificationResponse response =
+                        new PatientMatchEmailNotificationResponse(mailStatus, match);
+                responses.add(response);
+            }
+        }
+
+        return responses;
+    }
+
+    /*
+     * For every patient (key in parameter), create one email. Returns a map with a key of patient id and the email
+     * created for it as a value.
+     */
+    private List<ScriptMimeMessage> createEmailsList(Map<String, List<PatientMatch>> matchesByPatient)
+    {
+        List<ScriptMimeMessage> emails = new ArrayList<>(matchesByPatient.size());
+
+        // For every patient id there will be one email, in the same order: the first email is a notification
+        // for the first patient, and so on. This is why it's needed to go over this collection in the same
+        // order here and in processing the responses for the emails.
+        List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
+        Collections.sort(patientIds);
+
+        for (String patientId : patientIds) {
+            List<PatientMatch> matchesList = matchesByPatient.get(patientId);
+            ScriptMimeMessage email = createEmail(patientId, matchesList);
+            if (email == null) {
+                continue;
+            }
+            emails.add(email);
+        }
+
+        return emails;
+    }
+
+    private ScriptMimeMessage createEmail(String patientId, List<PatientMatch> matchesList) {
 
         MailSenderScriptService mailService = (MailSenderScriptService) this.mailScriptService;
 
@@ -119,24 +181,22 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         Object property = this.execution.getContext().getProperty(
                 "scriptservice.mailsender.error");
 
-        Address from = new InternetAddress("itaig.phenotips@gmail.com");
+        Address from = null;
+        try {
+            from = new InternetAddress("itaig.phenotips@gmail.com");
+        } catch (AddressException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         email.setFrom(from);
         email.addRecipient(RecipientType.TO, from);
-        ScriptMailResult send = mailService.send(email);
-        MailStatusResult statusResult = send.getStatusResult();
-        Iterator<MailStatus> all = statusResult.getAll();
-        while (all.hasNext()) {
-            MailStatus status = all.next();
-            System.out.println(status);
-        }
 
+        return email;
     }
 
     /*
      * Takes a list of PatientMatch objects and returns them in a map that
-     * groups all matches with same patient id. That is, for every item {@code
-     * item} in the list {@code returnedMap.get(id)}, it is true that {@code
-     * item.getPatientId().equals(id)}.
+     * groups all matches with same patient id.
      */
     private Map<String, List<PatientMatch>> groupByPatient(List<PatientMatch> matches) {
         Map<String, List<PatientMatch>> matchesMap = new HashMap<String, List<PatientMatch>>();
