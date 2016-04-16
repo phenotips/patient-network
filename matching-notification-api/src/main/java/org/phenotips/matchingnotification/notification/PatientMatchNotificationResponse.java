@@ -15,22 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.matchingnotification.finder.internal;
+package org.phenotips.matchingnotification.notification;
 
-import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
-import java.util.List;
+import org.xwiki.component.annotation.Role;
 
-public class RemoteMatchFinder  implements MatchFinder
+/**
+ * Response to a notification.
+ *
+ * @version $Id$
+ */
+@Role
+public interface PatientMatchNotificationResponse
 {
-    @Override
-    public int getPriority() {
-        return 100;
-    }
+    /**
+     * @return the {@link PatientMatch} associated with this response.
+     */
+    PatientMatch getPatientMatch();
 
-    @Override
-    public List<PatientMatch> findMatches() {
-        return null;
-    }
+    /**
+     * @return true if notification was sent successfully.
+     */
+    boolean isSuccessul();
+
+    /**
+     * @return error message.
+     */
+    String getErrorMessage();
 }
