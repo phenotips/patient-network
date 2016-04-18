@@ -25,7 +25,7 @@ import org.xwiki.mail.MailStatus;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * @version $Id$ *
+ * @version $Id$
  */
 public class PatientMatchEmailNotificationResponse implements PatientMatchNotificationResponse
 {
