@@ -19,14 +19,11 @@ package org.phenotips.matchingnotification.notification;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
 
-import org.xwiki.component.annotation.Role;
-
 /**
  * Response to a notification.
  *
  * @version $Id$
  */
-@Role
 public interface PatientMatchNotificationResponse
 {
     /**
