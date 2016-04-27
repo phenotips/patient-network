@@ -1,7 +1,6 @@
 org.phenotips.matchingnotification.script.MatchingNotificationScriptService
 org.phenotips.matchingnotification.finder.internal.DefaultMatchFinderManager
 org.phenotips.matchingnotification.finder.internal.MatchFinderListProvider
-org.phenotips.matchingnotification.finder.internal.TestMatchFinder
 org.phenotips.matchingnotification.storage.internal.DefaultMatchStorageManager
 org.phenotips.matchingnotification.storage.internal.ORMRegistrationHandler
 org.phenotips.matchingnotification.export.PatientMatchExport
