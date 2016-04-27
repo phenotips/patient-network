@@ -54,8 +54,13 @@ public class DefaultMatchFinderManager implements MatchFinderManager
                 matches.addAll(service.findMatches());
             } catch (Exception ex) {
                 this.logger.warn("Failed to invoke matches finder [{}]: {}",
-                        service.getClass().getCanonicalName(), ex.getMessage());
+                    service.getClass().getCanonicalName(), ex.getMessage());
             }
+        }
+
+        this.logger.info("Found {} matches: ", matches.size());
+        for (PatientMatch match : matches) {
+            this.logger.info(match.toString());
         }
 
         return matches;
