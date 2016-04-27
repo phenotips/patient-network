@@ -17,6 +17,8 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import javax.persistence.Basic;
@@ -58,9 +60,27 @@ public class DefaultPatientMatch implements PatientMatch
      * @param matchedPatientId id of matched patient
      */
     public DefaultPatientMatch(String patientId, String matchedPatientId) {
+        this.initialize(patientId, matchedPatientId, false);
+    }
+
+    /**
+     * Build a DefaultPatientMatch from a PatientSimilarityView.
+     *
+     * @param similarityView the object to read match from
+     */
+    public DefaultPatientMatch(PatientSimilarityView similarityView) {
+        Patient patient = similarityView.getReference();
+        String patientIdParam = patient.getId();
+        String matchedPatientIdParam = similarityView.getId();
+
+        this.initialize(patientIdParam, matchedPatientIdParam, false);
+    }
+
+    private void initialize(String patientId, String matchedPatientId, boolean notified)
+    {
         this.patientId = patientId;
         this.matchedPatientId = matchedPatientId;
-        this.notified = false;
+        this.notified = notified;
     }
 
     @Override
