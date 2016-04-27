@@ -30,6 +30,11 @@
   <dependencies>
     <dependency>
       <groupId>org.phenotips</groupId>
+      <artifactId>patient-similarity-data-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phenotips</groupId>
       <artifactId>xwiki-translation-manager</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
