@@ -398,8 +398,8 @@
       return featureIndex;
     },
 
-    _getEmptyTableRow : function(table) {
-      var row = new Element('tr');
+    _getEmptyTableRow : function(table, cssClass) {
+      var row = new Element('tr', {'class' : cssClass || ''});
       table.insert(row);
       return row;
     },
@@ -709,7 +709,7 @@
         // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
         r.genes.each(function (geneInfo) {
-          var titleRow = _this._getEmptyTableRow(genotypeMatchTable);
+          var titleRow = _this._getEmptyTableRow(genotypeMatchTable, 'gene-row');
           titleRow.insert(new Element('th', {'class' : 'gene'})
                                .insert(geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
@@ -723,7 +723,7 @@
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
               titleRow.down('th.variants-toggle').insert(variantToggle);
-              var variantsRow = _this._getEmptyTableRow(genotypeMatchTable);
+              var variantsRow = _this._getEmptyTableRow(genotypeMatchTable, 'variants-row');
               variantsRow.insert(new Element('td', {'class' : 'query'}).insert(geneInfo.reference &amp;&amp; geneInfo.reference.variants &amp;&amp; _this._displayVariants(geneInfo.reference.variants) || 'No variant information available'));
               variantsRow.insert(new Element('td', {'class' : 'result'}).insert(geneInfo.match &amp;&amp; geneInfo.match.variants &amp;&amp; _this._displayVariants(geneInfo.match.variants) || 'No variant information available'));
 
@@ -1501,14 +1501,14 @@
     <property>
       <code>#template("colorThemeInit.vm")
 
-.match-details table.gene-matches&gt;tr:nth-child(2n+1),
+.match-details table.gene-matches&gt;tr.gene-row,
 .match-details table.phenotype-matches&gt;tr:nth-child(3n+1) {
   background-color: $theme.menuLinkColor;
   background-color: $theme.menuBackgroundColor;
   color: $theme.menuLinkColor;
   text-shadow: none;
 }
-.match-details table.gene-matches&gt;tr:nth-child(2n),
+.match-details table.gene-matches&gt;tr.variants-row,
 .match-details table.phenotype-matches&gt;tr:nth-child(3n){
   background-color: transparent;
 }
