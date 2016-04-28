@@ -45,14 +45,15 @@ public class TestMatchFinder implements MatchFinder
         List<PatientMatch> matches = new LinkedList<>();
 
         String otherPatient = "Q0000001";
+        String server1 = "server1";
 
-        PatientMatch match1 = new DefaultPatientMatch("P0000001", otherPatient);
+        PatientMatch match1 = new DefaultPatientMatch("P0000001", otherPatient, server1, true);
         matches.add(match1);
 
-        PatientMatch match2 = new DefaultPatientMatch("P0000002", otherPatient);
+        PatientMatch match2 = new DefaultPatientMatch("P0000002", otherPatient, server1, true);
         matches.add(match2);
 
-        PatientMatch match3 = new DefaultPatientMatch("P0000003", "Q0000003");
+        PatientMatch match3 = new DefaultPatientMatch("P0000003", "Q0000003", "server2", true);
         matches.add(match3);
 
         return matches;
