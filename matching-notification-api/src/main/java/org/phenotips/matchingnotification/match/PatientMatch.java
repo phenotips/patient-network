@@ -46,6 +46,21 @@ public interface PatientMatch
     String getMatchedPatientId();
 
     /**
+     * @return id of remote server with which remote matching was done. In case of a local match, returns null.
+     */
+    String getRemoteId();
+
+    /**
+     * @return true if match request was initiated in local server.
+     */
+    boolean isOutgoing();
+
+    /**
+     * @return true if match request was initiated remotely.
+     */
+    boolean isIncoming();
+
+    /**
      * @return whether notifications regarding this match were sent.
      */
     boolean isNotified();

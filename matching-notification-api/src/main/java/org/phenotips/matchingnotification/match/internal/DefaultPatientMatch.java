@@ -47,6 +47,12 @@ public class DefaultPatientMatch implements PatientMatch
     private String matchedPatientId;
 
     @Basic
+    private String remoteId;
+
+    @Basic
+    private Boolean outgoingRequest;
+
+    @Basic
     private boolean notified;
 
     /**
@@ -55,31 +61,40 @@ public class DefaultPatientMatch implements PatientMatch
     public DefaultPatientMatch() {
     }
 
+    // TODO initialization becomes a mess.
+
     /**
      * @param patientId id of patient
      * @param matchedPatientId id of matched patient
+     * @param remoteId id of server where matched patient was found
+     * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(String patientId, String matchedPatientId) {
-        this.initialize(patientId, matchedPatientId, false);
+    public DefaultPatientMatch(String patientId, String matchedPatientId, String remoteId, boolean outgoingRequest) {
+        this.initialize(patientId, matchedPatientId, remoteId, outgoingRequest, false);
     }
 
     /**
      * Build a DefaultPatientMatch from a PatientSimilarityView.
      *
      * @param similarityView the object to read match from
+     * @param remoteId id of server where matched patient was found
+     * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView) {
+    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
         Patient patient = similarityView.getReference();
         String patientIdParam = patient.getId();
         String matchedPatientIdParam = similarityView.getId();
 
-        this.initialize(patientIdParam, matchedPatientIdParam, false);
+        this.initialize(patientIdParam, matchedPatientIdParam, remoteId, outgoingRequest, false);
     }
 
-    private void initialize(String patientId, String matchedPatientId, boolean notified)
+    private void initialize(String patientId, String matchedPatientId, String remoteId, boolean outgoingRequest,
+        boolean notified)
     {
         this.patientId = patientId;
         this.matchedPatientId = matchedPatientId;
+        this.remoteId = remoteId;
+        this.outgoingRequest = outgoingRequest;
         this.notified = notified;
     }
 
@@ -109,11 +124,18 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
+    public String getRemoteId() {
+        return this.remoteId;
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         json.accumulate("id", this.id);
         json.accumulate("patientId", this.patientId);
         json.accumulate("matchedPatientId", this.matchedPatientId);
+        json.accumulate("remoteId", this.remoteId);
+        json.accumulate("outgoingRequest", this.outgoingRequest);
         json.accumulate("notifed", this.notified);
         return json;
     }
@@ -121,5 +143,15 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public String toString() {
         return toJSON().toString();
+    }
+
+    @Override
+    public boolean isOutgoing() {
+        return outgoingRequest;
+    }
+
+    @Override
+    public boolean isIncoming() {
+        return !outgoingRequest;
     }
 }
