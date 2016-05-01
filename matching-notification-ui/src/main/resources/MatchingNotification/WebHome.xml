@@ -40,7 +40,7 @@
   <content>{{velocity}}
 #set ($discard = $response.setContentType('application/json'))
 #if ($request.action == 'find-matches')
-   #set ($discard = $services.matchingNotification.findMatches())
+   #set ($discard = $services.matchingNotification.findAndSaveMatches())
    $services.matchingNotification.getAllMatches()
 #elseif ($request.action == 'send-notifications')
    #set ($idsForNotification = $!request.idsForNotification)
