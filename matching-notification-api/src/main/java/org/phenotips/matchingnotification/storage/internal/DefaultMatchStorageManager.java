@@ -98,4 +98,27 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         return matches;
     }
 
+    // TODO remove, for debug.
+    @Override
+    public void clearMatches() {
+        List<PatientMatch> matches = loadAllMatches();
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        Transaction t = session.beginTransaction();
+        try {
+            session.clear();
+            for (PatientMatch match : matches) {
+                session.delete(match);
+            }
+            t.commit();
+        } catch (HibernateException ex) {
+            this.logger.error("ERROR deleting matches", ex);
+            if (t != null) {
+                t.rollback();
+            }
+            throw ex;
+        } finally {
+            session.close();
+        }
+    }
+
 }
