@@ -26,6 +26,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.json.JSONObject;
 
@@ -33,7 +34,9 @@ import org.json.JSONObject;
  * @version $Id$
  */
 @Entity
-@Table(name = "patient_matching")
+@Table(name = "patient_matching",
+        uniqueConstraints = {
+           @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
     @Id
