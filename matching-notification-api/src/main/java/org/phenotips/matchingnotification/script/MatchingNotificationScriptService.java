@@ -17,8 +17,8 @@
  */
 package org.phenotips.matchingnotification.script;
 
+import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
-import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
@@ -47,16 +47,16 @@ import org.slf4j.Logger;
 public class MatchingNotificationScriptService implements ScriptService
 {
     @Inject
-    private MatchFinderManager matchFinderManager;
-
-    @Inject
-    private MatchStorageManager matchStorageManager;
-
-    @Inject
     private PatientMatchExport patientMatchExport;
 
     @Inject
     private PatientMatchNotifier notifier;
+
+    @Inject
+    private MatchingNotificationManager matchingNotificationManager;
+
+    @Inject
+    private MatchStorageManager matchStorageManager;
 
     @Inject
     private Logger logger;
@@ -66,10 +66,13 @@ public class MatchingNotificationScriptService implements ScriptService
      *
      * @return true if successful
      */
-    public boolean findMatches() {
-        List<PatientMatch> matches = matchFinderManager.findMatches();
-        matchStorageManager.saveMatches(matches);
-        return true;
+    public boolean findAndSaveMatches() {
+
+        // TODO remove, for debug
+        this.matchStorageManager.clearMatches();
+
+        boolean result = this.matchingNotificationManager.findAndSaveMatches();
+        return result;
     }
 
     /**

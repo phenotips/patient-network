@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.finder;
 
+import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
@@ -30,9 +31,10 @@ import java.util.List;
 public interface MatchFinderManager
 {
     /**
-     * Find matches of patients.
+     * Find matches for a given patient.
      *
+     * @param patient to find matches for
      * @return list of matches
      */
-    List<PatientMatch> findMatches();
+    List<PatientMatch> findMatches(Patient patient);
 }

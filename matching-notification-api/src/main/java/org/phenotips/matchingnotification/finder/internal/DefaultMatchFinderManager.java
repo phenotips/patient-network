@@ -17,6 +17,8 @@
  */
 package org.phenotips.matchingnotification.finder.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -27,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -45,13 +48,18 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     @Inject
     private Provider<List<MatchFinder>> matchFinderProvider;
 
+    @Inject
+    @Named("matchable")
+    private Visibility matchableVisibility;
+
     @Override
-    public List<PatientMatch> findMatches() {
+    public List<PatientMatch> findMatches(Patient patient)
+    {
         List<PatientMatch> matches = new LinkedList<PatientMatch>();
 
         for (MatchFinder service : this.matchFinderProvider.get()) {
             try {
-                matches.addAll(service.findMatches());
+                matches.addAll(service.findMatches(patient));
             } catch (Exception ex) {
                 this.logger.warn("Failed to invoke matches finder [{}]: {}",
                     service.getClass().getCanonicalName(), ex.getMessage());
@@ -65,5 +73,4 @@ public class DefaultMatchFinderManager implements MatchFinderManager
 
         return matches;
     }
-
 }

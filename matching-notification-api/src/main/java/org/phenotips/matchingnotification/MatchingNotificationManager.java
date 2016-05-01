@@ -15,32 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.matchingnotification.finder;
-
-import org.phenotips.data.Patient;
-import org.phenotips.matchingnotification.match.PatientMatch;
+package org.phenotips.matchingnotification;
 
 import org.xwiki.component.annotation.Role;
-
-import java.util.List;
 
 /**
  * @version $Id$
  */
 @Role
-public interface MatchFinder
+public interface MatchingNotificationManager
 {
     /**
-     * @return a positive number representing the priority of current match finder
-     */
-    int getPriority();
-
-    /**
-     * Find matches for a given patient.
+     * Find and save matches to all local patients.
      *
-     * @param patient to find matches for
-     * @return list of matches
+     * @return true if successful
      */
-    List<PatientMatch> findMatches(Patient patient);
+    boolean findAndSaveMatches();
 
 }
