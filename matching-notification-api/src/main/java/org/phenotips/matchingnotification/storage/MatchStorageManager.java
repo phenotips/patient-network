@@ -50,4 +50,9 @@ public interface MatchStorageManager
      * @return list of matches
      */
     List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
+
+    /**
+     * TODO remove, for debug.
+     */
+    void clearMatches();
 }
