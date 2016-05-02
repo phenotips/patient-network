@@ -20,6 +20,7 @@ package org.phenotips.matchingnotification.match.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.remote.common.internal.RemotePatientSimilarityView;
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -77,16 +78,31 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     /**
-     * Build a DefaultPatientMatch from a PatientSimilarityView.
+     * Build a DefaultPatientMatch from a RemotePatientSimilarityView.
+     *
+     * @param similarityView the object to read match from
+     * @param outgoingRequest true if request was initiated locally
+     */
+    public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest) {
+        Patient patient = similarityView.getReference();
+        String patientIdParam = patient.getId();
+        String matchedPatientIdParam = similarityView.getId();
+
+        this.initialize(patientIdParam, matchedPatientIdParam, null, outgoingRequest, false);
+    }
+
+    /**
+     * Build a DefaultPatientMatch from a RemotePatientSimilarityView.
      *
      * @param similarityView the object to read match from
      * @param remoteId id of server where matched patient was found
      * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
+    public DefaultPatientMatch(RemotePatientSimilarityView similarityView, boolean outgoingRequest) {
         Patient patient = similarityView.getReference();
         String patientIdParam = patient.getId();
         String matchedPatientIdParam = similarityView.getId();
+        String remoteId = similarityView.getRemoteServerId();
 
         this.initialize(patientIdParam, matchedPatientIdParam, remoteId, outgoingRequest, false);
     }
