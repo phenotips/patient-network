@@ -100,8 +100,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<Patient> patients = new LinkedList<>();
         try {
             Query q = this.qm.createQuery(
-                    "select doc.name " + "from Document doc, " + "doc.object(PhenoTips.PatientClass) as patient "
-                            + "where patient.identifier is not null order by patient.identifier desc",
+                "select doc.name " + "from Document doc, " + "doc.object(PhenoTips.PatientClass) as patient "
+                    + "where patient.identifier is not null order by patient.identifier desc",
                     Query.XWQL);
             potentialPatientIds = q.execute();
         } catch (QueryException e) {
@@ -114,7 +114,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
 
             if (this.consentManager.hasConsent(patient, REMOTE_MATCHING_CONSENT_ID)
-                    && patientVisibility.compareTo(matchableVisibility) >= 0) {
+                && patientVisibility.compareTo(matchableVisibility) >= 0) {
                 patients.add(patient);
             }
         }

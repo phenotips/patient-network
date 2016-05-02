@@ -35,7 +35,7 @@ import org.json.JSONObject;
  */
 @Entity
 @Table(name = "patient_matching",
-        uniqueConstraints = {
+       uniqueConstraints = {
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
