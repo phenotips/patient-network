@@ -80,6 +80,9 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     {
         List<Patient> patients = this.getPatientsList();
         for (Patient patient : patients) {
+
+            this.logger.debug("Finding matches for patient {}.", patient.getId());
+
             List<PatientMatch> matchesForPatient = this.matchFinderManager.findMatches(patient);
             this.matchStorageManager.saveMatches(matchesForPatient);
         }
