@@ -95,16 +95,15 @@ public class DefaultPatientMatch implements PatientMatch
      * Build a DefaultPatientMatch from a RemotePatientSimilarityView.
      *
      * @param similarityView the object to read match from
-     * @param remoteId id of server where matched patient was found
      * @param outgoingRequest true if request was initiated locally
      */
     public DefaultPatientMatch(RemotePatientSimilarityView similarityView, boolean outgoingRequest) {
         Patient patient = similarityView.getReference();
         String patientIdParam = patient.getId();
         String matchedPatientIdParam = similarityView.getId();
-        String remoteId = similarityView.getRemoteServerId();
+        String remoteServerId = similarityView.getRemoteServerId();
 
-        this.initialize(patientIdParam, matchedPatientIdParam, remoteId, outgoingRequest, false);
+        this.initialize(patientIdParam, matchedPatientIdParam, remoteServerId, outgoingRequest, false);
     }
 
     private void initialize(String patientId, String matchedPatientId, String remoteId, boolean outgoingRequest,
