@@ -27,7 +27,10 @@ import org.xwiki.component.annotation.Component;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import org.slf4j.Logger;
 
 /**
  * @version $Id$
@@ -36,6 +39,9 @@ import javax.inject.Singleton;
 @Singleton
 public class TestMatchFinder implements MatchFinder
 {
+    @Inject
+    private Logger logger;
+
     @Override
     public int getPriority() {
         return 0;
@@ -44,6 +50,8 @@ public class TestMatchFinder implements MatchFinder
     @Override
     public List<PatientMatch> findMatches(Patient patient)
     {
+        this.logger.debug("Finding test matches for patient {}.", patient.getId());
+
         List<PatientMatch> matches = new LinkedList<>();
 
         String server1 = "server1";
