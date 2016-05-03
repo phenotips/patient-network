@@ -67,10 +67,8 @@ public class DefaultPatientMatch implements PatientMatch
     /**
      * Build a DefaultPatientMatch from a PatientSimilarityView.
      *
-     * @param similarityView
-     *            the object to read match from
-     * @param outgoingRequest
-     *            true if request was initiated locally
+     * @param similarityView the object to read match from
+     * @param outgoingRequest true if request was initiated locally
      */
     public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest) {
         this.initialize(similarityView, null, outgoingRequest);
