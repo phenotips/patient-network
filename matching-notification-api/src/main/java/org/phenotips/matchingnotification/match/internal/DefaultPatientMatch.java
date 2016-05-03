@@ -17,7 +17,6 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
-import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.remote.common.internal.RemotePatientSimilarityView;
@@ -65,30 +64,16 @@ public class DefaultPatientMatch implements PatientMatch
     public DefaultPatientMatch() {
     }
 
-    // TODO initialization becomes a mess.
-
     /**
-     * @param patientId id of patient
-     * @param matchedPatientId id of matched patient
-     * @param remoteId id of server where matched patient was found
-     * @param outgoingRequest true if request was initiated locally
-     */
-    public DefaultPatientMatch(String patientId, String matchedPatientId, String remoteId, boolean outgoingRequest) {
-        this.initialize(patientId, matchedPatientId, remoteId, outgoingRequest, false);
-    }
-
-    /**
-     * Build a DefaultPatientMatch from a RemotePatientSimilarityView.
+     * Build a DefaultPatientMatch from a PatientSimilarityView.
      *
-     * @param similarityView the object to read match from
-     * @param outgoingRequest true if request was initiated locally
+     * @param similarityView
+     *            the object to read match from
+     * @param outgoingRequest
+     *            true if request was initiated locally
      */
     public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest) {
-        Patient patient = similarityView.getReference();
-        String patientIdParam = patient.getId();
-        String matchedPatientIdParam = similarityView.getId();
-
-        this.initialize(patientIdParam, matchedPatientIdParam, null, outgoingRequest, false);
+        this.initialize(similarityView, null, outgoingRequest);
     }
 
     /**
@@ -98,22 +83,35 @@ public class DefaultPatientMatch implements PatientMatch
      * @param outgoingRequest true if request was initiated locally
      */
     public DefaultPatientMatch(RemotePatientSimilarityView similarityView, boolean outgoingRequest) {
-        Patient patient = similarityView.getReference();
-        String patientIdParam = patient.getId();
-        String matchedPatientIdParam = similarityView.getId();
-        String remoteServerId = similarityView.getRemoteServerId();
-
-        this.initialize(patientIdParam, matchedPatientIdParam, remoteServerId, outgoingRequest, false);
+        this.initialize(similarityView, similarityView.getRemoteServerId(), outgoingRequest);
     }
 
-    private void initialize(String patientId, String matchedPatientId, String remoteId, boolean outgoingRequest,
-        boolean notified)
-    {
-        this.patientId = patientId;
-        this.matchedPatientId = matchedPatientId;
+    /**
+     * TODO remove.
+     *
+     * @param patientId id of patient
+     * @param matchedPatientId id of matched patient
+     * @param remoteId id of server where matched patient was found
+     * @param outgoingRequest true if request was initiated locally
+     * @return a DefaultPatientMatch object for debug
+     */
+    public static DefaultPatientMatch getPatientMatchForDebug(String patientId, String matchedPatientId,
+        String remoteId, boolean outgoingRequest) {
+        DefaultPatientMatch patientMatch = new DefaultPatientMatch();
+        patientMatch.patientId = patientId;
+        patientMatch.matchedPatientId = matchedPatientId;
+        patientMatch.remoteId = remoteId;
+        patientMatch.outgoingRequest = outgoingRequest;
+        patientMatch.notified = false;
+        return patientMatch;
+    }
+
+    private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
+        this.patientId = similarityView.getReference().getId();
+        this.matchedPatientId = similarityView.getId();
         this.remoteId = remoteId;
         this.outgoingRequest = outgoingRequest;
-        this.notified = notified;
+        this.notified = false;
     }
 
     @Override
