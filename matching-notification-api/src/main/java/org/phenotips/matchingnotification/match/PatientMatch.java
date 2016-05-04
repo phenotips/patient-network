@@ -75,4 +75,13 @@ public interface PatientMatch
      */
     JSONObject toJSON();
 
+    /**
+     * @return score of match.
+     */
+    double getScore();
+
+    /**
+     * @return patient's owner email.
+     */
+    String getOwnerEmail();
 }
