@@ -76,29 +76,17 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     public List<PatientMatch> loadAllMatches() {
-        return loadMatchesByIds(null);
+        return this.loadMatchesByCriterion(null);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds) {
-        List<PatientMatch> matches = null;
-        Session session = this.sessionFactory.getSessionFactory().openSession();
-        try {
-            Criteria criteria = session.createCriteria(PatientMatch.class);
-            if (matchesIds != null && matchesIds.size() > 0) {
-                // The string "patientId" depends on the implementation of PatientMatch. But I felt that
-                // making it more general is excessive.
-                criteria.add(Restrictions.in("id", matchesIds.toArray()));
-            }
-
-            matches = criteria.list();
-        } catch (HibernateException ex) {
-            this.logger.error("loadAllMatches: ERROR: [{}]", ex);
-        } finally {
-            session.close();
+        if (matchesIds != null && matchesIds.size() > 0) {
+            Criterion criterion = Restrictions.in("id", matchesIds.toArray());
+            return this.loadMatchesByCriterion(criterion);
+        } else {
+            return Collections.emptyList();
         }
-        return matches;
     }
 
     @Override
