@@ -55,7 +55,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Logger logger;
 
     @Override
-    public void saveMatches(List<PatientMatch> matches) {
+    public void saveMatches(List<PatientMatch> matches)
+    {
         Session session = this.sessionFactory.getSessionFactory().openSession();
         Transaction t = session.beginTransaction();
         try {
@@ -141,5 +142,4 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             session.close();
         }
     }
-
 }
