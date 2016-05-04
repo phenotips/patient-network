@@ -56,10 +56,12 @@ public class TestMatchFinder implements MatchFinder
 
         String server1 = "server1";
 
-        PatientMatch match1 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000001", server1, true);
+        PatientMatch match1 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000001", server1, true,
+            0.3, "aaa@server.com");
         matches.add(match1);
 
-        PatientMatch match2 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000002", server1, true);
+        PatientMatch match2 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000002", server1, true,
+            0.4, "bbb@server.com");
         matches.add(match2);
 
         return matches;
