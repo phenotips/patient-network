@@ -66,11 +66,8 @@ public class MatchingNotificationScriptService implements ScriptService
      *
      * @return true if successful
      */
-    public boolean findAndSaveMatches() {
-
-        // TODO remove, for debug
-        this.matchStorageManager.clearMatches();
-
+    public boolean findAndSaveMatches()
+    {
         boolean result = this.matchingNotificationManager.findAndSaveMatches();
         return result;
     }

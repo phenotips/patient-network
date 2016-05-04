@@ -32,13 +32,16 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 /**
@@ -84,6 +87,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.debug("Finding matches for patient {}.", patient.getId());
 
             List<PatientMatch> matchesForPatient = this.matchFinderManager.findMatches(patient);
+            this.filterExistingMatches(matchesForPatient);
             this.matchStorageManager.saveMatches(matchesForPatient);
         }
 
@@ -120,5 +124,64 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         return patients;
+    }
+
+    /*
+     * Gets a list of matches and removes matches that already exist in the database. When this is more mature, it might
+     * belong in a separate component.
+     */
+    private void filterExistingMatches(List<PatientMatch> matches) {
+        Map<String, List<PatientMatch>> matchesByPatientId = new HashMap<>();
+        List<PatientMatch> toRemove = new LinkedList<>();
+        for (PatientMatch match : matches) {
+
+            // Read existing matches for same patient id, from db or cache
+            String patientId = match.getPatientId();
+            List<PatientMatch> matchesForPatient = matchesByPatientId.get(patientId);
+            if (matchesForPatient == null) {
+                matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
+                matchesByPatientId.put(patientId, matchesForPatient);
+            }
+
+            // Filter out existing matches from list parameter
+            for (PatientMatch existingMatch : matchesForPatient) {
+                if (this.matchesAreEqual(match, existingMatch)) {
+                    toRemove.add(match);
+                }
+            }
+
+        }
+        matches.removeAll(toRemove);
+    }
+
+    /*
+     * Compares two matches and returns true if they have the same unique key, meaning they represent the same match
+     * between a local patient and another patient, that is either local or remote. The two matches can still differ in
+     * some details, like score, patient's owner email.
+     */
+    private boolean matchesAreEqual(PatientMatch newMatch, PatientMatch existingMatch)
+    {
+        if (StringUtils.equals(existingMatch.getMatchedPatientId(), newMatch.getMatchedPatientId())
+            && StringUtils.equals(existingMatch.getRemoteId(), newMatch.getRemoteId())
+            && existingMatch.isIncoming() == newMatch.isIncoming()) {
+
+            this.logger.debug("Match already exists in table: ", newMatch.toString());
+
+            if (newMatch.getScore() != existingMatch.getScore()) {
+                this.logger.debug(
+                    "Match differs from existing match in score. New match: {}, existing match: {}.",
+                    newMatch.getScore(), existingMatch.getScore());
+            }
+
+            if (!StringUtils.equals(newMatch.getOwnerEmail(), existingMatch.getOwnerEmail())) {
+                this.logger.debug(
+                    "Match differs from existing match in owner email. New match: {}, existing match: {}.",
+                    newMatch.getOwnerEmail(), existingMatch.getOwnerEmail());
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 }
