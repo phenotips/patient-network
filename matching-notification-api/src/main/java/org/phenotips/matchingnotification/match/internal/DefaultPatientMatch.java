@@ -17,9 +17,18 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.PatientAccess;
+import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.remote.common.internal.RemotePatientSimilarityView;
+
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.model.reference.EntityReference;
+
+import java.sql.Timestamp;
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -29,6 +38,13 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.web.Utils;
 
 /**
  * @version $Id$
@@ -39,9 +55,18 @@ import org.json.JSONObject;
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
+    private static final PermissionsManager PERMISSIONS_MANAGER;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
+
+    private static final String EMAIL = "email";
+
     @Id
     @GeneratedValue
     private Long id;
+
+    @Basic
+    private Timestamp timestamp;
 
     @Basic
     private String patientId;
@@ -56,7 +81,25 @@ public class DefaultPatientMatch implements PatientMatch
     private Boolean outgoingRequest;
 
     @Basic
-    private boolean notified;
+    private Boolean notified;
+
+    @Basic
+    private Double score;
+
+    @Basic
+    private String ownerEmail;
+
+    static {
+        PermissionsManager permissionsManager = null;
+        try {
+            permissionsManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
+                PermissionsManager.class);
+        } catch (ComponentLookupException e) {
+            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+        }
+
+        PERMISSIONS_MANAGER = permissionsManager;
+    }
 
     /**
      * Hibernate requires a no-args constructor.
@@ -87,29 +130,56 @@ public class DefaultPatientMatch implements PatientMatch
     /**
      * TODO remove.
      *
-     * @param patientId id of patient
-     * @param matchedPatientId id of matched patient
-     * @param remoteId id of server where matched patient was found
-     * @param outgoingRequest true if request was initiated locally
+     * @param patientId patientId
+     * @param matchedPatientId matchedPatientId
+     * @param remoteId remoteId
+     * @param outgoingRequest outgoingRequest
+     * @param score score
+     * @param ownerEmail ownerEmail
      * @return a DefaultPatientMatch object for debug
      */
     public static DefaultPatientMatch getPatientMatchForDebug(String patientId, String matchedPatientId,
-        String remoteId, boolean outgoingRequest) {
+        String remoteId, boolean outgoingRequest, double score, String ownerEmail) {
         DefaultPatientMatch patientMatch = new DefaultPatientMatch();
+        patientMatch.timestamp = new Timestamp(System.currentTimeMillis());
         patientMatch.patientId = patientId;
         patientMatch.matchedPatientId = matchedPatientId;
         patientMatch.remoteId = remoteId;
         patientMatch.outgoingRequest = outgoingRequest;
         patientMatch.notified = false;
+        patientMatch.score = score;
+        patientMatch.ownerEmail = ownerEmail;
         return patientMatch;
     }
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
-        this.patientId = similarityView.getReference().getId();
+
+        Patient referencePatient = similarityView.getReference();
+
+        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.patientId = referencePatient.getId();
         this.matchedPatientId = similarityView.getId();
         this.remoteId = remoteId;
         this.outgoingRequest = outgoingRequest;
         this.notified = false;
+        this.score = similarityView.getScore();
+
+        this.ownerEmail = this.getOwnerEmail(referencePatient);
+    }
+
+    private String getOwnerEmail(Patient patient) {
+        PatientAccess referenceAccess = DefaultPatientMatch.PERMISSIONS_MANAGER.getPatientAccess(patient);
+        EntityReference ownerUser = referenceAccess.getOwner().getUser();
+
+        XWikiContext context = Utils.getContext();
+        XWiki xwiki = context.getWiki();
+        String email = null;
+        try {
+            email = xwiki.getDocument(ownerUser, context).getStringValue(EMAIL);
+        } catch (XWikiException e) {
+            DefaultPatientMatch.LOGGER.error("Error reading owner's email for patient {}.", patient.getId(), e);
+        }
+        return email;
     }
 
     @Override
