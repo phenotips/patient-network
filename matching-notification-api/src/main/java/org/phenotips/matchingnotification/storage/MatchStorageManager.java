@@ -52,6 +52,14 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
 
     /**
+     * Load all matches where reference patient is same as parameter.
+     *
+     * @param patientId id of reference patient to load matches for
+     * @return list of matches
+     */
+    List<PatientMatch> loadMatchesByReferencePatientId(String patientId);
+
+    /**
      * TODO remove, for debug.
      */
     void clearMatches();
