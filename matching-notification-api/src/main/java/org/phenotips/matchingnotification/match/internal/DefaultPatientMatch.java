@@ -66,9 +66,6 @@ public class DefaultPatientMatch implements PatientMatch
     private Long id;
 
     @Basic
-    private Timestamp timestamp;
-
-    @Basic
     private String patientId;
 
     @Basic
@@ -79,6 +76,9 @@ public class DefaultPatientMatch implements PatientMatch
 
     @Basic
     private Boolean outgoingRequest;
+
+    @Basic
+    private Timestamp timestamp;
 
     @Basic
     private Boolean notified;
@@ -221,6 +221,9 @@ public class DefaultPatientMatch implements PatientMatch
         json.accumulate("remoteId", this.remoteId);
         json.accumulate("outgoingRequest", this.outgoingRequest);
         json.accumulate("notifed", this.notified);
+        json.accumulate("timestamp", this.timestamp);
+        json.accumulate("score", score);
+        json.accumulate("ownerEmail", this.ownerEmail);
         return json;
     }
 
@@ -237,5 +240,15 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public boolean isIncoming() {
         return !outgoingRequest;
+    }
+
+    @Override
+    public double getScore() {
+        return this.score;
+    }
+
+    @Override
+    public String getOwnerEmail() {
+        return this.ownerEmail;
     }
 }
