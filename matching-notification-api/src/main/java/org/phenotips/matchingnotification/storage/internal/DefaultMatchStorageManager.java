@@ -22,15 +22,18 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 
@@ -92,6 +95,36 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             matches = criteria.list();
         } catch (HibernateException ex) {
             this.logger.error("loadAllMatches: ERROR: [{}]", ex);
+        } finally {
+            session.close();
+        }
+        return matches;
+    }
+
+    @Override
+    public List<PatientMatch> loadMatchesByReferencePatientId(String patientId)
+    {
+        if (StringUtils.isNotEmpty(patientId)) {
+            Criterion criterion = Restrictions.eq("patientId", patientId);
+            return this.loadMatchesByCriterion(criterion);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<PatientMatch> loadMatchesByCriterion(Criterion criterion)
+    {
+        List<PatientMatch> matches = null;
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        try {
+            Criteria criteria = session.createCriteria(PatientMatch.class);
+            if (criterion != null) {
+                criteria.add(criterion);
+            }
+            matches = criteria.list();
+        } catch (HibernateException ex) {
+            this.logger.error("loadMatchesByCriterion. Criterion: {},  ERROR: [{}]", criterion, ex);
         } finally {
             session.close();
         }
