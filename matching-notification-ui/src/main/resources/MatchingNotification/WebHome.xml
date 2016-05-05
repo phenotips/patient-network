@@ -261,6 +261,7 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
 &lt;div&gt;
   &lt;label&gt;Send notifications&lt;/label&gt;
   &lt;button id="send-notifications-button" type="button"&gt;Go&lt;/button&gt;
+  &lt;div id="send-notifications-messages"/&gt;
 &lt;/div&gt;
 {{/html}}
 </codeToExecute>
@@ -391,11 +392,14 @@ var PhenoTips = (function (PhenoTips) {
           {  parameters : {action : 'find-matches',
                            score  : score},
              onSuccess : function (response) {
+                _this._showSuccess('find-matches-messages');
              },
              onFailure : function (response) {
+                _this._showFailure('find-matches-messages');
              }
           }
         );
+        _this._showSent('find-matches-messages');
       });
 
       $('show-matches-button').observe('click', function() {
@@ -407,11 +411,14 @@ var PhenoTips = (function (PhenoTips) {
           {  parameters : {action : 'show-matches',
                            score  : score},
              onSuccess : function (response) {
+                _this._showSuccess('show-matches-messages');
              },
              onFailure : function (response) {
+                _this._showFailure('show-matches-messages');
              }
           }
         );
+        _this._showSent('show-matches-messages');
       });
 
       $('send-notifications-button').observe('click', function() {
@@ -420,11 +427,14 @@ var PhenoTips = (function (PhenoTips) {
                             idsForNotification : "{'ids':[]}"
                            },
               onSuccess : function (response) {
+                _this._showSuccess('send-notifications-messages');
               },
               onFailure : function (response) {
+                _this._showFailure('send-notifications-messages');
               }
           }
         );
+        _this._showSent('send-notifications-messages');
       });
     },
 
@@ -445,6 +455,21 @@ var PhenoTips = (function (PhenoTips) {
       }
       messages.update('');
       return score;
+    },
+
+    _showSent : function(messagesFieldName) {
+      var messages = $(messagesFieldName);
+      messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.requestSent')"));
+    },
+
+    _showSuccess : function(messagesFieldName) {
+      var messages = $(messagesFieldName);
+      messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.success')"));
+    },
+
+    _showFailure : function(messagesFieldName) {
+      var messages = $(messagesFieldName);
+      messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.failure')"));
     }
 
   });
