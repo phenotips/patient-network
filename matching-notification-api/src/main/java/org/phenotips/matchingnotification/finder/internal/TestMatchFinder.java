@@ -66,6 +66,10 @@ public class TestMatchFinder implements MatchFinder
             0.4, "bbb@server.com");
         matches.add(match2);
 
+        PatientMatch match3 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000009", server1, true,
+            0.1, "ccc@server.com");
+        matches.add(match3);
+
         return matches;
     }
 }

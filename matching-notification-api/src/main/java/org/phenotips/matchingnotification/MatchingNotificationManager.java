@@ -28,8 +28,9 @@ public interface MatchingNotificationManager
     /**
      * Find and save matches to all local patients.
      *
+     * @param score save matches with score higher or equals to this value
      * @return true if successful
      */
-    boolean findAndSaveMatches();
+    boolean findAndSaveMatches(double score);
 
 }
