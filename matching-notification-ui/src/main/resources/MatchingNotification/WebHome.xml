@@ -43,7 +43,7 @@
    $services.matchingNotification.findAndSaveMatches($score)
 #elseif ($request.action == 'show-matches')
    #set ($score = $request.score)
-   #set ($discard = $services.matchingNotification.getMatches($score))
+   $services.matchingNotification.getMatches($score)
 #elseif ($request.action == 'send-notifications')
    #set ($idsForNotification = $!request.idsForNotification)
    #set ($discard = $services.matchingNotification.sendNotifications($idsForNotification))
@@ -411,7 +411,7 @@ var PhenoTips = (function (PhenoTips) {
           {  parameters : {action : 'show-matches',
                            score  : score},
              onSuccess : function (response) {
-                _this._showSuccess('show-matches-messages');
+                _this._showSuccess('show-matches-messages', response.responseText);
              },
              onFailure : function (response) {
                 _this._showFailure('show-matches-messages');
@@ -462,9 +462,12 @@ var PhenoTips = (function (PhenoTips) {
       messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.requestSent')"));
     },
 
-    _showSuccess : function(messagesFieldName) {
+    _showSuccess : function(messagesFieldName, value) {
       var messages = $(messagesFieldName);
-      messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.success')"));
+      if (value == undefined) {
+        value = "$services.localization.render('phenotips.matchingNotifications.success')";
+      }
+      messages.update(new Element('div', {'class' : 'xHint'}).update(value));
     },
 
     _showFailure : function(messagesFieldName) {
