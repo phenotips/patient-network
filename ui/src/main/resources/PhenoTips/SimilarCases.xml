@@ -695,7 +695,7 @@
       return container;
     },
 
-    _displayGeneMatches : function(r, container) {
+    _displayGeneMatches : function(r) {
       var container = new Element('div', {'class' : 'match-type genes'});
       container.insert(new Element('h3').update('Gene matching breakdown'));
       var _this = this;
@@ -1534,8 +1534,6 @@
   margin: 0;
 }
 .match-details .gene-matches &gt; tr &gt; th {
-  ##padding-bottom: .2em;
-  ##padding-top: 0;
   text-align: left;
   width: 50%;
 }
