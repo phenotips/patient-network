@@ -462,14 +462,14 @@
         contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
       } else {
         contactInfo = new Element("a", {
-           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
-           "title" : "Contact owner for further information",
-           "class" : "owner-info "/* + contactType*/
+          "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
+          "title" : "Contact owner for further information",
+          "class" : "owner-info "/* + contactType*/
         }).update(r.owner.name || r.owner.id || "Undisclosed owner. Initiate anonymous contact");
         var _this = this;
         contactInfo.observe('click', function (event) {
-           event.stop();
-           _this._launchContactDialog(r.token, r.owner.id);
+          event.stop();
+          _this._launchContactDialog(r.token, r.owner.id);
         });
       }
       return contactInfo.insert({top: " "}).insert({top: icon});
@@ -482,7 +482,7 @@
       var contactName = r.contact.name;
       // Handle GeneMatcher returning "None" as name for organization contacts e.g. GeneDx
       if (contactName == "None") {
-          contactName = "";
+        contactName = "";
       }
 
       var hasName = (contactName &amp;&amp; contactName != "");
@@ -490,22 +490,22 @@
 
       var contactLabel = "";
       if (hasName) {
-         contactLabel = contactName;
-         if (hasInstitution) {
-            contactLabel += ", ";
-         }
+        contactLabel = contactName;
+        if (hasInstitution) {
+          contactLabel += ", ";
+        }
       }
       if (hasInstitution) {
-           contactLabel += r.contact.institution;
+        contactLabel += r.contact.institution;
       }
       if (!hasName &amp;&amp; !hasInstitution) {
         contactLabel = "Anonymous";
       }
       var contactInfo = new Element("a", {
-           "href"  : r.contact.href,
-           "title" : "Contact owner for further information",
-           "class" : "owner-info "
-        }).update(contactLabel);
+        "href"  : r.contact.href,
+        "title" : "Contact owner for further information",
+        "class" : "owner-info "
+      }).update(contactLabel);
       return contactInfo.insert({top: " "});
     },
 
@@ -903,8 +903,8 @@
       generateValueBar : function(value) {
         var color = this.getColorForValue(value);
         var length = Math.round((value)*100);
-        var bar = new Element("span", {"class" : "value-bar", "style" : "border-color: " + color + ";"})
-        var fill = new Element ("span", {"class" : "value-bar-fill", "style" : "background-color: " + color + "; width: " + length + "%;"})
+        var bar = new Element("span", {"class" : "value-bar", "style" : "border-color: " + color + ";"});
+        var fill = new Element ("span", {"class" : "value-bar-fill", "style" : "background-color: " + color + "; width: " + length + "%;"});
         bar.insert(fill);
         return bar;
       },
