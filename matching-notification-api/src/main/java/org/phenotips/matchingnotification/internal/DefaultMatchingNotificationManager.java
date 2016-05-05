@@ -79,7 +79,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     private MatchStorageManager matchStorageManager;
 
     @Override
-    public boolean findAndSaveMatches()
+    public boolean findAndSaveMatches(double score)
     {
         List<Patient> patients = this.getPatientsList();
         for (Patient patient : patients) {
@@ -87,6 +87,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.debug("Finding matches for patient {}.", patient.getId());
 
             List<PatientMatch> matchesForPatient = this.matchFinderManager.findMatches(patient);
+            this.filterMatchesByScore(matchesForPatient, score);
             this.filterExistingMatches(matchesForPatient);
             this.matchStorageManager.saveMatches(matchesForPatient);
         }
@@ -124,6 +125,20 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         return patients;
+    }
+
+    /*
+     * Removes all matches from list with score lower than score.
+     */
+    private void filterMatchesByScore(List<PatientMatch> matches, double score)
+    {
+        List<PatientMatch> toRemove = new LinkedList<PatientMatch>();
+        for (PatientMatch match : matches) {
+            if (match.getScore() < score) {
+                toRemove.add(match);
+            }
+        }
+        matches.removeAll(toRemove);
     }
 
     /*

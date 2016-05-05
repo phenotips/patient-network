@@ -69,7 +69,7 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public boolean findAndSaveMatches(double score)
     {
-        boolean result = this.matchingNotificationManager.findAndSaveMatches();
+        boolean result = this.matchingNotificationManager.findAndSaveMatches(score);
         return result;
     }
 
