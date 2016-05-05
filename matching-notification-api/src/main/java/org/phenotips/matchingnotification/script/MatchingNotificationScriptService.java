@@ -20,6 +20,7 @@ package org.phenotips.matchingnotification.script;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
@@ -88,12 +89,13 @@ public class MatchingNotificationScriptService implements ScriptService
 
     /**
      * Sends email notifications for each match.
-     *
-     * @param idsForNotification JSON list of ids of matching that should be notified. For example,
-     *        {'ids': ['1,'2','3']}.
-     * @return true if successful
+     * Example:
+     *    Input:  {'ids': ['1,'2','3']}
+     *    Output: {'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * @param idsForNotification JSON list of ids of matching that should be notified
+     * @return result JSON
      */
-    public boolean sendNotifications(String idsForNotification) {
+    public String sendNotifications(String idsForNotification) {
         List<Long> ids = null;
         try {
             JSONArray idsJSONArray = new JSONObject(idsForNotification).getJSONArray("ids");
@@ -104,12 +106,23 @@ public class MatchingNotificationScriptService implements ScriptService
             }
         } catch (JSONException ex) {
             this.logger.error("Error on converting input {} to JSON in sendNotification: {}", idsForNotification, ex);
-            return false;
+            return JSONObject.NULL.toString();
         }
 
         List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(ids);
-        notifier.notify(matches);
+        List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
 
-        return true;
+        // create result JSON
+        JSONArray results = new JSONArray();
+        for (PatientMatchNotificationResponse response : notificationResults) {
+            JSONObject result = new JSONObject();
+            result.accumulate("id", response.getPatientMatch().getId());
+            result.accumulate("success", response.isSuccessul());
+            results.put(result);
+        }
+        JSONObject reply = new JSONObject();
+        reply.put("results", results);
+
+        return reply.toString();
     }
 }

@@ -46,7 +46,7 @@
    $services.matchingNotification.getMatches($score)
 #elseif ($request.action == 'send-notifications')
    #set ($idsForNotification = $!request.idsForNotification)
-   #set ($discard = $services.matchingNotification.sendNotifications($idsForNotification))
+   $services.matchingNotification.sendNotifications($idsForNotification)
 #end
 {{/velocity}}</content>
   <object>
@@ -412,6 +412,10 @@ var PhenoTips = (function (PhenoTips) {
                            score  : score},
              onSuccess : function (response) {
                 _this._showSuccess('show-matches-messages', response.responseText);
+                _this._matchesIds = [];
+                response.responseJSON.matches.forEach(function (item) {
+                  _this._matchesIds.push(item.id);
+                });
              },
              onFailure : function (response) {
                 _this._showFailure('show-matches-messages');
@@ -422,12 +426,13 @@ var PhenoTips = (function (PhenoTips) {
       });
 
       $('send-notifications-button').observe('click', function() {
+        var ids = JSON.stringify({ ids: _this._matchesIds });
         new Ajax.Request(ajaxURL,
           {   parameters : {action : 'send-notifications',
-                            idsForNotification : "{'ids':[]}"
+                            idsForNotification : ids
                            },
               onSuccess : function (response) {
-                _this._showSuccess('send-notifications-messages');
+                _this._showSuccess('send-notifications-messages', response.responseText);
               },
               onFailure : function (response) {
                 _this._showFailure('send-notifications-messages');
