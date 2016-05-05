@@ -372,76 +372,88 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
       <cache>long</cache>
     </property>
     <property>
-      <code>document.observe("xwiki:dom:loaded", function ()
-{
-   var findMatchURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
+      <code>
+var PhenoTips = (function (PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.MatchingNotificationManager = Class.create({
 
-   var checkScore = function(scoreFieldName, messagesFieldName)
-   {
-      var score = $(scoreFieldName).value;
-      var messages = $(messagesFieldName);
-      if (score == undefined || score == "") {
-         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Empty_score')"));
-         return;
-      } else if (isNaN(score)) {
-         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Score_must_be_a_number_between_0_and_1')"));
-         return;
-      };
-      scoreNumber = Number(score);
-      if (scoreNumber &lt;0 || scoreNumber &gt;1) {
-         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Score_must_be_a_number_between_0_and_1')"));
-         return;
-      }
-      messages.update('');
-      return score;
-   };
+    initialize : function (patientId) {
+      var _this = this;
+      ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
 
-   $('find-matches-button').observe('click', function() {
-      var score = checkScore('find-matches-score', 'find-matches-messages');
-      if (score == undefined) {
-         return;
-      }
-      new Ajax.Request(findMatchURL,
-         {  parameters : {action : 'find-matches',
-                          score  : score},
-            onSuccess : function (response) {
-            },
-            onFailure : function (response) {
-            }
-         }
-      );
-   });
-
-   $('show-matches-button').observe('click', function() {
-      var score = checkScore('show-matches-score', 'show-matches-messages');
-      if (score == undefined) {
-         return;
-      }
-      new Ajax.Request(findMatchURL,
-         {  parameters : {action : 'show-matches',
-                          score  : score},
-            onSuccess : function (response) {
-            },
-            onFailure : function (response) {
-            }
-         }
-      );
-   });
-
-   var sendNotificationsURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
-   $('send-notifications-button').observe('click', function() {
-      new Ajax.Request(sendNotificationsURL,
-         {   parameters : {action : 'send-notifications',
-                           idsForNotification : "{'ids':[]}"
-                          },
+      $('find-matches-button').observe('click', function() {
+        var score = _this._checkScore('find-matches-score', 'find-matches-messages');
+        if (score == undefined) {
+          return;
+        }
+        new Ajax.Request(ajaxURL,
+          {  parameters : {action : 'find-matches',
+                           score  : score},
              onSuccess : function (response) {
              },
              onFailure : function (response) {
              }
-         }
-      );
-   });
-});</code>
+          }
+        );
+      });
+
+      $('show-matches-button').observe('click', function() {
+        var score = _this._checkScore('show-matches-score', 'show-matches-messages');
+        if (score == undefined) {
+          return;
+        }
+        new Ajax.Request(ajaxURL,
+          {  parameters : {action : 'show-matches',
+                           score  : score},
+             onSuccess : function (response) {
+             },
+             onFailure : function (response) {
+             }
+          }
+        );
+      });
+
+      $('send-notifications-button').observe('click', function() {
+        new Ajax.Request(ajaxURL,
+          {   parameters : {action : 'send-notifications',
+                            idsForNotification : "{'ids':[]}"
+                           },
+              onSuccess : function (response) {
+              },
+              onFailure : function (response) {
+              }
+          }
+        );
+      });
+    },
+
+    _checkScore : function(scoreFieldName, messagesFieldName) {
+      var score = $(scoreFieldName).value;
+      var messages = $(messagesFieldName);
+      if (score == undefined || score == "") {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.emptyScore')"));
+         return;
+      } else if (isNaN(score)) {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.invalidScore')"));
+         return;
+      };
+      scoreNumber = Number(score);
+      if (scoreNumber &lt;0 || scoreNumber &gt;1) {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.invalidScore')"));
+         return;
+      }
+      messages.update('');
+      return score;
+    }
+
+  });
+  return PhenoTips;
+}(PhenoTips || {}));
+
+document.observe("xwiki:dom:loaded", function() {
+  new PhenoTips.widgets.MatchingNotificationManager();
+});
+</code>
     </property>
     <property>
       <name>Find matches</name>
