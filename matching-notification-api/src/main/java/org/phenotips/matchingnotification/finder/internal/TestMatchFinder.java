@@ -70,6 +70,10 @@ public class TestMatchFinder implements MatchFinder
             0.1, "ccc@server.com");
         matches.add(match3);
 
+        PatientMatch match4 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000010", server1, true,
+            0.7, "ddd@server.com");
+        matches.add(match4);
+
         return matches;
     }
 }

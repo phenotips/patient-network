@@ -17,7 +17,11 @@
  */
 package org.phenotips.matchingnotification;
 
+import org.phenotips.matchingnotification.match.PatientMatch;
+
 import org.xwiki.component.annotation.Role;
+
+import java.util.List;
 
 /**
  * @version $Id$
@@ -31,6 +35,6 @@ public interface MatchingNotificationManager
      * @param score save matches with score higher or equals to this value
      * @return true if successful
      */
-    boolean findAndSaveMatches(double score);
+    List<PatientMatch> findAndSaveMatches(double score);
 
 }

@@ -40,7 +40,7 @@
 #set ($discard = $response.setContentType('application/json'))
 #if ($request.action == 'find-matches')
    #set ($score = $request.score)
-   #set ($discard = $services.matchingNotification.findAndSaveMatches($score))
+   $services.matchingNotification.findAndSaveMatches($score)
 #elseif ($request.action == 'show-matches')
    #set ($score = $request.score)
    #set ($discard = $services.matchingNotification.getMatches($score))
