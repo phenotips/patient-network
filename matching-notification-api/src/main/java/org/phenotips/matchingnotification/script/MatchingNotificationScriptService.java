@@ -62,20 +62,24 @@ public class MatchingNotificationScriptService implements ScriptService
     private Logger logger;
 
     /**
-     * Find patient matches and populate matches table.
+     * Find patient matches and saves only those with score higher or equals to {@code score}.
      *
+     * @param score only matches with score higher or equal to this value are saved
      * @return true if successful
      */
-    public boolean findAndSaveMatches()
+    public boolean findAndSaveMatches(double score)
     {
         boolean result = this.matchingNotificationManager.findAndSaveMatches();
         return result;
     }
 
     /**
-     * @return a JSON object with a list of all matches
+     * Returns a JSON object containing all matches from database with score higher or equal to {@code score}.
+     *
+     * @param score only matches with score higher or equal to this value are returned
+     * @return a JSON object with a list of matches
      */
-    public String getAllMatches() {
+    public String getMatches(double score) {
         List<PatientMatch> allMatches = matchStorageManager.loadAllMatches();
         JSONObject json = patientMatchExport.toJSON(allMatches);
         return json.toString();
