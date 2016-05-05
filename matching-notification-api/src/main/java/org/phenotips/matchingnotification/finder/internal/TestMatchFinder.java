@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
  * @version $Id$
  */
 @Component
+@Named("test")
 @Singleton
 public class TestMatchFinder implements MatchFinder
 {
