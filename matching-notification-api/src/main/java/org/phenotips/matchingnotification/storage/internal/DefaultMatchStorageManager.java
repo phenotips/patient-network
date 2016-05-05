@@ -81,6 +81,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
+    public List<PatientMatch> loadMatches(double score) {
+        Criterion criterion = Restrictions.ge("score", score);
+        return this.loadMatchesByCriterion(criterion);
+    }
+
+    @Override
     public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds) {
         if (matchesIds != null && matchesIds.size() > 0) {
             Criterion criterion = Restrictions.in("id", matchesIds.toArray());

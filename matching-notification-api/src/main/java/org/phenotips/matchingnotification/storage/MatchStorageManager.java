@@ -44,6 +44,14 @@ public interface MatchStorageManager
     List<PatientMatch> loadAllMatches();
 
     /**
+     * Loads matches with score higher or equals to parameter.
+     *
+     * @param score threshold for matches
+     * @return a list of all matches in the table
+     */
+    List<PatientMatch> loadMatches(double score);
+
+    /**
      * Load all matches with ids in {@link matchesIds}.
      *
      * @param matchesIds list of ids of matches to load

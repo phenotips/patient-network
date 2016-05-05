@@ -81,8 +81,8 @@ public class MatchingNotificationScriptService implements ScriptService
      * @return a JSON object with a list of matches
      */
     public String getMatches(double score) {
-        List<PatientMatch> allMatches = matchStorageManager.loadAllMatches();
-        JSONObject json = patientMatchExport.toJSON(allMatches);
+        List<PatientMatch> matches = matchStorageManager.loadMatches(score);
+        JSONObject json = patientMatchExport.toJSON(matches);
         return json.toString();
     }
 
