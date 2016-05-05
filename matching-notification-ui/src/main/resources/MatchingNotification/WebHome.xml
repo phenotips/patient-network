@@ -29,11 +29,10 @@
   <parent>PhenoTips.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1458853842000</date>
-  <contentUpdateDate>1458853840000</contentUpdateDate>
+  <date>1462470183000</date>
+  <contentUpdateDate>1462470183000</contentUpdateDate>
   <version>1.1</version>
   <title/>
-  <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
@@ -42,6 +41,8 @@
 #if ($request.action == 'find-matches')
    #set ($discard = $services.matchingNotification.findAndSaveMatches())
    $services.matchingNotification.getAllMatches()
+#elseif ($request.action == 'show-matches')
+   #set ($discard = $services.matchingNotification.getMatches($idsForNotification))
 #elseif ($request.action == 'send-notifications')
    #set ($idsForNotification = $!request.idsForNotification)
    #set ($discard = $services.matchingNotification.sendNotifications($idsForNotification))
@@ -243,8 +244,17 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
 
 {{html}}
 &lt;div&gt;
-  &lt;label&gt;Find matches&lt;/label&gt;
+  &lt;label&gt;Find matches with score over &lt;/label&gt;
+  &lt;input id="find-matches-score"/&gt;
   &lt;button id="find-matches-button" type="button"&gt;Go&lt;/button&gt;
+  &lt;div id="find-matches-messages"/&gt;
+&lt;/div&gt;
+&lt;br/&gt;
+&lt;div&gt;
+  &lt;label&gt;Show matches with score over &lt;/label&gt;
+  &lt;input id="show-matches-score"/&gt;
+  &lt;button id="show-matches-button" type="button"&gt;Go&lt;/button&gt;
+  &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
 &lt;br/&gt;
 &lt;div&gt;
@@ -362,111 +372,62 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
       <cache>long</cache>
     </property>
     <property>
-      <code>document.observe("xwiki:dom:loaded", function () {
+      <code>document.observe("xwiki:dom:loaded", function ()
+{
    var findMatchURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
+
+   var checkScore = function(scoreFieldName, messagesFieldName)
+   {
+      var score = $(scoreFieldName).value;
+      var messages = $(messagesFieldName);
+      if (score == undefined || score == "") {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Empty_score')"));
+         return;
+      } else if (isNaN(score)) {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Score_must_be_a_number_between_0_and_1')"));
+         return;
+      };
+      scoreNumber = Number(score);
+      if (scoreNumber &lt;0 || scoreNumber &gt;1) {
+         messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('Score_must_be_a_number_between_0_and_1')"));
+         return;
+      }
+      messages.update('');
+      return score;
+   };
+
    $('find-matches-button').observe('click', function() {
-     new Ajax.Request(findMatchURL,
-         {   parameters : {action : 'find-matches'},
-             onSuccess : function (response) {
-             },
-             onFailure : function (response) {
-             }
+      var score = checkScore('find-matches-score', 'find-matches-messages');
+      if (score == undefined) {
+         return;
+      }
+      new Ajax.Request(findMatchURL,
+         {  parameters : {action : 'find-matches',
+                          score  : score},
+            onSuccess : function (response) {
+            },
+            onFailure : function (response) {
+            }
          }
       );
    });
-});</code>
-    </property>
-    <property>
-      <name>Find matches</name>
-    </property>
-    <property>
-      <parse/>
-    </property>
-    <property>
-      <use>currentPage</use>
-    </property>
-  </object>
-  <object>
-    <name>MatchingNotification.WebHome</name>
-    <number>1</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>66963edd-b7b5-42ae-9cbf-ebd457fdb5c1</guid>
-    <class>
-      <name>XWiki.JavaScriptExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <disabled>0</disabled>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage|onDemand|always</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>long</cache>
-    </property>
-    <property>
-      <code>document.observe("xwiki:dom:loaded", function () {
+
+   $('show-matches-button').observe('click', function() {
+      var score = checkScore('show-matches-score', 'show-matches-messages');
+      if (score == undefined) {
+         return;
+      }
+      new Ajax.Request(findMatchURL,
+         {  parameters : {action : 'show-matches',
+                          score  : score},
+            onSuccess : function (response) {
+            },
+            onFailure : function (response) {
+            }
+         }
+      );
+   });
+
    var sendNotificationsURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
    $('send-notifications-button').observe('click', function() {
       new Ajax.Request(sendNotificationsURL,
@@ -483,7 +444,7 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
 });</code>
     </property>
     <property>
-      <name>Send notifications</name>
+      <name>Find matches</name>
     </property>
     <property>
       <parse/>
