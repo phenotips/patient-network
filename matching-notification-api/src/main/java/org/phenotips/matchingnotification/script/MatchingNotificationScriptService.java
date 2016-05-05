@@ -65,12 +65,13 @@ public class MatchingNotificationScriptService implements ScriptService
      * Find patient matches and saves only those with score higher or equals to {@code score}.
      *
      * @param score only matches with score higher or equal to this value are saved
-     * @return true if successful
+     * @return JSON with the saved matches (after filtering)
      */
-    public boolean findAndSaveMatches(double score)
+    public String findAndSaveMatches(double score)
     {
-        boolean result = this.matchingNotificationManager.findAndSaveMatches(score);
-        return result;
+        List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
+        JSONObject json = patientMatchExport.toJSON(matches);
+        return json.toString();
     }
 
     /**
