@@ -35,11 +35,6 @@
     </dependency>
     <dependency>
       <groupId>org.phenotips</groupId>
-      <artifactId>remote-matching-core-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phenotips</groupId>
       <artifactId>patient-similarity-search</artifactId>
       <version>${project.version}</version>
     </dependency>
