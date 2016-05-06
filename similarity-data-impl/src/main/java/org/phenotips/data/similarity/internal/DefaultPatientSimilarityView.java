@@ -281,11 +281,14 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         return cost;
     }
 
-    /**
-     * Get the phenotypic similarity score for this patient match.
-     *
-     * @return the similarity score, between 0 (a poor match) and 1 (a good match)
-     */
+    @Override
+    public double getGenotypeScore() {
+        PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
+        double genotypeScore = genotypeSimilarity.getScore();
+        return genotypeScore;
+    }
+
+    @Override
     public double getPhenotypeScore()
     {
         if (this.match == null || this.reference == null) {
@@ -348,8 +351,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             phenotypeScore = adjustScoreWithDisordersScore(phenotypeScore);
 
             // Factor in overlap between candidate genes
-            PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
-            double genotypeScore = genotypeSimilarity.getScore();
+            double genotypeScore = getGenotypeScore();
             // Return boosted score
             return 0.5 * (phenotypeScore + genotypeScore);
         }
