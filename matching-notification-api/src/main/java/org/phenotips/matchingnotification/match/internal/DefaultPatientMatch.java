@@ -197,8 +197,8 @@ public class DefaultPatientMatch implements PatientMatch
         this.notified = false;
 
         this.score = similarityView.getScore();
-        this.phenotypeScore = null;
-        this.genotypeScore = null;
+        this.phenotypeScore = similarityView.getPhenotypeScore();
+        this.genotypeScore = similarityView.getGenotypeScore();
 
         this.genes = this.getGenesAsString(referencePatient);
         this.matchedGenes = this.getGenesAsString(similarityView);
