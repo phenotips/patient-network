@@ -23,7 +23,6 @@ import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.remote.common.internal.RemotePatientSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.EntityReference;
@@ -118,13 +117,14 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     /**
-     * Build a DefaultPatientMatch from a RemotePatientSimilarityView.
+     * Build a DefaultPatientMatch from a PatientSimilarityView.
      *
      * @param similarityView the object to read match from
+     * @param remoteId identifier of server where patient is found
      * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(RemotePatientSimilarityView similarityView, boolean outgoingRequest) {
-        this.initialize(similarityView, similarityView.getRemoteServerId(), outgoingRequest);
+    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
+        this.initialize(similarityView, remoteId, outgoingRequest);
     }
 
     /**
