@@ -21,6 +21,8 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.similarity.PatientGenotype;
+import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
@@ -28,6 +30,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.EntityReference;
 
 import java.sql.Timestamp;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -36,6 +39,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +58,11 @@ import com.xpn.xwiki.web.Utils;
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
+    private static final String GENES_SEPARATOR = ";";
+
     private static final PermissionsManager PERMISSIONS_MANAGER;
+
+    private static final PatientGenotypeManager GENOTYPE_MANAGER;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
 
@@ -88,16 +96,28 @@ public class DefaultPatientMatch implements PatientMatch
     @Basic
     private String ownerEmail;
 
+    @Basic
+    /* from patient with id patientId */
+    private String genes;
+
+    @Basic
+    /* from patient with id matchedPatientId */
+    private String matchedGenes;
+
     static {
         PermissionsManager permissionsManager = null;
+        PatientGenotypeManager genotypeManager = null;
         try {
             permissionsManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
                 PermissionsManager.class);
+            genotypeManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
+                PatientGenotypeManager.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
 
         PERMISSIONS_MANAGER = permissionsManager;
+        GENOTYPE_MANAGER = genotypeManager;
     }
 
     /**
@@ -164,7 +184,22 @@ public class DefaultPatientMatch implements PatientMatch
         this.notified = false;
         this.score = similarityView.getScore();
 
+        this.genes = this.getGenes(referencePatient);
+        this.matchedGenes = this.getGenes(similarityView);
+
         this.ownerEmail = this.getOwnerEmail(referencePatient);
+    }
+
+    private String getGenes(Patient patient)
+    {
+        PatientGenotype genotype = DefaultPatientMatch.GENOTYPE_MANAGER.getGenotype(patient);
+        if (genotype != null && genotype.hasGenotypeData()) {
+            Set<String> genesSet = genotype.getCandidateGenes();
+            String genesString = StringUtils.join(genesSet, DefaultPatientMatch.GENES_SEPARATOR);
+            return genesString;
+        } else {
+            return null;
+        }
     }
 
     private String getOwnerEmail(Patient patient) {
