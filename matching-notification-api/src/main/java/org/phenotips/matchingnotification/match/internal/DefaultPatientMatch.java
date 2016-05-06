@@ -30,6 +30,9 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.EntityReference;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -184,13 +187,13 @@ public class DefaultPatientMatch implements PatientMatch
         this.notified = false;
         this.score = similarityView.getScore();
 
-        this.genes = this.getGenes(referencePatient);
-        this.matchedGenes = this.getGenes(similarityView);
+        this.genes = this.getGenesAsString(referencePatient);
+        this.matchedGenes = this.getGenesAsString(similarityView);
 
         this.ownerEmail = this.getOwnerEmail(referencePatient);
     }
 
-    private String getGenes(Patient patient)
+    private String getGenesAsString(Patient patient)
     {
         PatientGenotype genotype = DefaultPatientMatch.GENOTYPE_MANAGER.getGenotype(patient);
         if (genotype != null && genotype.hasGenotypeData()) {
@@ -199,6 +202,17 @@ public class DefaultPatientMatch implements PatientMatch
             return genesString;
         } else {
             return null;
+        }
+    }
+
+    private Set<String> getGenesAsSet(String genesString)
+    {
+        if (StringUtils.isEmpty(genesString)) {
+            return Collections.emptySet();
+        } else {
+            String[] split = genesString.split(DefaultPatientMatch.GENES_SEPARATOR);
+            Set<String> genesSet = new HashSet<>(Arrays.asList(split));
+            return genesSet;
         }
     }
 
@@ -259,6 +273,8 @@ public class DefaultPatientMatch implements PatientMatch
         json.accumulate("timestamp", this.timestamp);
         json.accumulate("score", score);
         json.accumulate("ownerEmail", this.ownerEmail);
+        json.accumulate("genes", this.genes);
+        json.accumulate("matchedGenes", this.matchedGenes);
         return json;
     }
 
@@ -285,5 +301,15 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public String getOwnerEmail() {
         return this.ownerEmail;
+    }
+
+    @Override
+    public Set<String> getCandidateGenes() {
+        return this.getGenesAsSet(this.genes);
+    }
+
+    @Override
+    public Set<String> getMatchedCandidateGenes() {
+        return this.getGenesAsSet(this.matchedGenes);
     }
 }

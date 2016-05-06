@@ -20,6 +20,8 @@ package org.phenotips.matchingnotification.match;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
+import java.util.Set;
+
 import org.json.JSONObject;
 
 /**
@@ -84,4 +86,14 @@ public interface PatientMatch
      * @return patient's owner email.
      */
     String getOwnerEmail();
+
+    /**
+     * @return a set of candidate genes for patient with id {@code getPatientId()}
+     */
+    Set<String> getCandidateGenes();
+
+    /**
+     * @return a set of candidate genes for patient with id {@code getMatchedPatientId()}
+     */
+    Set<String> getMatchedCandidateGenes();
 }
