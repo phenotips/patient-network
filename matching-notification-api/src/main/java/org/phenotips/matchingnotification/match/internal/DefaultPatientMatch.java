@@ -97,6 +97,12 @@ public class DefaultPatientMatch implements PatientMatch
     private Double score;
 
     @Basic
+    private Double genotypeScore;
+
+    @Basic
+    private Double phenotypeScore;
+
+    @Basic
     private String ownerEmail;
 
     @Basic
@@ -171,7 +177,11 @@ public class DefaultPatientMatch implements PatientMatch
         patientMatch.outgoingRequest = outgoingRequest;
         patientMatch.notified = false;
         patientMatch.score = score;
+        patientMatch.phenotypeScore = null;
+        patientMatch.genotypeScore = null;
         patientMatch.ownerEmail = ownerEmail;
+        patientMatch.genes = null;
+        patientMatch.matchedGenes = null;
         return patientMatch;
     }
 
@@ -185,7 +195,10 @@ public class DefaultPatientMatch implements PatientMatch
         this.remoteId = remoteId;
         this.outgoingRequest = outgoingRequest;
         this.notified = false;
+
         this.score = similarityView.getScore();
+        this.phenotypeScore = null;
+        this.genotypeScore = null;
 
         this.genes = this.getGenesAsString(referencePatient);
         this.matchedGenes = this.getGenesAsString(similarityView);
@@ -296,6 +309,16 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public double getScore() {
         return this.score;
+    }
+
+    @Override
+    public double getPhenotypeScore() {
+        return this.phenotypeScore;
+    }
+
+    @Override
+    public double getGenotypeScore() {
+        return this.genotypeScore;
     }
 
     @Override
