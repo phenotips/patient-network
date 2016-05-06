@@ -70,4 +70,20 @@ public interface PatientSimilarityView extends Patient
      *         match, with {@code 0} for patients with no similarities
      */
     double getScore();
+
+    /**
+     * Get the phenotypic similarity score for this patient match.
+     *
+     * @return the similarity score, between 0 (a poor match) and 1 (a good
+     *         match)
+     */
+    double getPhenotypeScore();
+
+    /**
+     * Get the genotypic similarity score for this patient match.
+     *
+     * @return the similarity score, between 0 (a poor match) and 1 (a good
+     *         match)
+     */
+    double getGenotypeScore();
 }
