@@ -83,6 +83,16 @@ public interface PatientMatch
     double getScore();
 
     /**
+     * @return phenotypical score
+     */
+    double getPhenotypeScore();
+
+    /**
+     * @return genotypical score
+     */
+    double getGenotypeScore();
+
+    /**
      * @return patient's owner email.
      */
     String getOwnerEmail();
