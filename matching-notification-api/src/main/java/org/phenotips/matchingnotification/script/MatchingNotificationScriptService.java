@@ -21,7 +21,6 @@ import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
-import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
@@ -49,9 +48,6 @@ public class MatchingNotificationScriptService implements ScriptService
 {
     @Inject
     private PatientMatchExport patientMatchExport;
-
-    @Inject
-    private PatientMatchNotifier notifier;
 
     @Inject
     private MatchingNotificationManager matchingNotificationManager;
@@ -109,8 +105,8 @@ public class MatchingNotificationScriptService implements ScriptService
             return JSONObject.NULL.toString();
         }
 
-        List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(ids);
-        List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
+        List<PatientMatchNotificationResponse> notificationResults =
+                this.matchingNotificationManager.sendNotifications(ids);
 
         // create result JSON
         JSONArray results = new JSONArray();
