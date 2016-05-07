@@ -25,6 +25,8 @@ import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
+import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
@@ -71,6 +73,9 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     @Inject
     @Named("matchable")
     private Visibility matchableVisibility;
+
+    @Inject
+    private PatientMatchNotifier notifier;
 
     @Inject
     private MatchFinderManager matchFinderManager;
@@ -129,6 +134,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         return patients;
+    }
+
+    @Override
+    public List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds)
+    {
+        List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
+        List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
+        return notificationResults;
     }
 
     /*

@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
 import org.xwiki.component.annotation.Role;
 
@@ -37,4 +38,11 @@ public interface MatchingNotificationManager
      */
     List<PatientMatch> findAndSaveMatches(double score);
 
+    /**
+     * Sends notification to the owner of every match with id in {@matchesId}, then marks match as notified.
+     *
+     * @param matchesIds list of ids of matches to be notified
+     * @return a list of PatientmatchNotificationResponse
+     */
+    List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds);
 }
