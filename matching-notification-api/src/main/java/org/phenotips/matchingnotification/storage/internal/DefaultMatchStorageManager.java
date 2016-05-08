@@ -148,4 +148,31 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             session.close();
         }
     }
+
+    @Override
+    public boolean markNotified(List<Long> matchesIds)
+    {
+        List<PatientMatch> matches = this.loadMatchesByIds(matchesIds);
+
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        Transaction t = session.beginTransaction();
+        try {
+            session.clear();
+            for (PatientMatch match : matches) {
+                match.setNotified();
+                session.update(match);
+            }
+            t.commit();
+        } catch (HibernateException ex) {
+            this.logger.error("ERROR marking matches as notified", ex);
+            if (t != null) {
+                t.rollback();
+            }
+            return false;
+        } finally {
+            session.close();
+        }
+
+        return true;
+    }
 }

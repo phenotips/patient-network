@@ -34,6 +34,7 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -139,9 +140,27 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     @Override
     public List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds)
     {
+        if (matchesIds == null || matchesIds.size() == 0) {
+            return Collections.emptyList();
+        }
+
         List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
         List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
+        this.markSuccessfulNotification(notificationResults);
         return notificationResults;
+    }
+
+    private void markSuccessfulNotification(List<PatientMatchNotificationResponse> notificationResults)
+    {
+        List<Long> successfulIds = new LinkedList<>();
+        for (PatientMatchNotificationResponse response : notificationResults) {
+            if (response.isSuccessul()) {
+                long id = response.getPatientMatch().getId();
+                successfulIds.add(id);
+            }
+        }
+
+        this.matchStorageManager.markNotified(successfulIds);
     }
 
     /*

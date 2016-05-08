@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,6 +47,9 @@ import org.slf4j.Logger;
 @Singleton
 public class MatchingNotificationScriptService implements ScriptService
 {
+    /** key for matches ids array in JSON. */
+    public static final String IDS_STRING = "ids";
+
     @Inject
     private PatientMatchExport patientMatchExport;
 
@@ -92,13 +96,17 @@ public class MatchingNotificationScriptService implements ScriptService
      * @return result JSON
      */
     public String sendNotifications(String idsForNotification) {
-        List<Long> ids = null;
+        List<Long> ids = new ArrayList<Long>();
         try {
-            JSONArray idsJSONArray = new JSONObject(idsForNotification).getJSONArray("ids");
-            int idsNum = idsJSONArray.length();
-            ids = new ArrayList<Long>(idsNum);
-            for (int i = 0; i < idsNum; i++) {
-                ids.add(idsJSONArray.getLong(i));
+            if (StringUtils.isNotEmpty(idsForNotification)) {
+                JSONObject idsObject = new JSONObject(idsForNotification);
+                if (idsObject.has(IDS_STRING)) {
+                    JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
+                    int idsNum = idsJSONArray.length();
+                    for (int i = 0; i < idsNum; i++) {
+                        ids.add(idsJSONArray.getLong(i));
+                    }
+                }
             }
         } catch (JSONException ex) {
             this.logger.error("Error on converting input {} to JSON in sendNotification: {}", idsForNotification, ex);
@@ -106,7 +114,7 @@ public class MatchingNotificationScriptService implements ScriptService
         }
 
         List<PatientMatchNotificationResponse> notificationResults =
-                this.matchingNotificationManager.sendNotifications(ids);
+            this.matchingNotificationManager.sendNotifications(ids);
 
         // create result JSON
         JSONArray results = new JSONArray();
