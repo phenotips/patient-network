@@ -144,6 +144,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             return Collections.emptyList();
         }
 
+        // TODO change scope of transaction - one email
+
         List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
         List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
         this.markSuccessfulNotification(notificationResults);
