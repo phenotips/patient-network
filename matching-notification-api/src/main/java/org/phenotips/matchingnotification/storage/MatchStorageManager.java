@@ -68,6 +68,14 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByReferencePatientId(String patientId);
 
     /**
+     * Marks all matches with ids in {@code matchesIds}.
+     *
+     * @param matchesIds list of ids of messages to mark as notified.
+     * @return true if successful
+     */
+    boolean markNotified(List<Long> matchesIds);
+
+    /**
      * TODO remove, for debug.
      */
     void clearMatches();
