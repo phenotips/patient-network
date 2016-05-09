@@ -90,7 +90,7 @@ public class ExomiserViewScriptService implements ScriptService
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {
         JSONArray result = new JSONArray();
-        if (patient == null || g < 0) {
+        if (patient == null || g <= 0) {
             return result;
         }
 
