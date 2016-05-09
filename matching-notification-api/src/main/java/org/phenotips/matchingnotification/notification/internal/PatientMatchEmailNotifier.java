@@ -103,7 +103,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier, Initiali
     }
 
     private List<PatientMatchNotificationResponse> processEmailResult(
-            ScriptMailResult mailResult, Map<String, List<PatientMatch>> matchesByPatient) {
+        ScriptMailResult mailResult, Map<String, List<PatientMatch>> matchesByPatient) {
 
         // The MailStatus-es from mailResult are in the natural order of patient ids from matchesByPatient.
         // That is, the first MailStatus is the status for the email notifying about the first patient in
@@ -114,7 +114,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier, Initiali
 
         MailStatusResult statusResult = mailResult.getStatusResult();
         List<PatientMatchNotificationResponse> responses =
-                new ArrayList<PatientMatchNotificationResponse>(patientIds.size());
+            new ArrayList<PatientMatchNotificationResponse>(patientIds.size());
 
         Iterator<MailStatus> all = statusResult.getAll();
         while (all.hasNext()) {
@@ -129,7 +129,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier, Initiali
 
             for (PatientMatch match : matchesForPatient) {
                 PatientMatchEmailNotificationResponse response =
-                        new PatientMatchEmailNotificationResponse(mailStatus, match);
+                    new PatientMatchEmailNotificationResponse(mailStatus, match);
                 responses.add(response);
             }
         }
@@ -174,11 +174,11 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier, Initiali
         emailParameters.put("velocityVariables", velocityVariables);
 
         DocumentReference emailTemplateReference = referenceResolver.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
-        ScriptMimeMessage email = mailService.createMessage("template",
-                emailTemplateReference, emailParameters);
+        ScriptMimeMessage email = this.mailService.createMessage("template",
+            emailTemplateReference, emailParameters);
 
         Object property = this.execution.getContext().getProperty(
-                "scriptservice.mailsender.error");
+            "scriptservice.mailsender.error");
 
         Address from = null;
         try {
