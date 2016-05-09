@@ -205,6 +205,9 @@
     _NOMATCH_MARKER : "no-match",
     _NOMATCH_TEXT : "No match",
     _DEFAULT_REFRESH_BUTTON_TEXT : "Refresh Matches",
+    DISEASE_DB_LINKS : {
+      "MIM:" : "http://www.omim.org/entry/"
+    },
 
     initialize : function(query, resultsContainer, options) {
       if (!query || !resultsContainer) {return;}
@@ -444,9 +447,17 @@
         return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
       } else {
         var dList = new Element('ul');
+        var LINKS = this.DISEASE_DB_LINKS;
         r.disorders.each(function(d) {
           // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
-          dList.insert(new Element('li').insert(new Element('a', {href : d.url || ''}).update(d.name.substring(0, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length))));
+          var dName = d.name.substring(d.name.indexOf(' ') + 1, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length);
+          var dLink = '';
+          for (var prefix in LINKS) {
+             if (d.id.startsWith(prefix)) {
+               dLink = LINKS[prefix] + d.id.substring(prefix.length);
+             }
+          }
+          dList.insert(new Element('li').insert( dLink ? new Element('a', {href : dLink, 'target' : '_blank'}).update(dName) : dName));
         });
         return dList;
       }
