@@ -17,12 +17,16 @@
  */
 package org.phenotips.matchingnotification.notification.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.context.Execution;
 import org.xwiki.mail.MailStatus;
 import org.xwiki.mail.MailStatusResult;
@@ -61,7 +65,7 @@ import com.xpn.xwiki.XWikiContext;
  */
 @Component
 @Singleton
-public class PatientMatchEmailNotifier implements PatientMatchNotifier
+public class PatientMatchEmailNotifier implements PatientMatchNotifier, Initializable
 {
     /** Name of document containing template for email notification. */
     public static final String EMAIL_TEMPLATE = "PatientMatchNotificationEmailTemplate";
@@ -69,10 +73,6 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Inject
     @Named("context")
     protected Provider<ComponentManager> componentManagerProvider;
-
-    @Inject
-    @Named("mailsender")
-    private ScriptService mailScriptService;
 
     @Inject
     @Named("current")
@@ -87,14 +87,15 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Inject
     private Logger logger;
 
+    private MailSenderScriptService mailService;
+
     @Override
     public List<PatientMatchNotificationResponse> notify(List<PatientMatch> matches) {
 
         Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
         List<ScriptMimeMessage> emails = this.createEmailsList(matchesByPatient);
 
-        MailSenderScriptService mailService = (MailSenderScriptService) this.mailScriptService;
-        ScriptMailResult mailResult = mailService.send(emails);
+        ScriptMailResult mailResult = this.mailService.send(emails);
 
         List<PatientMatchNotificationResponse> allResponses = processEmailResult(mailResult, matchesByPatient);
 
@@ -164,8 +165,6 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
     private ScriptMimeMessage createEmail(String patientId, List<PatientMatch> matchesList) {
 
-        MailSenderScriptService mailService = (MailSenderScriptService) this.mailScriptService;
-
         Map<String, Object> emailParameters = new HashMap<String, Object>();
         String language = this.contextProvider.get().getLocale().getLanguage();
         emailParameters.put("language", language);
@@ -213,5 +212,18 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         }
 
         return matchesMap;
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        // This is done here and not with @Inject because of the need to convert to MailSenderScriptService.
+        // In addition, it is not possible to use the code inside the script service instead of the script service
+        // itself because it uses a constructor that's available only in the package.
+        try {
+            this.mailService = (MailSenderScriptService) ComponentManagerRegistry.getContextComponentManager()
+                .getInstance(ScriptService.class, "mailsender");
+        } catch (ComponentLookupException e) {
+            this.logger.error("Error initializing mailService", e);
+        }
     }
 }
