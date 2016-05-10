@@ -44,26 +44,29 @@ import javax.inject.Singleton;
 public class PatientMatchEmailNotifier implements PatientMatchNotifier
 {
     @Override
-    public List<PatientMatchNotificationResponse> notify(List<PatientMatch> matches) {
-
+    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches) {
         Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
-        List<PatientMatchEmail> emails = this.createEmails(matchesByPatient);
+        List<PatientMatchEmail> emails = new ArrayList<>(matchesByPatient.size());
 
-        List<PatientMatchNotificationResponse> allResponses = new LinkedList<>();
-        for (PatientMatchEmail email : emails) {
-            email.send();
-            List<PatientMatchNotificationResponse> responses = processEmailResult(email);
-            allResponses.addAll(responses);
+        List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
+        Collections.sort(patientIds);
+
+        for (String patientId : patientIds) {
+            List<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
+            PatientMatchEmail email = DefaultPatientMatchEmail.newInstance(matchesForPatient);
+            if (email == null) {
+                continue;
+            }
+            emails.add(email);
         }
 
-        return allResponses;
+        return emails;
     }
 
-    /*
-     * Returns a response object for every match that the email notifies of.
-     */
-    private List<PatientMatchNotificationResponse> processEmailResult(PatientMatchEmail email)
+    @Override
+    public List<PatientMatchNotificationResponse> notify(PatientMatchEmail email)
     {
+        email.send();
         if (!email.wasSent()) {
             return Collections.emptyList();
         }
@@ -81,32 +84,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     }
 
     /*
-     * For every patient (key in parameter), create one email.
+     * Takes a list of PatientMatch objects and returns them in a map that groups all matches with same patient id.
      */
-    private List<PatientMatchEmail> createEmails(Map<String, List<PatientMatch>> matchesByPatient)
+    private Map<String, List<PatientMatch>> groupByPatient(List<PatientMatch> matches)
     {
-        List<PatientMatchEmail> emails = new ArrayList<>(matchesByPatient.size());
-
-        List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
-        Collections.sort(patientIds);
-
-        for (String patientId : patientIds) {
-            List<PatientMatch> matches = matchesByPatient.get(patientId);
-            PatientMatchEmail email = DefaultPatientMatchEmail.newInstance(matches);
-            if (email == null) {
-                continue;
-            }
-            emails.add(email);
-        }
-
-        return emails;
-    }
-
-    /*
-     * Takes a list of PatientMatch objects and returns them in a map that
-     * groups all matches with same patient id.
-     */
-    private Map<String, List<PatientMatch>> groupByPatient(List<PatientMatch> matches) {
         Map<String, List<PatientMatch>> matchesMap = new HashMap<String, List<PatientMatch>>();
 
         for (PatientMatch match : matches) {
