@@ -57,8 +57,8 @@ import com.xpn.xwiki.web.Utils;
  */
 @Entity
 @Table(name = "patient_matching",
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
+uniqueConstraints = {
+    @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
     private static final String GENES_SEPARATOR = ";";
@@ -282,7 +282,7 @@ public class DefaultPatientMatch implements PatientMatch
         json.accumulate("matchedPatientId", this.matchedPatientId);
         json.accumulate("remoteId", this.remoteId);
         json.accumulate("outgoingRequest", this.outgoingRequest);
-        json.accumulate("notifed", this.notified);
+        json.accumulate("notified", this.notified);
         json.accumulate("timestamp", this.timestamp);
         json.accumulate("score", score);
         json.accumulate("ownerEmail", this.ownerEmail);
