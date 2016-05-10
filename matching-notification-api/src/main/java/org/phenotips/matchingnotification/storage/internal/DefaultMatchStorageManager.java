@@ -150,10 +150,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean markNotified(List<Long> matchesIds)
+    public boolean markNotified(List<PatientMatch> matches)
     {
-        List<PatientMatch> matches = this.loadMatchesByIds(matchesIds);
-
         Session session = this.sessionFactory.getSessionFactory().openSession();
         Transaction t = session.beginTransaction();
         try {

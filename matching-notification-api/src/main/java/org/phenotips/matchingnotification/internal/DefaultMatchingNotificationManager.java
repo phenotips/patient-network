@@ -160,15 +160,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
     private void markSuccessfulNotification(List<PatientMatchNotificationResponse> notificationResults)
     {
-        List<Long> successfulIds = new LinkedList<>();
+        List<PatientMatch> successfulMatches = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
             if (response.isSuccessul()) {
-                long id = response.getPatientMatch().getId();
-                successfulIds.add(id);
+                PatientMatch match = response.getPatientMatch();
+                successfulMatches.add(match);
             }
         }
 
-        this.matchStorageManager.markNotified(successfulIds);
+        this.matchStorageManager.markNotified(successfulMatches);
     }
 
     /*
