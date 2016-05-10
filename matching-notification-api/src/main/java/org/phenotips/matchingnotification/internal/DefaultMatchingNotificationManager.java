@@ -46,6 +46,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 
 /**
@@ -150,25 +151,41 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         for (PatientMatchEmail email : emails) {
+
+            Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
             List<PatientMatchNotificationResponse> notificationResults = notifier.notify(email);
-            this.markSuccessfulNotification(notificationResults);
+            this.markSuccessfulNotification(session, notificationResults);
+            boolean successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
+
+            if (!successful) {
+                String patientId = "";
+                if (!notificationResults.isEmpty()) {
+                    patientId = notificationResults.get(0).getPatientMatch().getPatientId();
+                }
+                this.logger.error("Error on committing transaction for matching notification for patient {}.",
+                    patientId);
+
+                // TODO return? unmark as notified?
+            }
 
             responses.addAll(notificationResults);
         }
         return responses;
     }
 
-    private void markSuccessfulNotification(List<PatientMatchNotificationResponse> notificationResults)
+    private void markSuccessfulNotification(Session session, List<PatientMatchNotificationResponse> notificationResults)
     {
         List<PatientMatch> successfulMatches = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
+            PatientMatch match = response.getPatientMatch();
             if (response.isSuccessul()) {
-                PatientMatch match = response.getPatientMatch();
                 successfulMatches.add(match);
+            } else {
+                this.logger.error("Error on sending email for match {}.", match);
             }
         }
 
-        this.matchStorageManager.markNotified(successfulMatches);
+        this.matchStorageManager.markNotified(session, successfulMatches);
     }
 
     /*

@@ -23,6 +23,8 @@ import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 
+import org.hibernate.Session;
+
 /**
  * @version $Id$
  */
@@ -68,12 +70,31 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByReferencePatientId(String patientId);
 
     /**
-     * Marks all matches with ids in {@code matchesIds}.
+     * Initialize the notification marking transaction. See also {@code markNotified} and
+     * {@code endNotificationMarkingTransaction}.
      *
+     * @return the session. Null if initialization failed.
+     */
+    Session beginNotificationMarkingTransaction();
+
+    /**
+     * Marks all matches with ids in {@code matchesIds}. The method required a session created by
+     * {@code startNotificationMarkingTransaction}.
+     *
+     * @param session the transaction session created for marking.
      * @param matches list of matches to mark as notified.
      * @return true if successful
      */
-    boolean markNotified(List<PatientMatch> matches);
+    boolean markNotified(Session session, List<PatientMatch> matches);
+
+    /**
+     * Commits the notification marking transaction. See also {@code startNotificationMarkingTransaction} and
+     * {@code markNotified}.
+     *
+     * @param session the transaction session created for marking.
+     * @return true if successful
+     */
+    boolean endNotificationMarkingTransaction(Session session);
 
     /**
      * TODO remove, for debug.
