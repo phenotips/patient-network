@@ -25,6 +25,7 @@ import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
@@ -144,12 +145,17 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             return Collections.emptyList();
         }
 
-        // TODO change scope of transaction - one email
-
         List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
-        List<PatientMatchNotificationResponse> notificationResults = notifier.notify(matches);
-        this.markSuccessfulNotification(notificationResults);
-        return notificationResults;
+        List<PatientMatchEmail> emails = notifier.createEmails(matches);
+        List<PatientMatchNotificationResponse> responses = new LinkedList<>();
+
+        for (PatientMatchEmail email : emails) {
+            List<PatientMatchNotificationResponse> notificationResults = notifier.notify(email);
+            this.markSuccessfulNotification(notificationResults);
+
+            responses.addAll(notificationResults);
+        }
+        return responses;
     }
 
     private void markSuccessfulNotification(List<PatientMatchNotificationResponse> notificationResults)

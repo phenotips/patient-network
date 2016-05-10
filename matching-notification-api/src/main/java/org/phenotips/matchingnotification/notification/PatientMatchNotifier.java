@@ -32,10 +32,20 @@ import java.util.List;
 public interface PatientMatchNotifier
 {
     /**
-     * Sends notification for all the matches in {@link matches}.
+     * Build a list of emails based on the given matches. One email is created for all matches with same reference
+     * patient.
      *
-     * @param matches list of matches to notify
-     * @return list of {@PatientMatchNotificationResponse} for every notification sent.
+     * @param matches list of matches to build emails from
+     * @return list of emails
      */
-    List<PatientMatchNotificationResponse> notify(List<PatientMatch> matches);
+    List<PatientMatchEmail> createEmails(List<PatientMatch> matches);
+
+    /**
+     * Sends notification for an email.
+     *
+     * @param email an email to send
+     * @return list of {@PatientMatchNotificationResponse} for the matches associated with the email
+     */
+    List<PatientMatchNotificationResponse> notify(PatientMatchEmail email);
+
 }
