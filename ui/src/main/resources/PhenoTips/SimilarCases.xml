@@ -216,7 +216,7 @@
 
       if (options) {
         if (options.enableRefresh) {
-          var buttonLabel = new Element('label',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
+          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
           if (options.refreshButtonContainer) {
             var container = $(options.refreshButtonContainer);
@@ -291,11 +291,11 @@
       this.container.update('');
 
       // Show result summary
-      if (data &amp;&amp; (data.nodata || data.error)) {
-        this.refreshButton.down('label').innerHTML = 'Find Matches';
+      if (!data || data.nodata || data.error) {
+        this.refreshButton.down('.refresh-matches-button').innerHTML = 'Find Matches';
         this.refreshButton.down('span').removeClassName('fa-refresh');
         this.refreshButton.down('span').addClassName('fa-search');
-        if (data.nodata) {
+        if (!data || data.nodata) {
           this.displaySummary("Match request was never sent.");
         } else {
           this.displaySummary("Error sending request: " + data.error);
@@ -304,7 +304,7 @@
       } else {
         this.refreshButton.down('span').removeClassName('fa-search');
         this.refreshButton.down('span').addClassName('fa-refresh');
-        this.refreshButton.down('label').innerHTML = this._DEFAULT_REFRESH_BUTTON_TEXT;
+        this.refreshButton.down('.refresh-matches-button').innerHTML = this._DEFAULT_REFRESH_BUTTON_TEXT;
       }
 
       if (!data || data.resultsCount &lt;= 0) {
