@@ -258,6 +258,19 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
 &lt;br/&gt;
+&lt;label&gt;
+  &lt;input type="checkbox" id="checkbox_all" /&gt;
+  Select all
+&lt;/label&gt;
+&lt;label&gt;
+  &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
+  Filter notified
+&lt;/label&gt;
+&lt;table id="matchesTable"&gt;
+  &lt;thead/&gt;
+  &lt;tbody/&gt;
+&lt;/table&gt;
+&lt;br/&gt;
 &lt;div&gt;
   &lt;label&gt;Send notifications&lt;/label&gt;
   &lt;button id="send-notifications-button" type="button"&gt;Go&lt;/button&gt;
@@ -374,21 +387,26 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
       <cache>long</cache>
     </property>
     <property>
-      <code>
-var PhenoTips = (function (PhenoTips) {
+      <code>var PhenoTips = (function (PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.MatchingNotificationManager = Class.create({
 
     initialize : function (patientId) {
       var _this = this;
-      ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
+
+      this.columns = ['id','patientId','matchedPatientId','score','notified','outgoingRequest','ownerEmail','remoteId','timestamp'];
+      this.matchesTable = $('matchesTable').select('tbody')[0];
+      this.ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
+      this.matches = [];
+
+      this._initializeTable();
 
       $('find-matches-button').observe('click', function() {
         var score = _this._checkScore('find-matches-score', 'find-matches-messages');
         if (score == undefined) {
           return;
         }
-        new Ajax.Request(ajaxURL,
+        new Ajax.Request(_this.ajaxURL,
           {  parameters : {action : 'find-matches',
                            score  : score},
              onSuccess : function (response) {
@@ -407,15 +425,14 @@ var PhenoTips = (function (PhenoTips) {
         if (score == undefined) {
           return;
         }
-        new Ajax.Request(ajaxURL,
+        new Ajax.Request(_this.ajaxURL,
           {  parameters : {action : 'show-matches',
                            score  : score},
              onSuccess : function (response) {
-                _this._showSuccess('show-matches-messages', response.responseText);
-                _this._matchesIds = [];
-                response.responseJSON.matches.forEach(function (item) {
-                  _this._matchesIds.push(item.id);
-                });
+                _this._showSuccess('show-matches-messages');
+                console.log(response.responseJSON);
+                _this.matches = response.responseJSON.matches;
+                _this._buildTable();
              },
              onFailure : function (response) {
                 _this._showFailure('show-matches-messages');
@@ -426,10 +443,12 @@ var PhenoTips = (function (PhenoTips) {
       });
 
       $('send-notifications-button').observe('click', function() {
-        var ids = JSON.stringify({ ids: _this._matchesIds });
-        new Ajax.Request(ajaxURL,
+        var ids = _this._readMatchesToNotify(matchesTable);
+        var idsJson = JSON.stringify({ ids: ids});
+        console.log("Sending " + idsJson);
+        new Ajax.Request(_this.ajaxURL,
           {   parameters : {action : 'send-notifications',
-                            idsForNotification : ids
+                            idsForNotification : idsJson
                            },
               onSuccess : function (response) {
                 _this._showSuccess('send-notifications-messages', response.responseText);
@@ -440,6 +459,20 @@ var PhenoTips = (function (PhenoTips) {
           }
         );
         _this._showSent('send-notifications-messages');
+      });
+
+      $('checkbox_all').observe('click', function(event) {
+        var checked = event.target.checked;
+        $$("#matchesTable input[type=checkbox]").each(function (elm) {
+          if (!elm.disabled) {
+            elm.checked = checked;
+          }
+        });
+      });
+
+      $('checkbox_filter_notified').observe('click', function(event) {
+        var filter = event.target.checked;
+        _this._buildTable(filter);
       });
     },
 
@@ -478,6 +511,61 @@ var PhenoTips = (function (PhenoTips) {
     _showFailure : function(messagesFieldName) {
       var messages = $(messagesFieldName);
       messages.update(new Element('div', {'class' : 'xHint'}).update("$services.localization.render('phenotips.matchingNotifications.failure')"));
+    },
+
+    _initializeTable : function() {
+      var header = $('matchesTable').select('thead')[0];
+
+      var headerTr = new Element('tr');
+      header.insert(headerTr);
+
+      headerTr.insert(new Element('th'));
+
+      for (var i = 0 ; i &lt; this.columns.length ; i++) {
+        var e = new Element('th').update(this.columns[i]);
+        headerTr.insert(e);
+      }
+    },
+
+    _buildTable : function(filterNotified)
+    {
+      this.matchesTable.update('');
+
+      for (var i = 0 ; i &lt; this.matches.length ; i++) {
+          var row = new Element('tr');
+          var currentMatch = this.matches[i];
+          if (currentMatch.notified &amp;&amp; filterNotified) {
+            continue;
+          }
+
+          //checkbox
+          var notified = currentMatch.notified;
+          var checkboxId = 'checkbox_' + currentMatch.id;
+          var e = new Element('input', {'type':'checkbox', 'id':checkboxId , 'disabled':notified, 'checked':notified});
+          row.insert(e);
+
+          for (var colIndex = 0 ; colIndex &lt; this.columns.length ; colIndex++) {
+              var cellValue = currentMatch [this.columns[colIndex]];
+
+              if (cellValue == null) { cellValue = ""; }
+
+              var e = new Element('td').update(cellValue);
+              row.insert(e);
+          }
+          this.matchesTable.insert(row);
+      }
+    },
+
+    _readMatchesToNotify : function()
+    {
+      ids = [];
+      $$("#matchesTable input[type=checkbox]").each(function (elm) {
+           if (elm.checked &amp;&amp; elm &amp;&amp; !elm.disabled) {
+             id = Number(elm.id.substr(elm.id.indexOf('_')+1))
+             ids.push(String(id));
+           }
+        });
+      return ids;
     }
 
   });
