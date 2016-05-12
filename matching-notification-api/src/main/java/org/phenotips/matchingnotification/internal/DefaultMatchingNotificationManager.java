@@ -249,10 +249,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                     newMatch.getScore(), existingMatch.getScore());
             }
 
-            if (!StringUtils.equals(newMatch.getOwnerEmail(), existingMatch.getOwnerEmail())) {
+            if (!StringUtils.equals(newMatch.getEmail(), existingMatch.getEmail())) {
                 this.logger.debug(
                     "Match differs from existing match in owner email. New match: {}, existing match: {}.",
-                    newMatch.getOwnerEmail(), existingMatch.getOwnerEmail());
+                    newMatch.getEmail(), existingMatch.getEmail());
             }
 
             return true;

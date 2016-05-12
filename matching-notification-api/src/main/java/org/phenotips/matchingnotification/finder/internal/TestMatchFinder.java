@@ -59,19 +59,19 @@ public class TestMatchFinder implements MatchFinder
         String server1 = "server1";
 
         PatientMatch match1 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000001", server1, true,
-            0.3, "aaa@server.com");
+            0.3, "aaa@server.com", "matchedaaa@server.com");
         matches.add(match1);
 
         PatientMatch match2 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000002", server1, true,
-            0.4, "bbb@server.com");
+            0.4, "bbb@server.com", "matchedbbb@server.com");
         matches.add(match2);
 
         PatientMatch match3 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000009", server1, true,
-            0.1, "ccc@server.com");
+            0.1, "ccc@server.com", "matchedccc@server.com");
         matches.add(match3);
 
         PatientMatch match4 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000010", server1, true,
-            0.7, "ddd@server.com");
+            0.7, "ddd@server.com", "matchedddd@server.com");
         matches.add(match4);
 
         return matches;
