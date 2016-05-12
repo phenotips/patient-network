@@ -65,7 +65,7 @@ public class TestMatchFinder implements MatchFinder
         /** */
         public String genes;
         /** */
-        public String matchedEmail;
+        public String matchedHref;
         /** */
         public String matchedGenes;
     }
@@ -102,7 +102,7 @@ public class TestMatchFinder implements MatchFinder
         td1.genotypeScore = 0.0;
         td1.phenotypeScore = 0.6;
         td1.email = "aaa@server.com";
-        td1.matchedEmail = "matchedaaa@server.com";
+        td1.matchedHref = "mailto:matchedaaa@server.com";
         td1.genes = "gene1;gene2";
         td1.matchedGenes = "gene2;gene3";
         return new DefaultPatientMatch(td1);
@@ -118,7 +118,7 @@ public class TestMatchFinder implements MatchFinder
         td2.genotypeScore = 0.2;
         td2.phenotypeScore = 0.6;
         td2.email = "bbb@server.com";
-        td2.matchedEmail = "matchedbbb@server.com";
+        td2.matchedHref = "https://decipher.org/patients/123412";
         td2.genes = "gene1";
         td2.matchedGenes = "gene1;gene3";
         return new DefaultPatientMatch(td2);
@@ -134,7 +134,7 @@ public class TestMatchFinder implements MatchFinder
         td3.genotypeScore = 0.0;
         td3.phenotypeScore = 0.2;
         td3.email = "ccc@server.com";
-        td3.matchedEmail = "matchedccc@server.com";
+        td3.matchedHref = "mailto:matchedccc@server.com";
         td3.genes = "gene3";
         td3.matchedGenes = "";
         return new DefaultPatientMatch(td3);
@@ -150,7 +150,7 @@ public class TestMatchFinder implements MatchFinder
         td4.genotypeScore = 0.8;
         td4.phenotypeScore = 0.6;
         td4.email = "ddd@server.com";
-        td4.matchedEmail = "matchedddd@server.com";
+        td4.matchedHref = "mailto:matchedddd@server.com";
         td4.genes = "";
         td4.matchedGenes = "";
         return new DefaultPatientMatch(td4);

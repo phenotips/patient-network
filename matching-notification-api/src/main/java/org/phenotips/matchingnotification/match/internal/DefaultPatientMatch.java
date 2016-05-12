@@ -120,7 +120,7 @@ public class DefaultPatientMatch implements PatientMatch
     // Attributes related to patient with matchedPatientId
 
     @Basic
-    private String matchedEmail;
+    private String matchedHref;
 
     @Basic
     private String matchedGenes;
@@ -191,7 +191,7 @@ public class DefaultPatientMatch implements PatientMatch
         this.phenotypeScore = testData.phenotypeScore;
         this.genotypeScore = testData.genotypeScore;
         this.email = testData.email;
-        this.matchedEmail = testData.matchedEmail;
+        this.matchedHref = testData.matchedHref;
         this.genes = testData.genes;
         this.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
         this.matchedGenes = testData.matchedGenes;
@@ -219,7 +219,7 @@ public class DefaultPatientMatch implements PatientMatch
         this.genesSet = this.getGenes(referencePatient);
         this.genes = DefaultPatientMatch.setToString(this.genesSet);
 
-        this.matchedEmail = this.getOwnerEmail(matchedPatient);
+        this.matchedHref = this.getOwnerEmail(matchedPatient);
         this.matchedGenesSet = this.getGenes(matchedPatient);
         this.matchedGenes = DefaultPatientMatch.setToString(this.matchedGenesSet);
     }
@@ -235,6 +235,7 @@ public class DefaultPatientMatch implements PatientMatch
         }
     }
 
+    // TODO only works for reference patient. Get HREF for matched patient.
     private String getOwnerEmail(Patient patient)
     {
         PatientAccess referenceAccess = DefaultPatientMatch.PERMISSIONS_MANAGER.getPatientAccess(patient);
@@ -356,7 +357,7 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public String getMatchedEmail()
     {
-        return this.matchedEmail;
+        return this.matchedHref;
     }
 
     @Override
@@ -387,7 +388,7 @@ public class DefaultPatientMatch implements PatientMatch
         json.accumulate("phenotypicScore", this.getPhenotypeScore());
         json.accumulate(EMAIL, this.getEmail());
         json.accumulate("genes", this.genes);
-        json.accumulate("matchedEmail", this.getMatchedEmail());
+        json.accumulate("matchedHref", this.getMatchedEmail());
         json.accumulate("matchedGenes", this.matchedGenes);
         return json;
     }
