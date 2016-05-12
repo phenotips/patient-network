@@ -241,6 +241,7 @@
     <property>
       <codeToExecute>{{velocity}}
 $xwiki.jsx.use('MatchingNotification.WebHome')##
+$xwiki.ssx.use('MatchingNotification.WebHome')##
 {{/velocity}}
 
 {{html}}
@@ -394,7 +395,22 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
     initialize : function (patientId) {
       var _this = this;
 
-      this.columns = ['id','patientId','matchedPatientId','score','notified','outgoingRequest','ownerEmail','remoteId','timestamp'];
+      //key: name in JSON, value: name for presentation
+      this.columns = {'id'               : 'id',
+                      'patientId'        : 'patient',
+                      'matchedPatientId' : 'matched patient',
+                      'score'            : 'score',
+                      'genotypicScore'   : 'gscore',
+                      'phenotypicScore'  : 'pscore',
+                      'notified'         : 'notified',
+                      'outgoingRequest'  : 'outgoing',
+                      'remoteId'         : 'remote',
+                      'timestamp'        : 'timestamp',
+                      'genes'            : 'genes',
+                      'matchedGenes'     : 'matched genes'};
+//                      'email'            : 'email',
+//                      'matchedHref'      : 'matched HREF'};
+
       this.matchesTable = $('matchesTable').select('tbody')[0];
       this.ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
       this.matches = [];
@@ -421,25 +437,7 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
       });
 
       $('show-matches-button').observe('click', function() {
-        var score = _this._checkScore('show-matches-score', 'show-matches-messages');
-        if (score == undefined) {
-          return;
-        }
-        new Ajax.Request(_this.ajaxURL,
-          {  parameters : {action : 'show-matches',
-                           score  : score},
-             onSuccess : function (response) {
-                _this._showSuccess('show-matches-messages');
-                console.log(response.responseJSON);
-                _this.matches = response.responseJSON.matches;
-                _this._buildTable();
-             },
-             onFailure : function (response) {
-                _this._showFailure('show-matches-messages');
-             }
-          }
-        );
-        _this._showSent('show-matches-messages');
+        _this._showMatches();
       });
 
       $('send-notifications-button').observe('click', function() {
@@ -452,6 +450,7 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
                            },
               onSuccess : function (response) {
                 _this._showSuccess('send-notifications-messages', response.responseText);
+                _this._updateAfterNotification(response.responseJSON.results);
               },
               onFailure : function (response) {
                 _this._showFailure('send-notifications-messages');
@@ -471,9 +470,32 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
       });
 
       $('checkbox_filter_notified').observe('click', function(event) {
-        var filter = event.target.checked;
-        _this._buildTable(filter);
+        _this._buildTable({'filterNotified' : event.target.checked});
       });
+    },
+
+    _showMatches : function(params)
+    {
+      var _this = this;
+      var score = _this._checkScore('show-matches-score', 'show-matches-messages');
+      if (score == undefined) {
+        return;
+      }
+      new Ajax.Request(this.ajaxURL,
+        {  parameters : {action : 'show-matches',
+                         score  : score},
+           onSuccess : function (response) {
+              _this._showSuccess('show-matches-messages');
+              console.log(response.responseJSON);
+              _this.matches = response.responseJSON.matches;
+              _this._buildTable(params);
+           },
+           onFailure : function (response) {
+              _this._showFailure('show-matches-messages');
+           }
+        }
+      );
+      _this._showSent('show-matches-messages');
     },
 
     _checkScore : function(scoreFieldName, messagesFieldName) {
@@ -521,20 +543,22 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
 
       headerTr.insert(new Element('th'));
 
-      for (var i = 0 ; i &lt; this.columns.length ; i++) {
-        var e = new Element('th').update(this.columns[i]);
+      for (var column in this.columns) {
+        var e = new Element('th').update(this.columns[column]);
         headerTr.insert(e);
       }
     },
 
-    _buildTable : function(filterNotified)
+    _buildTable : function(params)
     {
+      params = params || {};
+
       this.matchesTable.update('');
 
       for (var i = 0 ; i &lt; this.matches.length ; i++) {
-          var row = new Element('tr');
+          var row = new Element('tr', {'class':'ok'});
           var currentMatch = this.matches[i];
-          if (currentMatch.notified &amp;&amp; filterNotified) {
+          if (currentMatch.notified &amp;&amp; params.filterNotified) {
             continue;
           }
 
@@ -544,8 +568,8 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
           var e = new Element('input', {'type':'checkbox', 'id':checkboxId , 'disabled':notified, 'checked':notified});
           row.insert(e);
 
-          for (var colIndex = 0 ; colIndex &lt; this.columns.length ; colIndex++) {
-              var cellValue = currentMatch [this.columns[colIndex]];
+          for (var column in this.columns) {
+              var cellValue = currentMatch [column];
 
               if (cellValue == null) { cellValue = ""; }
 
@@ -554,6 +578,17 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
           }
           this.matchesTable.insert(row);
       }
+
+      params.results.each(function(item) {
+        var id = item.id;
+        var success = item.success;
+        var checkbox = $('checkbox_' + id);
+        if (checkbox != undefined &amp;&amp; success != undefined) {
+           var row = checkbox.up();
+           row.setAttribute('class', success ? 'successful' : 'failed');
+         }
+      });
+
     },
 
     _readMatchesToNotify : function()
@@ -566,8 +601,12 @@ $xwiki.jsx.use('MatchingNotification.WebHome')##
            }
         });
       return ids;
-    }
+    },
 
+    _updateAfterNotification : function(results)
+    {
+      this._showMatches({'results' : results});
+    }
   });
   return PhenoTips;
 }(PhenoTips || {}));
@@ -579,6 +618,127 @@ document.observe("xwiki:dom:loaded", function() {
     </property>
     <property>
       <name>Find matches</name>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>MatchingNotification.WebHome</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>783f6f60-22da-479a-b17f-22621b966166</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.successful {
+  color: green;
+}
+
+.failed {
+  color: red;
+}
+
+.ok {
+  color: inherit;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name/>
     </property>
     <property>
       <parse/>
