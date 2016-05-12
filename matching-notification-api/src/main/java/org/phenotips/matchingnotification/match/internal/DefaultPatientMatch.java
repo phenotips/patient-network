@@ -39,7 +39,9 @@ import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.PostLoad;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +63,7 @@ import com.xpn.xwiki.web.Utils;
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch
 {
-    private static final String GENES_SEPARATOR = ";";
+    private static final String SET_SEPARATOR = ";";
 
     private static final PermissionsManager PERMISSIONS_MANAGER;
 
@@ -110,6 +112,9 @@ public class DefaultPatientMatch implements PatientMatch
     @Basic
     private String genes;
 
+    @Transient
+    private Set<String> genesSet;
+
     // Attributes related to patient with matchedPatientId
 
     @Basic
@@ -117,6 +122,9 @@ public class DefaultPatientMatch implements PatientMatch
 
     @Basic
     private String matchedGenes;
+
+    @Transient
+    private Set<String> matchedGenesSet;
 
     static {
         PermissionsManager permissionsManager = null;
@@ -192,7 +200,9 @@ public class DefaultPatientMatch implements PatientMatch
         patientMatch.email = email;
         patientMatch.matchedEmail = matchedEmail;
         patientMatch.genes = null;
+        patientMatch.genesSet = null;
         patientMatch.matchedGenes = null;
+        patientMatch.matchedGenesSet = null;
         return patientMatch;
     }
 
@@ -201,44 +211,35 @@ public class DefaultPatientMatch implements PatientMatch
         Patient referencePatient = similarityView.getReference();
         Patient matchedPatient = similarityView;
 
-        this.timestamp = new Timestamp(System.currentTimeMillis());
         this.patientId = referencePatient.getId();
-        this.matchedPatientId = similarityView.getId();
+        this.matchedPatientId = matchedPatient.getId();
+
         this.remoteId = remoteId;
         this.outgoingRequest = outgoingRequest;
+        this.timestamp = new Timestamp(System.currentTimeMillis());
         this.notified = false;
 
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        this.genes = this.getGenesAsString(referencePatient);
-        this.matchedGenes = this.getGenesAsString(similarityView);
-
         this.email = this.getOwnerEmail(referencePatient);
+        this.genesSet = this.getGenes(referencePatient);
+        this.genes = StringUtils.join(this.genes, DefaultPatientMatch.SET_SEPARATOR);
+
         this.matchedEmail = this.getOwnerEmail(matchedPatient);
+        this.matchedGenesSet = this.getGenes(matchedPatient);
+        this.matchedGenes = StringUtils.join(this.matchedGenes, DefaultPatientMatch.SET_SEPARATOR);
     }
 
-    private String getGenesAsString(Patient patient)
+    private Set<String> getGenes(Patient patient)
     {
         PatientGenotype genotype = DefaultPatientMatch.GENOTYPE_MANAGER.getGenotype(patient);
         if (genotype != null && genotype.hasGenotypeData()) {
-            Set<String> genesSet = genotype.getCandidateGenes();
-            String genesString = StringUtils.join(genesSet, DefaultPatientMatch.GENES_SEPARATOR);
-            return genesString;
+            Set<String> set = genotype.getCandidateGenes();
+            return set;
         } else {
-            return null;
-        }
-    }
-
-    private Set<String> getGenesAsSet(String genesString)
-    {
-        if (StringUtils.isEmpty(genesString)) {
             return Collections.emptySet();
-        } else {
-            String[] split = genesString.split(DefaultPatientMatch.GENES_SEPARATOR);
-            Set<String> genesSet = new HashSet<>(Arrays.asList(split));
-            return genesSet;
         }
     }
 
@@ -254,6 +255,24 @@ public class DefaultPatientMatch implements PatientMatch
         } catch (XWikiException e) {
             DefaultPatientMatch.LOGGER.error("Error reading owner's email for patient {}.", patient.getId(), e);
             return "";
+        }
+    }
+
+    @PostLoad
+    private void parseSets()
+    {
+        this.genesSet = this.stringToSet(this.genes);
+        this.matchedGenesSet = this.stringToSet(this.matchedGenes);
+    }
+
+    private Set<String> stringToSet(String string)
+    {
+        if (StringUtils.isEmpty(string)) {
+            return Collections.emptySet();
+        } else {
+            String[] split = string.split(DefaultPatientMatch.SET_SEPARATOR);
+            Set<String> set = new HashSet<>(Arrays.asList(split));
+            return set;
         }
     }
 
@@ -338,13 +357,13 @@ public class DefaultPatientMatch implements PatientMatch
     @Override
     public Set<String> getCandidateGenes()
     {
-        return this.getGenesAsSet(this.genes);
+        return this.genesSet;
     }
 
     @Override
     public Set<String> getMatchedCandidateGenes()
     {
-        return this.getGenesAsSet(this.matchedGenes);
+        return this.matchedGenesSet;
     }
 
     @Override
