@@ -181,21 +181,20 @@ public class DefaultPatientMatch implements PatientMatch
      */
     public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
-        DefaultPatientMatch patientMatch = new DefaultPatientMatch();
-        patientMatch.timestamp = new Timestamp(System.currentTimeMillis());
-        patientMatch.patientId = testData.patientId;
-        patientMatch.matchedPatientId = testData.matchedPatientId;
-        patientMatch.remoteId = testData.remoteId;
-        patientMatch.outgoingRequest = testData.outgoingRequest;
-        patientMatch.score = testData.score;
-        patientMatch.phenotypeScore = testData.phenotypeScore;
-        patientMatch.genotypeScore = testData.genotypeScore;
-        patientMatch.email = testData.email;
-        patientMatch.matchedEmail = testData.matchedEmail;
-        patientMatch.genes = testData.genes;
-        patientMatch.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
-        patientMatch.matchedGenes = testData.matchedGenes;
-        patientMatch.matchedGenesSet = DefaultPatientMatch.stringToSet(testData.matchedGenes);
+        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.patientId = testData.patientId;
+        this.matchedPatientId = testData.matchedPatientId;
+        this.remoteId = testData.remoteId;
+        this.outgoingRequest = testData.outgoingRequest;
+        this.score = testData.score;
+        this.phenotypeScore = testData.phenotypeScore;
+        this.genotypeScore = testData.genotypeScore;
+        this.email = testData.email;
+        this.matchedEmail = testData.matchedEmail;
+        this.genes = testData.genes;
+        this.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
+        this.matchedGenes = testData.matchedGenes;
+        this.matchedGenesSet = DefaultPatientMatch.stringToSet(testData.matchedGenes);
     }
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
