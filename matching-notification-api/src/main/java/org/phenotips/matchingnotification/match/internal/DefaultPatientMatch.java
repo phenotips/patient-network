@@ -132,7 +132,8 @@ public class DefaultPatientMatch implements PatientMatch
     /**
      * Hibernate requires a no-args constructor.
      */
-    public DefaultPatientMatch() {
+    public DefaultPatientMatch()
+    {
     }
 
     /**
@@ -141,7 +142,8 @@ public class DefaultPatientMatch implements PatientMatch
      * @param similarityView the object to read match from
      * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest) {
+    public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest)
+    {
         this.initialize(similarityView, null, outgoingRequest);
     }
 
@@ -152,7 +154,8 @@ public class DefaultPatientMatch implements PatientMatch
      * @param remoteId identifier of server where patient is found
      * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
+    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
+    {
         this.initialize(similarityView, remoteId, outgoingRequest);
     }
 
@@ -168,7 +171,8 @@ public class DefaultPatientMatch implements PatientMatch
      * @return a DefaultPatientMatch object for debug
      */
     public static DefaultPatientMatch getPatientMatchForDebug(String patientId, String matchedPatientId,
-        String remoteId, boolean outgoingRequest, double score, String ownerEmail) {
+        String remoteId, boolean outgoingRequest, double score, String ownerEmail)
+    {
         DefaultPatientMatch patientMatch = new DefaultPatientMatch();
         patientMatch.timestamp = new Timestamp(System.currentTimeMillis());
         patientMatch.patientId = patientId;
@@ -185,7 +189,8 @@ public class DefaultPatientMatch implements PatientMatch
         return patientMatch;
     }
 
-    private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest) {
+    private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
+    {
 
         Patient referencePatient = similarityView.getReference();
 
@@ -229,7 +234,8 @@ public class DefaultPatientMatch implements PatientMatch
         }
     }
 
-    private String getOwnerEmail(Patient patient) {
+    private String getOwnerEmail(Patient patient)
+    {
         PatientAccess referenceAccess = DefaultPatientMatch.PERMISSIONS_MANAGER.getPatientAccess(patient);
         EntityReference ownerUser = referenceAccess.getOwner().getUser();
 
@@ -245,37 +251,92 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
-    public long getId() {
+    public long getId()
+    {
         return this.id;
     }
 
     @Override
-    public boolean isNotified() {
+    public boolean isNotified()
+    {
         return notified;
     }
 
     @Override
-    public void setNotified() {
+    public void setNotified()
+    {
         this.notified = true;
     }
 
     @Override
-    public String getPatientId() {
+    public String getPatientId()
+    {
         return patientId;
     }
 
     @Override
-    public String getMatchedPatientId() {
+    public String getMatchedPatientId()
+    {
         return matchedPatientId;
     }
 
     @Override
-    public String getRemoteId() {
+    public String getRemoteId()
+    {
         return this.remoteId;
     }
 
     @Override
-    public JSONObject toJSON() {
+    public boolean isOutgoing()
+    {
+        return outgoingRequest;
+    }
+
+    @Override
+    public boolean isIncoming()
+    {
+        return !outgoingRequest;
+    }
+
+    @Override
+    public double getScore()
+    {
+        return this.score;
+    }
+
+    @Override
+    public double getPhenotypeScore()
+    {
+        return this.phenotypeScore;
+    }
+
+    @Override
+    public double getGenotypeScore()
+    {
+        return this.genotypeScore;
+    }
+
+    @Override
+    public String getOwnerEmail()
+    {
+        return this.ownerEmail;
+    }
+
+    @Override
+    public Set<String> getCandidateGenes()
+    {
+        return this.getGenesAsSet(this.genes);
+    }
+
+    @Override
+    public Set<String> getMatchedCandidateGenes()
+    {
+        return this.getGenesAsSet(this.matchedGenes);
+    }
+
+    @Override
+    public JSONObject toJSON()
+    {
         JSONObject json = new JSONObject();
         json.accumulate("id", this.id);
         json.accumulate("patientId", this.patientId);
@@ -292,47 +353,8 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return toJSON().toString();
-    }
-
-    @Override
-    public boolean isOutgoing() {
-        return outgoingRequest;
-    }
-
-    @Override
-    public boolean isIncoming() {
-        return !outgoingRequest;
-    }
-
-    @Override
-    public double getScore() {
-        return this.score;
-    }
-
-    @Override
-    public double getPhenotypeScore() {
-        return this.phenotypeScore;
-    }
-
-    @Override
-    public double getGenotypeScore() {
-        return this.genotypeScore;
-    }
-
-    @Override
-    public String getOwnerEmail() {
-        return this.ownerEmail;
-    }
-
-    @Override
-    public Set<String> getCandidateGenes() {
-        return this.getGenesAsSet(this.genes);
-    }
-
-    @Override
-    public Set<String> getMatchedCandidateGenes() {
-        return this.getGenesAsSet(this.matchedGenes);
     }
 }
