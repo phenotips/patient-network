@@ -24,6 +24,7 @@ import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.matchingnotification.finder.internal.TestMatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -175,35 +176,25 @@ public class DefaultPatientMatch implements PatientMatch
     /**
      * TODO remove.
      *
-     * @param patientId patientId
-     * @param matchedPatientId matchedPatientId
-     * @param remoteId remoteId
-     * @param outgoingRequest outgoingRequest
-     * @param score score
-     * @param email email
-     * @param matchedEmail matchedEmail
-     * @return a DefaultPatientMatch object for debug
+     * @param testData testData
      */
-    public static DefaultPatientMatch getPatientMatchForDebug(String patientId, String matchedPatientId,
-        String remoteId, boolean outgoingRequest, double score, String email, String matchedEmail)
+    public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
         DefaultPatientMatch patientMatch = new DefaultPatientMatch();
         patientMatch.timestamp = new Timestamp(System.currentTimeMillis());
-        patientMatch.patientId = patientId;
-        patientMatch.matchedPatientId = matchedPatientId;
-        patientMatch.remoteId = remoteId;
-        patientMatch.outgoingRequest = outgoingRequest;
-        patientMatch.notified = false;
-        patientMatch.score = score;
-        patientMatch.phenotypeScore = null;
-        patientMatch.genotypeScore = null;
-        patientMatch.email = email;
-        patientMatch.matchedEmail = matchedEmail;
-        patientMatch.genes = null;
-        patientMatch.genesSet = null;
-        patientMatch.matchedGenes = null;
-        patientMatch.matchedGenesSet = null;
-        return patientMatch;
+        patientMatch.patientId = testData.patientId;
+        patientMatch.matchedPatientId = testData.matchedPatientId;
+        patientMatch.remoteId = testData.remoteId;
+        patientMatch.outgoingRequest = testData.outgoingRequest;
+        patientMatch.score = testData.score;
+        patientMatch.phenotypeScore = testData.phenotypeScore;
+        patientMatch.genotypeScore = testData.genotypeScore;
+        patientMatch.email = testData.email;
+        patientMatch.matchedEmail = testData.matchedEmail;
+        patientMatch.genes = testData.genes;
+        patientMatch.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
+        patientMatch.matchedGenes = testData.matchedGenes;
+        patientMatch.matchedGenesSet = DefaultPatientMatch.stringToSet(testData.matchedGenes);
     }
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
@@ -261,11 +252,11 @@ public class DefaultPatientMatch implements PatientMatch
     @PostLoad
     private void parseSets()
     {
-        this.genesSet = this.stringToSet(this.genes);
-        this.matchedGenesSet = this.stringToSet(this.matchedGenes);
+        this.genesSet = DefaultPatientMatch.stringToSet(this.genes);
+        this.matchedGenesSet = DefaultPatientMatch.stringToSet(this.matchedGenes);
     }
 
-    private Set<String> stringToSet(String string)
+    private static Set<String> stringToSet(String string)
     {
         if (StringUtils.isEmpty(string)) {
             return Collections.emptySet();
