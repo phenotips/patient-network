@@ -216,11 +216,11 @@ public class DefaultPatientMatch implements PatientMatch
 
         this.email = this.getOwnerEmail(referencePatient);
         this.genesSet = this.getGenes(referencePatient);
-        this.genes = StringUtils.join(this.genes, DefaultPatientMatch.SET_SEPARATOR);
+        this.genes = DefaultPatientMatch.setToString(this.genesSet);
 
         this.matchedEmail = this.getOwnerEmail(matchedPatient);
         this.matchedGenesSet = this.getGenes(matchedPatient);
-        this.matchedGenes = StringUtils.join(this.matchedGenes, DefaultPatientMatch.SET_SEPARATOR);
+        this.matchedGenes = DefaultPatientMatch.setToString(this.matchedGenesSet);
     }
 
     private Set<String> getGenes(Patient patient)
@@ -268,6 +268,15 @@ public class DefaultPatientMatch implements PatientMatch
             String[] split = string.split(DefaultPatientMatch.SET_SEPARATOR);
             Set<String> set = new HashSet<>(Arrays.asList(split));
             return set;
+        }
+    }
+
+    private static String setToString(Set<String> set)
+    {
+        if (set == null || set.isEmpty()) {
+            return "";
+        } else {
+            return StringUtils.join(set, DefaultPatientMatch.SET_SEPARATOR);
         }
     }
 
