@@ -611,10 +611,11 @@ $xwiki.ssx.use('MatchingNotification.WebHome')##
   return PhenoTips;
 }(PhenoTips || {}));
 
-document.observe("xwiki:dom:loaded", function() {
+
+var matchingNotificationInit = function() {
   new PhenoTips.widgets.MatchingNotificationManager();
-});
-</code>
+};
+(XWiki.domIsLoaded &amp;&amp; matchingNotificationInit()) || document.observe("xwiki:dom:loaded", matchingNotificationInit);</code>
     </property>
     <property>
       <name>Find matches</name>
