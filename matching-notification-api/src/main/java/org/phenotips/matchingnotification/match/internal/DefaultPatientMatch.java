@@ -268,13 +268,13 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
-    public long getId()
+    public Long getId()
     {
         return this.id;
     }
 
     @Override
-    public boolean isNotified()
+    public Boolean isNotified()
     {
         return notified;
     }
@@ -304,31 +304,31 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
-    public boolean isOutgoing()
+    public Boolean isOutgoing()
     {
         return outgoingRequest;
     }
 
     @Override
-    public boolean isIncoming()
+    public Boolean isIncoming()
     {
         return !outgoingRequest;
     }
 
     @Override
-    public double getScore()
+    public Double getScore()
     {
         return this.score;
     }
 
     @Override
-    public double getPhenotypeScore()
+    public Double getPhenotypeScore()
     {
         return this.phenotypeScore;
     }
 
     @Override
-    public double getGenotypeScore()
+    public Double getGenotypeScore()
     {
         return this.genotypeScore;
     }
