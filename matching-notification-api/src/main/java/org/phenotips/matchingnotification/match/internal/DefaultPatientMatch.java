@@ -102,18 +102,20 @@ public class DefaultPatientMatch implements PatientMatch
     @Basic
     private Double phenotypeScore;
 
+    // Attributes related to patient with patientId
+
     @Basic
     private String email;
+
+    @Basic
+    private String genes;
+
+    // Attributes related to patient with matchedPatientId
 
     @Basic
     private String matchedEmail;
 
     @Basic
-    /* from patient with id patientId */
-    private String genes;
-
-    @Basic
-    /* from patient with id matchedPatientId */
     private String matchedGenes;
 
     static {
@@ -349,17 +351,19 @@ public class DefaultPatientMatch implements PatientMatch
     public JSONObject toJSON()
     {
         JSONObject json = new JSONObject();
-        json.accumulate("id", this.id);
-        json.accumulate("patientId", this.patientId);
-        json.accumulate("matchedPatientId", this.matchedPatientId);
-        json.accumulate("remoteId", this.remoteId);
-        json.accumulate("outgoingRequest", this.outgoingRequest);
-        json.accumulate("notified", this.notified);
+        json.accumulate("id", this.getId());
+        json.accumulate("patientId", this.getPatientId());
+        json.accumulate("matchedPatientId", this.getMatchedPatientId());
+        json.accumulate("remoteId", this.getRemoteId());
+        json.accumulate("outgoingRequest", this.isOutgoing());
         json.accumulate("timestamp", this.timestamp);
-        json.accumulate("score", score);
+        json.accumulate("notified", this.isNotified());
+        json.accumulate("score", this.getScore());
+        json.accumulate("genotypicScore", this.getGenotypeScore());
+        json.accumulate("phenotypicScore", this.getPhenotypeScore());
         json.accumulate(EMAIL, this.getEmail());
-        json.accumulate("matchedEmail", this.getMatchedEmail());
         json.accumulate("genes", this.genes);
+        json.accumulate("matchedEmail", this.getMatchedEmail());
         json.accumulate("matchedGenes", this.matchedGenes);
         return json;
     }
