@@ -41,6 +41,35 @@ import org.slf4j.Logger;
 @Singleton
 public class TestMatchFinder implements MatchFinder
 {
+    private static final String SERVER1 = "SERVER1";
+
+    /** */
+    public class TestMatchData
+    {
+        /** */
+        public String patientId;
+        /** */
+        public String matchedPatientId;
+        /** */
+        public String remoteId;
+        /** */
+        public Boolean outgoingRequest;
+        /** */
+        public Double score;
+        /** */
+        public Double genotypeScore;
+        /** */
+        public Double phenotypeScore;
+        /** */
+        public String email;
+        /** */
+        public String genes;
+        /** */
+        public String matchedEmail;
+        /** */
+        public String matchedGenes;
+    }
+
     @Inject
     private Logger logger;
 
@@ -55,25 +84,76 @@ public class TestMatchFinder implements MatchFinder
         this.logger.debug("Finding test matches for patient {}.", patient.getId());
 
         List<PatientMatch> matches = new LinkedList<>();
-
-        String server1 = "server1";
-
-        PatientMatch match1 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000001", server1, true,
-            0.3, "aaa@server.com", "matchedaaa@server.com");
-        matches.add(match1);
-
-        PatientMatch match2 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000002", server1, true,
-            0.4, "bbb@server.com", "matchedbbb@server.com");
-        matches.add(match2);
-
-        PatientMatch match3 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000009", server1, true,
-            0.1, "ccc@server.com", "matchedccc@server.com");
-        matches.add(match3);
-
-        PatientMatch match4 = DefaultPatientMatch.getPatientMatchForDebug(patient.getId(), "Q0000010", server1, true,
-            0.7, "ddd@server.com", "matchedddd@server.com");
-        matches.add(match4);
+        matches.add(this.getMatch1(patient));
+        matches.add(this.getMatch2(patient));
+        matches.add(this.getMatch3(patient));
+        matches.add(this.getMatch4(patient));
 
         return matches;
     }
+
+    private PatientMatch getMatch1(Patient patient) {
+        TestMatchData td1 = new TestMatchData();
+        td1.patientId = patient.getId();
+        td1.matchedPatientId = "Q0000001";
+        td1.remoteId = SERVER1;
+        td1.outgoingRequest = true;
+        td1.score = 0.3;
+        td1.genotypeScore = 0.0;
+        td1.phenotypeScore = 0.6;
+        td1.email = "aaa@server.com";
+        td1.genes = "matchedaaa@server.com";
+        td1.matchedEmail = "gene1;gene2";
+        td1.matchedGenes = "gene2;gene3";
+        return new DefaultPatientMatch(td1);
+    }
+
+    private PatientMatch getMatch2(Patient patient) {
+        TestMatchData td2 = new TestMatchData();
+        td2.patientId = patient.getId();
+        td2.matchedPatientId = "Q0000002";
+        td2.remoteId = SERVER1;
+        td2.outgoingRequest = true;
+        td2.score = 0.4;
+        td2.genotypeScore = 0.2;
+        td2.phenotypeScore = 0.6;
+        td2.email = "bbb@server.com";
+        td2.genes = "matchedbbb@server.com";
+        td2.matchedEmail = "gene1";
+        td2.matchedGenes = "gene1;gene3";
+        return new DefaultPatientMatch(td2);
+    }
+
+    private PatientMatch getMatch3(Patient patient) {
+        TestMatchData td3 = new TestMatchData();
+        td3.patientId = patient.getId();
+        td3.matchedPatientId = "Q0000009";
+        td3.remoteId = "server3";
+        td3.outgoingRequest = true;
+        td3.score = 0.1;
+        td3.genotypeScore = 0.0;
+        td3.phenotypeScore = 0.2;
+        td3.email = "ccc@server.com";
+        td3.genes = "matchedccc@server.com";
+        td3.matchedEmail = "gene3";
+        td3.matchedGenes = "";
+        return new DefaultPatientMatch(td3);
+    }
+
+    private PatientMatch getMatch4(Patient patient) {
+        TestMatchData td4 = new TestMatchData();
+        td4.patientId = patient.getId();
+        td4.matchedPatientId = "Q0000010";
+        td4.remoteId = "server2";
+        td4.outgoingRequest = true;
+        td4.score = 0.7;
+        td4.genotypeScore = 0.8;
+        td4.phenotypeScore = 0.6;
+        td4.email = "ddd@server.com";
+        td4.genes = "matchedddd@server.com";
+        td4.matchedEmail = "";
+        td4.matchedGenes = "";
+        return new DefaultPatientMatch(td4);
+    }
+
 }
