@@ -186,6 +186,7 @@ public class DefaultPatientMatch implements PatientMatch
         this.matchedPatientId = testData.matchedPatientId;
         this.remoteId = testData.remoteId;
         this.outgoingRequest = testData.outgoingRequest;
+        this.notified = false;
         this.score = testData.score;
         this.phenotypeScore = testData.phenotypeScore;
         this.genotypeScore = testData.genotypeScore;
