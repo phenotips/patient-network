@@ -103,7 +103,10 @@ public class DefaultPatientMatch implements PatientMatch
     private Double phenotypeScore;
 
     @Basic
-    private String ownerEmail;
+    private String email;
+
+    @Basic
+    private String matchedEmail;
 
     @Basic
     /* from patient with id patientId */
@@ -167,11 +170,12 @@ public class DefaultPatientMatch implements PatientMatch
      * @param remoteId remoteId
      * @param outgoingRequest outgoingRequest
      * @param score score
-     * @param ownerEmail ownerEmail
+     * @param email email
+     * @param matchedEmail matchedEmail
      * @return a DefaultPatientMatch object for debug
      */
     public static DefaultPatientMatch getPatientMatchForDebug(String patientId, String matchedPatientId,
-        String remoteId, boolean outgoingRequest, double score, String ownerEmail)
+        String remoteId, boolean outgoingRequest, double score, String email, String matchedEmail)
     {
         DefaultPatientMatch patientMatch = new DefaultPatientMatch();
         patientMatch.timestamp = new Timestamp(System.currentTimeMillis());
@@ -183,7 +187,8 @@ public class DefaultPatientMatch implements PatientMatch
         patientMatch.score = score;
         patientMatch.phenotypeScore = null;
         patientMatch.genotypeScore = null;
-        patientMatch.ownerEmail = ownerEmail;
+        patientMatch.email = email;
+        patientMatch.matchedEmail = matchedEmail;
         patientMatch.genes = null;
         patientMatch.matchedGenes = null;
         return patientMatch;
@@ -191,8 +196,8 @@ public class DefaultPatientMatch implements PatientMatch
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
     {
-
         Patient referencePatient = similarityView.getReference();
+        Patient matchedPatient = similarityView;
 
         this.timestamp = new Timestamp(System.currentTimeMillis());
         this.patientId = referencePatient.getId();
@@ -208,7 +213,8 @@ public class DefaultPatientMatch implements PatientMatch
         this.genes = this.getGenesAsString(referencePatient);
         this.matchedGenes = this.getGenesAsString(similarityView);
 
-        this.ownerEmail = this.getOwnerEmail(referencePatient);
+        this.email = this.getOwnerEmail(referencePatient);
+        this.matchedEmail = this.getOwnerEmail(matchedPatient);
     }
 
     private String getGenesAsString(Patient patient)
@@ -241,13 +247,12 @@ public class DefaultPatientMatch implements PatientMatch
 
         XWikiContext context = Utils.getContext();
         XWiki xwiki = context.getWiki();
-        String email = null;
         try {
-            email = xwiki.getDocument(ownerUser, context).getStringValue(EMAIL);
+            return xwiki.getDocument(ownerUser, context).getStringValue(EMAIL);
         } catch (XWikiException e) {
             DefaultPatientMatch.LOGGER.error("Error reading owner's email for patient {}.", patient.getId(), e);
+            return "";
         }
-        return email;
     }
 
     @Override
@@ -317,9 +322,15 @@ public class DefaultPatientMatch implements PatientMatch
     }
 
     @Override
-    public String getOwnerEmail()
+    public String getEmail()
     {
-        return this.ownerEmail;
+        return this.email;
+    }
+
+    @Override
+    public String getMatchedEmail()
+    {
+        return this.matchedEmail;
     }
 
     @Override
@@ -346,7 +357,8 @@ public class DefaultPatientMatch implements PatientMatch
         json.accumulate("notified", this.notified);
         json.accumulate("timestamp", this.timestamp);
         json.accumulate("score", score);
-        json.accumulate("ownerEmail", this.ownerEmail);
+        json.accumulate(EMAIL, this.getEmail());
+        json.accumulate("matchedEmail", this.getMatchedEmail());
         json.accumulate("genes", this.genes);
         json.accumulate("matchedGenes", this.matchedGenes);
         return json;

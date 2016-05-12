@@ -93,9 +93,14 @@ public interface PatientMatch
     double getGenotypeScore();
 
     /**
-     * @return patient's owner email.
+     * @return reference patient's owner email.
      */
-    String getOwnerEmail();
+    String getEmail();
+
+    /**
+     * @return matched patient's owner email.
+     */
+    String getMatchedEmail();
 
     /**
      * @return a set of candidate genes for patient with id {@code getPatientId()}
