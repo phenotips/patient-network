@@ -35,7 +35,7 @@ public interface PatientMatch
     /**
      * @return unique id of match
      */
-    long getId();
+    Long getId();
 
     /**
      * @return id of patient that was matched. The owner of this patient is notified.
@@ -55,17 +55,17 @@ public interface PatientMatch
     /**
      * @return true if match request was initiated in local server.
      */
-    boolean isOutgoing();
+    Boolean isOutgoing();
 
     /**
      * @return true if match request was initiated remotely.
      */
-    boolean isIncoming();
+    Boolean isIncoming();
 
     /**
      * @return whether notifications regarding this match were sent.
      */
-    boolean isNotified();
+    Boolean isNotified();
 
     /**
      * Marks that notifications regarding this match were sent.
@@ -80,17 +80,17 @@ public interface PatientMatch
     /**
      * @return score of match.
      */
-    double getScore();
+    Double getScore();
 
     /**
      * @return phenotypical score
      */
-    double getPhenotypeScore();
+    Double getPhenotypeScore();
 
     /**
      * @return genotypical score
      */
-    double getGenotypeScore();
+    Double getGenotypeScore();
 
     /**
      * @return reference patient's owner email.
