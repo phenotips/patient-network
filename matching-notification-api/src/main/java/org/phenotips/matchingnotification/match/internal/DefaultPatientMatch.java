@@ -19,6 +19,7 @@ package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
@@ -237,7 +238,11 @@ public class DefaultPatientMatch implements PatientMatch
     private String getOwnerEmail(Patient patient)
     {
         PatientAccess referenceAccess = DefaultPatientMatch.PERMISSIONS_MANAGER.getPatientAccess(patient);
-        EntityReference ownerUser = referenceAccess.getOwner().getUser();
+        Owner owner = referenceAccess.getOwner();
+        if (owner == null) {
+            return "";
+        }
+        EntityReference ownerUser = owner.getUser();
 
         XWikiContext context = Utils.getContext();
         XWiki xwiki = context.getWiki();
