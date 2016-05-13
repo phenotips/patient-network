@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.PatientAccess;
@@ -120,6 +121,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Transient
     private Set<String> genesSet;
 
+    @Basic
+    private String phenotypes;
+
+    @Transient
+    private Set<String> phenotypesSet;
+
     // Attributes related to patient with matchedPatientId
 
     @Basic
@@ -130,6 +137,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Transient
     private Set<String> matchedGenesSet;
+
+    @Basic
+    private String matchedPhenotypes;
+
+    @Transient
+    private Set<String> matchedPhenotypesSet;
 
     static {
         PermissionsManager permissionsManager = null;
@@ -199,6 +212,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
         this.matchedGenes = testData.matchedGenes;
         this.matchedGenesSet = DefaultPatientMatch.stringToSet(testData.matchedGenes);
+        this.phenotypes = "";
+        this.phenotypesSet = DefaultPatientMatch.stringToSet(this.phenotypes);
+        this.matchedPhenotypes = "";
+        this.matchedPhenotypesSet = DefaultPatientMatch.stringToSet(this.matchedPhenotypes);
     }
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
@@ -221,10 +238,24 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.email = this.getOwnerEmail(referencePatient);
         this.genesSet = this.getGenes(referencePatient);
         this.genes = DefaultPatientMatch.setToString(this.genesSet);
+        this.phenotypesSet = this.getPhenotypesIds(referencePatient);
+        this.phenotypes = DefaultPatientMatch.setToString(this.phenotypesSet);
 
         this.matchedHref = this.getOwnerEmail(matchedPatient);
         this.matchedGenesSet = this.getGenes(matchedPatient);
         this.matchedGenes = DefaultPatientMatch.setToString(this.matchedGenesSet);
+        this.matchedPhenotypesSet = this.getPhenotypesIds(matchedPatient);
+        this.matchedPhenotypes = DefaultPatientMatch.setToString(this.matchedPhenotypesSet);
+    }
+
+    private Set<String> getPhenotypesIds(Patient patient) {
+        Set<String> ids = new HashSet<>();
+        Set<? extends Feature> features = patient.getFeatures();
+        for (Feature feature : features) {
+            ids.add(feature.getId());
+        }
+
+        return ids;
     }
 
     private Set<String> getGenes(Patient patient)
@@ -383,9 +414,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.accumulate("genotypicScore", this.getGenotypeScore());
         json.accumulate("phenotypicScore", this.getPhenotypeScore());
         json.accumulate(EMAIL, this.getEmail());
-        json.accumulate("genes", this.genes);
         json.accumulate("matchedHref", this.getMatchedEmail());
+        json.accumulate("genes", this.genes);
         json.accumulate("matchedGenes", this.matchedGenes);
+        json.accumulate("phenotypes", this.phenotypes);
+        json.accumulate("matchedPhenotypes", this.matchedPhenotypes);
         return json;
     }
 
@@ -404,6 +437,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void onLoad(Session arg0, Serializable arg1) {
         this.genesSet = DefaultPatientMatch.stringToSet(this.genes);
         this.matchedGenesSet = DefaultPatientMatch.stringToSet(this.matchedGenes);
+        this.phenotypesSet = DefaultPatientMatch.stringToSet(this.phenotypes);
+        this.matchedPhenotypesSet = DefaultPatientMatch.stringToSet(this.matchedPhenotypes);
     }
 
     @Override
