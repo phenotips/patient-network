@@ -396,18 +396,20 @@ $xwiki.ssx.use('MatchingNotification.WebHome')##
       var _this = this;
 
       //key: name in JSON, value: name for presentation
-      this.columns = {'id'               : 'id',
-                      'patientId'        : 'patient',
-                      'matchedPatientId' : 'matched patient',
-                      'score'            : 'score',
-                      'genotypicScore'   : 'gscore',
-                      'phenotypicScore'  : 'pscore',
-                      'notified'         : 'notified',
-                      'outgoingRequest'  : 'outgoing',
-                      'remoteId'         : 'remote',
-                      'timestamp'        : 'timestamp',
-                      'genes'            : 'genes',
-                      'matchedGenes'     : 'matched genes'};
+      this.columns = {'id'                : 'id',
+                      'patientId'         : 'patient',
+                      'matchedPatientId'  : 'matched patient',
+                      'score'             : 'score',
+                      'genotypicScore'    : 'gscore',
+                      'phenotypicScore'   : 'pscore',
+                      'notified'          : 'notified',
+                      'outgoingRequest'   : 'outgoing',
+                      'remoteId'          : 'remote',
+                      'timestamp'         : 'timestamp',
+                      'genes'             : 'genes',
+                      'matchedGenes'      : 'matched genes'};
+//                      'phenotypes'        : 'phenotypes',
+//                      'matchedPhenotypes' : 'matched phenotypes',
 //                      'email'            : 'email',
 //                      'matchedHref'      : 'matched HREF'};
 
