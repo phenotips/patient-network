@@ -31,6 +31,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.EntityReference;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,12 +42,14 @@ import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.CallbackException;
+import org.hibernate.Session;
+import org.hibernate.classic.Lifecycle;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +66,7 @@ import com.xpn.xwiki.web.Utils;
 @Table(name = "patient_matching",
        uniqueConstraints = {
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
-public class DefaultPatientMatch implements PatientMatch
+public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     private static final String SET_SEPARATOR = ";";
 
@@ -255,13 +258,6 @@ public class DefaultPatientMatch implements PatientMatch
         }
     }
 
-    @PostLoad
-    private void parseSets()
-    {
-        this.genesSet = DefaultPatientMatch.stringToSet(this.genes);
-        this.matchedGenesSet = DefaultPatientMatch.stringToSet(this.matchedGenes);
-    }
-
     private static Set<String> stringToSet(String string)
     {
         if (StringUtils.isEmpty(string)) {
@@ -397,5 +393,26 @@ public class DefaultPatientMatch implements PatientMatch
     public String toString()
     {
         return toJSON().toString();
+    }
+
+    @Override
+    public boolean onDelete(Session arg0) throws CallbackException {
+        return false;
+    }
+
+    @Override
+    public void onLoad(Session arg0, Serializable arg1) {
+        this.genesSet = DefaultPatientMatch.stringToSet(this.genes);
+        this.matchedGenesSet = DefaultPatientMatch.stringToSet(this.matchedGenes);
+    }
+
+    @Override
+    public boolean onSave(Session arg0) throws CallbackException {
+        return false;
+    }
+
+    @Override
+    public boolean onUpdate(Session arg0) throws CallbackException {
+        return false;
     }
 }
