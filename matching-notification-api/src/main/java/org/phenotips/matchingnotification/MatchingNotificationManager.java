@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification;
 
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
@@ -45,4 +46,13 @@ public interface MatchingNotificationManager
      * @return a list of PatientmatchNotificationResponse
      */
     List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds);
+
+    /**
+     * Saves a list of matches that were found by a remote incoming request.
+     *
+     * @param similarityViews list of similarity views
+     * @param remoteId id of remote server
+     * @return true if successful
+     */
+    boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId);
 }
