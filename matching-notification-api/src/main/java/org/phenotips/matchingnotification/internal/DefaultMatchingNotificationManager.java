@@ -22,9 +22,11 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
@@ -259,5 +261,19 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         } else {
             return false;
         }
+    }
+
+    @Override
+    public boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId)
+    {
+        List<PatientMatch> matches = new LinkedList<>();
+        for (PatientSimilarityView view : similarityViews) {
+            PatientMatch match = new DefaultPatientMatch(view, remoteId, false);
+            matches.add(match);
+        }
+
+        this.matchStorageManager.saveMatches(matches);
+
+        return true;
     }
 }
