@@ -400,6 +400,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public String toCompactString()
+    {
+        StringBuilder sb = new StringBuilder()
+            .append("[").append(this.getId())
+            .append(SEPARATOR).append(this.getPatientId())
+            .append(SEPARATOR).append(this.getMatchedPatientId())
+            .append(SEPARATOR).append(this.getRemoteId())
+            .append(SEPARATOR).append(this.isOutgoing()).append("]");
+        return sb.toString();
+    }
+
+    @Override
     public JSONObject toJSON()
     {
         JSONObject json = new JSONObject();

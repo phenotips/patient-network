@@ -59,16 +59,18 @@ public class DefaultMatchFinderManager implements MatchFinderManager
 
         for (MatchFinder service : this.matchFinderProvider.get()) {
             try {
-                matches.addAll(service.findMatches(patient));
+                List<PatientMatch> foundMatches = service.findMatches(patient);
+                matches.addAll(foundMatches);
+
+                this.logger.debug("Found {} matches by {}: ", matches.size(), service.getClass().getSimpleName());
+                for (PatientMatch match : matches) {
+                    this.logger.debug(match.toCompactString());
+                }
+
             } catch (Exception ex) {
                 this.logger.error("Failed to invoke matches finder [{}]",
                     service.getClass().getCanonicalName(), ex);
             }
-        }
-
-        this.logger.info("Found {} matches: ", matches.size());
-        for (PatientMatch match : matches) {
-            this.logger.info(match.toString());
         }
 
         return matches;
