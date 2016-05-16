@@ -47,7 +47,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 
@@ -222,45 +221,11 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
 
             // Filter out existing matches from list parameter
-            for (PatientMatch existingMatch : matchesForPatient) {
-                if (this.matchesAreEqual(match, existingMatch)) {
-                    toRemove.add(match);
-                }
+            if (matchesForPatient.contains(matches)) {
+                toRemove.add(match);
             }
-
         }
         matches.removeAll(toRemove);
-    }
-
-    /*
-     * Compares two matches and returns true if they have the same unique key, meaning they represent the same match
-     * between a local patient and another patient, that is either local or remote. The two matches can still differ in
-     * some details, like score, patient's owner email.
-     */
-    private boolean matchesAreEqual(PatientMatch newMatch, PatientMatch existingMatch)
-    {
-        if (StringUtils.equals(existingMatch.getMatchedPatientId(), newMatch.getMatchedPatientId())
-            && StringUtils.equals(existingMatch.getRemoteId(), newMatch.getRemoteId())
-            && existingMatch.isIncoming() == newMatch.isIncoming()) {
-
-            this.logger.debug("Match already exists in table: ", newMatch.toString());
-
-            if (newMatch.getScore() != existingMatch.getScore()) {
-                this.logger.debug(
-                    "Match differs from existing match in score. New match: {}, existing match: {}.",
-                    newMatch.getScore(), existingMatch.getScore());
-            }
-
-            if (!StringUtils.equals(newMatch.getEmail(), existingMatch.getEmail())) {
-                this.logger.debug(
-                    "Match differs from existing match in owner email. New match: {}, existing match: {}.",
-                    newMatch.getEmail(), existingMatch.getEmail());
-            }
-
-            return true;
-        } else {
-            return false;
-        }
     }
 
     @Override
