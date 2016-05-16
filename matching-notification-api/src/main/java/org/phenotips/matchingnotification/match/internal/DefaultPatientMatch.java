@@ -69,7 +69,7 @@ import com.xpn.xwiki.web.Utils;
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
-    private static final String SET_SEPARATOR = ";";
+    private static final String SEPARATOR = ";";
 
     private static final PermissionsManager PERMISSIONS_MANAGER;
 
@@ -294,7 +294,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         if (StringUtils.isEmpty(string)) {
             return Collections.emptySet();
         } else {
-            String[] split = string.split(DefaultPatientMatch.SET_SEPARATOR);
+            String[] split = string.split(DefaultPatientMatch.SEPARATOR);
             Set<String> set = new HashSet<>(Arrays.asList(split));
             return set;
         }
@@ -305,7 +305,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         if (set == null || set.isEmpty()) {
             return "";
         } else {
-            return StringUtils.join(set, DefaultPatientMatch.SET_SEPARATOR);
+            return StringUtils.join(set, DefaultPatientMatch.SEPARATOR);
         }
     }
 
@@ -426,6 +426,30 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public String toString()
     {
         return toJSON().toString();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (!(obj instanceof DefaultPatientMatch)) {
+            return false;
+        }
+
+        DefaultPatientMatch other = (DefaultPatientMatch) obj;
+
+        return (StringUtils.equals(this.getPatientId(), other.getPatientId())
+            && StringUtils.equals(this.getMatchedPatientId(), other.getMatchedPatientId())
+            && StringUtils.equals(this.getRemoteId(), other.getRemoteId())
+            && this.isIncoming() == other.isIncoming());
+    }
+
+    @Override
+    public int hashCode() {
+        String forhash = this.getPatientId() + SEPARATOR
+            + this.getMatchedPatientId() + SEPARATOR
+            + this.getRemoteId() + SEPARATOR
+            + this.isIncoming();
+        return forhash.hashCode();
     }
 
     @Override
