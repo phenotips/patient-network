@@ -165,8 +165,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 }
                 this.logger.error("Error on committing transaction for matching notification for patient {}.",
                     patientId);
-
-                // TODO return? unmark as notified?
             }
 
             responses.addAll(notificationResults);
@@ -221,7 +219,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
 
             // Filter out existing matches from list parameter
-            if (matchesForPatient.contains(matches)) {
+            if (matchesForPatient.contains(match)) {
                 toRemove.add(match);
             }
         }
