@@ -235,6 +235,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             matches.add(match);
         }
 
+        this.filterExistingMatches(matches);
         this.matchStorageManager.saveMatches(matches);
 
         return true;
