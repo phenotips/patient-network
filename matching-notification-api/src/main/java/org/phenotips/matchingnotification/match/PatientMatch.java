@@ -111,4 +111,9 @@ public interface PatientMatch
      * @return a set of candidate genes for patient with id {@code getMatchedPatientId()}
      */
     Set<String> getMatchedCandidateGenes();
+
+    /**
+     * @return concise version of the match for debug.
+     */
+    String toCompactString();
 }
