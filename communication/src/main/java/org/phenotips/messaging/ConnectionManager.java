@@ -44,6 +44,16 @@ public interface ConnectionManager
      *
      * @param id the identifier of the requested connection
      * @return the requested connection, if it was found in the database, {@code null} otherwise
+     * @deprecated use {@link #getConnectionByToken(String)} instead
      */
+    @Deprecated
     Connection getConnectionById(Long id);
+
+    /**
+     * Retrieve an existing connection from the storage.
+     *
+     * @param token the token of the requested connection
+     * @return the requested connection, if it was found in the database, {@code null} otherwise
+     */
+    Connection getConnectionByToken(String token);
 }

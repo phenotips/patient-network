@@ -26,10 +26,14 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
+import java.util.UUID;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 /**
@@ -43,8 +47,14 @@ import org.hibernate.annotations.Type;
 @Entity
 public class Connection
 {
-    /** @see #getId() */
+    /** @see #getToken() */
     @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @Column(name = "uuid", columnDefinition = "BINARY(16)")
+    private UUID token;
+
+    /** @see #getId() */
     @GeneratedValue
     private long id;
 
@@ -90,10 +100,23 @@ public class Connection
      * {@link ConnectionManager#getConnectionById(Long) retrieve back the full connection}.
      *
      * @return a numerical identifier
+     * @deprecated use {@link #getToken()} instead
      */
+    @Deprecated
     public Long getId()
     {
         return this.id;
+    }
+
+    /**
+     * The unique, secure connection token is exposed, and is the only thing needed to
+     * {@link ConnectionManager#getConnectionByToken(String) retrieve back the full connection}.
+     *
+     * @return a string token
+     */
+    public String getToken()
+    {
+        return String.valueOf(this.token);
     }
 
     /**
@@ -179,7 +202,7 @@ public class Connection
     @Override
     public String toString()
     {
-        return String.valueOf(this.id);
+        return this.getToken();
     }
 
     /**

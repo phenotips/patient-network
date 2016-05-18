@@ -79,4 +79,11 @@ public class DefaultConnectionManager implements ConnectionManager
         Session session = this.sessionFactory.getSessionFactory().openSession();
         return (Connection) session.load(Connection.class, id);
     }
+
+    @Override
+    public Connection getConnectionByToken(String token)
+    {
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        return (Connection) session.load(Connection.class, token);
+    }
 }
