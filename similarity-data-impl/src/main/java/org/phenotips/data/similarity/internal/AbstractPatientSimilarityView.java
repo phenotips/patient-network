@@ -43,7 +43,9 @@ import org.json.JSONObject;
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
     private static final String ID_KEY = "id";
+
     private static final String NAME_KEY = "name";
+
     /** The matched patient to represent. */
     protected final Patient match;
 
