@@ -251,8 +251,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Set<String> getPhenotypesIds(Patient patient) {
         Set<String> ids = new HashSet<>();
         Set<? extends Feature> features = patient.getFeatures();
+
         for (Feature feature : features) {
-            ids.add(feature.getId());
+            if (feature.isPresent()) {
+                ids.add(feature.getId());
+            }
         }
 
         return ids;
