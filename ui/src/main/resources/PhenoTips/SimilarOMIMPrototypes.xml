@@ -137,7 +137,7 @@
 {{/velocity}}</content>
     </property>
     <property>
-      <extensionPointId>org.phenotips.patientSheet.similarCases</extensionPointId>
+      <extensionPointId>org.phenotips.patientSheet.similarCases:disabled</extensionPointId>
     </property>
     <property>
       <name>org.phenotips.patientSheet.similarCases.omimPrototypes</name>
