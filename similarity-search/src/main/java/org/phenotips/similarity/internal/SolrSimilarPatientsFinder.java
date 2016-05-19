@@ -158,6 +158,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults, int k)
     {
+        if (allResults.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         // Select top k via PriorityQueue
         PriorityQueue<PatientSimilarityView> pq =
             new PriorityQueue<PatientSimilarityView>(allResults.size(), new Comparator<PatientSimilarityView>()
