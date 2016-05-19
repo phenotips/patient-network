@@ -428,10 +428,10 @@ var PhenoTips = (function (PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.MatchingNotificationManager = Class.create({
 
-    initialize : function ($) 
+    initialize : function ($)
     {
       this._ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
-      this._$ = $;     
+      this._$ = $;
 
       $('#find-matches-button').on('click', this._findMatches.bind(this));
       $('#show-matches-button').on('click', this._showMatches.bind(this));
@@ -439,7 +439,7 @@ var PhenoTips = (function (PhenoTips) {
       $('#checkbox_all').on('click', this._checkboxAllClicked.bind(this));
     },
 
-    _findMatches : function() 
+    _findMatches : function()
     {
         var _this = this;
 
@@ -490,7 +490,7 @@ var PhenoTips = (function (PhenoTips) {
       _this._showSent('show-matches-messages');
     },
 
-    _sendNotification : function() 
+    _sendNotification : function()
     {
        var _this = this;
        var ids = this._readMatchesToNotify();
@@ -561,8 +561,8 @@ var PhenoTips = (function (PhenoTips) {
          },
       });
     },
-  
-    _rowWriter : function(rowIndex, record, columns, cellWriter) 
+
+    _rowWriter : function(rowIndex, record, columns, cellWriter)
     {
        var tr = '';
 
