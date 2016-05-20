@@ -432,6 +432,7 @@ var PhenoTips = (function (PhenoTips) {
     {
       this._ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
       this._$ = $;
+      this._tableBuilt = false;
 
       $('#find-matches-button').on('click', this._findMatches.bind(this));
       $('#show-matches-button').on('click', this._showMatches.bind(this));
@@ -464,7 +465,7 @@ var PhenoTips = (function (PhenoTips) {
         this._showSent('find-matches-messages');
     },
 
-    _showMatches : function(params)
+    _showMatches : function(notificationResults)
     {
       var _this = this;
       var score = _this._checkScore('show-matches-score', 'show-matches-messages');
@@ -480,7 +481,7 @@ var PhenoTips = (function (PhenoTips) {
               console.log("show matches result, score = " + score);
               console.log(response.responseJSON);
               matches = response.responseJSON.matches;
-              _this._buildTable(matches);
+              _this._buildTable(matches, notificationResults);
            },
            onFailure : function (response) {
               _this._showFailure('show-matches-messages');
@@ -504,7 +505,7 @@ var PhenoTips = (function (PhenoTips) {
                console.log("onSuccess, received:");
                console.log(response.responseText);
                _this._showSuccess('send-notifications-messages');
-               _this._buildTable();
+               _this._showMatches(response.responseJSON);
             },
             onFailure : function (response) {
                _this._showFailure('send-notifications-messages');
@@ -549,17 +550,39 @@ var PhenoTips = (function (PhenoTips) {
       messages.append(new Element('div', {'class' : 'xHint'}).update(message));
     },
 
-    _buildTable : function(matches)
+    _buildTable : function(matches, notificationResults)
     {
       var _this = this;
-      this._$('#matchesTable').dynatable({
-         dataset: {
-            records: matches
-         },
-         writers: {
-            _rowWriter: this._rowWriter.bind(_this)
-         },
-      });
+
+      if (this._tableBuilt) {
+         var table = this._$('#matchesTable').data('dynatable');
+         table.settings.dataset.originalRecords = matches;
+         table.process();
+      } else {
+         this._$('#matchesTable').dynatable({
+            dataset: {
+               records: matches
+            },
+            writers: {
+               _rowWriter: this._rowWriter
+            },
+            features: {
+               pushState : false
+            }
+         });
+      }
+
+      // Mark notification results as successful/failed
+      var results = notificationResults.results;
+      if (results != undefined) {
+         for (var i = 0 ; i &lt; results.length ; i++) {
+            var result = results[i];
+            var tr = this._$('#matchesTable').find("#tr_" + result.id);
+            tr.attr('class', result.success ? 'successful' : 'failed');
+         }
+      }
+
+       this._tableBuilt = true;
     },
 
     _rowWriter : function(rowIndex, record, columns, cellWriter)
@@ -575,7 +598,7 @@ var PhenoTips = (function (PhenoTips) {
          tr += cellWriter(columns[i], record);
        }
 
-       return '&lt;tr&gt;' + checkbox + tr + '&lt;/tr&gt;';
+       return '&lt;tr id="tr_' + record.id + '"&gt;' + checkbox + tr + '&lt;/tr&gt;';
     },
 
     _checkboxAllClicked : function(event)
