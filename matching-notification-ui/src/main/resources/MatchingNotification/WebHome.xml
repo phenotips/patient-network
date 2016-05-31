@@ -434,10 +434,15 @@ var PhenoTips = (function (PhenoTips) {
       this._$ = $;
       this._tableBuilt = false;
 
+      this._matches = undefined;
+      this._notificationResults = undefined;
+      this._filteredNotified = false;
+
       $('#find-matches-button').on('click', this._findMatches.bind(this));
       $('#show-matches-button').on('click', this._showMatches.bind(this));
       $('#send-notifications-button').on('click', this._sendNotification.bind(this));
       $('#checkbox_all').on('click', this._checkboxAllClicked.bind(this));
+      $('#checkbox_filter_notified').on('click', this._filterNotifiedClicked.bind(this));
     },
 
     _findMatches : function()
@@ -480,8 +485,9 @@ var PhenoTips = (function (PhenoTips) {
               _this._showSuccess('show-matches-messages');
               console.log("show matches result, score = " + score);
               console.log(response.responseJSON);
-              matches = response.responseJSON.matches;
-              _this._buildTable(matches, notificationResults);
+              _this._matches = response.responseJSON.matches;
+              _this._notificationResults = notificationResults;
+              _this._buildTable();
            },
            onFailure : function (response) {
               _this._showFailure('show-matches-messages');
@@ -550,18 +556,31 @@ var PhenoTips = (function (PhenoTips) {
       messages.append(new Element('div', {'class' : 'xHint'}).update(message));
     },
 
-    _buildTable : function(matches, notificationResults)
+    _buildTable : function()
     {
       var _this = this;
 
+      var matchesToUse = this._matches;
+
+      if (this._filteredNotified) {
+          var unnotifiedMatches = [];
+          for (var i = 0 ; i &lt; this._matches.length ; i++) {
+              var current = this._matches[i];
+              if (!current.notified) {
+                 unnotifiedMatches.push(current);
+              }
+          }
+          matchesToUse = unnotifiedMatches;
+      }
+
       if (this._tableBuilt) {
          var table = this._$('#matchesTable').data('dynatable');
-         table.settings.dataset.originalRecords = matches;
+         table.settings.dataset.originalRecords = matchesToUse;
          table.process();
       } else {
          this._$('#matchesTable').dynatable({
             dataset: {
-               records: matches
+               records: matchesToUse
             },
             writers: {
                _rowWriter: this._rowWriter
@@ -573,12 +592,15 @@ var PhenoTips = (function (PhenoTips) {
       }
 
       // Mark notification results as successful/failed
-      var results = notificationResults.results;
+      var results = this._notificationResults.results;
       if (results != undefined) {
          for (var i = 0 ; i &lt; results.length ; i++) {
             var result = results[i];
             var tr = this._$('#matchesTable').find("#tr_" + result.id);
             tr.attr('class', result.success ? 'successful' : 'failed');
+            if (!result.success) {
+                tr.find(":checkbox").attr('checked', 'checked');
+            }
          }
       }
 
@@ -609,6 +631,13 @@ var PhenoTips = (function (PhenoTips) {
              elm.checked = checked;
           }
        });
+    },
+
+    _filterNotifiedClicked : function(event)
+    {
+       var checked = event.target.checked;
+       this._filteredNotified = checked;
+       this._buildTable();
     },
 
     _readMatchesToNotify : function()
