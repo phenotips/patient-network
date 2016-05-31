@@ -27,6 +27,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -116,12 +117,19 @@ public class MatchingNotificationScriptService implements ScriptService
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(ids);
 
-        // create result JSON
-        JSONArray results = new JSONArray();
+        // create result JSON. The successfullyNotified list is used to take care of a case
+        // where there is match that was supposed to be notified but no response was received on it.
+        List<Long> successfullyNotified = new LinkedList<Long>();
         for (PatientMatchNotificationResponse response : notificationResults) {
+            if (response.isSuccessul()) {
+                successfullyNotified.add(response.getPatientMatch().getId());
+            }
+        }
+        JSONArray results = new JSONArray();
+        for (Long id : ids) {
             JSONObject result = new JSONObject();
-            result.accumulate("id", response.getPatientMatch().getId());
-            result.accumulate("success", response.isSuccessul());
+            result.accumulate("id", id);
+            result.accumulate("success", successfullyNotified.contains(id));
             results.put(result);
         }
         JSONObject reply = new JSONObject();
