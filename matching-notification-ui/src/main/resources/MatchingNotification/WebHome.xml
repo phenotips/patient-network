@@ -269,7 +269,7 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
   Filter notified
 &lt;/label&gt;
-&lt;br/&gt;&lt;br/&gt;
+&lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
     &lt;th/&gt;
@@ -777,6 +777,10 @@ var PhenoTips = (function (PhenoTips) {
 
 #matchesTable th {
     white-space: nowrap;
+}
+
+#checkbox_filter_notified {
+    margin-bottom: 20px;
 }</code>
     </property>
     <property>
