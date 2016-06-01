@@ -169,7 +169,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             try {
                 ConnectionManager cm =
                     ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
-                token = String.valueOf(cm.getConnection(this).getId());
+                token = cm.getConnection(this).getToken();
             } catch (ComponentLookupException e) {
                 // This should not happen
             } catch (Exception ex) {

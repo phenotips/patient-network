@@ -25,6 +25,7 @@ import org.phenotips.messaging.ConnectionManager;
 import org.xwiki.component.annotation.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -77,6 +78,15 @@ public class DefaultConnectionManager implements ConnectionManager
     public Connection getConnectionById(Long id)
     {
         Session session = this.sessionFactory.getSessionFactory().openSession();
-        return (Connection) session.load(Connection.class, id);
+        return (Connection) session
+            .createQuery("select c from " + Connection.class.getCanonicalName() + " as c where c.id = " + id)
+            .uniqueResult();
+    }
+
+    @Override
+    public Connection getConnectionByToken(String token)
+    {
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        return (Connection) session.load(Connection.class, UUID.fromString(token));
     }
 }
