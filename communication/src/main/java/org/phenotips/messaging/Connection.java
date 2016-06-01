@@ -50,7 +50,7 @@ public class Connection
     /** @see #getToken() */
     @Id
     @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "uuid", columnDefinition = "BINARY(16)")
     private UUID token;
 
