@@ -243,6 +243,7 @@
       <codeToExecute>{{velocity}}
 $xwiki.jsx.use('MatchingNotification.WebHome')##
 $xwiki.ssx.use('MatchingNotification.WebHome')##
+$xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
 {{/velocity}}
 
 {{html}}
@@ -268,25 +269,26 @@ $xwiki.ssx.use('MatchingNotification.WebHome')##
   &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
   Filter notified
 &lt;/label&gt;
+&lt;br/&gt;&lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
     &lt;th/&gt;
     &lt;th&gt;id&lt;/th&gt;
-    &lt;th&gt;patientId&lt;/th&gt;
-    &lt;th&gt;matchedPatientId&lt;/th&gt;
-    &lt;th&gt;score&lt;/th&gt;
-    &lt;th&gt;genotypicScore&lt;/th&gt;
-    &lt;th&gt;phenotypicScore&lt;/th&gt;
-    &lt;th&gt;notified&lt;/th&gt;
-    &lt;th&gt;outgoingRequest&lt;/th&gt;
-    &lt;th&gt;remoteId&lt;/th&gt;
-    &lt;th&gt;timestamp&lt;/th&gt;
-    &lt;th&gt;genes&lt;/th&gt;
-    &lt;th&gt;matchedGenes&lt;/th&gt;
-    &lt;th&gt;phenotypes&lt;/th&gt;
-    &lt;th&gt;matchedPhenotypes&lt;/th&gt;
-    &lt;th&gt;email&lt;/th&gt;
-    &lt;th&gt;matchedHref&lt;/th&gt;
+    &lt;th&gt;Patient Id&lt;/th&gt;
+    &lt;th&gt;Matched Patient Id&lt;/th&gt;
+    &lt;th&gt;Score&lt;/th&gt;
+    &lt;th&gt;Genotypic Score&lt;/th&gt;
+    &lt;th&gt;Phenotypic Score&lt;/th&gt;
+    &lt;th&gt;Notified&lt;/th&gt;
+    &lt;th&gt;Outgoing Request&lt;/th&gt;
+    &lt;th&gt;Remote Id&lt;/th&gt;
+    &lt;th&gt;Timestamp&lt;/th&gt;
+    &lt;th&gt;Genes&lt;/th&gt;
+    &lt;th&gt;Matched Genes&lt;/th&gt;
+    &lt;th&gt;Phenotypes&lt;/th&gt;
+    &lt;th&gt;Matched Phenotypes&lt;/th&gt;
+    &lt;th&gt;Email&lt;/th&gt;
+    &lt;th&gt;Matched Href&lt;/th&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
   &lt;/tbody&gt;
@@ -771,6 +773,10 @@ var PhenoTips = (function (PhenoTips) {
 
 .ok {
   color: inherit;
+}
+
+#matchesTable th {
+    white-space: nowrap;
 }</code>
     </property>
     <property>
