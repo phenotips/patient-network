@@ -78,7 +78,9 @@ public class DefaultConnectionManager implements ConnectionManager
     public Connection getConnectionById(Long id)
     {
         Session session = this.sessionFactory.getSessionFactory().openSession();
-        return (Connection) session.load(Connection.class, id);
+        return (Connection) session
+            .createQuery("select c from " + Connection.class.getCanonicalName() + " as c where c.id = " + id)
+            .uniqueResult();
     }
 
     @Override
