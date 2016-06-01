@@ -55,7 +55,6 @@ public class Connection
     private UUID token;
 
     /** @see #getId() */
-    @GeneratedValue
     private long id;
 
     /** @see #getInitiatingUser() */
