@@ -92,7 +92,18 @@
       </text>
     </class>
     <property>
-      <html/>
+      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($patientId)}:&lt;/p&gt;
+
+#foreach ($match in $matches)
+&lt;p&gt;Patient id: $!{escapetool.xml($match.getMatchedPatientId())}&lt;/p&gt;
+&lt;p&gt;Matched email: $!{escapetool.xml($match.getMatchedEmail())}&lt;/p&gt;
+&lt;p&gt;Score: $!{escapetool.xml($match.getScore())}&lt;/p&gt;
+&lt;p&gt;Genotypic score: $!{escapetool.xml($match.getGenotypeScore())}&lt;/p&gt;
+&lt;p&gt;Phenotypic score: $!{escapetool.xml($match.getPhenotypeScore())}&lt;/p&gt;
+&lt;p&gt;Candidate genes: $!{escapetool.xml($match.getCandidateGenes())}&lt;/p&gt;
+&lt;p&gt;Matched Candidate genes: $!{escapetool.xml($match.getMatchedCandidateGenes())}&lt;/p&gt;
+#end
+</html>
     </property>
     <property>
       <language>English</language>
