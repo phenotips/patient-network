@@ -25,6 +25,7 @@ import org.phenotips.messaging.ConnectionManager;
 import org.xwiki.component.annotation.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -84,6 +85,6 @@ public class DefaultConnectionManager implements ConnectionManager
     public Connection getConnectionByToken(String token)
     {
         Session session = this.sessionFactory.getSessionFactory().openSession();
-        return (Connection) session.load(Connection.class, token);
+        return (Connection) session.load(Connection.class, UUID.fromString(token));
     }
 }
