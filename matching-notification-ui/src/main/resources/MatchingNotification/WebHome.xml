@@ -482,7 +482,7 @@ var PhenoTips = (function (PhenoTips) {
               _this._showSuccess('show-matches-messages');
               console.log("show matches result, score = " + score);
               console.log(response.responseJSON);
-              _this._matches = response.responseJSON.matches;
+              _this._matches = _this._formatMatches(response.responseJSON.matches);
               _this._notificationResults = notificationResults;
               _this._buildTable();
            },
@@ -551,6 +551,28 @@ var PhenoTips = (function (PhenoTips) {
       var messages = this._$('#' + messagesFieldName);
       messages.empty();
       messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+    },
+
+    _formatMatches : function(matches)
+    {
+       for (var i = 0 ; i &lt; matches.length ; i++) {
+          // scores
+          matches[i].score = this._roundScore(matches[i].score);
+          matches[i].phenotypicScore = this._roundScore(matches[i].phenotypicScore);
+          matches[i].genotypicScore = this._roundScore(matches[i].genotypicScore);
+
+          // remote id
+          var remoteId = matches[i].remoteId;
+          if (remoteId == undefined || remoteId == 'undefined') {
+             matches[i].remoteId = '-';
+          }
+       }
+       return matches;
+    },
+
+    _roundScore : function(score)
+    {
+        return Math.round(Number(score) * 1000) / 1000;
     },
 
     _buildTable : function()
