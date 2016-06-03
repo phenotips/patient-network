@@ -294,8 +294,7 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;button id="send-notifications-button" type="button"&gt;Go&lt;/button&gt;
   &lt;div id="send-notifications-messages"/&gt;
 &lt;/div&gt;
-{{/html}}
-</codeToExecute>
+{{/html}}</codeToExecute>
     </property>
     <property>
       <configurationClass/>
@@ -602,7 +601,7 @@ var PhenoTips = (function (PhenoTips) {
                records: matchesToUse
             },
             writers: {
-               _rowWriter: this._rowWriter
+               _rowWriter: this._rowWriter.bind(this)
             },
             features: {
                pushState : false
@@ -630,16 +629,75 @@ var PhenoTips = (function (PhenoTips) {
     {
        var tr = '';
 
-       // checkbox
+       // checkbox - column 0
        var checkbox = '&lt;td&gt;&lt;input type="checkbox" id="checkbox_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/&gt;&lt;/td&gt;';
+
+       // column 1,2 - reference patient and matched patient, their genes and phenotypes
+       var [patientTd, matchedPatientTd]  = this._getPatientDetailsTds(record);
 
        // grab the record's attribute for each column.
        // skip first column (index 0), it's for checkbox
-       for (var i = 1, len = columns.length; i &lt; len; i++) {
-         tr += cellWriter(columns[i], record);
+       for (var i = 0, len = columns.length; i &lt; len; i++) {
+         var id = columns[i].id;
+         if (id == 'checkbox') {
+            tr += checkbox;
+         } else if (id == 'patientId') {
+            tr += patientTd;
+         } else if (id == 'matchedPatientId') {
+            tr += matchedPatientTd;
+         } else {
+             tr += cellWriter(columns[i], record);
+         }
        }
 
-       return '&lt;tr id="tr_' + record.id + '"&gt;' + checkbox + tr + '&lt;/tr&gt;';
+       return '&lt;tr id="tr_' + record.id + '"&gt;' + tr + '&lt;/tr&gt;';
+    },
+
+    _getPatientDetailsTds : function(record)
+    {
+       var referencePatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.patientId + '&lt;/div&gt;';
+       var matchedPatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.matchedPatientId + '&lt;/div&gt;';
+
+       referencePatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
+       matchedPatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
+       var [genes, matchedGenes] = this._stringsToEqualSizedArrays(record.genes, record.matchedGenes);
+       for (var i = 0 ; i &lt; genes.size() ; i++) {
+           referencePatientTd += genes[i] + '&lt;br/&gt;';
+           matchedPatientTd += matchedGenes[i] + '&lt;br/&gt;';
+       }
+       referencePatientTd += '&lt;/div&gt;';
+       matchedPatientTd += '&lt;/div&gt;';
+
+       referencePatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
+       matchedPatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
+       var [phenotypes, matchedPhenotypes] = this._stringsToEqualSizedArrays(record.phenotypes, record.matchedPhenotypes);
+       for (var i = 0 ; i &lt; phenotypes.size() ; i++) {
+           referencePatientTd += phenotypes[i] + '&lt;br/&gt;';
+           matchedPatientTd += matchedPhenotypes[i] + '&lt;br/&gt;';
+       }
+       referencePatientTd += '&lt;/div&gt;';
+       matchedPatientTd += '&lt;/div&gt;';
+
+       referencePatientTd += '&lt;/td&gt;';
+       matchedPatientTd += '&lt;/td&gt;';
+
+       return [referencePatientTd, matchedPatientTd];
+    },
+
+    // Receives two strings containing ;-separated items. Returns two arrays of same size
+    _stringsToEqualSizedArrays : function(st1, st2)
+    {
+       var arr1 = st1.split(";");
+       var arr2 = st2.split(";");
+
+       var l = Math.max(arr1.size(), arr2.size());
+       while (arr1.size() &lt; l) {
+          arr1.push("");
+       }
+       while (arr2.size() &lt; l) {
+          arr2.push("");
+       }
+       return [arr1, arr2];
     },
 
     _checkboxAllClicked : function(event)
@@ -792,13 +850,27 @@ var PhenoTips = (function (PhenoTips) {
   color: inherit;
 }
 
+.patient-div {
+    margin-bottom: 10px;
+}
+
+.genes-div {
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-style: oblique;
+}
+
 #matchesTable th {
     white-space: nowrap;
 }
 
 #checkbox_filter_notified {
     margin-bottom: 20px;
-}</code>
+}
+
+</code>
     </property>
     <property>
       <contentType>CSS</contentType>
