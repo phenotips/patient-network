@@ -565,8 +565,42 @@ var PhenoTips = (function (PhenoTips) {
           if (remoteId == undefined || remoteId == 'undefined') {
              matches[i].remoteId = '-';
           }
+
+          // Genes and phenotypes
+          [matches[i].genes, matches[i].matchedGenes] = this._formatJSONArrays(matches[i].genes, matches[i].matchedGenes);
+          [matches[i].phenotypes, matches[i].matchedPhenotypes] = this._formatJSONArrays(matches[i].phenotypes, matches[i].matchedPhenotypes, 'name');
        }
        return matches;
+    },
+
+    // Format two JSON arrays for display:
+    // 1. Makes them of equal length
+    // 2. Add 'none' to either, if they are empty
+    // 3. Replaces every 'item' with 'item.attr' if attr!=undefined; for the case an item is a JSONObject
+    _formatJSONArrays : function(arr1, arr2, attr)
+    {
+       if (attr != undefined) {
+          for (var i=0; i&lt;arr1.size(); i++) {
+             arr1[i] = arr1[i][attr];
+          }
+          for (var i=0; i&lt;arr2.size(); i++) {
+             arr2[i] = arr2[i][attr];
+          }
+       }
+       if (arr1.size() == 0) {
+          arr1.push("none");
+       }
+       if (arr2.size() == 0) {
+          arr2.push("none");
+       }
+       var l = Math.max(arr1.size(), arr2.size());
+       while (arr1.size() &lt; l) {
+          arr1.push("");
+       }
+       while (arr2.size() &lt; l) {
+          arr2.push("");
+       }
+       return [arr1, arr2];
     },
 
     _roundScore : function(score)
@@ -655,25 +689,25 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientDetailsTds : function(record)
     {
+       // The two genes array are the same size and are formatted for display. Same for phenotypes.
+
        var referencePatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.patientId + '&lt;/div&gt;';
        var matchedPatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.matchedPatientId + '&lt;/div&gt;';
 
        referencePatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
        matchedPatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
-       var [genes, matchedGenes] = this._stringsToEqualSizedArrays(record.genes, record.matchedGenes);
-       for (var i = 0 ; i &lt; genes.size() ; i++) {
-           referencePatientTd += genes[i] + '&lt;br/&gt;';
-           matchedPatientTd += matchedGenes[i] + '&lt;br/&gt;';
+       for (var i = 0 ; i &lt; record.genes.size() ; i++) {
+           referencePatientTd += record.genes[i] + '&lt;br/&gt;';
+           matchedPatientTd += record.matchedGenes[i] + '&lt;br/&gt;';
        }
        referencePatientTd += '&lt;/div&gt;';
        matchedPatientTd += '&lt;/div&gt;';
 
        referencePatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
        matchedPatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
-       var [phenotypes, matchedPhenotypes] = this._stringsToEqualSizedArrays(record.phenotypes, record.matchedPhenotypes);
-       for (var i = 0 ; i &lt; phenotypes.size() ; i++) {
-           referencePatientTd += phenotypes[i] + '&lt;br/&gt;';
-           matchedPatientTd += matchedPhenotypes[i] + '&lt;br/&gt;';
+       for (var i = 0 ; i &lt; record.phenotypes.size() ; i++) {
+           referencePatientTd += record.phenotypes[i] + '&lt;br/&gt;';
+           matchedPatientTd += record.matchedPhenotypes[i] + '&lt;br/&gt;';
        }
        referencePatientTd += '&lt;/div&gt;';
        matchedPatientTd += '&lt;/div&gt;';
@@ -682,22 +716,6 @@ var PhenoTips = (function (PhenoTips) {
        matchedPatientTd += '&lt;/td&gt;';
 
        return [referencePatientTd, matchedPatientTd];
-    },
-
-    // Receives two strings containing ;-separated items. Returns two arrays of same size
-    _stringsToEqualSizedArrays : function(st1, st2)
-    {
-       var arr1 = st1.split(";");
-       var arr2 = st2.split(";");
-
-       var l = Math.max(arr1.size(), arr2.size());
-       while (arr1.size() &lt; l) {
-          arr1.push("");
-       }
-       while (arr2.size() &lt; l) {
-          arr2.push("");
-       }
-       return [arr1, arr2];
     },
 
     _checkboxAllClicked : function(event)

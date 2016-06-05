@@ -18,25 +18,17 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.Owner;
-import org.phenotips.data.permissions.PatientAccess;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.similarity.PatientGenotype;
-import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.internal.TestMatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.model.reference.EntityReference;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -55,11 +47,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.web.Utils;
-
 /**
  * @version $Id$
  */
@@ -69,15 +56,14 @@ import com.xpn.xwiki.web.Utils;
            @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
-    private static final String SEPARATOR = ";";
+    /** separate between tokens. */
+    public static final String SEPARATOR = ";";
 
-    private static final PermissionsManager PERMISSIONS_MANAGER;
+    private static final String ID = "id";
 
-    private static final PatientGenotypeManager GENOTYPE_MANAGER;
+    private static final DefaultPatientMatchUtils UTILS;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
-
-    private static final String EMAIL = "email";
 
     @Id
     @GeneratedValue
@@ -125,7 +111,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String phenotypes;
 
     @Transient
-    private Set<String> phenotypesSet;
+    // key: id, value: name
+    private Map<String, String> phenotypesMap;
 
     // Attributes related to patient with matchedPatientId
 
@@ -142,22 +129,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String matchedPhenotypes;
 
     @Transient
-    private Set<String> matchedPhenotypesSet;
+    // key: id, value: name
+    private Map<String, String> matchedPhenotypesMap;
 
     static {
-        PermissionsManager permissionsManager = null;
-        PatientGenotypeManager genotypeManager = null;
+        DefaultPatientMatchUtils utils = null;
         try {
-            permissionsManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
-                PermissionsManager.class);
-            genotypeManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
-                PatientGenotypeManager.class);
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            utils = ccm.getInstance(DefaultPatientMatchUtils.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
-
-        PERMISSIONS_MANAGER = permissionsManager;
-        GENOTYPE_MANAGER = genotypeManager;
+        UTILS = utils;
     }
 
     /**
@@ -209,13 +192,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.email = testData.email;
         this.matchedHref = testData.matchedHref;
         this.genes = testData.genes;
-        this.genesSet = DefaultPatientMatch.stringToSet(testData.genes);
+        this.genesSet = UTILS.stringToSet(testData.genes);
         this.matchedGenes = testData.matchedGenes;
-        this.matchedGenesSet = DefaultPatientMatch.stringToSet(testData.matchedGenes);
+        this.matchedGenesSet = UTILS.stringToSet(testData.matchedGenes);
         this.phenotypes = "";
-        this.phenotypesSet = DefaultPatientMatch.stringToSet(this.phenotypes);
+        this.phenotypesMap = UTILS.phenotypesStringToMap(this.phenotypes);
         this.matchedPhenotypes = "";
-        this.matchedPhenotypesSet = DefaultPatientMatch.stringToSet(this.matchedPhenotypes);
+        this.matchedPhenotypesMap = UTILS.phenotypesStringToMap(this.matchedPhenotypes);
     }
 
     private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
@@ -235,81 +218,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        this.email = this.getOwnerEmail(referencePatient);
-        this.genesSet = this.getGenes(referencePatient);
-        this.genes = DefaultPatientMatch.setToString(this.genesSet);
-        this.phenotypesSet = this.getPhenotypesIds(referencePatient);
-        this.phenotypes = DefaultPatientMatch.setToString(this.phenotypesSet);
+        this.email = UTILS.getOwnerEmail(referencePatient);
+        this.genesSet = UTILS.getGenes(referencePatient);
+        this.genes = UTILS.setToString(this.genesSet);
+        this.phenotypesMap = UTILS.getPhenotypes(referencePatient);
+        this.phenotypes = UTILS.getPhenotypesString(this.phenotypesMap);
 
-        this.matchedHref = this.getOwnerEmail(matchedPatient);
-        this.matchedGenesSet = this.getGenes(matchedPatient);
-        this.matchedGenes = DefaultPatientMatch.setToString(this.matchedGenesSet);
-        this.matchedPhenotypesSet = this.getPhenotypesIds(matchedPatient);
-        this.matchedPhenotypes = DefaultPatientMatch.setToString(this.matchedPhenotypesSet);
-    }
-
-    private Set<String> getPhenotypesIds(Patient patient) {
-        Set<String> ids = new HashSet<>();
-        Set<? extends Feature> features = patient.getFeatures();
-
-        for (Feature feature : features) {
-            if (feature.isPresent()) {
-                ids.add(feature.getId());
-            }
-        }
-
-        return ids;
-    }
-
-    private Set<String> getGenes(Patient patient)
-    {
-        PatientGenotype genotype = DefaultPatientMatch.GENOTYPE_MANAGER.getGenotype(patient);
-        if (genotype != null && genotype.hasGenotypeData()) {
-            Set<String> set = genotype.getCandidateGenes();
-            return set;
-        } else {
-            return Collections.emptySet();
-        }
-    }
-
-    // TODO only works for reference patient. Get HREF for matched patient.
-    private String getOwnerEmail(Patient patient)
-    {
-        PatientAccess referenceAccess = DefaultPatientMatch.PERMISSIONS_MANAGER.getPatientAccess(patient);
-        Owner owner = referenceAccess.getOwner();
-        if (owner == null) {
-            return "";
-        }
-        EntityReference ownerUser = owner.getUser();
-
-        XWikiContext context = Utils.getContext();
-        XWiki xwiki = context.getWiki();
-        try {
-            return xwiki.getDocument(ownerUser, context).getStringValue(EMAIL);
-        } catch (XWikiException e) {
-            DefaultPatientMatch.LOGGER.error("Error reading owner's email for patient {}.", patient.getId(), e);
-            return "";
-        }
-    }
-
-    private static Set<String> stringToSet(String string)
-    {
-        if (StringUtils.isEmpty(string)) {
-            return Collections.emptySet();
-        } else {
-            String[] split = string.split(DefaultPatientMatch.SEPARATOR);
-            Set<String> set = new HashSet<>(Arrays.asList(split));
-            return set;
-        }
-    }
-
-    private static String setToString(Set<String> set)
-    {
-        if (set == null || set.isEmpty()) {
-            return "";
-        } else {
-            return StringUtils.join(set, DefaultPatientMatch.SEPARATOR);
-        }
+        this.matchedHref = UTILS.getOwnerEmail(matchedPatient);
+        this.matchedGenesSet = UTILS.getGenes(matchedPatient);
+        this.matchedGenes = UTILS.setToString(this.matchedGenesSet);
+        this.matchedPhenotypesMap = UTILS.getPhenotypes(matchedPatient);
+        this.matchedPhenotypes = UTILS.getPhenotypesString(this.matchedPhenotypesMap);
     }
 
     @Override
@@ -418,22 +337,22 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public JSONObject toJSON()
     {
         JSONObject json = new JSONObject();
-        json.accumulate("id", this.getId());
-        json.accumulate("patientId", this.getPatientId());
-        json.accumulate("matchedPatientId", this.getMatchedPatientId());
-        json.accumulate("remoteId", this.getRemoteId());
-        json.accumulate("outgoingRequest", this.isOutgoing());
-        json.accumulate("timestamp", this.timestamp);
-        json.accumulate("notified", this.isNotified());
-        json.accumulate("score", this.getScore());
-        json.accumulate("genotypicScore", this.getGenotypeScore());
-        json.accumulate("phenotypicScore", this.getPhenotypeScore());
-        json.accumulate(EMAIL, this.getEmail());
-        json.accumulate("matchedHref", this.getMatchedEmail());
-        json.accumulate("genes", this.genes);
-        json.accumulate("matchedGenes", this.matchedGenes);
-        json.accumulate("phenotypes", this.phenotypes);
-        json.accumulate("matchedPhenotypes", this.matchedPhenotypes);
+        json.put(ID, this.getId());
+        json.put("patientId", this.getPatientId());
+        json.put("matchedPatientId", this.getMatchedPatientId());
+        json.put("remoteId", this.getRemoteId());
+        json.put("outgoingRequest", this.isOutgoing());
+        json.put("timestamp", this.timestamp);
+        json.put("notified", this.isNotified());
+        json.put("score", this.getScore());
+        json.put("genotypicScore", this.getGenotypeScore());
+        json.put("phenotypicScore", this.getPhenotypeScore());
+        json.put("email", this.getEmail());
+        json.put("matchedHref", this.getMatchedEmail());
+        json.put("genes", UTILS.setToJSONArray(this.genesSet));
+        json.put("matchedGenes", UTILS.setToJSONArray(this.matchedGenesSet));
+        json.put("phenotypes", UTILS.phenotypesToJSONArray(this.phenotypesMap));
+        json.put("matchedPhenotypes", UTILS.phenotypesToJSONArray(this.matchedPhenotypesMap));
         return json;
     }
 
@@ -474,10 +393,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Override
     public void onLoad(Session arg0, Serializable arg1) {
-        this.genesSet = DefaultPatientMatch.stringToSet(this.genes);
-        this.matchedGenesSet = DefaultPatientMatch.stringToSet(this.matchedGenes);
-        this.phenotypesSet = DefaultPatientMatch.stringToSet(this.phenotypes);
-        this.matchedPhenotypesSet = DefaultPatientMatch.stringToSet(this.matchedPhenotypes);
+        this.genesSet = UTILS.stringToSet(this.genes);
+        this.matchedGenesSet = UTILS.stringToSet(this.matchedGenes);
+        this.phenotypesMap = UTILS.phenotypesStringToMap(this.phenotypes);
+        this.matchedPhenotypesMap = UTILS.phenotypesStringToMap(this.matchedPhenotypes);
     }
 
     @Override
