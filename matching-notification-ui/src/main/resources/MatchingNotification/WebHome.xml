@@ -884,6 +884,11 @@ var PhenoTips = (function (PhenoTips) {
     white-space: nowrap;
 }
 
+#matchesTable td {
+    vertical-align: text-top;
+}
+
+
 #checkbox_filter_notified {
     margin-bottom: 20px;
 }
