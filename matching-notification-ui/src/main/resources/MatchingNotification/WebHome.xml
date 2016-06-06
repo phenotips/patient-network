@@ -281,9 +281,9 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
     &lt;th data-dynatable-column="phenotypicScore"&gt;Phen&lt;/th&gt;
     &lt;th data-dynatable-column="outgoingRequest"&gt;Outgoing Request&lt;/th&gt;
     &lt;th data-dynatable-column="remoteId"&gt;Remote Id&lt;/th&gt;
-    &lt;th data-dynatable-column="timestamp"&gt;Timestamp&lt;/th&gt;
     &lt;th data-dynatable-column="email"&gt;Email&lt;/th&gt;
     &lt;th data-dynatable-column="matchedHref"&gt;Matched Href&lt;/th&gt;
+    &lt;th data-dynatable-column="timestamp"&gt;Timestamp&lt;/th&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
   &lt;/tbody&gt;
