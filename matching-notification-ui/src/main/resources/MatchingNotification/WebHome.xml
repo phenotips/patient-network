@@ -272,7 +272,7 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
 &lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
-    &lt;th data-dynatable-column="checkbox"/&gt;
+    &lt;th data-dynatable-column="checkbox"&gt;&lt;span class="fa fa-envelope"/&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="id"&gt;ID&lt;/th&gt;
     &lt;th data-dynatable-column="patient"&gt;Patient&lt;/th&gt;
     &lt;th data-dynatable-column="matchedPatient"&gt;Matched Patient&lt;/th&gt;
