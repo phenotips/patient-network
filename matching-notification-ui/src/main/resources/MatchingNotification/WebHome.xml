@@ -274,8 +274,8 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;thead&gt;
     &lt;th data-dynatable-column="checkbox"/&gt;
     &lt;th data-dynatable-column="id"&gt;id&lt;/th&gt;
-    &lt;th data-dynatable-column="patientId"&gt;Patient Id&lt;/th&gt;
-    &lt;th data-dynatable-column="matchedPatientId"&gt;Matched Patient Id&lt;/th&gt;
+    &lt;th data-dynatable-column="patient"&gt;Patient&lt;/th&gt;
+    &lt;th data-dynatable-column="matchedPatient"&gt;Matched Patient&lt;/th&gt;
     &lt;th data-dynatable-column="score"&gt;Score&lt;/th&gt;
     &lt;th data-dynatable-column="genotypicScore"&gt;Gen&lt;/th&gt;
     &lt;th data-dynatable-column="phenotypicScore"&gt;Phen&lt;/th&gt;
@@ -667,7 +667,8 @@ var PhenoTips = (function (PhenoTips) {
        var checkbox = '&lt;td&gt;&lt;input type="checkbox" id="checkbox_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/&gt;&lt;/td&gt;';
 
        // column 1,2 - reference patient and matched patient, their genes and phenotypes
-       var [patientTd, matchedPatientTd]  = this._getPatientDetailsTds(record);
+       patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes);
+       matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes);
 
        // grab the record's attribute for each column.
        // skip first column (index 0), it's for checkbox
@@ -675,9 +676,9 @@ var PhenoTips = (function (PhenoTips) {
          var id = columns[i].id;
          if (id == 'checkbox') {
             tr += checkbox;
-         } else if (id == 'patientId') {
+         } else if (id == 'patient') {
             tr += patientTd;
-         } else if (id == 'matchedPatientId') {
+         } else if (id == 'matchedPatient') {
             tr += matchedPatientTd;
          } else {
              tr += cellWriter(columns[i], record);
@@ -687,35 +688,22 @@ var PhenoTips = (function (PhenoTips) {
        return '&lt;tr id="tr_' + record.id + '"&gt;' + tr + '&lt;/tr&gt;';
     },
 
-    _getPatientDetailsTds : function(record)
+    _getPatientDetailsTd : function(id, genes, phenotypes)
     {
-       // The two genes array are the same size and are formatted for display. Same for phenotypes.
+       var td = '&lt;td&gt;&lt;div class="patient-div"&gt;' + id + '&lt;/div&gt;';
 
-       var referencePatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.patientId + '&lt;/div&gt;';
-       var matchedPatientTd = '&lt;td&gt;&lt;div class="patient-div"&gt;' + record.matchedPatientId + '&lt;/div&gt;';
-
-       referencePatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
-       matchedPatientTd += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
-       for (var i = 0 ; i &lt; record.genes.size() ; i++) {
-           referencePatientTd += record.genes[i] + '&lt;br/&gt;';
-           matchedPatientTd += record.matchedGenes[i] + '&lt;br/&gt;';
+       td += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
+       for (var i = 0 ; i &lt; genes.size() ; i++) {
+           td += genes[i] + '&lt;br/&gt;';
        }
-       referencePatientTd += '&lt;/div&gt;';
-       matchedPatientTd += '&lt;/div&gt;';
+       td += '&lt;/div&gt;';
 
-       referencePatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
-       matchedPatientTd += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
-       for (var i = 0 ; i &lt; record.phenotypes.size() ; i++) {
-           referencePatientTd += record.phenotypes[i] + '&lt;br/&gt;';
-           matchedPatientTd += record.matchedPhenotypes[i] + '&lt;br/&gt;';
+       td += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
+       for (var i = 0 ; i &lt; phenotypes.size() ; i++) {
+           td += phenotypes[i] + '&lt;br/&gt;';
        }
-       referencePatientTd += '&lt;/div&gt;';
-       matchedPatientTd += '&lt;/div&gt;';
-
-       referencePatientTd += '&lt;/td&gt;';
-       matchedPatientTd += '&lt;/td&gt;';
-
-       return [referencePatientTd, matchedPatientTd];
+       td += '&lt;/div&gt;&lt;/td&gt;';
+       return td;
     },
 
     _checkboxAllClicked : function(event)
