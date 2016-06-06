@@ -28,6 +28,7 @@ import org.xwiki.component.manager.ComponentManager;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Set;
 
@@ -342,7 +343,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("matchedPatientId", this.getMatchedPatientId());
         json.put("remoteId", this.getRemoteId());
         json.put("outgoingRequest", this.isOutgoing());
-        json.put("timestamp", this.timestamp);
+        json.put("timestamp", new SimpleDateFormat("yyyy/MM/dd HH:mm").format(this.timestamp));
         json.put("notified", this.isNotified());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
