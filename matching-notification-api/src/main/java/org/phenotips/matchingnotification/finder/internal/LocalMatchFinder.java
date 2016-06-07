@@ -34,6 +34,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -43,8 +44,7 @@ import org.slf4j.Logger;
 @Singleton
 public class LocalMatchFinder implements MatchFinder
 {
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(LocalMatchFinder.class);
 
     @Inject
     private SimilarPatientsFinder finder;

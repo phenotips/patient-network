@@ -39,6 +39,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -60,8 +61,7 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private MatchStorageManager matchStorageManager;
 
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
     /**
      * Find patient matches and saves only those with score higher or equals to {@code score}.

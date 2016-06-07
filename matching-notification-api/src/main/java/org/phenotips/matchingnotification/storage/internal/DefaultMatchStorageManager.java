@@ -36,6 +36,7 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 
@@ -51,8 +52,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private HibernateSessionFactory sessionFactory;
 
     /** Logging helper object. */
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
 
     @Override
     public void saveMatches(List<PatientMatch> matches)
