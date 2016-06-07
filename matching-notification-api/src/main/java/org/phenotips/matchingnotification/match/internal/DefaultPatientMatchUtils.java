@@ -112,7 +112,9 @@ public class DefaultPatientMatchUtils
         Map<String, String> map = new TreeMap<>();
         for (String id : ids) {
             VocabularyTerm term = this.vocabularyManager.resolveTerm(id);
-            map.put(id, term.getName());
+            if (term != null) {
+                map.put(id, term.getName());
+            }
         }
 
         return map;
