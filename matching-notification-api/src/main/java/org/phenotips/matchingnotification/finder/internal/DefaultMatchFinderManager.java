@@ -34,6 +34,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -42,8 +43,7 @@ import org.slf4j.Logger;
 @Singleton
 public class DefaultMatchFinderManager implements MatchFinderManager
 {
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(DefaultMatchFinderManager.class);
 
     @Inject
     private Provider<List<MatchFinder>> matchFinderProvider;

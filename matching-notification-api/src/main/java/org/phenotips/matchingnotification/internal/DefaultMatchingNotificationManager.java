@@ -49,6 +49,7 @@ import javax.inject.Singleton;
 
 import org.hibernate.Session;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -59,8 +60,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 {
     private static final String REMOTE_MATCHING_CONSENT_ID = "matching";
 
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(DefaultMatchingNotificationManager.class);
 
     @Inject
     private QueryManager qm;

@@ -27,11 +27,11 @@ import org.xwiki.component.annotation.Component;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -70,8 +70,7 @@ public class TestMatchFinder implements MatchFinder
         public String matchedGenes;
     }
 
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(TestMatchFinder.class);
 
     @Override
     public int getPriority() {
