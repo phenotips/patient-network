@@ -17,7 +17,6 @@
  */
 package org.phenotips.matchingnotification.internal;
 
-import org.phenotips.data.ConsentManager;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.PermissionsManager;
@@ -58,8 +57,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class DefaultMatchingNotificationManager implements MatchingNotificationManager
 {
-    private static final String REMOTE_MATCHING_CONSENT_ID = "matching";
-
     private Logger logger = LoggerFactory.getLogger(DefaultMatchingNotificationManager.class);
 
     @Inject
@@ -67,9 +64,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
     @Inject
     private PatientRepository patientRepository;
-
-    @Inject
-    private ConsentManager consentManager;
 
     @Inject
     private PermissionsManager permissionsManager;
@@ -109,8 +103,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     /*
-     * Returns a list of patients with visibility>=matchable and consent for
-     * remote matching.
+     * Returns a list of patients with visibility>=matchable
      */
     private List<Patient> getPatientsList()
     {
@@ -131,8 +124,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             Patient patient = this.patientRepository.getPatientById(patientId);
             Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
 
-            if (this.consentManager.hasConsent(patient, REMOTE_MATCHING_CONSENT_ID)
-                && patientVisibility.compareTo(matchableVisibility) >= 0) {
+            if (patientVisibility.compareTo(matchableVisibility) >= 0) {
                 patients.add(patient);
             }
         }
