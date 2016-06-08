@@ -64,7 +64,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
 
                 this.logger.debug("Found {} matches by {}: ", foundMatches.size(), service.getClass().getSimpleName());
                 for (PatientMatch match : foundMatches) {
-                    this.logger.debug(match.toCompactString());
+                    this.logger.debug(match.toString());
                 }
 
             } catch (Exception ex) {

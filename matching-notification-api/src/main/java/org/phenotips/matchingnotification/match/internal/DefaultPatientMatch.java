@@ -323,7 +323,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String toCompactString()
+    public String toString()
     {
         StringBuilder sb = new StringBuilder()
             .append("[").append(this.getId())
@@ -355,12 +355,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("phenotypes", UTILS.phenotypesToJSONArray(this.phenotypesMap));
         json.put("matchedPhenotypes", UTILS.phenotypesToJSONArray(this.matchedPhenotypesMap));
         return json;
-    }
-
-    @Override
-    public String toString()
-    {
-        return toJSON().toString();
     }
 
     @Override
