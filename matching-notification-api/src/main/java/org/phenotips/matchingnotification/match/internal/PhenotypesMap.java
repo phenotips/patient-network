@@ -130,7 +130,7 @@ public class PhenotypesMap
     public String toString()
     {
         JSONObject o = new JSONObject();
-        o.put(PREDEFINED, this.predefined);
+        o.put(PREDEFINED, this.predefined.keySet());
         o.put(FREE_TEXT, freeText);
         return o.toString();
     }
