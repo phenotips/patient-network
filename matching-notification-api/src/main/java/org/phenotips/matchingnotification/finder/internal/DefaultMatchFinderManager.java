@@ -62,7 +62,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
                 List<PatientMatch> foundMatches = service.findMatches(patient);
                 matches.addAll(foundMatches);
 
-                this.logger.debug("Found {} matches by {}: ", matches.size(), service.getClass().getSimpleName());
+                this.logger.debug("Found {} matches by {}: ", foundMatches.size(), service.getClass().getSimpleName());
                 for (PatientMatch match : foundMatches) {
                     this.logger.debug(match.toCompactString());
                 }
