@@ -17,15 +17,12 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
-import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.PatientAccess;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
-import org.phenotips.vocabulary.VocabularyManager;
-import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.EntityReference;
@@ -33,16 +30,13 @@ import org.xwiki.model.reference.EntityReference;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,61 +58,7 @@ public class DefaultPatientMatchUtils
     @Inject
     private PatientGenotypeManager patientGenotypeManager;
 
-    @Inject
-    private VocabularyManager vocabularyManager;
-
     private Logger logger = LoggerFactory.getLogger(DefaultPatientMatchUtils.class);
-
-    /**
-     * Returns a map with {key:phenotype id, value:phenotype name} for a given patient.
-     *
-     * @param patient to get phenotypes from
-     * @return phenotypes map
-     */
-    public Map<String, String> getPhenotypes(Patient patient)
-    {
-        Map<String, String> map = new TreeMap<>();
-        Set<? extends Feature> features = patient.getFeatures();
-
-        for (Feature feature : features) {
-            if (feature.isPresent()) {
-                map.put(feature.getId(), feature.getName());
-            }
-        }
-
-        return map;
-    }
-
-    /**
-     * Returns a string representation of ids of phenotypes given in a map.
-     *
-     * @param map phenotypes map as returned by {@code getPhenotypes}
-     * @return a string representation of genes
-     */
-    public String getPhenotypesString(Map<String, String> map)
-    {
-        return this.setToString(map.keySet());
-    }
-
-    /**
-     * Converts a string representation of phenotypes into a map, with {key:phenotype id, value:phenotype name}.
-     *
-     * @param string representation of phenotypes
-     * @return phenotypes map
-     */
-    public Map<String, String> phenotypesStringToMap(String string)
-    {
-        Set<String> ids = this.stringToSet(string);
-        Map<String, String> map = new TreeMap<>();
-        for (String id : ids) {
-            VocabularyTerm term = this.vocabularyManager.resolveTerm(id);
-            if (term != null) {
-                map.put(id, term.getName());
-            }
-        }
-
-        return map;
-    }
 
     /**
      * Returns a set of genes for a given patient.
@@ -193,23 +133,6 @@ public class DefaultPatientMatchUtils
             this.logger.error("Error reading owner's email for patient {}.", patient.getId(), e);
             return "";
         }
-    }
-
-    /**
-     * Converts a map representing phenotypes to JSONArray.
-     *
-     * @param map with phenotypes data
-     * @return JSONArray with phenotypes data
-     */
-    public JSONArray phenotypesToJSONArray(Map<String, String> map) {
-        JSONArray array = new JSONArray();
-        for (String id : map.keySet()) {
-            JSONObject o = new JSONObject();
-            o.put("id", id);
-            o.put("name", map.get(id));
-            array.put(o);
-        }
-        return array;
     }
 
     /**

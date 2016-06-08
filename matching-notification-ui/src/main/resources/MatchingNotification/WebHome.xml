@@ -567,32 +567,24 @@ var PhenoTips = (function (PhenoTips) {
           }
 
           // Genes and phenotypes
-          [matches[i].genes, matches[i].matchedGenes] = this._formatJSONArrays(matches[i].genes, matches[i].matchedGenes);
-          [matches[i].phenotypes, matches[i].matchedPhenotypes] = this._formatJSONArrays(matches[i].phenotypes, matches[i].matchedPhenotypes, 'name');
+          [matches[i].genes, matches[i].matchedGenes] = this._formatGenesArrays(matches[i].genes, matches[i].matchedGenes);
+          [matches[i].phenotypes, matches[i].matchedPhenotypes] = this._formatPhenotypesArrays(matches[i].phenotypes, matches[i].matchedPhenotypes);
        }
        return matches;
     },
 
-    // Format two JSON arrays for display:
-    // 1. Makes them of equal length
-    // 2. Add 'none' to either, if they are empty
-    // 3. Replaces every 'item' with 'item.attr' if attr!=undefined; for the case an item is a JSONObject
-    _formatJSONArrays : function(arr1, arr2, attr)
+    // Format two JSON arrays containing genes for display
+    _formatGenesArrays : function(arr1, arr2)
     {
-       if (attr != undefined) {
-          for (var i=0; i&lt;arr1.size(); i++) {
-             arr1[i] = arr1[i][attr];
-          }
-          for (var i=0; i&lt;arr2.size(); i++) {
-             arr2[i] = arr2[i][attr];
-          }
-       }
+       // Add 'none' to either array, if they are empty
        if (arr1.size() == 0) {
           arr1.push("none");
        }
        if (arr2.size() == 0) {
           arr2.push("none");
        }
+
+       // Makes arrays of equal length
        var l = Math.max(arr1.size(), arr2.size());
        while (arr1.size() &lt; l) {
           arr1.push("");
@@ -600,6 +592,38 @@ var PhenoTips = (function (PhenoTips) {
        while (arr2.size() &lt; l) {
           arr2.push("");
        }
+
+       return [arr1, arr2];
+    },
+
+    // Format two JSON objects containing phenotypes for display (compare to formatGenesArrays)
+    _formatPhenotypesArrays : function(arr1, arr2)
+    {
+       // Replace predefined {key,value} phenotypes with value-s.
+       for (var i=0; i&lt;arr1.predefined.size(); i++) {
+          arr1.predefined[i] = arr1.predefined[i].name;
+       }
+       for (var i=0; i&lt;arr2.predefined.size(); i++) {
+          arr2.predefined[i] = arr2.predefined[i].name;
+       }
+
+       // If there are no phenotypes, push "none" to predefined
+       var size1 = arr1.predefined.size() + arr1.freeText.size();
+       var size2 = arr2.predefined.size() + arr2.freeText.size();
+       if (size1 == 0) {
+          arr1.predefined.push("none");
+          size1++;
+       }
+       if (size2 == 0) {
+          arr2.predefined.push("none");
+          size2++;
+       }
+
+       // Add spaces to makes total size equal
+       var l = Math.max(size1, size2);
+       arr1.spaces = l - size1;
+       arr2.spaces = l - size2;
+
        return [arr1, arr2];
     },
 
@@ -699,8 +723,17 @@ var PhenoTips = (function (PhenoTips) {
        td += '&lt;/div&gt;';
 
        td += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
-       for (var i = 0 ; i &lt; phenotypes.size() ; i++) {
-           td += phenotypes[i] + '&lt;br/&gt;';
+       for (var i = 0 ; i &lt; phenotypes.predefined.size() ; i++) {
+           td += phenotypes.predefined[i] + '&lt;br/&gt;';
+       }
+       for (var i = 0 ; i &lt; phenotypes.freeText.size() ; i++) {
+          td += '&lt;div&gt;';
+          td += '&lt;span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/&gt; ';
+          td += phenotypes.freeText[i];
+          td += '&lt;/div&gt;'
+       }
+       for (var i = 0 ; i &lt; phenotypes.spaces ; i++) {
+           td += '&lt;br/&gt;';
        }
        td += '&lt;/div&gt;&lt;/td&gt;';
        return td;

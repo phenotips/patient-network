@@ -1,0 +1,172 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ */
+package org.phenotips.matchingnotification.match.internal;
+
+import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
+
+import org.xwiki.component.manager.ComponentLookupException;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @version $Id$
+ */
+public class PhenotypesMap
+{
+    private static final String FREE_TEXT = "freeText";
+    private static final String PREDEFINED = "predefined";
+
+    private static final VocabularyManager VOCABULARY_MANAGER;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhenotypesMap.class);
+
+    private Map<String, String> predefined;
+    private Set<String> freeText;
+
+    static {
+        VocabularyManager vocabularyManager = null;
+        try {
+            vocabularyManager = ComponentManagerRegistry.getContextComponentManager().getInstance(
+                VocabularyManager.class);
+        } catch (ComponentLookupException e) {
+            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        VOCABULARY_MANAGER = vocabularyManager;
+    }
+
+    /**
+     * Builds a new PhenotypesMap object for a patient.
+     *
+     * @param patient to build a PhenotypesMap from
+     */
+    public PhenotypesMap(Patient patient)
+    {
+        Map<String, String> phenotypes = getPhenotypes(patient);
+        predefined = new HashMap<String, String>();
+        freeText = new HashSet<String>();
+
+        for (String key : phenotypes.keySet()) {
+            String value = phenotypes.get(key);
+            if (StringUtils.isEmpty(key)) {
+                freeText.add(value);
+            } else {
+                predefined.put(key, value);
+            }
+        }
+    }
+
+    protected PhenotypesMap()
+    {
+    }
+
+    /**
+     * Returns a new PhenotypesMap from its string representation.
+     *
+     * @param string that was previously created by PhenotypesMap.toString().
+     * @return a new PhenotypesMap object
+     */
+    public static PhenotypesMap getInstance(String string)
+    {
+        JSONArray predefinedArray = null;
+        JSONArray freeTextArray = null;
+        try {
+            JSONObject obj = new JSONObject(string);
+            predefinedArray = (JSONArray) obj.get(PREDEFINED);
+            freeTextArray = (JSONArray) obj.get(FREE_TEXT);
+        } catch (JSONException e) {
+            PhenotypesMap.LOGGER.error("Error creating a PhenotypesMap from {}.", string, e);
+        }
+
+        PhenotypesMap map = new PhenotypesMap();
+        map.freeText = new HashSet<String>();
+        for (Object o : freeTextArray) {
+            String id = (String) o;
+            map.freeText.add(id);
+        }
+
+        map.predefined = new HashMap<String, String>();
+        for (Object o : predefinedArray) {
+            String id = (String) o;
+            VocabularyTerm term = PhenotypesMap.VOCABULARY_MANAGER.resolveTerm(id);
+            if (term != null) {
+                map.predefined.put(id, term.getName());
+            }
+        }
+
+        return map;
+    }
+
+    @Override
+    public String toString()
+    {
+        JSONObject o = new JSONObject();
+        o.put(PREDEFINED, this.predefined);
+        o.put(FREE_TEXT, freeText);
+        return o.toString();
+    }
+
+    /**
+     * @return JSON representation of the object
+     */
+    public JSONObject toJSON()
+    {
+        JSONObject toJSON = new JSONObject();
+
+        JSONArray array = new JSONArray();
+        for (String id : this.predefined.keySet()) {
+            JSONObject o = new JSONObject();
+            o.put("id", id);
+            o.put("name", this.predefined.get(id));
+            array.put(o);
+        }
+        toJSON.put(PREDEFINED, array);
+
+        toJSON.put(FREE_TEXT, this.freeText);
+        return toJSON;
+
+    }
+
+    private Map<String, String> getPhenotypes(Patient patient)
+    {
+        Map<String, String> map = new TreeMap<>();
+        Set<? extends Feature> features = patient.getFeatures();
+
+        for (Feature feature : features) {
+            if (feature.isPresent()) {
+                map.put(feature.getId(), feature.getName());
+            }
+        }
+
+        return map;
+    }
+}
