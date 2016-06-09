@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Set;
 
 import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -102,16 +103,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String email;
 
     @Basic
+    @Column(columnDefinition = "CLOB")
     private String genes;
 
     @Transient
     private Set<String> genesSet;
 
     @Basic
+    @Column(columnDefinition = "CLOB")
     private String phenotypes;
 
     @Transient
-    // key: id, value: name
     private PhenotypesMap phenotypesMap;
 
     // Attributes related to patient with matchedPatientId
@@ -120,12 +122,14 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String matchedHref;
 
     @Basic
+    @Column(columnDefinition = "CLOB")
     private String matchedGenes;
 
     @Transient
     private Set<String> matchedGenesSet;
 
     @Basic
+    @Column(columnDefinition = "CLOB")
     private String matchedPhenotypes;
 
     @Transient
