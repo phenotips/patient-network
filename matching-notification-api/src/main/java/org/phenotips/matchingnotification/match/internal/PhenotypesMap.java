@@ -71,18 +71,9 @@ public class PhenotypesMap
      */
     public PhenotypesMap(Patient patient)
     {
-        Map<String, String> phenotypes = getPhenotypes(patient);
-        predefined = new HashMap<String, String>();
-        freeText = new HashSet<String>();
-
-        for (String key : phenotypes.keySet()) {
-            String value = phenotypes.get(key);
-            if (StringUtils.isEmpty(key)) {
-                freeText.add(value);
-            } else {
-                predefined.put(key, value);
-            }
-        }
+        this.predefined = new HashMap<String, String>();
+        this.freeText = new HashSet<String>();
+        this.readPhenotypes(patient);
     }
 
     protected PhenotypesMap()
@@ -156,17 +147,23 @@ public class PhenotypesMap
 
     }
 
-    private Map<String, String> getPhenotypes(Patient patient)
+    private void readPhenotypes(Patient patient)
     {
         Map<String, String> map = new TreeMap<>();
         Set<? extends Feature> features = patient.getFeatures();
 
         for (Feature feature : features) {
-            if (feature.isPresent()) {
-                map.put(feature.getId(), feature.getName());
+            if (!feature.isPresent()) {
+                continue;
+            }
+
+            String id = feature.getId();
+            String name = feature.getName();
+            if (StringUtils.isEmpty(id)) {
+                freeText.add(name);
+            } else {
+                predefined.put(id, name);
             }
         }
-
-        return map;
     }
 }
