@@ -566,65 +566,28 @@ var PhenoTips = (function (PhenoTips) {
              matches[i].remoteId = '-';
           }
 
-          // Genes and phenotypes
-          [matches[i].genes, matches[i].matchedGenes] = this._formatGenesArrays(matches[i].genes, matches[i].matchedGenes);
-          [matches[i].phenotypes, matches[i].matchedPhenotypes] = this._formatPhenotypesArrays(matches[i].phenotypes, matches[i].matchedPhenotypes);
+          // Phenotypes
+          [matches[i].phenotypes, matches[i].matchedPhenotypes] = this._formatPhenotypes(matches[i].phenotypes, matches[i].matchedPhenotypes);
        }
        return matches;
     },
 
-    // Format two JSON arrays containing genes for display
-    _formatGenesArrays : function(arr1, arr2)
-    {
-       // Add 'none' to either array, if they are empty
-       if (arr1.size() == 0) {
-          arr1.push("none");
-       }
-       if (arr2.size() == 0) {
-          arr2.push("none");
-       }
-
-       // Makes arrays of equal length
-       var l = Math.max(arr1.size(), arr2.size());
-       while (arr1.size() &lt; l) {
-          arr1.push("");
-       }
-       while (arr2.size() &lt; l) {
-          arr2.push("");
-       }
-
-       return [arr1, arr2];
-    },
-
     // Format two JSON objects containing phenotypes for display (compare to formatGenesArrays)
-    _formatPhenotypesArrays : function(arr1, arr2)
+    _formatPhenotypes : function(obj1, obj2)
     {
        // Replace predefined {key,value} phenotypes with value-s.
-       for (var i=0; i&lt;arr1.predefined.size(); i++) {
-          arr1.predefined[i] = arr1.predefined[i].name;
+       for (var i=0; i&lt;obj1.predefined.size(); i++) {
+          obj1.predefined[i] = obj1.predefined[i].name;
        }
-       for (var i=0; i&lt;arr2.predefined.size(); i++) {
-          arr2.predefined[i] = arr2.predefined[i].name;
-       }
-
-       // If there are no phenotypes, push "none" to predefined
-       var size1 = arr1.predefined.size() + arr1.freeText.size();
-       var size2 = arr2.predefined.size() + arr2.freeText.size();
-       if (size1 == 0) {
-          arr1.predefined.push("none");
-          size1++;
-       }
-       if (size2 == 0) {
-          arr2.predefined.push("none");
-          size2++;
+       for (var i=0; i&lt;obj2.predefined.size(); i++) {
+          obj2.predefined[i] = obj2.predefined[i].name;
        }
 
-       // Add spaces to makes total size equal
-       var l = Math.max(size1, size2);
-       arr1.spaces = l - size1;
-       arr2.spaces = l - size2;
+       // If there are no phenotypes, push emptiness sign to predefined
+       obj1.empty = (obj1.predefined.size() + obj1.freeText.size() == 0);
+       obj2.empty = (obj2.predefined.size() + obj2.freeText.size() == 0);
 
-       return [arr1, arr2];
+       return [obj1, obj2];
     },
 
     _roundScore : function(score)
@@ -664,7 +627,8 @@ var PhenoTips = (function (PhenoTips) {
             features: {
                pushState : false
             }
-         });
+         }).bind('dynatable:afterProcess', this._processingComplete.bind(this));
+         this._processingComplete();
       }
 
       // Mark notification results as successful/failed
@@ -691,8 +655,8 @@ var PhenoTips = (function (PhenoTips) {
        var checkbox = '&lt;td&gt;&lt;input type="checkbox" id="checkbox_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/&gt;&lt;/td&gt;';
 
        // column 1,2 - reference patient and matched patient, their genes and phenotypes
-       patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes);
-       matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes);
+       patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd');
+       matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd');
 
        // grab the record's attribute for each column.
        // skip first column (index 0), it's for checkbox
@@ -712,31 +676,71 @@ var PhenoTips = (function (PhenoTips) {
        return '&lt;tr id="tr_' + record.id + '"&gt;' + tr + '&lt;/tr&gt;';
     },
 
-    _getPatientDetailsTd : function(id, genes, phenotypes)
+    _getPatientDetailsTd : function(id, genes, phenotypes, tdId)
     {
-       var td = '&lt;td&gt;&lt;div class="patient-div"&gt;' + id + '&lt;/div&gt;';
+       var td = '&lt;td id="' + tdId + '"&gt;&lt;div class="patient-div"&gt;' + id + '&lt;/div&gt;';
 
-       td += '&lt;div class="genes-div"&gt;&lt;div class="subtitle"&gt;genes&lt;/div&gt;';
-       for (var i = 0 ; i &lt; genes.size() ; i++) {
-           td += genes[i] + '&lt;br/&gt;';
+       // Genes
+       td += '&lt;div class="genes-div"&gt;';
+       var genesTitle = 'Genes';
+       if (genes.size() == 0) {
+           genesTitle += ': -';
+       }
+       td += '&lt;div class="subtitle"&gt;' + genesTitle + '&lt;/div&gt;';
+       if (genes.size() != 0) {
+          td += '&lt;ul&gt;';
+          for (var i = 0 ; i &lt; genes.size() ; i++) {
+              td += '&lt;li&gt;' + genes[i] + '&lt;/li&gt;';
+          }
+          td += '&lt;/ul&gt;';
        }
        td += '&lt;/div&gt;';
 
-       td += '&lt;div class="phenotypes-div"&gt;&lt;div class="subtitle"&gt;phenotypes&lt;/div&gt;';
-       for (var i = 0 ; i &lt; phenotypes.predefined.size() ; i++) {
-           td += phenotypes.predefined[i] + '&lt;br/&gt;';
+       // Phenotypes
+       td += '&lt;div class="phenotypes-div"&gt;';
+       var phenotypesTitle = 'Phenotypes';
+       if (phenotypes.empty) {
+           phenotypesTitle += ': -';
        }
-       for (var i = 0 ; i &lt; phenotypes.freeText.size() ; i++) {
-          td += '&lt;div&gt;';
-          td += '&lt;span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/&gt; ';
-          td += phenotypes.freeText[i];
-          td += '&lt;/div&gt;'
+       td += '&lt;div class="subtitle"&gt;' + phenotypesTitle + '&lt;/div&gt;';
+       if (!phenotypes.empty) {
+          td += '&lt;ul&gt;';
+          for (var i = 0 ; i &lt; phenotypes.predefined.size() ; i++) {
+              td += '&lt;li&gt;' + phenotypes.predefined[i] + '&lt;/li&gt;';
+          }
+          for (var i = 0 ; i &lt; phenotypes.freeText.size() ; i++) {
+             td += '&lt;li&gt;'
+             td += '&lt;div&gt;';
+             td += '&lt;span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/&gt; ';
+             td += phenotypes.freeText[i];
+             td += '&lt;/div&gt;';
+             td += '&lt;/li&gt;';
+          }
+          td += '&lt;/ul&gt;';
        }
-       for (var i = 0 ; i &lt; phenotypes.spaces ; i++) {
-           td += '&lt;br/&gt;';
-       }
-       td += '&lt;/div&gt;&lt;/td&gt;';
+       td += '&lt;/div&gt;';
+
+       td += '&lt;/td&gt;';
        return td;
+    },
+
+    _processingComplete : function()
+    {
+       _this = this;
+
+       // Makes genes-div the same height in patient and matched patient columns
+       this._$('#matchesTable &gt; tbody').find('tr').each(function (index, elm)
+       {
+          var patientTd = _this._$(elm).find('#patientTd');
+          var matchedPatientTd = _this._$(elm).find('#matchedPatientTd');
+
+          var genesDiv = _this._$(patientTd).find('.genes-div');
+          var matchedGenesDiv = _this._$(matchedPatientTd).find('.genes-div');
+
+          var h = Math.max(genesDiv.height(), matchedGenesDiv.height());
+          genesDiv.height(h);
+          matchedGenesDiv.height(h);
+       });
     },
 
     _checkboxAllClicked : function(event)
@@ -895,6 +899,7 @@ var PhenoTips = (function (PhenoTips) {
 
 .genes-div {
     margin-bottom: 10px;
+    background: lightgrey;
 }
 
 .subtitle {
