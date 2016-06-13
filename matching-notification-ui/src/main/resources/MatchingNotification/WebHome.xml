@@ -726,21 +726,19 @@ var PhenoTips = (function (PhenoTips) {
 
     _processingComplete : function()
     {
-       _this = this;
-
        // Makes genes-div the same height in patient and matched patient columns
        this._$('#matchesTable &gt; tbody').find('tr').each(function (index, elm)
        {
-          var patientTd = _this._$(elm).find('#patientTd');
-          var matchedPatientTd = _this._$(elm).find('#matchedPatientTd');
+          var patientTd = this._$(elm).find('#patientTd');
+          var matchedPatientTd = this._$(elm).find('#matchedPatientTd');
 
-          var genesDiv = _this._$(patientTd).find('.genes-div');
-          var matchedGenesDiv = _this._$(matchedPatientTd).find('.genes-div');
+          var genesDiv = this._$(patientTd).find('.genes-div');
+          var matchedGenesDiv = this._$(matchedPatientTd).find('.genes-div');
 
           var h = Math.max(genesDiv.height(), matchedGenesDiv.height());
           genesDiv.height(h);
           matchedGenesDiv.height(h);
-       });
+       }.bind(this));
     },
 
     _checkboxAllClicked : function(event)
