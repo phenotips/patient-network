@@ -631,6 +631,9 @@ var PhenoTips = (function (PhenoTips) {
          this._processingComplete();
       }
 
+      // Register listeners to components in table
+      this._$('.collapse-gp').on('click', this._expandCollapseGP.bind(this));
+
       // Mark notification results as successful/failed
       var results = this._notificationResults.results;
       if (results != undefined) {
@@ -678,7 +681,13 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientDetailsTd : function(id, genes, phenotypes, tdId)
     {
-       var td = '&lt;td id="' + tdId + '"&gt;&lt;div class="patient-div"&gt;' + id + '&lt;/div&gt;';
+       var td = '&lt;td id="' + tdId + '"&gt;';
+
+       // Patient id and collapsible icon
+       td += '&lt;div class="patient-div"&gt;&lt;span class="fa collapse-gp fa-minus-square-o" title=""/&gt;&lt;label class="patient-id-label"&gt;' + id + '&lt;/label&gt;&lt;/div&gt;';
+
+       // Collapsible div
+       td += '&lt;div id="collapse-gp-div" class="expanded"&gt;';
 
        // Genes
        td += '&lt;div class="genes-div"&gt;';
@@ -718,6 +727,9 @@ var PhenoTips = (function (PhenoTips) {
           }
           td += '&lt;/ul&gt;';
        }
+       td += '&lt;/div&gt;';
+
+       // End collapsible div
        td += '&lt;/div&gt;';
 
        td += '&lt;/td&gt;';
@@ -768,7 +780,27 @@ var PhenoTips = (function (PhenoTips) {
           }
        });
        return ids;
+    },
+
+    _expandCollapseGP : function(event)
+    {
+       var p = event.target;
+
+       // Find div to collapse
+       var divToCollapse = undefined;
+       while (divToCollapse == undefined &amp;&amp; !this._$(p).is('table')) {
+          divToCollapse = this._$(p).find('#collapse-gp-div');
+          divToCollapse = divToCollapse.length == 0 ? undefined : divToCollapse;
+          p = this._$(p).parent();
+       }
+
+       var isExpanded = divToCollapse.attr('class').indexOf("expanded") &gt; -1;
+       this._$(divToCollapse[0]).removeClass(isExpanded ? "expanded" : "collapsed");
+       this._$(divToCollapse[0]).addClass(isExpanded ? "collapsed" : "expanded");
+       this._$(event.target).removeClass(isExpanded ? "fa-minus-square-o" : "fa-plus-square-o");
+       this._$(event.target).addClass(isExpanded ? "fa-plus-square-o" : "fa-minus-square-o");
     }
+
   });
   return PhenoTips;
 }(PhenoTips || {}));</code>
@@ -879,7 +911,19 @@ var PhenoTips = (function (PhenoTips) {
       <cache>long</cache>
     </property>
     <property>
-      <code>.successful {
+      <code>.collapsed {
+  visibility: hidden;
+}
+
+.expanded {
+  visibility: visible;
+}
+
+.patient-id-label {
+  margin-left: 3px;
+}
+
+.successful {
   color: green;
 }
 
