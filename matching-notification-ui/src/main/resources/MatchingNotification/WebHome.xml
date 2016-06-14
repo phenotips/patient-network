@@ -269,6 +269,10 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
   Filter notified
 &lt;/div&gt;
+&lt;div&gt;
+  &lt;input type="checkbox" id="expand_all" checked/&gt;
+  Expand all
+&lt;/div&gt;
 &lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
@@ -439,6 +443,7 @@ var PhenoTips = (function (PhenoTips) {
       $('#send-notifications-button').on('click', this._sendNotification.bind(this));
       $('#checkbox_all').on('click', this._checkboxAllClicked.bind(this));
       $('#checkbox_filter_notified').on('click', this._filterNotifiedClicked.bind(this));
+      $('#expand_all').on('click', this._expandAllClicked.bind(this));
     },
 
     _findMatches : function()
@@ -812,6 +817,16 @@ var PhenoTips = (function (PhenoTips) {
           this._$(target).addClass("fa-plus-square-o");
        }
     },
+
+    _expandAllClicked : function(event)
+    {
+       var checkbox = this._$('#expand_all');
+       var expand = this._$(checkbox).is(':checked');
+       this._$('#matchesTable').find(".collapse-gp").each(function (index, elm) {
+          this._expandCollapseGP(elm, expand);
+       }.bind(this));
+    }
+
   });
   return PhenoTips;
 }(PhenoTips || {}));</code>
