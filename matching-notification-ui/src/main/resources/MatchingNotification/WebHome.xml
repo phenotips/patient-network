@@ -687,7 +687,7 @@ var PhenoTips = (function (PhenoTips) {
        td += '&lt;div class="patient-div"&gt;&lt;span class="fa collapse-gp fa-minus-square-o" title=""/&gt;&lt;label class="patient-id-label"&gt;' + id + '&lt;/label&gt;&lt;/div&gt;';
 
        // Collapsible div
-       td += '&lt;div id="collapse-gp-div" class="expanded"&gt;';
+       td += '&lt;div id="collapse-gp-div" class=""&gt;';
 
        // Genes
        td += '&lt;div class="genes-div"&gt;';
@@ -736,7 +736,7 @@ var PhenoTips = (function (PhenoTips) {
        return td;
     },
 
-    _processingComplete : function()
+    _processingComplete : function(specificTd)
     {
        // Makes genes-div the same height in patient and matched patient columns
        this._$('#matchesTable &gt; tbody').find('tr').each(function (index, elm)
@@ -794,11 +794,16 @@ var PhenoTips = (function (PhenoTips) {
           p = this._$(p).parent();
        }
 
-       var isExpanded = divToCollapse.attr('class').indexOf("expanded") &gt; -1;
-       this._$(divToCollapse[0]).removeClass(isExpanded ? "expanded" : "collapsed");
-       this._$(divToCollapse[0]).addClass(isExpanded ? "collapsed" : "expanded");
-       this._$(event.target).removeClass(isExpanded ? "fa-minus-square-o" : "fa-plus-square-o");
-       this._$(event.target).addClass(isExpanded ? "fa-plus-square-o" : "fa-minus-square-o");
+       if (divToCollapse.attr('class').indexOf("collapsed") &gt; -1) {
+          this._$(divToCollapse[0]).removeClass("collapsed");
+          this._$(event.target).removeClass("fa-plus-square-o");
+          this._$(event.target).addClass("fa-minus-square-o");
+       } else {
+          this._$(divToCollapse[0]).addClass("collapsed");
+          this._$(event.target).removeClass("fa-minus-square-o");
+          this._$(event.target).addClass("fa-plus-square-o");
+       }
+
     }
 
   });
@@ -913,10 +918,8 @@ var PhenoTips = (function (PhenoTips) {
     <property>
       <code>.collapsed {
   visibility: hidden;
-}
-
-.expanded {
-  visibility: visible;
+  height: 1px;
+  overflow: hidden;
 }
 
 .patient-id-label {
