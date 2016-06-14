@@ -632,7 +632,9 @@ var PhenoTips = (function (PhenoTips) {
       }
 
       // Register listeners to components in table
-      this._$('.collapse-gp').on('click', this._expandCollapseGP.bind(this));
+      this._$('.collapse-gp').on('click', function(event) {
+          this._expandCollapseGP(event.target);
+      }.bind(this));
 
       // Mark notification results as successful/failed
       var results = this._notificationResults.results;
@@ -684,7 +686,7 @@ var PhenoTips = (function (PhenoTips) {
        var td = '&lt;td id="' + tdId + '"&gt;';
 
        // Patient id and collapsible icon
-       td += '&lt;div class="patient-div"&gt;&lt;span class="fa collapse-gp fa-minus-square-o" title=""/&gt;&lt;label class="patient-id-label"&gt;' + id + '&lt;/label&gt;&lt;/div&gt;';
+       td += '&lt;div class="patient-div"&gt;&lt;label class="fa collapse-gp fa-minus-square-o patient-id-label"&gt;' + id + '&lt;/label&gt;&lt;/div&gt;';
 
        // Collapsible div
        td += '&lt;div id="collapse-gp-div" class=""&gt;';
@@ -782,9 +784,11 @@ var PhenoTips = (function (PhenoTips) {
        return ids;
     },
 
-    _expandCollapseGP : function(event)
+    // target is the component that was clicked to expand/collapse (this +/- sign).
+    // expand is boolean, when undefined, the value will be understood from target
+    _expandCollapseGP : function(target, expand)
     {
-       var p = event.target;
+       var p = target;
 
        // Find div to collapse
        var divToCollapse = undefined;
@@ -794,18 +798,20 @@ var PhenoTips = (function (PhenoTips) {
           p = this._$(p).parent();
        }
 
-       if (divToCollapse.attr('class').indexOf("collapsed") &gt; -1) {
-          this._$(divToCollapse[0]).removeClass("collapsed");
-          this._$(event.target).removeClass("fa-plus-square-o");
-          this._$(event.target).addClass("fa-minus-square-o");
-       } else {
-          this._$(divToCollapse[0]).addClass("collapsed");
-          this._$(event.target).removeClass("fa-minus-square-o");
-          this._$(event.target).addClass("fa-plus-square-o");
+       if (expand == undefined) {
+          expand = divToCollapse.attr('class').indexOf("collapsed") &gt; -1
        }
 
-    }
-
+       if (expand) {
+          this._$(divToCollapse[0]).removeClass("collapsed");
+          this._$(target).removeClass("fa-plus-square-o");
+          this._$(target).addClass("fa-minus-square-o");
+       } else {
+          this._$(divToCollapse[0]).addClass("collapsed");
+          this._$(target).removeClass("fa-minus-square-o");
+          this._$(target).addClass("fa-plus-square-o");
+       }
+    },
   });
   return PhenoTips;
 }(PhenoTips || {}));</code>
