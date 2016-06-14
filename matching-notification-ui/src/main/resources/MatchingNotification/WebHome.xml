@@ -261,14 +261,14 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
 &lt;br/&gt;
-&lt;label&gt;
+&lt;div&gt;
   &lt;input type="checkbox" id="checkbox_all" /&gt;
   Select all
-&lt;/label&gt;
-&lt;label&gt;
+&lt;/div&gt;
+&lt;div&gt;
   &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
   Filter notified
-&lt;/label&gt;
+&lt;/div&gt;
 &lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
@@ -954,14 +954,7 @@ var PhenoTips = (function (PhenoTips) {
 
 #matchesTable td {
     vertical-align: text-top;
-}
-
-
-#checkbox_filter_notified {
-    margin-bottom: 20px;
-}
-
-</code>
+}</code>
     </property>
     <property>
       <contentType>CSS</contentType>
