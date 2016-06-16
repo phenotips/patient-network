@@ -636,11 +636,6 @@ var PhenoTips = (function (PhenoTips) {
          this._processingComplete();
       }
 
-      // Register listeners to components in table
-      this._$('.collapse-gp').on('click', function(event) {
-          this._expandCollapseGP(event.target);
-      }.bind(this));
-
       // Mark notification results as successful/failed
       var results = this._notificationResults.results;
       if (results != undefined) {
@@ -757,6 +752,11 @@ var PhenoTips = (function (PhenoTips) {
           var h = Math.max(genesDiv.height(), matchedGenesDiv.height());
           genesDiv.height(h);
           matchedGenesDiv.height(h);
+       }.bind(this));
+
+       // Register listeners to components in table
+       this._$('.collapse-gp').on('click', function(event) {
+          this._expandCollapseGP(event.target);
        }.bind(this));
     },
 
