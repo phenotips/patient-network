@@ -597,7 +597,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _roundScore : function(score)
     {
-        return Math.round(Number(score) * 1000) / 1000;
+        return Math.round(Number(score) * 100) / 100;
     },
 
     _buildTable : function()
