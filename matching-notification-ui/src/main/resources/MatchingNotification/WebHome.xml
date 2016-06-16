@@ -758,6 +758,8 @@ var PhenoTips = (function (PhenoTips) {
        this._$('.collapse-gp').on('click', function(event) {
           this._expandCollapseGP(event.target);
        }.bind(this));
+
+       this._expandAllClicked();
     },
 
     _checkboxAllClicked : function(event)
@@ -818,7 +820,7 @@ var PhenoTips = (function (PhenoTips) {
        }
     },
 
-    _expandAllClicked : function(event)
+    _expandAllClicked : function()
     {
        var checkbox = this._$('#expand_all');
        var expand = this._$(checkbox).is(':checked');
