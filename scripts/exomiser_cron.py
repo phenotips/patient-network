@@ -288,13 +288,12 @@ def filter_variants(from_filename, to_filename):
 
 def delete_exomiser(record_id, settings):
     any_removed = False
-    for filename in glob.glob(os.path.join(settings['out_dir'], record_id + '.*')):
+    for filename in glob.glob(os.path.join(settings['out_dir'], record_id, record_id + '.*')):
         any_removed = True
-        #os.remove(record_id)
-        pass
+        logging.warning('Removing: {0}'.format(filename))
+        os.remove(filename)
 
     if any_removed:
-        logging.warning('Removed exomiser records for {0}'.format(record_id))
         clear_cache(record_id, settings)
 
 def enqueue_exomiser(record_id, record_data, settings):
