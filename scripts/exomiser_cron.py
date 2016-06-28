@@ -230,7 +230,7 @@ def parse_phenotypes(data):
     # Add in prenatal phenotype
     features.extend(data.get('prenatal_perinatal_phenotype', {}).get('prenatal_phenotype', []))
     for feature in features:
-        if feature.get('type') == 'phenotype' and feature.get('observed') == 'yes':
+        if feature.get('observed') == 'yes':
             terms.add(feature['id'])
 
     return sorted(terms)
