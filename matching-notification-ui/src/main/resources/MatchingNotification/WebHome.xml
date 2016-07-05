@@ -939,7 +939,7 @@ var PhenoTips = (function (PhenoTips) {
       <cache>long</cache>
     </property>
     <property>
-      <code>.collapsed {
+      <code>#matchesTable .collapsed {
   visibility: hidden;
   height: 1px;
   overflow: hidden;
@@ -992,7 +992,7 @@ var PhenoTips = (function (PhenoTips) {
       <parse/>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
 </xwikidoc>
