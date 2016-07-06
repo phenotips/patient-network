@@ -253,14 +253,13 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;button id="find-matches-button" type="button"&gt;Go&lt;/button&gt;
   &lt;div id="find-matches-messages"/&gt;
 &lt;/div&gt;
-&lt;br/&gt;
+&lt;div id="filter-div"&gt;
 &lt;div&gt;
   &lt;label&gt;Show matches with score over &lt;/label&gt;
   &lt;input id="show-matches-score"/&gt;
   &lt;button id="show-matches-button" type="button"&gt;Go&lt;/button&gt;
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
-&lt;br/&gt;
 &lt;div&gt;
   &lt;input type="checkbox" id="checkbox_all" /&gt;
   Select all
@@ -272,6 +271,7 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
 &lt;div&gt;
   &lt;input type="checkbox" id="expand_all" checked/&gt;
   Expand all
+&lt;/div&gt;
 &lt;/div&gt;
 &lt;br/&gt;
 &lt;table id="matchesTable"&gt;
@@ -993,6 +993,10 @@ var PhenoTips = (function (PhenoTips) {
 
 #matchesTable td {
     vertical-align: text-top;
+}
+
+#filter-div {
+   margin-top: 40px;
 }</code>
     </property>
     <property>
