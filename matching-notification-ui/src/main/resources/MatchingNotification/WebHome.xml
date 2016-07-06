@@ -469,9 +469,12 @@ var PhenoTips = (function (PhenoTips) {
           }
         );
         this._showSent('find-matches-messages');
+
+        this._$('#show-matches-score').val(score);
+        this._showMatches();
     },
 
-    _showMatches : function(notificationResults)
+    _showMatches : function()
     {
       var _this = this;
       var score = _this._checkScore('show-matches-score', 'show-matches-messages');
@@ -487,7 +490,6 @@ var PhenoTips = (function (PhenoTips) {
               console.log("show matches result, score = " + score);
               console.log(response.responseJSON);
               _this._matches = _this._formatMatches(response.responseJSON.matches);
-              _this._notificationResults = notificationResults;
               _this._buildTable();
            },
            onFailure : function (response) {
@@ -512,7 +514,8 @@ var PhenoTips = (function (PhenoTips) {
                console.log("onSuccess, received:");
                console.log(response.responseText);
                _this._showSuccess('send-notifications-messages');
-               _this._showMatches(response.responseJSON);
+              _this._notificationResults = response.responseJSON;
+              _this._showMatches();
             },
             onFailure : function (response) {
                _this._showFailure('send-notifications-messages');
