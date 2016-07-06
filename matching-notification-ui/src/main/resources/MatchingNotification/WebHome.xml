@@ -29,8 +29,8 @@
   <parent>PhenoTips.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1463606357000</date>
-  <contentUpdateDate>1463603459000</contentUpdateDate>
+  <date>1467831287000</date>
+  <contentUpdateDate>1467755863000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
@@ -660,8 +660,8 @@ var PhenoTips = (function (PhenoTips) {
        var checkbox = '&lt;td&gt;&lt;input type="checkbox" id="checkbox_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/&gt;&lt;/td&gt;';
 
        // column 1,2 - reference patient and matched patient, their genes and phenotypes
-       patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd');
-       matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd');
+       patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd', record.id);
+       matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd', record.id);
 
        // grab the record's attribute for each column.
        // skip first column (index 0), it's for checkbox
@@ -681,15 +681,17 @@ var PhenoTips = (function (PhenoTips) {
        return '&lt;tr id="tr_' + record.id + '"&gt;' + tr + '&lt;/tr&gt;';
     },
 
-    _getPatientDetailsTd : function(id, genes, phenotypes, tdId)
+    _getPatientDetailsTd : function(patientId, genes, phenotypes, tdId, matchId)
     {
        var td = '&lt;td id="' + tdId + '"&gt;';
 
        // Patient id and collapsible icon
-       td += '&lt;div class="patient-div"&gt;&lt;label class="fa collapse-gp fa-minus-square-o patient-id-label"&gt;' + id + '&lt;/label&gt;&lt;/div&gt;';
+       td += '&lt;div class="patient-div"&gt;';
+       td += '&lt;label class="fa fa-minus-square-o patient-id-label collapse-gp-' + matchId + '"&gt;' + patientId + '&lt;/label&gt;';
+       td += '&lt;/div&gt;';
 
        // Collapsible div
-       td += '&lt;div id="collapse-gp-div" class=""&gt;';
+       td += '&lt;div class="collapse-gp-div-' + matchId + '"&gt;';
 
        // Genes
        td += '&lt;div class="genes-div"&gt;';
@@ -755,7 +757,7 @@ var PhenoTips = (function (PhenoTips) {
        }.bind(this));
 
        // Register listeners to components in table
-       this._$('.collapse-gp').on('click', function(event) {
+       this._$('#matchesTable').find('label[class*="collapse-gp-"]').on('click', function(event) {
           this._expandCollapseGP(event.target);
        }.bind(this));
 
@@ -795,36 +797,47 @@ var PhenoTips = (function (PhenoTips) {
     // expand is boolean, when undefined, the value will be understood from target
     _expandCollapseGP : function(target, expand)
     {
-       var p = target;
+       // find matchId to collapse/expand
+       var lookFor = 'collapse-gp-';
+       var classes = target.classList;
+       var greped = this._$.grep(classes , function(item) {return item.indexOf(lookFor) &gt; -1});
+       var matchId = greped[0].substring(lookFor.length);
 
-       // Find div to collapse
-       var divToCollapse = undefined;
-       while (divToCollapse == undefined &amp;&amp; !this._$(p).is('table')) {
-          divToCollapse = this._$(p).find('#collapse-gp-div');
-          divToCollapse = divToCollapse.length == 0 ? undefined : divToCollapse;
-          p = this._$(p).parent();
-       }
+       // collapse/expand divs
+       this._$('#matchesTable').find(".collapse-gp-div-"+matchId).each(function (index, elm) {
 
-       if (expand == undefined) {
-          expand = this._$(divToCollapse).hasClass('collapsed');
-       }
+          if (expand == undefined) {
+             expand = this._$(elm).hasClass('collapsed');
+          }
 
-       if (expand) {
-          this._$(divToCollapse[0]).removeClass("collapsed");
-          this._$(target).removeClass("fa-plus-square-o");
-          this._$(target).addClass("fa-minus-square-o");
-       } else {
-          this._$(divToCollapse[0]).addClass("collapsed");
-          this._$(target).removeClass("fa-minus-square-o");
-          this._$(target).addClass("fa-plus-square-o");
-       }
+          if (expand) {
+             this._$(elm).removeClass("collapsed");
+          } else {
+             this._$(elm).addClass("collapsed");
+          }
+
+       }.bind(this));
+
+       // change display of collapse/display component (+/-)
+       this._$('#matchesTable').find(".collapse-gp-"+matchId).each(function (index, elm) {
+
+          if (expand) {
+             this._$(elm).removeClass("fa-plus-square-o");
+             this._$(elm).addClass("fa-minus-square-o");
+          } else {
+             this._$(elm).removeClass("fa-minus-square-o");
+             this._$(elm).addClass("fa-plus-square-o");
+          }
+
+       }.bind(this));
+
     },
 
     _expandAllClicked : function()
     {
        var checkbox = this._$('#expand_all');
        var expand = this._$(checkbox).is(':checked');
-       this._$('#matchesTable').find(".collapse-gp").each(function (index, elm) {
+       this._$('#matchesTable').find('label[class*="collapse-gp-"]').each(function (index, elm) {
           this._expandCollapseGP(elm, expand);
        }.bind(this));
     }
