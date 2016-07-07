@@ -690,7 +690,7 @@ var PhenoTips = (function (PhenoTips) {
 
        // Patient id and collapsible icon
        td += '&lt;div class="patient-div"&gt;';
-       td += '&lt;label class="fa fa-minus-square-o patient-id-label collapse-gp-' + matchId + '"&gt;' + patientId + '&lt;/label&gt;';
+       td += '&lt;label class="fa fa-minus-square-o collapse-gp-' + matchId + '"&gt;' + patientId + '&lt;/label&gt;';
        td += '&lt;/div&gt;';
 
        // Collapsible div
@@ -959,10 +959,6 @@ var PhenoTips = (function (PhenoTips) {
   visibility: hidden;
   height: 1px;
   overflow: hidden;
-}
-
-.patient-id-label {
-  margin-left: 3px;
 }
 
 .successful {
