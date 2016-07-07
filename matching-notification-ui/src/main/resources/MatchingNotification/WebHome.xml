@@ -29,8 +29,8 @@
   <parent>PhenoTips.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1467831287000</date>
-  <contentUpdateDate>1467755863000</contentUpdateDate>
+  <date>1467919930000</date>
+  <contentUpdateDate>1467835100000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
@@ -688,9 +688,11 @@ var PhenoTips = (function (PhenoTips) {
     {
        var td = '&lt;td id="' + tdId + '"&gt;';
 
+       var patientHref = new XWiki.Document(patientId, 'data').getURL();
+
        // Patient id and collapsible icon
-       td += '&lt;div class="patient-div"&gt;';
-       td += '&lt;label class="fa fa-minus-square-o collapse-gp-' + matchId + '"&gt;' + patientId + '&lt;/label&gt;';
+       td += '&lt;div class="fa fa-minus-square-o patient-div collapse-gp-tool-' + matchId + '"&gt;';
+       td += '&lt;a href="' + patientHref + '" target="_blank" class="patient-href"&gt;' + patientId + '&lt;/a&gt;';
        td += '&lt;/div&gt;';
 
        // Collapsible div
@@ -760,7 +762,7 @@ var PhenoTips = (function (PhenoTips) {
        }.bind(this));
 
        // Register listeners to components in table
-       this._$('#matchesTable').find('label[class*="collapse-gp-"]').on('click', function(event) {
+       this._$('#matchesTable').find('[class*="collapse-gp-tool"]').on('click', function(event) {
           this._expandCollapseGP(event.target);
        }.bind(this));
 
@@ -801,7 +803,7 @@ var PhenoTips = (function (PhenoTips) {
     _expandCollapseGP : function(target, expand)
     {
        // find matchId to collapse/expand
-       var lookFor = 'collapse-gp-';
+       var lookFor = 'collapse-gp-tool-';
        var classes = target.classList;
        var greped = this._$.grep(classes , function(item) {return item.indexOf(lookFor) &gt; -1});
        var matchId = greped[0].substring(lookFor.length);
@@ -822,7 +824,7 @@ var PhenoTips = (function (PhenoTips) {
        }.bind(this));
 
        // change display of collapse/display component (+/-)
-       this._$('#matchesTable').find(".collapse-gp-"+matchId).each(function (index, elm) {
+       this._$('#matchesTable').find(".collapse-gp-tool-"+matchId).each(function (index, elm) {
 
           if (expand) {
              this._$(elm).removeClass("fa-plus-square-o");
@@ -840,7 +842,7 @@ var PhenoTips = (function (PhenoTips) {
     {
        var checkbox = this._$('#expand_all');
        var expand = this._$(checkbox).is(':checked');
-       this._$('#matchesTable').find('label[class*="collapse-gp-"]').each(function (index, elm) {
+       this._$('#matchesTable').find('[class*="collapse-gp-tool-"]').each(function (index, elm) {
           this._expandCollapseGP(elm, expand);
        }.bind(this));
     }
@@ -975,6 +977,10 @@ var PhenoTips = (function (PhenoTips) {
 
 .patient-div {
     margin-bottom: 10px;
+}
+
+.patient-href {
+   margin-left: 3px;
 }
 
 .genes-div {
