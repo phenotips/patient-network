@@ -73,6 +73,7 @@
     <module>similarity-search</module>
     <module>communication</module>
     <module>ui</module>
+    <module>matching-notification-resources</module>
     <module>matching-notification-ui</module>
     <module>matching-notification-api</module>
   </modules>

@@ -25,36 +25,6 @@
     <artifactId>patient-network</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <packaging>xar</packaging>
-  <name>PhenoTips - Patient Network - Matching Notification - UI</name>
-  <artifactId>matching-notification-ui</artifactId>
-  <dependencies>
-    <dependency>
-      <groupId>org.webjars</groupId>
-      <artifactId>jquery-dynatable</artifactId>
-      <version>0.3.1</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.phenotips</groupId>
-      <artifactId>matching-notification-api</artifactId>
-      <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.phenotips</groupId>
-      <artifactId>matching-notification-resources</artifactId>
-      <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-  <build>
-    <extensions>
-      <extension>
-        <groupId>org.xwiki.commons</groupId>
-        <artifactId>xwiki-commons-tool-xar-handlers</artifactId>
-        <version>${xwiki.version}</version>
-      </extension>
-    </extensions>
-  </build>
+  <artifactId>matching-notification-resources</artifactId>
+  <name>Phenotips - Patient Network - Matching Notification - JS and CSS Resources</name>
 </project>
