@@ -22,6 +22,7 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +48,8 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 @Singleton
 public class DefaultMatchStorageManager implements MatchStorageManager
 {
+    private static final String NOTIFIED = "notified";
+
     /** Handles persistence. */
     @Inject
     private HibernateSessionFactory sessionFactory;
@@ -76,21 +79,23 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public List<PatientMatch> loadAllMatches() {
-        return this.loadMatchesByCriterion(null);
+    public List<PatientMatch> loadUnnotifiedMatches(double score) {
+        return this.loadMatchesByCriteria(
+            new Criterion[] { Restrictions.ge("score", score),
+                              Restrictions.eq(NOTIFIED, false) });
     }
 
     @Override
-    public List<PatientMatch> loadMatches(double score) {
-        Criterion criterion = Restrictions.ge("score", score);
-        return this.loadMatchesByCriterion(criterion);
+    public List<PatientMatch> lostNotifiedMatches() {
+        return this.loadMatchesByCriteria(
+            new Criterion[] { Restrictions.eq(NOTIFIED, true) });
     }
 
     @Override
     public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds) {
         if (matchesIds != null && matchesIds.size() > 0) {
-            Criterion criterion = Restrictions.in("id", matchesIds.toArray());
-            return this.loadMatchesByCriterion(criterion);
+            return this.loadMatchesByCriteria(
+                new Criterion[] { Restrictions.in("id", matchesIds.toArray()) });
         } else {
             return Collections.emptyList();
         }
@@ -100,53 +105,33 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public List<PatientMatch> loadMatchesByReferencePatientId(String patientId)
     {
         if (StringUtils.isNotEmpty(patientId)) {
-            Criterion criterion = Restrictions.eq("patientId", patientId);
-            return this.loadMatchesByCriterion(criterion);
+            return this.loadMatchesByCriteria(
+                new Criterion[] { Restrictions.eq("patientId", patientId) });
         } else {
             return Collections.emptyList();
         }
     }
 
     @SuppressWarnings("unchecked")
-    private List<PatientMatch> loadMatchesByCriterion(Criterion criterion)
+    private List<PatientMatch> loadMatchesByCriteria(Criterion[] criteriaToApply)
     {
         List<PatientMatch> matches = null;
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
             Criteria criteria = session.createCriteria(PatientMatch.class);
-            if (criterion != null) {
-                criteria.add(criterion);
+            if (criteriaToApply != null) {
+                for (Criterion c : criteriaToApply) {
+                    criteria.add(c);
+                }
             }
             matches = criteria.list();
         } catch (HibernateException ex) {
-            this.logger.error("loadMatchesByCriterion. Criterion: {},  ERROR: [{}]", criterion, ex);
+            this.logger.error("loadMatchesByCriteria. Criteria: {},  ERROR: [{}]",
+                Arrays.toString(criteriaToApply), ex);
         } finally {
             session.close();
         }
         return matches;
-    }
-
-    // TODO remove, for debug.
-    @Override
-    public void clearMatches() {
-        List<PatientMatch> matches = loadAllMatches();
-        Session session = this.sessionFactory.getSessionFactory().openSession();
-        Transaction t = session.beginTransaction();
-        try {
-            session.clear();
-            for (PatientMatch match : matches) {
-                session.delete(match);
-            }
-            t.commit();
-        } catch (HibernateException ex) {
-            this.logger.error("ERROR deleting matches", ex);
-            if (t != null) {
-                t.rollback();
-            }
-            throw ex;
-        } finally {
-            session.close();
-        }
     }
 
     @Override
