@@ -77,13 +77,14 @@ public class MatchingNotificationScriptService implements ScriptService
     }
 
     /**
-     * Returns a JSON object containing all matches from database with score higher or equal to {@code score}.
+     * Returns a JSON object containing all matches from database filtered by parameters.
      *
      * @param score only matches with score higher or equal to this value are returned
+     * @param notified whether the matches were notified of
      * @return a JSON object with a list of matches
      */
-    public String getMatches(double score) {
-        List<PatientMatch> matches = matchStorageManager.loadUnnotifiedMatches(score);
+    public String getMatches(double score, boolean notified) {
+        List<PatientMatch> matches = matchStorageManager.loadMatches(score, notified);
         JSONObject json = patientMatchExport.toJSON(matches);
         return json.toString();
     }
