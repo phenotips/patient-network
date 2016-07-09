@@ -72,8 +72,9 @@ var PhenoTips = (function (PhenoTips) {
         return;
       }
       new Ajax.Request(this._ajaxURL,
-        {  parameters : {action : 'show-matches',
-                         score  : score
+        {  parameters : {action   : 'show-matches',
+                         score    : score,
+                         notified : false
            },
            onSuccess : function (response) {
               _this._showSuccess('show-matches-messages');
