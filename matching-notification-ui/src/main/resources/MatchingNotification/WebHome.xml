@@ -262,8 +262,8 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
 &lt;div&gt;
-  &lt;input type="checkbox" id="checkbox_all" /&gt;
-  Select all
+  &lt;input type="checkbox" id="notify_all" /&gt;
+  Select all to notify
 &lt;/div&gt;
 &lt;div&gt;
   &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
@@ -277,7 +277,8 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
 &lt;br/&gt;
 &lt;table id="matchesTable"&gt;
   &lt;thead&gt;
-    &lt;th data-dynatable-column="checkbox"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
+    &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
+    &lt;th data-dynatable-column="rejection"&gt;&lt;span title="Rejected"/&gt;Reject&lt;/th&gt;
     &lt;th data-dynatable-column="id"&gt;&lt;span title="Match ID"&gt;ID&lt;/a&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="patient" title="Reference patient"&gt;Patient&lt;/th&gt;
     &lt;th data-dynatable-column="matchedPatient" title="Matched patient"&gt;Matched Patient&lt;/th&gt;

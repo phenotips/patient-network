@@ -31,7 +31,7 @@ var PhenoTips = (function (PhenoTips) {
       $('#find-matches-button').on('click', this._findMatches.bind(this));
       $('#show-matches-button').on('click', this._showMatches.bind(this));
       $('#send-notifications-button').on('click', this._sendNotification.bind(this));
-      $('#checkbox_all').on('click', this._checkboxAllClicked.bind(this));
+      $('#notify_all').on('click', this._notifyAllClicked.bind(this));
       $('#checkbox_filter_notified').on('click', this._filterNotifiedClicked.bind(this));
       $('#expand_all').on('click', this._expandAllClicked.bind(this));
     },
@@ -238,7 +238,7 @@ var PhenoTips = (function (PhenoTips) {
              failed.each(function (item) {
                  var tr = _this._$('#matchesTable').find("#tr_" + item.id);
                  tr.attr('class', 'failed');
-                 tr.find(":checkbox").attr('checked', 'checked');
+                 tr.find('[id^=notify_]').attr('checked', 'checked');
              });
          }
       }
@@ -250,10 +250,13 @@ var PhenoTips = (function (PhenoTips) {
     {
        var tr = '';
 
-       // checkbox - column 0
-       var checkbox = '<td><input type="checkbox" id="checkbox_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
+       // notification checkbox - column 0
+       var notification = '<td><input type="checkbox" id="notify_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
 
-       // column 1,2 - reference patient and matched patient, their genes and phenotypes
+       // rejection checkbox - column 1
+       var rejection = '<td><input type="checkbox" id="reject_' + record.id + '"/></td>';
+
+       // column 2,3 - reference patient and matched patient, their genes and phenotypes
        patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd', record.id);
        matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd', record.id);
 
@@ -261,8 +264,10 @@ var PhenoTips = (function (PhenoTips) {
        // skip first column (index 0), it's for checkbox
        for (var i = 0, len = columns.length; i < len; i++) {
          var id = columns[i].id;
-         if (id == 'checkbox') {
-            tr += checkbox;
+         if (id == 'notification') {
+            tr += notification;
+         } else if (id == 'rejection') {
+            tr += rejection;
          } else if (id == 'patient') {
             tr += patientTd;
          } else if (id == 'matchedPatient') {
@@ -360,10 +365,10 @@ var PhenoTips = (function (PhenoTips) {
        this._expandAllClicked();
     },
 
-    _checkboxAllClicked : function(event)
+    _notifyAllClicked : function(event)
     {
        var checked = event.target.checked;
-       this._$('#matchesTable').find(":checkbox").each(function (index, elm) {
+       this._$('#matchesTable').find("[id^=notify_]").each(function (index, elm) {
           if (!elm.disabled) {
              elm.checked = checked;
           }
@@ -380,7 +385,7 @@ var PhenoTips = (function (PhenoTips) {
     _readMatchesToNotify : function()
     {
        var ids = [];
-       this._$('#matchesTable').find(":checkbox").each(function (index, elm) {
+       this._$('#matchesTable').find("[id^=notify_]").each(function (index, elm) {
           if (elm.checked && !elm.disabled) {
              var id = Number(elm.id.substr(elm.id.indexOf('_')+1));
              ids.push(String(id));
