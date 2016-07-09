@@ -39,19 +39,13 @@ public interface MatchStorageManager
     void saveMatches(List<PatientMatch> matches);
 
     /**
-     * Loads unnotified matches with score higher or equals to parameter.
+     * Loads matches filtered by the parameters.
      *
      * @param score threshold for matches
-     * @return a list of unnotified matches in the table with score higher than {@code score}
+     * @param notified whether the matches were notified of
+     * @return a list of matches
      */
-    List<PatientMatch> loadUnnotifiedMatches(double score);
-
-    /**
-     * Loads all notified matches.
-     *
-     * @return a list of all notified matches
-     */
-    List<PatientMatch> lostNotifiedMatches();
+    List<PatientMatch> loadMatches(double score, boolean notified);
 
     /**
      * Load all matches with ids in {@link matchesIds}.

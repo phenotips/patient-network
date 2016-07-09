@@ -48,8 +48,6 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 @Singleton
 public class DefaultMatchStorageManager implements MatchStorageManager
 {
-    private static final String NOTIFIED = "notified";
-
     /** Handles persistence. */
     @Inject
     private HibernateSessionFactory sessionFactory;
@@ -79,16 +77,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public List<PatientMatch> loadUnnotifiedMatches(double score) {
+    public List<PatientMatch> loadMatches(double score, boolean notified) {
         return this.loadMatchesByCriteria(
             new Criterion[] { Restrictions.ge("score", score),
-                              Restrictions.eq(NOTIFIED, false) });
-    }
-
-    @Override
-    public List<PatientMatch> lostNotifiedMatches() {
-        return this.loadMatchesByCriteria(
-            new Criterion[] { Restrictions.eq(NOTIFIED, true) });
+                              Restrictions.eq("notified", notified) });
     }
 
     @Override
