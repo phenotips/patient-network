@@ -231,14 +231,16 @@ var PhenoTips = (function (PhenoTips) {
       }
 
       // Mark notification results as successful/failed
-      var results = this._notificationResults.results;
-      if (results != undefined) {
-         for (var i = 0 ; i < results.length ; i++) {
-            var result = results[i];
-            var tr = this._$('#matchesTable').find("#tr_" + result.id);
-            tr.attr('class', result.success ? 'successful' : 'failed');
-            if (!result.success) {
-                tr.find(":checkbox").attr('checked', 'checked');
+      if (this._notificationResults != undefined) {
+         var results = this._notificationResults.results;
+         if (results != undefined) {
+            for (var i = 0 ; i < results.length ; i++) {
+               var result = results[i];
+               var tr = this._$('#matchesTable').find("#tr_" + result.id);
+               tr.attr('class', result.success ? 'successful' : 'failed');
+               if (!result.success) {
+                   tr.find(":checkbox").attr('checked', 'checked');
+               }
             }
          }
       }
