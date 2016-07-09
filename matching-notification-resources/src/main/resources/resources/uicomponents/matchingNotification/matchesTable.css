@@ -4,10 +4,6 @@
   overflow: hidden;
 }
 
-.successful {
-  color: green;
-}
-
 .failed {
   color: red;
 }
@@ -44,3 +40,4 @@
 #filter-div {
    margin-top: 40px;
 }
+

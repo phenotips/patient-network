@@ -230,18 +230,16 @@ var PhenoTips = (function (PhenoTips) {
          this._processingComplete();
       }
 
-      // Mark notification results as successful/failed
+      // Mark failed notifications
       if (this._notificationResults != undefined) {
          var results = this._notificationResults.results;
          if (results != undefined) {
-            for (var i = 0 ; i < results.length ; i++) {
-               var result = results[i];
-               var tr = this._$('#matchesTable').find("#tr_" + result.id);
-               tr.attr('class', result.success ? 'successful' : 'failed');
-               if (!result.success) {
-                   tr.find(":checkbox").attr('checked', 'checked');
-               }
-            }
+             var failed = this._$.grep(results, function(item) {return item.success == false;});
+             failed.each(function (item) {
+                 var tr = _this._$('#matchesTable').find("#tr_" + item.id);
+                 tr.attr('class', 'failed');
+                 tr.find(":checkbox").attr('checked', 'checked');
+             });
          }
       }
 
@@ -443,3 +441,4 @@ var PhenoTips = (function (PhenoTips) {
   });
   return PhenoTips;
 }(PhenoTips || {}));
+
