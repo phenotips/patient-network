@@ -39,19 +39,19 @@ public interface MatchStorageManager
     void saveMatches(List<PatientMatch> matches);
 
     /**
-     * Loads and returns all matches in a table.
-     *
-     * @return a list of all matches in the table
-     */
-    List<PatientMatch> loadAllMatches();
-
-    /**
-     * Loads matches with score higher or equals to parameter.
+     * Loads unnotified matches with score higher or equals to parameter.
      *
      * @param score threshold for matches
-     * @return a list of all matches in the table
+     * @return a list of unnotified matches in the table with score higher than {@code score}
      */
-    List<PatientMatch> loadMatches(double score);
+    List<PatientMatch> loadUnnotifiedMatches(double score);
+
+    /**
+     * Loads all notified matches.
+     *
+     * @return a list of all notified matches
+     */
+    List<PatientMatch> lostNotifiedMatches();
 
     /**
      * Load all matches with ids in {@link matchesIds}.
@@ -95,9 +95,4 @@ public interface MatchStorageManager
      * @return true if successful
      */
     boolean endNotificationMarkingTransaction(Session session);
-
-    /**
-     * TODO remove, for debug.
-     */
-    void clearMatches();
 }
