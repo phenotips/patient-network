@@ -362,7 +362,30 @@ var PhenoTips = (function (PhenoTips) {
           this._expandCollapseGP(event.target);
        }.bind(this));
 
+       this._$('#matchesTable').find('[class*="reject"]').on('click', function(event) {
+           this._rejectMatch(event.target);
+        }.bind(this));
+
        this._expandAllClicked();
+    },
+
+    _rejectMatch : function(target)
+    {
+        var matchId = this._$(target).data("matchid");
+        var ids = JSON.stringify({ ids: [matchId]});
+
+        new Ajax.Request(this._ajaxURL,
+                {  parameters : {action : 'reject-matches',
+                                 ids    : ids
+                   },
+                   onSuccess : function (response) {
+                      console.log(response);
+                   },
+                   onFailure : function (response) {
+                      console.log(response);
+                   }
+                }
+              );
     },
 
     _notifyAllClicked : function(event)
