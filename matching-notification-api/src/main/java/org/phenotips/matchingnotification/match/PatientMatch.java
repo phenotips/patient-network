@@ -73,6 +73,13 @@ public interface PatientMatch
     void setNotified();
 
     /**
+     * Marks rejected property of match.
+     *
+     * @param rejected whether match is rejected or not
+     */
+    void setRejected(boolean rejected);
+
+    /**
      * @return object in JSON format.
      */
     JSONObject toJSON();
@@ -111,4 +118,9 @@ public interface PatientMatch
      * @return a set of candidate genes for patient with id {@code getMatchedPatientId()}
      */
     Set<String> getMatchedCandidateGenes();
+
+    /**
+     * @return true only if match is rejected.
+     */
+    boolean isRejected();
 }
