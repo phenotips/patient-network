@@ -32,7 +32,7 @@ import org.hibernate.Session;
 public interface MatchStorageManager
 {
     /**
-     * Stores match.
+     * Stores matches.
      *
      * @param matches to store
      */
@@ -72,7 +72,7 @@ public interface MatchStorageManager
     Session beginNotificationMarkingTransaction();
 
     /**
-     * Marks all matches with ids in {@code matchesIds}. The method required a session created by
+     * Marks all matches in {@code matches} as notified. The method required a session created by
      * {@code startNotificationMarkingTransaction}.
      *
      * @param session the transaction session created for marking.
