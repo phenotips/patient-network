@@ -89,6 +89,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Boolean notified;
 
     @Basic
+    private Boolean rejected;
+
+    @Basic
     private Double score;
 
     @Basic
@@ -189,6 +192,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.remoteId = testData.remoteId;
         this.outgoingRequest = testData.outgoingRequest;
         this.notified = false;
+        this.rejected = false;
         this.score = testData.score;
         this.phenotypeScore = testData.phenotypeScore;
         this.genotypeScore = testData.genotypeScore;
@@ -215,7 +219,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.remoteId = remoteId;
         this.outgoingRequest = outgoingRequest;
         this.timestamp = new Timestamp(System.currentTimeMillis());
+
         this.notified = false;
+        this.rejected = false;
 
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
@@ -247,9 +253,19 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public boolean isRejected() {
+        return this.rejected;
+    }
+
+    @Override
     public void setNotified()
     {
         this.notified = true;
+    }
+
+    @Override
+    public void setRejected(boolean rejected) {
+        this.rejected = rejected;
     }
 
     @Override
@@ -347,6 +363,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("outgoingRequest", this.isOutgoing());
         json.put("timestamp", new SimpleDateFormat("yyyy/MM/dd HH:mm").format(this.timestamp));
         json.put("notified", this.isNotified());
+        json.put("rejected", this.isRejected());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
