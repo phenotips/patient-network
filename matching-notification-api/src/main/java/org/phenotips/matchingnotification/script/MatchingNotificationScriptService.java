@@ -90,33 +90,33 @@ public class MatchingNotificationScriptService implements ScriptService
     }
 
     /**
-     * Sends email notifications for each match.
+     * Marks matches, with ids given in parameter, as rejected.
      * Example:
-     *    Input:  {'ids': ['1,'2','3']}
-     *    Output: {'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
-     * @param idsForNotification JSON list of ids of matching that should be notified
+     *    Input: {'ids': ['1,'2','3']}
+     *    Output:{'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     *
+     * @param ids JSON with list of ids of matching that should be marked as rejected
      * @return result JSON
      */
-    public String sendNotifications(String idsForNotification) {
-        List<Long> ids = new ArrayList<Long>();
-        try {
-            if (StringUtils.isNotEmpty(idsForNotification)) {
-                JSONObject idsObject = new JSONObject(idsForNotification);
-                if (idsObject.has(IDS_STRING)) {
-                    JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
-                    int idsNum = idsJSONArray.length();
-                    for (int i = 0; i < idsNum; i++) {
-                        ids.add(idsJSONArray.getLong(i));
-                    }
-                }
-            }
-        } catch (JSONException ex) {
-            this.logger.error("Error on converting input {} to JSON in sendNotification: {}", idsForNotification, ex);
-            return JSONObject.NULL.toString();
-        }
+    public String rejectMatches(String ids) {
+        List<Long> idsList = this.jsonToIdsList(ids);
+        return this.successfulIdsToJSON(idsList, idsList).toString();
+    }
 
+    /**
+     * Sends email notifications for each match.
+     * Example:
+     *    Input: {'ids': ['1,'2','3']}
+     *    Output: {'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     *
+     * @param ids JSON list of ids of matching that should be notified
+     * @return result JSON
+     */
+    public String sendNotifications(String ids)
+    {
+        List<Long> idsList = this.jsonToIdsList(ids);
         List<PatientMatchNotificationResponse> notificationResults =
-            this.matchingNotificationManager.sendNotifications(ids);
+            this.matchingNotificationManager.sendNotifications(idsList);
 
         // create result JSON. The successfullyNotified list is used to take care of a case
         // where there is match that was supposed to be notified but no response was received on it.
@@ -126,16 +126,42 @@ public class MatchingNotificationScriptService implements ScriptService
                 successfullyNotified.add(response.getPatientMatch().getId());
             }
         }
+
+        return this.successfulIdsToJSON(idsList, successfullyNotified).toString();
+    }
+
+    private List<Long> jsonToIdsList(String idsJson) {
+        List<Long> ids = new ArrayList<Long>();
+        try {
+            if (StringUtils.isNotEmpty(idsJson)) {
+                JSONObject idsObject = new JSONObject(idsJson);
+                if (idsObject.has(IDS_STRING)) {
+                    JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
+                    int idsNum = idsJSONArray.length();
+                    for (int i = 0; i < idsNum; i++) {
+                        ids.add(idsJSONArray.getLong(i));
+                    }
+                }
+            }
+        } catch (JSONException ex) {
+            this.logger.error("Error on converting input {} to JSON: {}", idsJson, ex);
+        }
+
+        return ids;
+    }
+
+    private JSONObject successfulIdsToJSON(List<Long> allIds, List<Long> successfulIds)
+    {
         JSONArray results = new JSONArray();
-        for (Long id : ids) {
+        for (Long id : allIds) {
             JSONObject result = new JSONObject();
             result.accumulate("id", id);
-            result.accumulate("success", successfullyNotified.contains(id));
+            result.accumulate("success", successfulIds.contains(id));
             results.put(result);
         }
         JSONObject reply = new JSONObject();
         reply.put("results", results);
 
-        return reply.toString();
+        return reply;
     }
 }
