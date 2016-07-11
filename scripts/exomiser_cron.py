@@ -170,7 +170,7 @@ def fetch_changed_records(settings, since=None):
             report_id = report_id[5:]
         record_ids.append(report_id.strip())
 
-    return record_ids
+    return sorted(record_ids)
 
 def get_record_vcfs(record_id, settings):
     # vcf named like: F0000009/~this/attachments/exome.vcf/exome.vcf
