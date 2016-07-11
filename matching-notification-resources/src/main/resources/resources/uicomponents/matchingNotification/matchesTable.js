@@ -250,13 +250,13 @@ var PhenoTips = (function (PhenoTips) {
     {
        var tr = '';
 
-       // notification checkbox - column 0
+       // notification checkbox
        var notification = '<td><input type="checkbox" id="notify_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
 
-       // rejection checkbox - column 1
-       var rejection = '<td><input type="checkbox" id="reject_' + record.id + '"/></td>';
+       // rejection checkbox
+       var rejection = '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '"/></td>';
 
-       // column 2,3 - reference patient and matched patient, their genes and phenotypes
+       // reference patient and matched patient, their genes and phenotypes
        patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd', record.id);
        matchedPatientTd = this._getPatientDetailsTd(record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd', record.id);
 
@@ -287,12 +287,12 @@ var PhenoTips = (function (PhenoTips) {
        var patientHref = new XWiki.Document(patientId, 'data').getURL();
 
        // Patient id and collapsible icon
-       td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool-' + matchId + '">';
+       td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
        td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patientId + '</a>';
        td += '</div>';
 
        // Collapsible div
-       td += '<div class="collapse-gp-div-' + matchId + '">';
+       td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
        // Genes
        td += '<div class="genes-div">';
@@ -398,14 +398,10 @@ var PhenoTips = (function (PhenoTips) {
     // expand is boolean, when undefined, the value will be understood from target
     _expandCollapseGP : function(target, expand)
     {
-       // find matchId to collapse/expand
-       var lookFor = 'collapse-gp-tool-';
-       var classes = target.classList;
-       var greped = this._$.grep(classes , function(item) {return item.indexOf(lookFor) > -1});
-       var matchId = greped[0].substring(lookFor.length);
+        var matchId = this._$(target).data('matchid');
 
        // collapse/expand divs
-       this._$('#matchesTable').find(".collapse-gp-div-"+matchId).each(function (index, elm) {
+       this._$('#matchesTable').find('[data-matchid=' + matchId + '].collapse-gp-div').each(function (index, elm) {
 
           if (expand == undefined) {
              expand = this._$(elm).hasClass('collapsed');
@@ -420,7 +416,7 @@ var PhenoTips = (function (PhenoTips) {
        }.bind(this));
 
        // change display of collapse/display component (+/-)
-       this._$('#matchesTable').find(".collapse-gp-tool-"+matchId).each(function (index, elm) {
+       this._$('#matchesTable').find('[data-matchid=' + matchId + '].collapse-gp-tool').each(function (index, elm) {
 
           if (expand) {
              this._$(elm).removeClass("fa-plus-square-o");
@@ -438,7 +434,7 @@ var PhenoTips = (function (PhenoTips) {
     {
        var checkbox = this._$('#expand_all');
        var expand = this._$(checkbox).is(':checked');
-       this._$('#matchesTable').find('[class*="collapse-gp-tool-"]').each(function (index, elm) {
+       this._$('#matchesTable').find('[class*="collapse-gp-tool"]').each(function (index, elm) {
           this._expandCollapseGP(elm, expand);
        }.bind(this));
     }
