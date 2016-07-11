@@ -238,7 +238,7 @@ var PhenoTips = (function (PhenoTips) {
              failed.each(function (item) {
                  var tr = _this._$('#matchesTable').find("#tr_" + item.id);
                  tr.attr('class', 'failed');
-                 tr.find('[id^=notify_]').attr('checked', 'checked');
+                 tr.find('.notify').attr('checked', 'checked');
              });
          }
       }
@@ -251,7 +251,7 @@ var PhenoTips = (function (PhenoTips) {
        var tr = '';
 
        // notification checkbox
-       var notification = '<td><input type="checkbox" id="notify_' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
+       var notification = '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
 
        // rejection checkbox
        var rejection = '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '"/></td>';
@@ -368,7 +368,7 @@ var PhenoTips = (function (PhenoTips) {
     _notifyAllClicked : function(event)
     {
        var checked = event.target.checked;
-       this._$('#matchesTable').find("[id^=notify_]").each(function (index, elm) {
+       this._$('#matchesTable').find(".notify").each(function (index, elm) {
           if (!elm.disabled) {
              elm.checked = checked;
           }
@@ -385,12 +385,12 @@ var PhenoTips = (function (PhenoTips) {
     _readMatchesToNotify : function()
     {
        var ids = [];
-       this._$('#matchesTable').find("[id^=notify_]").each(function (index, elm) {
+       this._$('#matchesTable').find(".notify").each(function (index, elm) {
           if (elm.checked && !elm.disabled) {
-             var id = Number(elm.id.substr(elm.id.indexOf('_')+1));
+             var id = Number(this._$(elm).data('matchid'));
              ids.push(String(id));
           }
-       });
+       }.bind(this));
        return ids;
     },
 
