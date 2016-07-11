@@ -99,7 +99,7 @@ var PhenoTips = (function (PhenoTips) {
        console.log("Sending " + idsJson);
        new Ajax.Request(_this._ajaxURL,
           { parameters : {action : 'send-notifications',
-                          idsForNotification : idsJson
+                          ids    : idsJson
             },
             onSuccess : function (response) {
                console.log("onSuccess, received:");

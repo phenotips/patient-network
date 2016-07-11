@@ -47,8 +47,8 @@
    #set ($notified = $request.notified)
    $services.matchingNotification.getMatches($score, $notified)
 #elseif ($request.action == 'send-notifications')
-   #set ($idsForNotification = $!request.idsForNotification)
-   $services.matchingNotification.sendNotifications($idsForNotification)
+   #set ($ids = $!request.ids)
+   $services.matchingNotification.sendNotifications($ids)
 #end
 {{/velocity}}</content>
   <object>
