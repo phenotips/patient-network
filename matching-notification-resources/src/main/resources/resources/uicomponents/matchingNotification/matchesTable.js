@@ -250,7 +250,7 @@ var PhenoTips = (function (PhenoTips) {
        var notification = '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
 
        // rejection checkbox
-       var rejection = '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '"/></td>';
+       var rejection = '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '" ' + (record.rejected ? 'checked ' : '') + '/></td>';
 
        // reference patient and matched patient, their genes and phenotypes
        patientTd  = this._getPatientDetailsTd(record.patientId, record.genes, record.phenotypes, 'patientTd', record.id);
@@ -273,7 +273,9 @@ var PhenoTips = (function (PhenoTips) {
          }
        }
 
-       return '<tr id="tr_' + record.id + '">' + tr + '</tr>';
+       var trClass = record.rejected ? 'rejected' : '';
+
+       return '<tr id="tr_' + record.id + '" class="' + trClass + '">' + tr + '</tr>';
     },
 
     _getPatientDetailsTd : function(patientId, genes, phenotypes, tdId, matchId)
