@@ -96,10 +96,12 @@ public class MatchingNotificationScriptService implements ScriptService
      *    Output:{'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
      *
      * @param ids JSON with list of ids of matching that should be marked as rejected
+     * @param rejected whether the matches should be rejected or unrejected
      * @return result JSON
      */
-    public String rejectMatches(String ids) {
+    public String rejectMatches(String ids, boolean rejected) {
         List<Long> idsList = this.jsonToIdsList(ids);
+        this.matchingNotificationManager.markRejected(idsList, rejected);
         return this.successfulIdsToJSON(idsList, idsList).toString();
     }
 

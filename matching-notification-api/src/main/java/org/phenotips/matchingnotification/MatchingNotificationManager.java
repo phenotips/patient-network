@@ -55,4 +55,13 @@ public interface MatchingNotificationManager
      * @return true if successful
      */
     boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId);
+
+    /**
+     * Marks matches with ids in {@code matchesIds} as rejected.
+     *
+     * @param matchesIds list of ids of matches to mark as rejected
+     * @param rejected whether matches should be set as rejected or unrejected
+     * @return true if successful
+     */
+    boolean markRejected(List<Long> matchesIds, boolean rejected);
 }
