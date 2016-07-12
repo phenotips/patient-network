@@ -51,7 +51,8 @@
    $services.matchingNotification.sendNotifications($ids)
 #elseif ($request.action == 'reject-matches')
    #set ($ids = $!request.ids)
-   $services.matchingNotification.rejectMatches($ids)
+   #set ($reject = $!request.reject)
+   $services.matchingNotification.rejectMatches($ids, $reject)
 #end
 {{/velocity}}</content>
   <object>

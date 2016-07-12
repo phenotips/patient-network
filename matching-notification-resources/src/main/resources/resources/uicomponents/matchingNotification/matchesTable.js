@@ -368,11 +368,13 @@ var PhenoTips = (function (PhenoTips) {
     _rejectMatch : function(target)
     {
         var matchId = this._$(target).data("matchid");
+        var reject = this._$(target).is(':checked');
         var ids = JSON.stringify({ ids: [matchId]});
 
         new Ajax.Request(this._ajaxURL,
                 {  parameters : {action : 'reject-matches',
-                                 ids    : ids
+                                 ids    : ids,
+                                 reject : reject
                    },
                    onSuccess : function (response) {
                       console.log(response);
