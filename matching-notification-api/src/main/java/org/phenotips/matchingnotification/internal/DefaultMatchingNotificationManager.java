@@ -46,9 +46,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
 
 /**
  * @version $Id$
@@ -231,5 +234,21 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         this.matchStorageManager.saveMatches(matches);
 
         return true;
+    }
+
+    @Override
+    public boolean markRejected(List<Long> matchesIds, boolean rejected)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
+
+            Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
+            this.matchStorageManager.markRejected(session, matches, rejected);
+            successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
+        } catch (HibernateException e) {
+            this.logger.error("Error while marking matches {} as rejected.", Joiner.on(",").join(matchesIds), e);
+        }
+        return successful;
     }
 }

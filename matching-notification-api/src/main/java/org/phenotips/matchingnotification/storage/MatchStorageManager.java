@@ -82,6 +82,17 @@ public interface MatchStorageManager
     boolean markNotified(Session session, List<PatientMatch> matches);
 
     /**
+     * Marks all matches in {@code matches} as rejected. The method required a session created by
+     * {@code startNotificationMarkingTransaction}.
+     *
+     * @param session the transaction session created for marking.
+     * @param matches list of matches to mark as notified.
+     * @param rejected whether the matches should be marked as rejected or unrejected
+     * @return true if successful
+     */
+    boolean markRejected(Session session, List<PatientMatch> matches, boolean rejected);
+
+    /**
      * Commits the notification marking transaction. See also {@code startNotificationMarkingTransaction} and
      * {@code markNotified}.
      *
