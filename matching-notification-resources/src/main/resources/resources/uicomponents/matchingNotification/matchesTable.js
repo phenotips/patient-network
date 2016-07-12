@@ -105,8 +105,8 @@ var PhenoTips = (function (PhenoTips) {
                console.log("onSuccess, received:");
                console.log(response.responseText);
                _this._showSuccess('send-notifications-messages');
-              _this._notificationResults = response.responseJSON;
-              _this._showMatches();
+
+              _this._onSuccessSendNotification(response.responseJSON.results);
             },
             onFailure : function (response) {
                _this._showFailure('send-notifications-messages');
@@ -149,6 +149,26 @@ var PhenoTips = (function (PhenoTips) {
       var messages = this._$('#' + messagesFieldName);
       messages.empty();
       messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+    },
+
+    _onSuccessSendNotification : function(results)
+    {
+      var _this = this;
+
+      var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
+      var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+
+      // remove notified matches
+        this._matches = this._$.grep(this._matches, function(item) {return _this._$.inArray(item.id, successfulIds)==-1});
+
+        this._buildTable();
+
+        // update table
+        failedIds.each(function (item) {
+            var tr = _this._$('#matchesTable').find("#tr_" + item);
+            tr.attr('class', 'failed');
+            tr.find('.notify').attr('checked', 'checked');
+        });
     },
 
     _formatMatches : function(matches)
@@ -200,17 +220,6 @@ var PhenoTips = (function (PhenoTips) {
 
       var matchesToUse = this._matches;
 
-      if (this._filteredNotified) {
-          var unnotifiedMatches = [];
-          for (var i = 0 ; i < this._matches.length ; i++) {
-              var current = this._matches[i];
-              if (!current.notified) {
-                 unnotifiedMatches.push(current);
-              }
-          }
-          matchesToUse = unnotifiedMatches;
-      }
-
       if (this._tableBuilt) {
          var table = this._$('#matchesTable').data('dynatable');
          table.settings.dataset.originalRecords = matchesToUse;
@@ -228,19 +237,6 @@ var PhenoTips = (function (PhenoTips) {
             }
          }).bind('dynatable:afterProcess', this._processingComplete.bind(this));
          this._processingComplete();
-      }
-
-      // Mark failed notifications
-      if (this._notificationResults != undefined) {
-         var results = this._notificationResults.results;
-         if (results != undefined) {
-             var failed = this._$.grep(results, function(item) {return item.success == false;});
-             failed.each(function (item) {
-                 var tr = _this._$('#matchesTable').find("#tr_" + item.id);
-                 tr.attr('class', 'failed');
-                 tr.find('.notify').attr('checked', 'checked');
-             });
-         }
       }
 
        this._tableBuilt = true;
