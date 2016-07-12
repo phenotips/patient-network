@@ -52,6 +52,9 @@ var PhenoTips = (function (PhenoTips) {
                 _this._showSuccess('find-matches-messages');
                 console.log("find matches result, score = " + score);
                 console.log(response.responseJSON);
+
+                _this._$('#show-matches-score').val(score);
+                _this._showMatches();
              },
              onFailure : function (response) {
                 _this._showFailure('find-matches-messages');
@@ -59,9 +62,6 @@ var PhenoTips = (function (PhenoTips) {
           }
         );
         this._showSent('find-matches-messages');
-
-        this._$('#show-matches-score').val(score);
-        this._showMatches();
     },
 
     _showMatches : function()
