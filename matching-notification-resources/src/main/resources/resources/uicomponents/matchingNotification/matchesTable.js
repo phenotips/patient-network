@@ -153,12 +153,12 @@ var PhenoTips = (function (PhenoTips) {
 
     _onSuccessSendNotification : function(results)
     {
-      var _this = this;
+        var _this = this;
 
-      var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
-      var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+        var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
+        var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
 
-      // remove notified matches
+        // remove notified matches
         this._matches = this._$.grep(this._matches, function(item) {return _this._$.inArray(item.id, successfulIds)==-1});
 
         this._buildTable();
