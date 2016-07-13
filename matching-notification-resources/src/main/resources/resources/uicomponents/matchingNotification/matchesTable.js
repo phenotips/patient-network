@@ -204,9 +204,13 @@ var PhenoTips = (function (PhenoTips) {
 
         this._buildTable();
 
+        // mark un/rejected in model
+        this._$.grep(this._matches, function(match) {return _this._$.inArray(match.id, successfulIds)>-1})
+            .each(function(match) {match.rejected = reject});
+
         // update table
-        successfulIds.each(function (item) {
-            var tr = _this._$('#matchesTable').find("#tr_" + item);
+        successfulIds.each(function (id) {
+            var tr = _this._$('#matchesTable').find("#tr_" + id);
             if (reject) {
                 tr.addClass('rejected');
                 tr.find('.reject').attr('checked', 'checked');
@@ -216,8 +220,8 @@ var PhenoTips = (function (PhenoTips) {
             }
         });
 
-        failedIds.each(function (item) {
-            var tr = _this._$('#matchesTable').find("#tr_" + item);
+        failedIds.each(function (id) {
+            var tr = _this._$('#matchesTable').find("#tr_" + id);
             tr.addClass('failed');
             if (reject) {
                 tr.find('.reject').removeAttr('checked');
