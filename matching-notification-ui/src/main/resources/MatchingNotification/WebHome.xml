@@ -270,8 +270,8 @@ $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css
   Select all to notify
 &lt;/div&gt;
 &lt;div&gt;
-  &lt;input type="checkbox" id="checkbox_filter_notified" /&gt;
-  Filter notified
+  &lt;input type="checkbox" id="filter_rejected" /&gt;
+  Filter rejected
 &lt;/div&gt;
 &lt;div&gt;
   &lt;input type="checkbox" id="expand_all" checked/&gt;
