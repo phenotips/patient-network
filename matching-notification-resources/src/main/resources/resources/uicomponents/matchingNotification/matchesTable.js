@@ -116,6 +116,29 @@ var PhenoTips = (function (PhenoTips) {
        this._showSent('send-notifications-messages');
     },
 
+    _rejectMatch : function(target)
+    {
+        var _this = this;
+
+        var matchId = this._$(target).data("matchid");
+        var reject = this._$(target).is(':checked');
+        var ids = JSON.stringify({ ids: [matchId]});
+
+        new Ajax.Request(this._ajaxURL,
+                {  parameters : {action : 'reject-matches',
+                                 ids    : ids,
+                                 reject : reject
+                   },
+                   onSuccess : function (response) {
+                      _this._onSuccessRejectMatch(response.responseJSON.results, reject);
+                   },
+                   onFailure : function (response) {
+                      console.log(response);
+                   }
+                }
+              );
+    },
+
     _checkScore : function(scoreFieldName, messagesFieldName) {
       var score = this._$('#' + scoreFieldName).val();
       if (score == undefined || score == "") {
@@ -166,9 +189,43 @@ var PhenoTips = (function (PhenoTips) {
         // update table
         failedIds.each(function (item) {
             var tr = _this._$('#matchesTable').find("#tr_" + item);
-            tr.attr('class', 'failed');
+            tr.addClass('failed');
             tr.find('.notify').attr('checked', 'checked');
         });
+    },
+
+    // when reject is true, request was sent to reject. When false, request was sent to unreject.
+    _onSuccessRejectMatch : function(results, reject)
+    {
+        var _this = this;
+
+        var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
+        var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+
+        this._buildTable();
+
+        // update table
+        successfulIds.each(function (item) {
+            var tr = _this._$('#matchesTable').find("#tr_" + item);
+            if (reject) {
+                tr.addClass('rejected');
+                tr.find('.reject').attr('checked', 'checked');
+            } else {
+                tr.removeClass('rejected');
+                tr.find('.reject').removeAttr('checked');
+            }
+        });
+
+        failedIds.each(function (item) {
+            var tr = _this._$('#matchesTable').find("#tr_" + item);
+            tr.addClass('failed');
+            if (reject) {
+                tr.find('.reject').removeAttr('checked');
+            } else {
+                tr.find('.reject').attr('checked', 'checked');
+            }
+        });
+
     },
 
     _formatMatches : function(matches)
@@ -365,27 +422,6 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
        this._expandAllClicked();
-    },
-
-    _rejectMatch : function(target)
-    {
-        var matchId = this._$(target).data("matchid");
-        var reject = this._$(target).is(':checked');
-        var ids = JSON.stringify({ ids: [matchId]});
-
-        new Ajax.Request(this._ajaxURL,
-                {  parameters : {action : 'reject-matches',
-                                 ids    : ids,
-                                 reject : reject
-                   },
-                   onSuccess : function (response) {
-                      console.log(response);
-                   },
-                   onFailure : function (response) {
-                      console.log(response);
-                   }
-                }
-              );
     },
 
     _notifyAllClicked : function(event)
