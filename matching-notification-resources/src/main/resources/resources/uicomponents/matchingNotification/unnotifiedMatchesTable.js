@@ -178,6 +178,8 @@ var PhenoTips = (function (PhenoTips) {
         var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
         var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
 
+        alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+
         // remove notified matches
         this._matches = this._$.grep(this._matches, function(item) {return _this._$.inArray(item.id, successfulIds)==-1});
 
@@ -197,6 +199,15 @@ var PhenoTips = (function (PhenoTips) {
 
         var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
         var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+
+        if (failedIds.length > 0) {
+            var operation = reject ? "Rejecting" : "Unrejecting";
+            if (failedIds.length == 1) {
+                alert(operation + " match failed.");
+            } else {
+                alert(operation + " matches with the following ids failed: " + failedIds.join());
+            }
+        }
 
         // mark un/rejected in model
         this._$.grep(this._matches, function(match) {return _this._$.inArray(match.id, successfulIds)>-1})
