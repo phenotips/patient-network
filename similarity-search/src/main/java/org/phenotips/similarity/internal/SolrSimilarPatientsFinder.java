@@ -45,6 +45,7 @@ import java.util.PriorityQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -57,7 +58,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 
-import groovy.lang.Singleton;
 
 /**
  * Implementation for {@link SimilarPatientsFinder} based on Solr indexing of existing patients.
