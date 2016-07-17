@@ -37,24 +37,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
-#set ($discard = $response.setContentType('application/json'))
-#if ($request.action == 'find-matches')
-   #set ($score = $request.score)
-   $services.matchingNotification.findAndSaveMatches($score)
-#elseif ($request.action == 'show-matches')
-   #set ($score = $request.score)
-   #set ($notified = $request.notified)
-   $services.matchingNotification.getMatches($score, $notified)
-#elseif ($request.action == 'send-notifications')
-   #set ($ids = $!request.ids)
-   $services.matchingNotification.sendNotifications($ids)
-#elseif ($request.action == 'reject-matches')
-   #set ($ids = $!request.ids)
-   #set ($reject = $!request.reject)
-   $services.matchingNotification.rejectMatches($ids, $reject)
-#end
-{{/velocity}}</content>
+  <content/>
   <object>
     <name>MatchingNotification.WebHome</name>
     <number>0</number>

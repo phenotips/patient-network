@@ -13,7 +13,7 @@ var PhenoTips = (function (PhenoTips) {
 
     initialize : function ($, matchesTable)
     {
-        this._ajaxURL = new XWiki.Document('WebHome', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
+        this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
         this._$ = $;
 
         this._matches = undefined;
