@@ -20,7 +20,7 @@
 
 <xwikidoc version="1.1">
   <web>MatchingNotification</web>
-  <name>WebHome</name>
+  <name>UnnotifiedTable</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -39,7 +39,7 @@
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>MatchingNotification.WebHome</name>
+    <name>MatchingNotification.UnnotifiedTable</name>
     <number>0</number>
     <className>XWiki.ConfigurableClass</className>
     <guid>cbae75c7-77e2-4667-9a83-327cc8885abf</guid>
