@@ -218,7 +218,10 @@ define(["jquery", "dynatable"], function($, dyna)
             this._afterProcessTablePatientsDivs();
             this._expandAllClicked();
 
-            this._afterProcessingCallback();
+            if (this._afterProcessingCallback != undefined)
+            {
+                this._afterProcessingCallback();
+            }
         },
 
         _afterProcessTableRegisterCollapisbleDivs : function()
