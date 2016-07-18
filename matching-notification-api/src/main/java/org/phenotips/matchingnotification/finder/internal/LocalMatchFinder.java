@@ -62,7 +62,7 @@ public class LocalMatchFinder implements MatchFinder
         List<PatientMatch> matches = new LinkedList<>();
         List<PatientSimilarityView> similarPatients = finder.findSimilarPatients(patient);
         for (PatientSimilarityView similarityView : similarPatients) {
-            PatientMatch match = new DefaultPatientMatch(similarityView, true);
+            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);
         }
 

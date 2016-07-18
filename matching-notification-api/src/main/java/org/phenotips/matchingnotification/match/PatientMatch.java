@@ -43,24 +43,19 @@ public interface PatientMatch
     String getReferencePatientId();
 
     /**
-     * @return id of other patient. The owner of this patient is not notified while processing this entry.
+     * @return id of server where reference patient is found. Null if local.
+     */
+    String getReferenceServerId();
+
+    /**
+     * @return id of other patient.
      */
     String getMatchedPatientId();
 
     /**
-     * @return id of remote server with which remote matching was done. In case of a local match, returns null.
+     * @return id of server where matched patient is found. Null if local.
      */
-    String getRemoteId();
-
-    /**
-     * @return true if match request was initiated in local server.
-     */
-    Boolean isOutgoing();
-
-    /**
-     * @return true if match request was initiated remotely.
-     */
-    Boolean isIncoming();
+    String getMatchedServerId();
 
     /**
      * @return whether notifications regarding this match were sent.
@@ -110,12 +105,12 @@ public interface PatientMatch
     String getMatchedEmail();
 
     /**
-     * @return a set of candidate genes for patient with id {@code getReferencePatientId()}
+     * @return a set of candidate genes for reference patient.
      */
     Set<String> getCandidateGenes();
 
     /**
-     * @return a set of candidate genes for patient with id {@code getMatchedPatientId()}
+     * @return a set of candidate genes for matched patient.
      */
     Set<String> getMatchedCandidateGenes();
 

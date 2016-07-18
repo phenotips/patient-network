@@ -268,13 +268,13 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
     &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="rejection"&gt;&lt;span title="Rejected"/&gt;Reject&lt;/th&gt;
     &lt;th data-dynatable-column="id"&gt;&lt;span title="Match ID"&gt;ID&lt;/a&gt;&lt;/th&gt;
-    &lt;th data-dynatable-column="patient" title="Reference patient"&gt;Patient&lt;/th&gt;
+    &lt;th data-dynatable-column="referencePatient" title="Reference patient"&gt;Patient&lt;/th&gt;
+    &lt;th data-dynatable-column="referenceServerId" title="Server where reference patient is located"&gt;Reference Server&lt;/th&gt;
     &lt;th data-dynatable-column="matchedPatient" title="Matched patient"&gt;Matched Patient&lt;/th&gt;
+    &lt;th data-dynatable-column="matchedServerId" title="Server where matched patient is located"&gt;Matched Server&lt;/th&gt;
     &lt;th data-dynatable-column="score" title="Match score"&gt;Score&lt;/th&gt;
     &lt;th data-dynatable-column="genotypicScore" title="Genotypic match score"&gt;Gen&lt;/th&gt;
     &lt;th data-dynatable-column="phenotypicScore" title="Phenotypic match score"&gt;Phen&lt;/th&gt;
-    &lt;th data-dynatable-column="outgoingRequest" title="Match found by a request initiated locally"&gt;Outgoing Request&lt;/th&gt;
-    &lt;th data-dynatable-column="remoteId" title="Remote server where matched patient is located"&gt;Remote ID&lt;/th&gt;
     &lt;th data-dynatable-column="email" title="Email of owner of reference patient"&gt;Email&lt;/th&gt;
     &lt;th data-dynatable-column="matchedHref" title="Handle to owner of matched patient"&gt;Matched Href&lt;/th&gt;
     &lt;th data-dynatable-column="timestamp" title="Time match was found"&gt;Timestamp&lt;/th&gt;
