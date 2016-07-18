@@ -53,9 +53,8 @@ import org.slf4j.LoggerFactory;
  */
 @Entity
 @Table(name = "patient_matching",
-       uniqueConstraints = {
-           @UniqueConstraint(
-               columnNames = { "referencePatientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
+       uniqueConstraints = { @UniqueConstraint(columnNames =
+           { "referencePatientId", "referenceServerId", "matchedPatientId", "matchedServerId" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     /** separate between tokens. */
@@ -75,13 +74,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String referencePatientId;
 
     @Basic
+    private String referenceServerId;
+
+    @Basic
     private String matchedPatientId;
 
     @Basic
-    private String remoteId;
-
-    @Basic
-    private Boolean outgoingRequest;
+    private String matchedServerId;
 
     @Basic
     private Timestamp timestamp;
@@ -158,26 +157,25 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     /**
-     * Build a DefaultPatientMatch from a PatientSimilarityView.
+     * Build a DefaultPatientMatch from a PatientSimilarityView. Both patients are local.
      *
      * @param similarityView the object to read match from
-     * @param outgoingRequest true if request was initiated locally
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, boolean outgoingRequest)
+    public DefaultPatientMatch(PatientSimilarityView similarityView)
     {
-        this.initialize(similarityView, null, outgoingRequest);
+        this.initialize(similarityView, null, null);
     }
 
     /**
      * Build a DefaultPatientMatch from a PatientSimilarityView.
      *
      * @param similarityView the object to read match from
-     * @param remoteId identifier of server where patient is found
-     * @param outgoingRequest true if request was initiated locally
+     * @param referenceServerId id of server where reference patient is found
+     * @param matchedServerId if of server where matched patient is found
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
+    public DefaultPatientMatch(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
     {
-        this.initialize(similarityView, remoteId, outgoingRequest);
+        this.initialize(similarityView, referenceServerId, matchedServerId);
     }
 
     /**
@@ -188,10 +186,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
         this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.referencePatientId = testData.referencePatientId;
+        this.referencePatientId = testData.referenceServerId;
         this.matchedPatientId = testData.matchedPatientId;
-        this.remoteId = testData.remoteId;
-        this.outgoingRequest = testData.outgoingRequest;
+        this.matchedServerId = testData.matchedServerId;
         this.notified = false;
         this.rejected = false;
         this.score = testData.score;
@@ -209,16 +206,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.matchedPhenotypesMap = PhenotypesMap.getInstance(this.matchedPhenotypes);
     }
 
-    private void initialize(PatientSimilarityView similarityView, String remoteId, boolean outgoingRequest)
+    private void initialize(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
     {
         Patient referencePatient = similarityView.getReference();
         Patient matchedPatient = similarityView;
 
         this.referencePatientId = referencePatient.getId();
+        this.referenceServerId = referenceServerId;
         this.matchedPatientId = matchedPatient.getId();
+        this.matchedServerId = matchedServerId;
 
-        this.remoteId = remoteId;
-        this.outgoingRequest = outgoingRequest;
         this.timestamp = new Timestamp(System.currentTimeMillis());
 
         this.notified = false;
@@ -276,27 +273,21 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public String getReferenceServerId()
+    {
+        return this.referenceServerId;
+    }
+
+    @Override
     public String getMatchedPatientId()
     {
         return matchedPatientId;
     }
 
     @Override
-    public String getRemoteId()
+    public String getMatchedServerId()
     {
-        return this.remoteId;
-    }
-
-    @Override
-    public Boolean isOutgoing()
-    {
-        return outgoingRequest;
-    }
-
-    @Override
-    public Boolean isIncoming()
-    {
-        return !outgoingRequest;
+        return this.matchedServerId;
     }
 
     @Override
@@ -345,11 +336,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public String toString()
     {
         StringBuilder sb = new StringBuilder()
-            .append("[").append(this.getId())
-            .append(SEPARATOR).append(this.getReferencePatientId())
-            .append(SEPARATOR).append(this.getMatchedPatientId())
-            .append(SEPARATOR).append(this.getRemoteId())
-            .append(SEPARATOR).append(this.isOutgoing()).append("]");
+            .append("[")
+            .append(this.getId()).append(SEPARATOR)
+            .append(this.getReferencePatientId()).append(SEPARATOR)
+            .append(this.getReferenceServerId()).append(SEPARATOR)
+            .append(this.getMatchedPatientId()).append(SEPARATOR)
+            .append(this.getMatchedServerId())
+            .append("]");
         return sb.toString();
     }
 
@@ -358,10 +351,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         JSONObject json = new JSONObject();
         json.put(ID, this.getId());
-        json.put("patientId", this.getReferencePatientId());
+        json.put("referencePatientId", this.getReferencePatientId());
+        json.put("referenceServerId", this.getReferenceServerId());
         json.put("matchedPatientId", this.getMatchedPatientId());
-        json.put("remoteId", this.getRemoteId());
-        json.put("outgoingRequest", this.isOutgoing());
+        json.put("matchedServerId", this.getMatchedServerId());
         json.put("timestamp", new SimpleDateFormat("yyyy/MM/dd HH:mm").format(this.timestamp));
         json.put("notified", this.isNotified());
         json.put("rejected", this.isRejected());
@@ -387,17 +380,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         DefaultPatientMatch other = (DefaultPatientMatch) obj;
 
         return (StringUtils.equals(this.getReferencePatientId(), other.getReferencePatientId())
+            && StringUtils.equals(this.getReferenceServerId(), other.getReferenceServerId())
             && StringUtils.equals(this.getMatchedPatientId(), other.getMatchedPatientId())
-            && StringUtils.equals(this.getRemoteId(), other.getRemoteId())
-            && this.isIncoming() == other.isIncoming());
+            && StringUtils.equals(this.getMatchedServerId(), other.getMatchedServerId()));
     }
 
     @Override
     public int hashCode() {
         String forhash = this.getReferencePatientId() + SEPARATOR
+            + this.getReferenceServerId() + SEPARATOR
             + this.getMatchedPatientId() + SEPARATOR
-            + this.getRemoteId() + SEPARATOR
-            + this.isIncoming();
+            + this.getMatchedServerId();
         return forhash.hashCode();
     }
 

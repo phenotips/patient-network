@@ -94,11 +94,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public List<PatientMatch> loadMatchesByReferencePatientId(String patientId)
+    public List<PatientMatch> loadMatchesByReferencePatientId(String referencePatientId)
     {
-        if (StringUtils.isNotEmpty(patientId)) {
+        if (StringUtils.isNotEmpty(referencePatientId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.eq("patientId", patientId) });
+                new Criterion[] { Restrictions.eq("referencePatientId", referencePatientId) });
         } else {
             return Collections.emptyList();
         }

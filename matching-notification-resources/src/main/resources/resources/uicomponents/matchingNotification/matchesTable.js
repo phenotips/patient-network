@@ -42,15 +42,22 @@ define(["jquery", "dynatable"], function($, dyna)
                 match.phenotypicScore = this._roundScore(match.phenotypicScore);
                 match.genotypicScore = this._roundScore(match.genotypicScore);
 
-                // remote id
-                var remoteId = match.remoteId;
-                if (remoteId == undefined || remoteId == 'undefined') {
-                    match.remoteId = '-';
-                }
+                // server ids
+                match.referenceServerId = this._formatServerId(match.referenceServerId);
+                match.matchedServerId = this._formatServerId(match.matchedServerId);
 
                 // Phenotypes
                 [match.phenotypes, match.matchedPhenotypes] = this._formatPhenotypes(match.phenotypes, match.matchedPhenotypes);
             }.bind(this));
+        },
+
+        _formatServerId : function(serverId)
+        {
+            if (serverId == undefined || serverId == 'undefined') {
+                return '-';
+            } else {
+                return serverId;
+            }
         },
 
         _roundScore : function(score)
@@ -87,9 +94,9 @@ define(["jquery", "dynatable"], function($, dyna)
                     case 'rejection':
                         tr += this._getRejectionTd(record);
                         break;
-                    case 'patient':
+                    case 'referencePatient':
                         tr += this._getPatientDetailsTd(
-                            record.patientId, record.genes, record.phenotypes, 'patientTd', record.id);
+                            record.referencePatientId, record.genes, record.phenotypes, 'referencePatientTd', record.id);
                         break;
                     case 'matchedPatient':
                         tr += this._getPatientDetailsTd(
@@ -226,10 +233,10 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             this._tableElement.find('tbody').find('tr').each(function (index, elm)
             {
-                var patientTd = $(elm).find('#patientTd');
+                var referencePatientTd = $(elm).find('#referencePatientTd');
                 var matchedPatientTd = $(elm).find('#matchedPatientTd');
 
-                var genesDiv = $(patientTd).find('.genes-div');
+                var genesDiv = $(referencePatientTd).find('.genes-div');
                 var matchedGenesDiv = $(matchedPatientTd).find('.genes-div');
 
                 var h = Math.max(genesDiv.height(), matchedGenesDiv.height());

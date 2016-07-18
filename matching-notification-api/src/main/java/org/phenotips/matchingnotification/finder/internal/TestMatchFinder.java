@@ -49,11 +49,11 @@ public class TestMatchFinder implements MatchFinder
         /** */
         public String referencePatientId;
         /** */
+        public String referenceServerId;
+        /** */
         public String matchedPatientId;
         /** */
-        public String remoteId;
-        /** */
-        public Boolean outgoingRequest;
+        public String matchedServerId;
         /** */
         public Double score;
         /** */
@@ -94,9 +94,9 @@ public class TestMatchFinder implements MatchFinder
     private PatientMatch getMatch1(Patient patient) {
         TestMatchData td1 = new TestMatchData();
         td1.referencePatientId = patient.getId();
+        td1.referenceServerId = null;
         td1.matchedPatientId = "Q0000001";
-        td1.remoteId = SERVER1;
-        td1.outgoingRequest = true;
+        td1.matchedServerId = SERVER1;
         td1.score = 0.3;
         td1.genotypeScore = 0.0;
         td1.phenotypeScore = 0.6;
@@ -110,9 +110,9 @@ public class TestMatchFinder implements MatchFinder
     private PatientMatch getMatch2(Patient patient) {
         TestMatchData td2 = new TestMatchData();
         td2.referencePatientId = patient.getId();
+        td2.referenceServerId = null;
         td2.matchedPatientId = "Q0000002";
-        td2.remoteId = SERVER1;
-        td2.outgoingRequest = true;
+        td2.matchedServerId = SERVER1;
         td2.score = 0.4;
         td2.genotypeScore = 0.2;
         td2.phenotypeScore = 0.6;
@@ -126,9 +126,9 @@ public class TestMatchFinder implements MatchFinder
     private PatientMatch getMatch3(Patient patient) {
         TestMatchData td3 = new TestMatchData();
         td3.referencePatientId = patient.getId();
+        td3.referenceServerId = null;
         td3.matchedPatientId = "Q0000009";
-        td3.remoteId = "server3";
-        td3.outgoingRequest = true;
+        td3.matchedServerId = "server3";
         td3.score = 0.1;
         td3.genotypeScore = 0.0;
         td3.phenotypeScore = 0.2;
@@ -142,9 +142,9 @@ public class TestMatchFinder implements MatchFinder
     private PatientMatch getMatch4(Patient patient) {
         TestMatchData td4 = new TestMatchData();
         td4.referencePatientId = patient.getId();
+        td4.referenceServerId = null;
         td4.matchedPatientId = "Q0000010";
-        td4.remoteId = "server2";
-        td4.outgoingRequest = true;
+        td4.matchedServerId = "server2";
         td4.score = 0.7;
         td4.genotypeScore = 0.8;
         td4.phenotypeScore = 0.6;
