@@ -92,7 +92,7 @@
       </text>
     </class>
     <property>
-      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($patientId)}:&lt;/p&gt;
+      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($referencePatientId)}:&lt;/p&gt;
 
 #foreach ($match in $matches)
 &lt;p&gt;Patient id: $!{escapetool.xml($match.getMatchedPatientId())}&lt;/p&gt;

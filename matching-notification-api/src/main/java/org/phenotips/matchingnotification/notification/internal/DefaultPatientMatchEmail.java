@@ -99,8 +99,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     /**
      * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and every object in
-     * it should return the same value for getPatientId(), the id of the local reference patient about whom this email
-     * is created.
+     * it should return the same value for getReferencePatientId(), the id of the reference patient about whom this
+     * email is created.
      *
      * @param matches list of matches that the email notifies of.
      * @return a new instance of PatientMatchEmail if created successfully, or null
@@ -123,7 +123,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         emailParameters.put("language", language);
 
         Map<String, Object> velocityVariables = new HashMap<>();
-        velocityVariables.put("patientId", matches.get(0).getPatientId());
+        velocityVariables.put("referencePatientId", matches.get(0).getReferencePatientId());
         velocityVariables.put("matches", matches);
         emailParameters.put("velocityVariables", velocityVariables);
 
