@@ -47,7 +47,7 @@ public class TestMatchFinder implements MatchFinder
     public class TestMatchData
     {
         /** */
-        public String patientId;
+        public String referencePatientId;
         /** */
         public String matchedPatientId;
         /** */
@@ -93,7 +93,7 @@ public class TestMatchFinder implements MatchFinder
 
     private PatientMatch getMatch1(Patient patient) {
         TestMatchData td1 = new TestMatchData();
-        td1.patientId = patient.getId();
+        td1.referencePatientId = patient.getId();
         td1.matchedPatientId = "Q0000001";
         td1.remoteId = SERVER1;
         td1.outgoingRequest = true;
@@ -109,7 +109,7 @@ public class TestMatchFinder implements MatchFinder
 
     private PatientMatch getMatch2(Patient patient) {
         TestMatchData td2 = new TestMatchData();
-        td2.patientId = patient.getId();
+        td2.referencePatientId = patient.getId();
         td2.matchedPatientId = "Q0000002";
         td2.remoteId = SERVER1;
         td2.outgoingRequest = true;
@@ -125,7 +125,7 @@ public class TestMatchFinder implements MatchFinder
 
     private PatientMatch getMatch3(Patient patient) {
         TestMatchData td3 = new TestMatchData();
-        td3.patientId = patient.getId();
+        td3.referencePatientId = patient.getId();
         td3.matchedPatientId = "Q0000009";
         td3.remoteId = "server3";
         td3.outgoingRequest = true;
@@ -141,7 +141,7 @@ public class TestMatchFinder implements MatchFinder
 
     private PatientMatch getMatch4(Patient patient) {
         TestMatchData td4 = new TestMatchData();
-        td4.patientId = patient.getId();
+        td4.referencePatientId = patient.getId();
         td4.matchedPatientId = "Q0000010";
         td4.remoteId = "server2";
         td4.outgoingRequest = true;

@@ -156,7 +156,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             if (!successful) {
                 String patientId = "";
                 if (!notificationResults.isEmpty()) {
-                    patientId = notificationResults.get(0).getPatientMatch().getPatientId();
+                    patientId = notificationResults.get(0).getPatientMatch().getReferencePatientId();
                 }
                 this.logger.error("Error on committing transaction for matching notification for patient {}.",
                     patientId);
@@ -206,7 +206,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         for (PatientMatch match : matches) {
 
             // Read existing matches for same patient id, from db or cache
-            String patientId = match.getPatientId();
+            String patientId = match.getReferencePatientId();
             List<PatientMatch> matchesForPatient = matchesByPatientId.get(patientId);
             if (matchesForPatient == null) {
                 matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);

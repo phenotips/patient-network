@@ -92,7 +92,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         Map<String, List<PatientMatch>> matchesMap = new HashMap<String, List<PatientMatch>>();
 
         for (PatientMatch match : matches) {
-            String patientId = match.getPatientId();
+            String patientId = match.getReferencePatientId();
             List<PatientMatch> matchesList = matchesMap.get(patientId);
             if (matchesList == null) {
                 matchesList = new LinkedList<PatientMatch>();

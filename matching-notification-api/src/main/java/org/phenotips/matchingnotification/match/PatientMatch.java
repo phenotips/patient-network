@@ -38,9 +38,9 @@ public interface PatientMatch
     Long getId();
 
     /**
-     * @return id of patient that was matched. The owner of this patient is notified.
+     * @return id of reference patient.
      */
-    String getPatientId();
+    String getReferencePatientId();
 
     /**
      * @return id of other patient. The owner of this patient is not notified while processing this entry.
@@ -110,7 +110,7 @@ public interface PatientMatch
     String getMatchedEmail();
 
     /**
-     * @return a set of candidate genes for patient with id {@code getPatientId()}
+     * @return a set of candidate genes for patient with id {@code getReferencePatientId()}
      */
     Set<String> getCandidateGenes();
 

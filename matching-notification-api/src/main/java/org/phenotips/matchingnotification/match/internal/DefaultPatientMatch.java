@@ -54,7 +54,8 @@ import org.slf4j.LoggerFactory;
 @Entity
 @Table(name = "patient_matching",
        uniqueConstraints = {
-           @UniqueConstraint(columnNames = { "patientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
+           @UniqueConstraint(
+               columnNames = { "referencePatientId", "matchedPatientId", "remoteId", "outgoingRequest" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     /** separate between tokens. */
@@ -71,7 +72,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Long id;
 
     @Basic
-    private String patientId;
+    private String referencePatientId;
 
     @Basic
     private String matchedPatientId;
@@ -100,7 +101,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Double phenotypeScore;
 
-    // Attributes related to patient with patientId
+    // Attributes related to reference patient
 
     @Basic
     private String email;
@@ -119,7 +120,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Transient
     private PhenotypesMap phenotypesMap;
 
-    // Attributes related to patient with matchedPatientId
+    // Attributes related to matched patient
 
     @Basic
     private String matchedHref;
@@ -187,7 +188,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
         this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.patientId = testData.patientId;
+        this.referencePatientId = testData.referencePatientId;
         this.matchedPatientId = testData.matchedPatientId;
         this.remoteId = testData.remoteId;
         this.outgoingRequest = testData.outgoingRequest;
@@ -213,7 +214,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         Patient referencePatient = similarityView.getReference();
         Patient matchedPatient = similarityView;
 
-        this.patientId = referencePatient.getId();
+        this.referencePatientId = referencePatient.getId();
         this.matchedPatientId = matchedPatient.getId();
 
         this.remoteId = remoteId;
@@ -269,9 +270,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String getPatientId()
+    public String getReferencePatientId()
     {
-        return patientId;
+        return referencePatientId;
     }
 
     @Override
@@ -345,7 +346,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         StringBuilder sb = new StringBuilder()
             .append("[").append(this.getId())
-            .append(SEPARATOR).append(this.getPatientId())
+            .append(SEPARATOR).append(this.getReferencePatientId())
             .append(SEPARATOR).append(this.getMatchedPatientId())
             .append(SEPARATOR).append(this.getRemoteId())
             .append(SEPARATOR).append(this.isOutgoing()).append("]");
@@ -357,7 +358,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         JSONObject json = new JSONObject();
         json.put(ID, this.getId());
-        json.put("patientId", this.getPatientId());
+        json.put("patientId", this.getReferencePatientId());
         json.put("matchedPatientId", this.getMatchedPatientId());
         json.put("remoteId", this.getRemoteId());
         json.put("outgoingRequest", this.isOutgoing());
@@ -385,7 +386,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         DefaultPatientMatch other = (DefaultPatientMatch) obj;
 
-        return (StringUtils.equals(this.getPatientId(), other.getPatientId())
+        return (StringUtils.equals(this.getReferencePatientId(), other.getReferencePatientId())
             && StringUtils.equals(this.getMatchedPatientId(), other.getMatchedPatientId())
             && StringUtils.equals(this.getRemoteId(), other.getRemoteId())
             && this.isIncoming() == other.isIncoming());
@@ -393,7 +394,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Override
     public int hashCode() {
-        String forhash = this.getPatientId() + SEPARATOR
+        String forhash = this.getReferencePatientId() + SEPARATOR
             + this.getMatchedPatientId() + SEPARATOR
             + this.getRemoteId() + SEPARATOR
             + this.isIncoming();
