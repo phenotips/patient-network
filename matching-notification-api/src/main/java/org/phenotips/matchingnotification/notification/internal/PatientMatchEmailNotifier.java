@@ -44,7 +44,8 @@ import javax.inject.Singleton;
 public class PatientMatchEmailNotifier implements PatientMatchNotifier
 {
     @Override
-    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches) {
+    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches)
+    {
         Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
         List<PatientMatchEmail> emails = new ArrayList<>(matchesByPatient.size());
 
