@@ -17,7 +17,7 @@ var PhenoTips = (function (PhenoTips) {
         this._$ = $;
 
         this._matches = undefined;
-        this._matchesTable = new matchesTable(this._$('#matchesTable'));
+        this._matchesTable = new matchesTable(this._$('#notifiedMatchesTable'));
 
         $('#show-matches-button').on('click', this._showMatches.bind(this));
     },
