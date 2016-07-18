@@ -178,7 +178,9 @@ var PhenoTips = (function (PhenoTips) {
         var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
         var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
 
-        alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+        if (failedIds.length > 0) {
+            alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+        }
 
         // remove notified matches
         this._matches = this._$.grep(this._matches, function(item) {return _this._$.inArray(item.id, successfulIds)==-1});
