@@ -232,9 +232,16 @@
 $xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
 $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', true)##
 {{/velocity}}
 
 {{html}}
+&lt;div&gt;
+  &lt;label&gt;Refresh&lt;/label&gt;
+  &lt;button id="show-matches-button" type="button"&gt;Go&lt;/button&gt;
+  &lt;div id="show-matches-messages"/&gt;
+&lt;/div&gt;
+&lt;div&gt;
 &lt;div&gt;
   &lt;input type="checkbox" id="expand_all" checked/&gt;
   Expand all
