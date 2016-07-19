@@ -21,7 +21,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.mail.MailStatus;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @version $Id$
@@ -31,7 +31,7 @@ public interface PatientMatchEmail
     /**
      * @return the matches this email notifies of.
      */
-    List<PatientMatch> getMatches();
+    Collection<PatientMatch> getMatches();
 
     /**
      * @return true if email was sent.

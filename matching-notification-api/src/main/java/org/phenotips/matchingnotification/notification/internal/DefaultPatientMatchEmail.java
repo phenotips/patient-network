@@ -32,9 +32,9 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Provider;
@@ -68,7 +68,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private ScriptMimeMessage mimeMessage;
 
-    private List<PatientMatch> matches;
+    private Collection<PatientMatch> matches;
 
     private boolean sent;
 
@@ -91,7 +91,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         REFERENCE_RESOLVER = referenceResolver;
     }
 
-    protected DefaultPatientMatchEmail(List<PatientMatch> matches, ScriptMimeMessage mimeMessage)
+    protected DefaultPatientMatchEmail(Collection<PatientMatch> matches, ScriptMimeMessage mimeMessage)
     {
         this.matches = matches;
         this.mimeMessage = mimeMessage;
@@ -105,7 +105,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
      * @param matches list of matches that the email notifies of.
      * @return a new instance of PatientMatchEmail if created successfully, or null
      */
-    public static DefaultPatientMatchEmail newInstance(List<PatientMatch> matches)
+    public static DefaultPatientMatchEmail newInstance(Collection<PatientMatch> matches)
     {
         ScriptMimeMessage mimeMessage = createMimeMessage(matches);
         if (mimeMessage == null) {
@@ -116,14 +116,20 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         return new DefaultPatientMatchEmail(matches, mimeMessage);
     }
 
-    private static ScriptMimeMessage createMimeMessage(List<PatientMatch> matches)
+    private static ScriptMimeMessage createMimeMessage(Collection<PatientMatch> matches)
     {
         Map<String, Object> emailParameters = new HashMap<String, Object>();
         String language = CONTEXT_PROVIDER.get().getLocale().getLanguage();
         emailParameters.put("language", language);
 
+        Iterator<PatientMatch> iterator = matches.iterator();
+        if (!iterator.hasNext()) {
+            return null;
+        }
+        String referencePatientId = iterator.next().getReferencePatientId();
+
         Map<String, Object> velocityVariables = new HashMap<>();
-        velocityVariables.put("referencePatientId", matches.get(0).getReferencePatientId());
+        velocityVariables.put("referencePatientId", referencePatientId);
         velocityVariables.put("matches", matches);
         emailParameters.put("velocityVariables", velocityVariables);
 
@@ -156,8 +162,14 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         return true;
     }
 
-    private static boolean setTo(ScriptMimeMessage mimeMessage, List<PatientMatch> matches) {
-        String toAddress = matches.get(0).getEmail();
+    private static boolean setTo(ScriptMimeMessage mimeMessage, Collection<PatientMatch> matches)
+    {
+        Iterator<PatientMatch> iterator = matches.iterator();
+        if (!iterator.hasNext()) {
+            return false;
+        }
+
+        String toAddress = iterator.next().getEmail();
         InternetAddress to;
         try {
             to = new InternetAddress(toAddress);
@@ -170,7 +182,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     }
 
     @Override
-    public List<PatientMatch> getMatches()
+    public Collection<PatientMatch> getMatches()
     {
         return this.matches;
     }
