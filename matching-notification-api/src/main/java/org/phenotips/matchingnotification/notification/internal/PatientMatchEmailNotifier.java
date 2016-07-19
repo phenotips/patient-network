@@ -26,6 +26,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.mail.MailStatus;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -46,14 +47,14 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Override
     public List<PatientMatchEmail> createEmails(List<PatientMatch> matches)
     {
-        Map<String, List<PatientMatch>> matchesByPatient = groupByPatient(matches);
+        Map<String, Collection<PatientMatch>> matchesByPatient = groupByPatient(matches);
         List<PatientMatchEmail> emails = new ArrayList<>(matchesByPatient.size());
 
         List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
         Collections.sort(patientIds);
 
         for (String patientId : patientIds) {
-            List<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
+            Collection<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
             PatientMatchEmail email = DefaultPatientMatchEmail.newInstance(matchesForPatient);
             if (email == null) {
                 continue;
@@ -75,7 +76,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         MailStatus status = email.getStatus();
-        List<PatientMatch> matches = email.getMatches();
+        Collection<PatientMatch> matches = email.getMatches();
         for (PatientMatch match : matches) {
             PatientMatchNotificationResponse response = new PatientMatchEmailNotificationResponse(status, match);
             responses.add(response);
@@ -87,13 +88,13 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     /*
      * Takes a list of PatientMatch objects and returns them in a map that groups all matches with same patient id.
      */
-    private Map<String, List<PatientMatch>> groupByPatient(List<PatientMatch> matches)
+    private Map<String, Collection<PatientMatch>> groupByPatient(Collection<PatientMatch> matches)
     {
-        Map<String, List<PatientMatch>> matchesMap = new HashMap<String, List<PatientMatch>>();
+        Map<String, Collection<PatientMatch>> matchesMap = new HashMap<String, Collection<PatientMatch>>();
 
         for (PatientMatch match : matches) {
             String patientId = match.getReferencePatientId();
-            List<PatientMatch> matchesList = matchesMap.get(patientId);
+            Collection<PatientMatch> matchesList = matchesMap.get(patientId);
             if (matchesList == null) {
                 matchesList = new LinkedList<PatientMatch>();
                 matchesMap.put(patientId, matchesList);
