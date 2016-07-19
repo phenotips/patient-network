@@ -27,6 +27,9 @@
   </parent>
   <name>PhenoTips - Patient Network - Matching Notification - API</name>
   <artifactId>matching-notification-api</artifactId>
+  <properties>
+    <coverage.instructionRatio>0.00</coverage.instructionRatio>
+</properties>
   <dependencies>
     <dependency>
       <groupId>org.phenotips</groupId>
@@ -68,6 +71,13 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20160212</version>
+    </dependency>
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${xwiki.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
