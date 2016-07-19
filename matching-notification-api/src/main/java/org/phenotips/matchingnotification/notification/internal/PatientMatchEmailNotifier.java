@@ -55,10 +55,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
         for (String patientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
-            PatientMatchEmail email = DefaultPatientMatchEmail.newInstance(matchesForPatient);
-            if (email == null) {
-                continue;
-            }
+            PatientMatchEmail email = new DefaultPatientMatchEmail(matchesForPatient);
             emails.add(email);
         }
 

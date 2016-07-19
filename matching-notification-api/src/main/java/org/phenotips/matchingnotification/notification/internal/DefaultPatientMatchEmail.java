@@ -39,7 +39,6 @@ import java.util.Map;
 
 import javax.inject.Provider;
 import javax.mail.Message.RecipientType;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +48,7 @@ import org.slf4j.LoggerFactory;
 import com.xpn.xwiki.XWikiContext;
 
 /**
- * An email that sent to the owner of the reference patient to inform of all the matches found for that patient.
+ * An email that notifies about found matches.
  *
  * @version $Id$
  */
@@ -91,94 +90,54 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         REFERENCE_RESOLVER = referenceResolver;
     }
 
-    protected DefaultPatientMatchEmail(Collection<PatientMatch> matches, ScriptMimeMessage mimeMessage)
-    {
-        this.matches = matches;
-        this.mimeMessage = mimeMessage;
-    }
-
     /**
      * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and every object in
      * it should return the same value for getReferencePatientId(), the id of the reference patient about whom this
      * email is created.
      *
      * @param matches list of matches that the email notifies of.
-     * @return a new instance of PatientMatchEmail if created successfully, or null
      */
-    public static DefaultPatientMatchEmail newInstance(Collection<PatientMatch> matches)
+    public DefaultPatientMatchEmail(Collection<PatientMatch> matches)
     {
-        ScriptMimeMessage mimeMessage = createMimeMessage(matches);
-        if (mimeMessage == null) {
-            LOGGER.error("Error creating email message.");
-            return null;
-        }
-
-        return new DefaultPatientMatchEmail(matches, mimeMessage);
+        this.matches = matches;
+        this.createMimeMessage();
     }
 
-    private static ScriptMimeMessage createMimeMessage(Collection<PatientMatch> matches)
+    private void createMimeMessage()
     {
         Map<String, Object> emailParameters = new HashMap<String, Object>();
         String language = CONTEXT_PROVIDER.get().getLocale().getLanguage();
         emailParameters.put("language", language);
 
-        Iterator<PatientMatch> iterator = matches.iterator();
-        if (!iterator.hasNext()) {
-            return null;
-        }
-        String referencePatientId = iterator.next().getReferencePatientId();
+        String referencePatientId = matches.iterator().next().getReferencePatientId();
 
         Map<String, Object> velocityVariables = new HashMap<>();
         velocityVariables.put("referencePatientId", referencePatientId);
-        velocityVariables.put("matches", matches);
+        velocityVariables.put("matches", this.matches);
         emailParameters.put("velocityVariables", velocityVariables);
 
-        DocumentReference emailTemplateReference = REFERENCE_RESOLVER.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
-        ScriptMimeMessage mimeMessage = MAIL_SERVICE.createMessage("template", emailTemplateReference, emailParameters);
-        if (mimeMessage == null) {
-            return null;
-        }
-
-        if (!setFrom(mimeMessage) || !setTo(mimeMessage, matches)) {
-            return null;
-        }
-
-        return mimeMessage;
+        DocumentReference templateReference = REFERENCE_RESOLVER.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
+        this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, emailParameters);
+        this.setFrom();
+        this.setTo();
     }
 
-    private static boolean setFrom(ScriptMimeMessage mimeMessage)
+    private void setFrom()
     {
         String serverName = CONTEXT_PROVIDER.get().getRequest().getServerName();
         if (StringUtils.isNotEmpty(serverName)) {
-            String fromAddress = "noreply@" + serverName;
-            try {
-                InternetAddress from = new InternetAddress(fromAddress);
-                mimeMessage.setFrom(from);
-            } catch (AddressException e) {
-                LOGGER.error("Error creating from address {} for email", fromAddress, e);
-                return false;
-            }
+            InternetAddress from = new InternetAddress();
+            from.setAddress("noreply@" + serverName);
+            this.mimeMessage.setFrom(from);
         }
-        return true;
     }
 
-    private static boolean setTo(ScriptMimeMessage mimeMessage, Collection<PatientMatch> matches)
+    private void setTo()
     {
-        Iterator<PatientMatch> iterator = matches.iterator();
-        if (!iterator.hasNext()) {
-            return false;
-        }
-
-        String toAddress = iterator.next().getEmail();
-        InternetAddress to;
-        try {
-            to = new InternetAddress(toAddress);
-            mimeMessage.addRecipient(RecipientType.TO, to);
-        } catch (AddressException e) {
-            LOGGER.error("Error creating receipient {} for email", toAddress, e);
-            return false;
-        }
-        return true;
+        String email = this.matches.iterator().next().getEmail();
+        InternetAddress to = new InternetAddress();
+        to.setAddress(email);
+        this.mimeMessage.addRecipient(RecipientType.TO, to);
     }
 
     @Override
