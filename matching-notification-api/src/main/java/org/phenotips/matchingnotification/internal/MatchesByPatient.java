@@ -20,12 +20,16 @@ package org.phenotips.matchingnotification.internal;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+
+import org.apache.commons.codec.binary.StringUtils;
 
 /**
  * @version $Id$
@@ -49,8 +53,42 @@ public class MatchesByPatient
      * 4. Adding m4=("p1",-,"p3","server1"). Match will be found in the same set as 3 and not other sets.
      * 5. Adding m5=("p1",-,"p2","server1"). Match will be found in
      *    internalMap.get("p1").get("p2") in addition to m1 and m2.
+     *
+     * The set where matches are saved is ordered, and matches where the local patient is the matched patient come
+     * before matches where it is the reference. This way, when creating a return value collection for
+     * getMatchesForLocalPatientId(id, true), matches where id is matched are preferred. That is, if m1 and m2 are
+     * equivalent and m1.getMatchedPatientId()==id then m1 is returned and m2 is not.
      */
     private Map<String, Map<String, Set<PatientMatch>>> internalMap;
+
+    private class PatientMatchSetComparator implements Comparator<PatientMatch>
+    {
+        private String localPatientId;
+
+        PatientMatchSetComparator(String localPatientId) {
+            this.localPatientId = localPatientId;
+        }
+
+        public boolean isLocalPatientReference(PatientMatch m) {
+            return StringUtils.equals(m.getReferencePatientId(), localPatientId)
+                && StringUtils.equals(m.getReferenceServerId(), null);
+        }
+
+        @Override
+        // Matches where key patient (first key in internalMap) is matched come before matches where it's a reference.
+        // In all other cases, order is not important (provided that m1!=m2 <==> compare(m1,m2)!=0).
+        public int compare(PatientMatch m1, PatientMatch m2) {
+            boolean m1ref = this.isLocalPatientReference(m1);
+            boolean m2ref = this.isLocalPatientReference(m2);
+            if (m1ref && !m2ref) {
+                return +1;
+            } else if (!m1ref && m2ref) {
+                return -1;
+            } else {
+                return Integer.compare(m1.hashCode(), m2.hashCode());
+            }
+        }
+    }
 
     /**
      * Creates an empty collection.
@@ -161,8 +199,6 @@ public class MatchesByPatient
         return null;
     }
 
-
-
     private void add(String localPatientId, String otherPatientId, PatientMatch match)
     {
         Map<String, Set<PatientMatch>> map = this.internalMap.get(localPatientId);
@@ -173,12 +209,13 @@ public class MatchesByPatient
 
         Set<PatientMatch> set = map.get(otherPatientId);
         if (set == null) {
-            set = new HashSet<>();
+            set = new TreeSet<>(new PatientMatchSetComparator(localPatientId));
             map.put(otherPatientId, set);
         }
 
         set.add(match);
     }
+
 
     private Set<PatientMatch> getSet(String localPatientId, String otherPatientId)
     {
@@ -191,8 +228,11 @@ public class MatchesByPatient
     }
 
     /*
-     * Receives a set and returns the largest possible subset so that for every two matches m1, m2 in the set,
-     * it is true that !m1.isEquivalent(m2). The parameter set is expected to contain only a few matches.
+     * Receives an ordered set and returns the largest possible subset so that for every two matches m1, m2 in the
+     * set, it is true that !m1.isEquivalent(m2). The parameter set is expected to contain only a few matches.
+     *
+     * The set is ordered so that matches where key local patient is matched come first, so these matches are
+     * preferred. See comment regarding internalMap for more details.
      */
     private Set<PatientMatch> filterEquivalents(Set<PatientMatch> set)
     {
