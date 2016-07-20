@@ -156,6 +156,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             if (!successful) {
                 String patientId = "";
                 if (!notificationResults.isEmpty()) {
+                    // FIXME: this is a bug! It's not necessarily the reference patient
                     patientId = notificationResults.get(0).getPatientMatch().getReferencePatientId();
                 }
                 this.logger.error("Error on committing transaction for matching notification for patient {}.",
