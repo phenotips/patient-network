@@ -105,7 +105,7 @@ public class MatchesByPatientTest
     @Test
     public void testGetMatches1()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P1");
+        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P1", false);
         Assert.assertEquals(7, matches.size());
         Assert.assertTrue(matches.contains(m1_3));
         Assert.assertTrue(matches.contains(m1_4));
@@ -119,7 +119,7 @@ public class MatchesByPatientTest
     @Test
     public void testGetMatches2()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P2");
+        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P2", false);
         Assert.assertEquals(6, matches.size());
         Assert.assertTrue(matches.contains(m2_1));
         Assert.assertTrue(matches.contains(m2_3));
@@ -132,7 +132,7 @@ public class MatchesByPatientTest
     @Test
     public void testGetMatches3()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P3");
+        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P3", false);
         Assert.assertEquals(3, matches.size());
         Assert.assertTrue(matches.contains(m1_3));
         Assert.assertTrue(matches.contains(m2_3));
@@ -142,7 +142,7 @@ public class MatchesByPatientTest
     @Test
     public void testGetMatches4()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P4");
+        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P4", false);
         Assert.assertEquals(7, matches.size());
         Assert.assertTrue(matches.contains(m1_4));
         Assert.assertTrue(matches.contains(m1server3_4));
