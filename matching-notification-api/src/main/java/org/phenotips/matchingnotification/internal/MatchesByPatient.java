@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * @version $Id$
  */
@@ -132,11 +130,6 @@ public class MatchesByPatient
 
     /**
      * Returns an equivalent match, or null if doesn't exist.
-     * A match m1 is equivalent to a match m2 if all the following are true:
-     *    m1.referencePatientId = m2.matchedPatientId
-     *    m1.referenceServerId  = m2.matchedServerId
-     *    m2.matchedPatientId   = m1.referencePatientId
-     *    m2.matchedPatientId   = m1.referenceServerId
      *
      * @param match to find an equivalent to
      * @return an equivalent PatientMatch or null if doesn't exist
@@ -155,16 +148,15 @@ public class MatchesByPatient
         }
 
         for (PatientMatch m : setToSearch) {
-            if (StringUtils.equals(m.getReferencePatientId(), match.getMatchedPatientId())
-                && StringUtils.equals(m.getReferenceServerId(), match.getMatchedServerId())
-                && StringUtils.equals(m.getMatchedPatientId(), match.getReferencePatientId())
-                && StringUtils.equals(m.getMatchedServerId(), match.getReferenceServerId())) {
+            if (match.isEquivalent(m)) {
                 return m;
             }
         }
 
         return null;
     }
+
+
 
     private void add(String localPatientId, String otherPatientId, PatientMatch match)
     {

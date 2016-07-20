@@ -386,6 +386,14 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public boolean isEquivalent(PatientMatch other) {
+        return StringUtils.equals(this.getReferencePatientId(), other.getMatchedPatientId())
+                && StringUtils.equals(this.getReferenceServerId(), other.getMatchedServerId())
+                && StringUtils.equals(this.getMatchedPatientId(), other.getReferencePatientId())
+                && StringUtils.equals(this.getMatchedServerId(), other.getReferenceServerId());
+    }
+
+    @Override
     public int hashCode() {
         String forhash = this.getReferencePatientId() + SEPARATOR
             + this.getReferenceServerId() + SEPARATOR
