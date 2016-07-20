@@ -154,13 +154,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             boolean successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
 
             if (!successful) {
-                String patientId = "";
-                if (!notificationResults.isEmpty()) {
-                    // FIXME: this is a bug! It's not necessarily the reference patient
-                    patientId = notificationResults.get(0).getPatientMatch().getReferencePatientId();
-                }
                 this.logger.error("Error on committing transaction for matching notification for patient {}.",
-                    patientId);
+                    email.getSubjectPatientId());
             }
 
             responses.addAll(notificationResults);
