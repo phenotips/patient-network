@@ -32,9 +32,11 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Provider;
@@ -67,6 +69,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private ScriptMimeMessage mimeMessage;
 
+    private String subjectPatientId;
+
     private Collection<PatientMatch> matches;
 
     private boolean sent;
@@ -95,31 +99,81 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
      * it should return the same value for getReferencePatientId(), the id of the reference patient about whom this
      * email is created.
      *
+     * @param subjectPatientId id of patient who is the subject of this email (always local)
      * @param matches list of matches that the email notifies of.
      */
-    public DefaultPatientMatchEmail(Collection<PatientMatch> matches)
+    public DefaultPatientMatchEmail(String subjectPatientId, Collection<PatientMatch> matches)
     {
+        this.subjectPatientId = subjectPatientId;
         this.matches = matches;
         this.createMimeMessage();
     }
 
     private void createMimeMessage()
     {
+        DocumentReference templateReference = REFERENCE_RESOLVER.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
+        this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, this.createEmailParameters());
+
+        this.setFrom();
+        this.setTo();
+    }
+
+    private Map<String, Object> createEmailParameters()
+    {
         Map<String, Object> emailParameters = new HashMap<String, Object>();
         String language = CONTEXT_PROVIDER.get().getLocale().getLanguage();
         emailParameters.put("language", language);
 
-        String referencePatientId = matches.iterator().next().getReferencePatientId();
+        emailParameters.put("velocityVariables", this.createVelocityVariablesMap());
 
+        return emailParameters;
+    }
+
+    private Map<String, Object> createVelocityVariablesMap()
+    {
         Map<String, Object> velocityVariables = new HashMap<>();
-        velocityVariables.put("referencePatientId", referencePatientId);
-        velocityVariables.put("matches", this.matches);
-        emailParameters.put("velocityVariables", velocityVariables);
 
-        DocumentReference templateReference = REFERENCE_RESOLVER.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
-        this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, emailParameters);
-        this.setFrom();
-        this.setTo();
+        this.addSubjectPatientDetails(velocityVariables);
+
+        // Read 'other' patient from each match
+        List<Map<String, Object>> matchesForEmail = new ArrayList<>(this.matches.size());
+        for (PatientMatch match : this.matches) {
+            matchesForEmail.add(this.getMatchMap(match));
+        }
+        velocityVariables.put("matches", matchesForEmail);
+
+        return velocityVariables;
+    }
+
+    private void addSubjectPatientDetails(Map<String, Object> map)
+    {
+        PatientMatch match = this.matches.iterator().next();
+        boolean useRef =
+            StringUtils.equals(match.getReferencePatientId(), this.subjectPatientId)
+            && StringUtils.equals(match.getReferenceServerId(), null);
+
+        map.put("subjectPatientId", useRef ? match.getReferencePatientId() : match.getMatchedPatientId());
+        map.put("subjectEmail", useRef ? match.getEmail() : match.getMatchedEmail());
+        map.put("subjectGenes", useRef ? match.getCandidateGenes() : match.getMatchedCandidateGenes());
+    }
+
+    private Map<String, Object> getMatchMap(PatientMatch match)
+    {
+        Map<String, Object> map = new HashMap<>();
+        boolean useRef =
+            StringUtils.equals(match.getMatchedPatientId(), this.subjectPatientId)
+            && StringUtils.equals(match.getMatchedServerId(), null);
+
+        map.put("patientId", useRef ? match.getReferencePatientId() : match.getMatchedPatientId());
+        map.put("serverId", useRef ? match.getReferenceServerId() :  match.getMatchedServerId());
+        map.put("email", useRef ? match.getEmail() : match.getMatchedEmail());
+        map.put("genes", useRef ? match.getCandidateGenes() : match.getMatchedCandidateGenes());
+
+        map.put("score", match.getScore());
+        map.put("genotypeScore", match.getGenotypeScore());
+        map.put("phenotypeScore", match.getPhenotypeScore());
+
+        return map;
     }
 
     private void setFrom()
@@ -134,7 +188,12 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private void setTo()
     {
-        String email = this.matches.iterator().next().getEmail();
+        PatientMatch match = this.matches.iterator().next();
+        boolean useRef =
+            StringUtils.equals(match.getReferencePatientId(), this.subjectPatientId)
+            && StringUtils.equals(match.getReferenceServerId(), null);
+        String email = useRef ? match.getEmail() : match.getMatchedEmail();
+
         InternetAddress to = new InternetAddress();
         to.setAddress(email);
         this.mimeMessage.addRecipient(RecipientType.TO, to);

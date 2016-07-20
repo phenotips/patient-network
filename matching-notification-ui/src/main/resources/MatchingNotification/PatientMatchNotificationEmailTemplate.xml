@@ -92,16 +92,16 @@
       </text>
     </class>
     <property>
-      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($referencePatientId)}:&lt;/p&gt;
+      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($subjectPatientId)}:&lt;/p&gt;
 
 #foreach ($match in $matches)
-&lt;p&gt;Patient id: $!{escapetool.xml($match.getMatchedPatientId())}&lt;/p&gt;
-&lt;p&gt;Matched email: $!{escapetool.xml($match.getMatchedEmail())}&lt;/p&gt;
-&lt;p&gt;Score: $!{escapetool.xml($match.getScore())}&lt;/p&gt;
-&lt;p&gt;Genotypic score: $!{escapetool.xml($match.getGenotypeScore())}&lt;/p&gt;
-&lt;p&gt;Phenotypic score: $!{escapetool.xml($match.getPhenotypeScore())}&lt;/p&gt;
-&lt;p&gt;Candidate genes: $!{escapetool.xml($match.getCandidateGenes())}&lt;/p&gt;
-&lt;p&gt;Matched Candidate genes: $!{escapetool.xml($match.getMatchedCandidateGenes())}&lt;/p&gt;
+&lt;p&gt;Patient id: $!{escapetool.xml($match.patientId)}&lt;/p&gt;
+&lt;p&gt;Remote id: $!{escapetool.xml($match.serverId)}&lt;/p&gt;
+&lt;p&gt;Matched email: $!{escapetool.xml($match.email)}&lt;/p&gt;
+&lt;p&gt;Matched Candidate genes: $!{escapetool.xml($match.genes)}&lt;/p&gt;
+&lt;p&gt;Score: $!{escapetool.xml($match.score)}&lt;/p&gt;
+&lt;p&gt;Genotypic score: $!{escapetool.xml($match.genotypeScore)}&lt;/p&gt;
+&lt;p&gt;Phenotypic score: $!{escapetool.xml($match.phenotypeScore)}&lt;/p&gt;
 #end
 </html>
     </property>
@@ -112,16 +112,16 @@
       <subject>Patient Match Found</subject>
     </property>
     <property>
-      <text>New matches were found for patient $!{escapetool.xml($patientId)}:
+      <text>New matches were found for patient $!{escapetool.xml($subjectPatientId)}:
 
 #foreach ($match in $matches)
-Patient id: $!{escapetool.xml($match.getMatchedPatientId())}
-Matched email: $!{escapetool.xml($match.getMatchedEmail())}
-Score: $!{escapetool.xml($match.getScore())}
-Genotypic score: $!{escapetool.xml($match.getGenotypeScore())}
-Phenotypic score: $!{escapetool.xml($match.getPhenotypeScore())}
-Candidate genes: $!{escapetool.xml($match.getCandidateGenes())}
-Matched Candidate genes: $!{escapetool.xml($match.getMatchedCandidateGenes())}
+Patient id: $!{escapetool.xml($match.patientId)}
+Remote id: $!{escapetool.xml($match.serverId)}
+Matched email: $!{escapetool.xml($match.email)}
+Matched Candidate genes: $!{escapetool.xml($match.genes)}
+Score: $!{escapetool.xml($match.score)}
+Genotypic score: $!{escapetool.xml($match.genotypeScore)}
+Phenotypic score: $!{escapetool.xml($match.phenotypeScore)}
 #end
 </text>
     </property>
