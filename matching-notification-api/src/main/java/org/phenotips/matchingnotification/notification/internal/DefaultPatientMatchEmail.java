@@ -234,4 +234,9 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
             this.mailStatus = allResults.next();
         }
     }
+
+    @Override
+    public String getSubjectPatientId() {
+        return this.subjectPatientId;
+    }
 }

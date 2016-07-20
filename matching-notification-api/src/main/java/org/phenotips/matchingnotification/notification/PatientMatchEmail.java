@@ -29,6 +29,11 @@ import java.util.Collection;
 public interface PatientMatchEmail
 {
     /**
+     * @return the id of the patient about whom the email was sent. It is always local.
+     */
+    String getSubjectPatientId();
+
+    /**
      * @return the matches this email notifies of.
      */
     Collection<PatientMatch> getMatches();
