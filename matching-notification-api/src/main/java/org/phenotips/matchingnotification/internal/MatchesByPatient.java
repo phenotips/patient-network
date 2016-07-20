@@ -115,15 +115,20 @@ public class MatchesByPatient
      * reference patient and matched patient.
      *
      * @param localPatientId id of local patient
+     * @param filterEquivalents if true, the return value will contain no equivalent matches
      * @return collection of all matches for {@code localPatientId}
      */
-    public Collection<PatientMatch> getMatchesForLocalPatientId(String localPatientId)
+    public Collection<PatientMatch> getMatchesForLocalPatientId(String localPatientId, boolean filterEquivalents)
     {
         List<PatientMatch> list = new LinkedList<>();
 
         Map<String, Set<PatientMatch>> matchesForPatient = this.internalMap.get(localPatientId);
         for (Set<PatientMatch> set : matchesForPatient.values()) {
-            list.addAll(set);
+            if (filterEquivalents) {
+                list.addAll(this.filterEquivalents(set));
+            } else {
+                list.addAll(set);
+            }
         }
         return list;
     }
@@ -183,5 +188,26 @@ public class MatchesByPatient
         }
 
         return map.get(otherPatientId);
+    }
+
+    /*
+     * Receives a set and returns the largest possible subset so that for every two matches m1, m2 in the set,
+     * it is true that !m1.isEquivalent(m2). The parameter set is expected to contain only a few matches.
+     */
+    private Set<PatientMatch> filterEquivalents(Set<PatientMatch> set)
+    {
+        Set<PatientMatch> newSet = new HashSet<>();
+        for (PatientMatch m : set) {
+            boolean insert = true;
+            for (PatientMatch n : newSet) {
+                if (n.isEquivalent(m)) {
+                    insert = false;
+                }
+            }
+            if (insert) {
+                newSet.add(m);
+            }
+        }
+        return newSet;
     }
 }
