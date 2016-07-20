@@ -118,4 +118,17 @@ public interface PatientMatch
      * @return true only if match is rejected.
      */
     boolean isRejected();
+
+    /**
+     * Checks if {@code other} is equivalent to this.
+     * A match m1 is equivalent to a match m2 if all the following are true:
+     *    m1.referencePatientId = m2.matchedPatientId
+     *    m1.referenceServerId  = m2.matchedServerId
+     *    m2.matchedPatientId   = m1.referencePatientId
+     *    m2.matchedPatientId   = m1.referenceServerId
+     *
+     * @param other match to compare to
+     * @return true if equivalent
+     */
+    boolean isEquivalent(PatientMatch other);
 }
