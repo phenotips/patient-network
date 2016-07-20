@@ -34,8 +34,6 @@ import java.util.List;
 
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Notifies about patient matches.
  *
@@ -54,12 +52,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         List<String> patientIds = new ArrayList<>(mbp.getLocalPatientIds());
         Collections.sort(patientIds);
 
-        for (String patientId : patientIds) {
-            Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(patientId, true);
-            PatientMatchEmail email = this.createEmail(patientId, matchesForPatient);
-            if (email != null) {
-                emails.add(email);
-            }
+        for (String subjectPatientId : patientIds) {
+            Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
+            PatientMatchEmail email = new DefaultPatientMatchEmail(subjectPatientId, matchesForPatient);
+            emails.add(email);
         }
 
         return emails;
@@ -83,24 +79,5 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         }
 
         return responses;
-    }
-
-    private PatientMatchEmail createEmail(String patientId, Collection<PatientMatch> matches) {
-
-        // TODO: For now only considering matches where patient is reference
-        // It should handle the case where patient is matched.
-
-        List<PatientMatch> asReference = new LinkedList<>();
-        for (PatientMatch match : matches) {
-            if (StringUtils.equals(match.getReferencePatientId(), patientId)) {
-                asReference.add(match);
-            }
-        }
-
-        if (asReference.size() > 0) {
-            return new DefaultPatientMatchEmail(asReference);
-        } else {
-            return null;
-        }
     }
 }
