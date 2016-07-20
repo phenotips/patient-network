@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.notification.internal;
 
+import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
@@ -28,12 +29,12 @@ import org.xwiki.mail.MailStatus;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Singleton;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Notifies about patient matches.
@@ -47,16 +48,18 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Override
     public List<PatientMatchEmail> createEmails(List<PatientMatch> matches)
     {
-        Map<String, Collection<PatientMatch>> matchesByPatient = groupByPatient(matches);
-        List<PatientMatchEmail> emails = new ArrayList<>(matchesByPatient.size());
+        MatchesByPatient mbp = new MatchesByPatient(matches);
+        List<PatientMatchEmail> emails = new LinkedList<>();
 
-        List<String> patientIds = new ArrayList<>(matchesByPatient.keySet());
+        List<String> patientIds = new ArrayList<>(mbp.getLocalPatientIds());
         Collections.sort(patientIds);
 
         for (String patientId : patientIds) {
-            Collection<PatientMatch> matchesForPatient = matchesByPatient.get(patientId);
-            PatientMatchEmail email = new DefaultPatientMatchEmail(matchesForPatient);
-            emails.add(email);
+            Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(patientId, true);
+            PatientMatchEmail email = this.createEmail(patientId, matchesForPatient);
+            if (email != null) {
+                emails.add(email);
+            }
         }
 
         return emails;
@@ -82,24 +85,22 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         return responses;
     }
 
-    /*
-     * Takes a list of PatientMatch objects and returns them in a map that groups all matches with same patient id.
-     */
-    private Map<String, Collection<PatientMatch>> groupByPatient(Collection<PatientMatch> matches)
-    {
-        Map<String, Collection<PatientMatch>> matchesMap = new HashMap<String, Collection<PatientMatch>>();
+    private PatientMatchEmail createEmail(String patientId, Collection<PatientMatch> matches) {
 
+        // TODO: For now only considering matches where patient is reference
+        // It should handle the case where patient is matched.
+
+        List<PatientMatch> asReference = new LinkedList<>();
         for (PatientMatch match : matches) {
-            String patientId = match.getReferencePatientId();
-            Collection<PatientMatch> matchesList = matchesMap.get(patientId);
-            if (matchesList == null) {
-                matchesList = new LinkedList<PatientMatch>();
-                matchesMap.put(patientId, matchesList);
+            if (StringUtils.equals(match.getReferencePatientId(), patientId)) {
+                asReference.add(match);
             }
-
-            matchesList.add(match);
         }
 
-        return matchesMap;
+        if (asReference.size() > 0) {
+            return new DefaultPatientMatchEmail(asReference);
+        } else {
+            return null;
+        }
     }
 }
