@@ -60,4 +60,10 @@ public class ReferencePatientInMatch extends AbstractPatientInMatch
         return this.match.getCandidateGenes();
     }
 
+    @Override
+    public PhenotypesMap getPhenotypesMap()
+    {
+        return this.match.getReferencePhenotypesMap();
+    }
+
 }
