@@ -117,20 +117,27 @@ public class MatchesByPatient
         return matches.size();
     }
 
+
     /**
      * Adds a PatientMatch to the collection.
      *
      * @param match to add
+     * @return true if added
      */
-    public void add(PatientMatch match)
+    public boolean add(PatientMatch match)
     {
+        boolean addedAsRef = false;
+        boolean addedAdMatch = false;
+
         // This will insert a match once or twice, because at least one of the patients is local
         if (match.getReferenceServerId() == null) {
-            this.add(match.getReferencePatientId(), match.getMatchedPatientId(), match);
+            addedAsRef = this.add(match.getReferencePatientId(), match.getMatchedPatientId(), match);
         }
         if (match.getMatchedServerId() == null) {
-            this.add(match.getMatchedPatientId(), match.getReferencePatientId(), match);
+            addedAdMatch = this.add(match.getMatchedPatientId(), match.getReferencePatientId(), match);
         }
+
+        return addedAsRef || addedAdMatch;
     }
 
     /**
@@ -206,7 +213,7 @@ public class MatchesByPatient
         return null;
     }
 
-    private void add(String localPatientId, String otherPatientId, PatientMatch match)
+    private boolean add(String localPatientId, String otherPatientId, PatientMatch match)
     {
         Map<String, Set<PatientMatch>> map = this.internalMap.get(localPatientId);
         if (map == null) {
@@ -220,7 +227,7 @@ public class MatchesByPatient
             map.put(otherPatientId, set);
         }
 
-        set.add(match);
+        return set.add(match);
     }
 
     private boolean remove(String localPatientId, String otherPatientId, PatientMatch match) {
