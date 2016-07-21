@@ -134,6 +134,26 @@ public class MatchesByPatient
     }
 
     /**
+     * Removes a match from the collection.
+     *
+     * @param match to remove
+     * @return false if not found
+     */
+    public boolean remove(PatientMatch match) {
+        boolean removedAsRef = false;
+        boolean removedAsMatch = false;
+
+        if (match.getReferenceServerId() == null) {
+            removedAsRef = this.remove(match.getReferencePatientId(), match.getMatchedPatientId(), match);
+        }
+        if (match.getMatchedServerId() == null) {
+            removedAsMatch = this.remove(match.getMatchedPatientId(), match.getReferencePatientId(), match);
+        }
+
+        return removedAsRef || removedAsMatch;
+    }
+
+    /**
      * @return a collection of all ids of local patients.
      */
     public Collection<String> getLocalPatientIds()
@@ -163,7 +183,6 @@ public class MatchesByPatient
         }
         return list;
     }
-
 
     /**
      * Returns an equivalent match, or null if doesn't exist.
@@ -202,6 +221,40 @@ public class MatchesByPatient
         }
 
         set.add(match);
+    }
+
+    private boolean remove(String localPatientId, String otherPatientId, PatientMatch match) {
+        Map<String, Set<PatientMatch>> map = this.internalMap.get(localPatientId);
+        if (map == null) {
+            return false;
+        }
+
+        Set<PatientMatch> set = map.get(otherPatientId);
+        if (set == null) {
+            return false;
+        }
+
+        if (!set.contains(match)) {
+            return false;
+        }
+
+        set.remove(match);
+        return true;
+    }
+
+    /**
+     * Checks if the collection contains a match.
+     *
+     * @param match to check
+     * @return true if the collection contains the match
+     */
+    public boolean contains(PatientMatch match) {
+        Set<PatientMatch> set = this.getAnySet(match);
+        if (set == null) {
+            return false;
+        }
+
+        return set.contains(match);
     }
 
     /*
