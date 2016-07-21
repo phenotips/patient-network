@@ -20,7 +20,11 @@ package org.phenotips.matchingnotification.internal.test;
 import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -171,7 +175,8 @@ public class MatchesByPatientTest
     }
 
     @Test
-    public void testAdd() {
+    public void testAdd()
+    {
         MatchesByPatient mbp2 = new MatchesByPatient();
         Assert.assertTrue(mbp2.add(m1_3));
         Assert.assertFalse(mbp2.add(m1_3));
@@ -190,6 +195,135 @@ public class MatchesByPatientTest
         Assert.assertTrue(mbp2.add(m1server4_4));
         Assert.assertFalse(mbp2.add(m1server4_4));
         Assert.assertFalse(mbp2.add(m1server4_4));
+    }
+
+    @Test
+    public void testIterator1()
+    {
+        testIterator(new PatientMatch[] {});
+    }
+
+    @Test
+    public void testIterator2()
+    {
+        testIterator(new PatientMatch[] { m1_3 });
+    }
+
+    @Test
+    public void testIterator3()
+    {
+        testIterator(new PatientMatch[] { m1_3, m1_4, m1_5server1, m1server3_4, m1server4_4, m1server5_4});
+    }
+
+    @Test
+    public void testIterator4() {
+        testIterator(new PatientMatch[] { m1_3, m1_4, m1_5server1, m1server3_4, m1server4_4, m1server5_4, m2_1, m2_3,
+            m2_3server1, m3_1, m3server1_2, m4_1, m4_1server3, m4_2, m5server1_1, m5server1_2 });
+    }
+
+    @Test
+    public void testIterator5()
+    {
+        testFilteredIterator(new PatientMatch[] {});
+    }
+
+    @Test
+    public void testIterator6()
+    {
+        testFilteredIterator(new PatientMatch[] { m1_3 });
+    }
+
+    @Test
+    public void testIterator6_5() {
+        PatientMatch n1_2 = newMatch(1, "P1", null, "P2", null);
+        PatientMatch n1_3 = newMatch(2, "P1", null, "P3", null);
+        PatientMatch n2_1 = newMatch(3, "P2", null, "P1", null);
+        PatientMatch n2_3 = newMatch(4, "P2", null, "P3", null);
+        PatientMatch n3_1 = newMatch(5, "P3", null, "P1", null);
+        PatientMatch n3_2 = newMatch(6, "P3", null, "P2", null);
+
+        when(n1_2.isEquivalent(n1_2)).thenReturn(false);
+        when(n1_2.isEquivalent(n1_3)).thenReturn(false);
+        when(n1_2.isEquivalent(n2_1)).thenReturn(true);
+        when(n1_2.isEquivalent(n2_3)).thenReturn(false);
+        when(n1_2.isEquivalent(n3_1)).thenReturn(false);
+        when(n1_2.isEquivalent(n3_2)).thenReturn(false);
+
+        when(n1_3.isEquivalent(n1_2)).thenReturn(false);
+        when(n1_3.isEquivalent(n1_3)).thenReturn(false);
+        when(n1_3.isEquivalent(n2_1)).thenReturn(false);
+        when(n1_3.isEquivalent(n2_3)).thenReturn(false);
+        when(n1_3.isEquivalent(n3_1)).thenReturn(true);
+        when(n1_3.isEquivalent(n3_2)).thenReturn(false);
+
+        when(n2_1.isEquivalent(n1_2)).thenReturn(true);
+        when(n2_1.isEquivalent(n1_3)).thenReturn(false);
+        when(n2_1.isEquivalent(n2_1)).thenReturn(false);
+        when(n2_1.isEquivalent(n2_3)).thenReturn(false);
+        when(n2_1.isEquivalent(n3_1)).thenReturn(false);
+        when(n2_1.isEquivalent(n3_2)).thenReturn(false);
+
+        when(n2_3.isEquivalent(n1_2)).thenReturn(false);
+        when(n2_3.isEquivalent(n1_3)).thenReturn(false);
+        when(n2_3.isEquivalent(n2_1)).thenReturn(false);
+        when(n2_3.isEquivalent(n2_3)).thenReturn(false);
+        when(n2_3.isEquivalent(n3_1)).thenReturn(false);
+        when(n2_3.isEquivalent(n3_2)).thenReturn(true);
+
+        when(n3_1.isEquivalent(n1_2)).thenReturn(false);
+        when(n3_1.isEquivalent(n1_3)).thenReturn(true);
+        when(n3_1.isEquivalent(n2_1)).thenReturn(false);
+        when(n3_1.isEquivalent(n2_3)).thenReturn(false);
+        when(n3_1.isEquivalent(n3_1)).thenReturn(false);
+        when(n3_1.isEquivalent(n3_2)).thenReturn(false);
+
+        when(n3_2.isEquivalent(n1_2)).thenReturn(false);
+        when(n3_2.isEquivalent(n1_3)).thenReturn(false);
+        when(n3_2.isEquivalent(n2_1)).thenReturn(false);
+        when(n3_2.isEquivalent(n2_3)).thenReturn(true);
+        when(n3_2.isEquivalent(n3_1)).thenReturn(false);
+        when(n3_2.isEquivalent(n3_2)).thenReturn(false);
+
+        PatientMatch[] toAdd = new PatientMatch[] { n1_2, n1_3, n2_1, n2_3, n3_1, n3_2 };
+        testFilteredIterator(toAdd);
+    }
+
+    private void testIterator(PatientMatch[] toAdd)
+    {
+        Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
+        MatchesByPatient mbp2 = new MatchesByPatient(toAddSet);
+
+        Iterator<PatientMatch> iterator = mbp2.iterator(false);
+
+        Set<PatientMatch> newSet = new HashSet<PatientMatch>();
+        for (int i = 0; i < toAddSet.size(); i++) {
+            Assert.assertTrue(iterator.hasNext());
+            newSet.add(iterator.next());
+        }
+        Assert.assertFalse(iterator.hasNext());
+
+        Assert.assertEquals(toAddSet, newSet);
+    }
+
+    private void testFilteredIterator(PatientMatch[] toAdd) {
+        Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
+        MatchesByPatient mbp2 = new MatchesByPatient(toAddSet);
+
+        Iterator<PatientMatch> iterator = mbp2.iterator(true);
+
+        Set<PatientMatch> newSet = new HashSet<PatientMatch>();
+        while (iterator.hasNext()) {
+            newSet.add(iterator.next());
+        }
+
+        // Check that every item that was not returned by iterator, has an equivalent in MatchesByPatient
+
+        Set<PatientMatch> notInNewSet = new HashSet<>(toAddSet);
+        notInNewSet.removeAll(newSet);
+
+        for (PatientMatch match : notInNewSet) {
+            Assert.assertNotNull(mbp2.getEquivalentMatch(match));
+        }
     }
 
     private PatientMatch newMatch(long id, String referencePatientId, String referenceServerId,
