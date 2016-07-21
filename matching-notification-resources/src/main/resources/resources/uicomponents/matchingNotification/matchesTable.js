@@ -43,11 +43,12 @@ define(["jquery", "dynatable"], function($, dyna)
                 match.genotypicScore = this._roundScore(match.genotypicScore);
 
                 // server ids
-                match.referenceServerId = this._formatServerId(match.referenceServerId);
-                match.matchedServerId = this._formatServerId(match.matchedServerId);
+                match.reference.serverId = this._formatServerId(match.reference.serverId);
+                match.matched.serverId = this._formatServerId(match.matched.serverId);
 
                 // Phenotypes
-                [match.phenotypes, match.matchedPhenotypes] = this._formatPhenotypes(match.phenotypes, match.matchedPhenotypes);
+                [match.reference.phenotypes, match.matched.phenotypes] =
+                    this._formatPhenotypes(match.reference.phenotypes, match.matched.phenotypes);
             }.bind(this));
         },
 
@@ -95,12 +96,22 @@ define(["jquery", "dynatable"], function($, dyna)
                         tr += this._getRejectionTd(record);
                         break;
                     case 'referencePatient':
-                        tr += this._getPatientDetailsTd(
-                            record.referencePatientId, record.genes, record.phenotypes, 'referencePatientTd', record.id);
+                        tr += this._getPatientDetailsTd(record.reference, 'referencePatientTd', record.id);
                         break;
                     case 'matchedPatient':
-                        tr += this._getPatientDetailsTd(
-                            record.matchedPatientId, record.matchedGenes, record.matchedPhenotypes, 'matchedPatientTd', record.id);
+                        tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
+                        break;
+                    case 'referenceServerId':
+                        tr += this._simpleCellWriter(record.reference.serverId);
+                        break;
+                    case 'matchedServerId':
+                        tr += this._simpleCellWriter(record.matched.serverId);
+                        break;
+                    case 'email':
+                        tr += this._simpleCellWriter(record.reference.email);
+                        break;
+                    case 'matchedHref':
+                        tr += this._simpleCellWriter(record.matched.email);
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -123,21 +134,27 @@ define(["jquery", "dynatable"], function($, dyna)
             return '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '" ' + (record.rejected ? 'checked ' : '') + '/></td>';
         },
 
-        _getPatientDetailsTd : function(patientId, genes, phenotypes, tdId, matchId)
+        _simpleCellWriter : function(value)
+        {
+            return '<td style="text-align: left">' + value + '</td>';
+        },
+
+        _getPatientDetailsTd : function(patient, tdId, matchId)
         {
             var td = '<td id="' + tdId + '">';
 
-            var patientHref = new XWiki.Document(patientId, 'data').getURL();
+            var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
 
             // Patient id and collapsible icon
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
-            td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patientId + '</a>';
+            td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
             td += '</div>';
 
             // Collapsible div
             td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
             // Genes
+            var genes = patient.genes;
             td += '<div class="genes-div">';
             var genesTitle = 'Genes';
             if (genes.size() == 0) {
@@ -154,6 +171,7 @@ define(["jquery", "dynatable"], function($, dyna)
             td += '</div>';
 
             // Phenotypes
+            var phenotypes = patient.phenotypes;
             td += '<div class="phenotypes-div">';
             var phenotypesTitle = 'Phenotypes';
             if (phenotypes.empty) {
