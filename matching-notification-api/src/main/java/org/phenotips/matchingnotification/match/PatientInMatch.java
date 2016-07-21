@@ -17,6 +17,8 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.phenotips.matchingnotification.match.internal.PhenotypesMap;
+
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -45,6 +47,11 @@ public interface PatientInMatch
      * @return a set of candidate genes for patient.
      */
     Set<String> getCandidateGenes();
+
+    /**
+     * @return phenotypes map
+     */
+    PhenotypesMap getPhenotypesMap();
 
     /**
      * @return JSON representation of object
