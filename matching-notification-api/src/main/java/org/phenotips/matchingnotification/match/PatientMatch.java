@@ -17,6 +17,8 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.phenotips.matchingnotification.match.internal.PhenotypesMap;
+
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
@@ -113,6 +115,16 @@ public interface PatientMatch
      * @return a set of candidate genes for matched patient.
      */
     Set<String> getMatchedCandidateGenes();
+
+    /**
+     * @return phenotypes map of reference patient.
+     */
+    PhenotypesMap getReferencePhenotypesMap();
+
+    /**
+     * @return phenotypes map of matched patient.
+     */
+    PhenotypesMap getMatchedPhenotypesMap();
 
     /**
      * @return true only if match is rejected.
