@@ -344,6 +344,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public PhenotypesMap getReferencePhenotypesMap()
+    {
+        return this.phenotypesMap;
+    }
+
+    @Override
+    public PhenotypesMap getMatchedPhenotypesMap()
+    {
+        return this.matchedPhenotypesMap;
+    }
+
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder()
