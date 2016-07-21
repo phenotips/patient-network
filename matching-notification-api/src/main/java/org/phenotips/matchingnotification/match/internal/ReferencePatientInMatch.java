@@ -17,7 +17,6 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
-import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import java.util.Set;
@@ -25,7 +24,7 @@ import java.util.Set;
 /**
  * @version $Id$
  */
-public class ReferencePatientInMatch implements PatientInMatch
+public class ReferencePatientInMatch extends AbstractPatientInMatch
 {
     private PatientMatch match;
 

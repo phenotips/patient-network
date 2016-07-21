@@ -19,6 +19,8 @@ package org.phenotips.matchingnotification.match;
 
 import java.util.Set;
 
+import org.json.JSONObject;
+
 /**
  * @version $Id$
  */
@@ -43,4 +45,9 @@ public interface PatientInMatch
      * @return a set of candidate genes for patient.
      */
     Set<String> getCandidateGenes();
+
+    /**
+     * @return JSON representation of object
+     */
+    JSONObject toJSON();
 }
