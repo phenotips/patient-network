@@ -170,6 +170,28 @@ public class MatchesByPatientTest
         Assert.assertFalse(mbp.contains(m2_3server1));
     }
 
+    @Test
+    public void testAdd() {
+        MatchesByPatient mbp2 = new MatchesByPatient();
+        Assert.assertTrue(mbp2.add(m1_3));
+        Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertFalse(mbp2.add(m1_3));
+
+        Assert.assertTrue(mbp2.add(m2_3));
+        Assert.assertFalse(mbp2.add(m2_3));
+        Assert.assertFalse(mbp2.add(m2_3));
+
+        Assert.assertFalse(mbp2.add(m1_3));
+
+        Assert.assertTrue(mbp2.add(m1_5server1));
+        Assert.assertFalse(mbp2.add(m1_5server1));
+        Assert.assertFalse(mbp2.add(m1_5server1));
+
+        Assert.assertTrue(mbp2.add(m1server4_4));
+        Assert.assertFalse(mbp2.add(m1server4_4));
+        Assert.assertFalse(mbp2.add(m1server4_4));
+    }
+
     private PatientMatch newMatch(long id, String referencePatientId, String referenceServerId,
         String matchedPatientId, String matchedServerId)
     {
