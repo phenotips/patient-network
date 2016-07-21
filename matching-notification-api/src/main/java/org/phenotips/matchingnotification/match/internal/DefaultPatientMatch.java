@@ -374,22 +374,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         JSONObject json = new JSONObject();
         json.put(ID, this.getId());
-        json.put("referencePatientId", this.getReferencePatientId());
-        json.put("referenceServerId", this.getReferenceServerId());
-        json.put("matchedPatientId", this.getMatchedPatientId());
-        json.put("matchedServerId", this.getMatchedServerId());
+
+        json.put("reference", this.getReference().toJSON());
+        json.put("matched", this.getMatched().toJSON());
+
         json.put("timestamp", new SimpleDateFormat("yyyy/MM/dd HH:mm").format(this.timestamp));
         json.put("notified", this.isNotified());
         json.put("rejected", this.isRejected());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
-        json.put("email", this.getEmail());
-        json.put("matchedHref", this.getMatchedEmail());
-        json.put("genes", UTILS.setToJSONArray(this.genesSet));
-        json.put("matchedGenes", UTILS.setToJSONArray(this.matchedGenesSet));
-        json.put("phenotypes", this.phenotypesMap.toJSON());
-        json.put("matchedPhenotypes", this.matchedPhenotypesMap.toJSON());
+
         return json;
     }
 
