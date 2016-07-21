@@ -297,16 +297,20 @@ public class MatchesByPatient
     {
         Set<PatientMatch> newSet = new HashSet<>();
         for (PatientMatch m : set) {
-            boolean insert = true;
-            for (PatientMatch n : newSet) {
-                if (n.isEquivalent(m)) {
-                    insert = false;
-                }
-            }
-            if (insert) {
+            if (!this.containsEquivalent(newSet, m)) {
                 newSet.add(m);
             }
         }
         return newSet;
+    }
+
+    private boolean containsEquivalent(Collection<PatientMatch> c, PatientMatch match)
+    {
+        for (PatientMatch m : c) {
+            if (match.isEquivalent(m)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
