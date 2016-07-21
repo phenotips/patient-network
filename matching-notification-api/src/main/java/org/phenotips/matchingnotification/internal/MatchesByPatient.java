@@ -95,7 +95,7 @@ public class MatchesByPatient
      *
      * @param matches a collection of PatientMatch-es
      */
-    public MatchesByPatient(List<PatientMatch> matches) {
+    public MatchesByPatient(Collection<PatientMatch> matches) {
         this();
         for (PatientMatch match : matches) {
             this.add(match);
