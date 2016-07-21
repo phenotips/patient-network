@@ -155,6 +155,21 @@ public class MatchesByPatientTest
         Assert.assertTrue(matches.contains(m4_2));
     }
 
+    @Test
+    public void testContainsAndRemove() {
+        Assert.assertTrue(mbp.contains(m1_4));
+        mbp.remove(m1_4);
+        Assert.assertFalse(mbp.contains(m1_4));
+
+        Assert.assertTrue(mbp.contains(m1server3_4));
+        mbp.remove(m1server3_4);
+        Assert.assertFalse(mbp.contains(m1server3_4));
+
+        Assert.assertTrue(mbp.contains(m2_3server1));
+        mbp.remove(m2_3server1);
+        Assert.assertFalse(mbp.contains(m2_3server1));
+    }
+
     private PatientMatch newMatch(long id, String referencePatientId, String referenceServerId,
         String matchedPatientId, String matchedServerId)
     {
