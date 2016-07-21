@@ -22,6 +22,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,130 @@ public class MatchesByPatient
      * equivalent and m1.getMatchedPatientId()==id then m1 is returned and m2 is not.
      */
     private Map<String, Map<String, Set<PatientMatch>>> internalMap;
+
+    /**
+     * @version $Id$
+     */
+    public class MatchesByPatientIterator implements Iterator<PatientMatch>
+    {
+        private MatchesByPatient mbp;
+
+        private Iterator<Map<String, Set<PatientMatch>>> primaryKeyIterator;
+        private Iterator<Set<PatientMatch>> secondaryKeyIterator;
+        private Iterator<PatientMatch> setIterator;
+
+        private PatientMatch returnNext;
+
+        private Set<PatientMatch> returnedSet;
+
+        private boolean skipEquivalents;
+
+        /**
+         * @param skipEquivalents skip any match if its equivalent was retrieved
+         * @param mbp MatchesByPatient object that this iterator iterates over
+         */
+        public MatchesByPatientIterator(MatchesByPatient mbp, boolean skipEquivalents)
+        {
+            this.mbp = mbp;
+            this.skipEquivalents = skipEquivalents;
+            this.returnedSet = new HashSet<>();
+            this.initialize();
+        }
+
+        private void initialize()
+        {
+            this.primaryKeyIterator = this.mbp.internalMap.values().iterator();
+            if (this.primaryKeyIterator.hasNext()) {
+                this.secondaryKeyIterator = this.primaryKeyIterator.next().values().iterator();
+                if (this.secondaryKeyIterator.hasNext()) {
+                    this.setIterator = this.secondaryKeyIterator.next().iterator();
+                    if (this.setIterator.hasNext()) {
+                        this.returnNext = this.setIterator.next();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return this.returnNext != null;
+        }
+
+        @Override
+        public PatientMatch next()
+        {
+            PatientMatch toReturn = this.returnNext;
+
+            this.returnedSet.add(toReturn);
+            boolean keepLooking = true;
+            while (keepLooking) {
+                this.moveToNext();
+
+                keepLooking = false;
+                if (this.returnNext != null) {
+                    if (this.returnedSet.contains(this.returnNext)) {
+                        keepLooking = true;
+                    }
+                    if (this.skipEquivalents && containsEquivalent(returnedSet, this.returnNext)) {
+                        keepLooking = true;
+                    }
+                }
+            }
+
+            return toReturn;
+        }
+
+        private void moveToNext()
+        {
+            this.returnNext = null;
+
+            if (this.setReturnNext()) {
+                return;
+            }
+
+            this.moveSecondary();
+            if (this.setReturnNext()) {
+                return;
+            }
+
+            this.movePrimary();
+            this.moveSecondary();
+            this.setReturnNext();
+
+            // if this.setReturnNext() returned false, it's the end of the collection.
+        }
+
+        private void movePrimary()
+        {
+            while (!this.secondaryKeyIterator.hasNext() && this.primaryKeyIterator.hasNext()) {
+                this.secondaryKeyIterator = this.primaryKeyIterator.next().values().iterator();
+            }
+        }
+
+        private void moveSecondary()
+        {
+            while (!this.setIterator.hasNext() && this.secondaryKeyIterator.hasNext()) {
+                this.setIterator = this.secondaryKeyIterator.next().iterator();
+            }
+        }
+
+        // Return value - true if returned next set. If false, continue looking for next item.
+        private boolean setReturnNext() {
+            if (this.setIterator != null && this.setIterator.hasNext()) {
+                this.returnNext = this.setIterator.next();
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException();
+        }
+
+    }
 
     private class PatientMatchSetComparator implements Comparator<PatientMatch>
     {
@@ -138,6 +263,23 @@ public class MatchesByPatient
         }
 
         return addedAsRef || addedAdMatch;
+    }
+
+    /**
+     * @param skipEquivalents skip any match if its equivalent was retrieved
+     * @return iterator over the collection
+     */
+    public Iterator<PatientMatch> iterator(boolean skipEquivalents)
+    {
+        return new MatchesByPatientIterator(this, skipEquivalents);
+    }
+
+    /**
+     * @return iterator over the collection
+     */
+    public Iterator<PatientMatch> iterator()
+    {
+        return iterator(false);
     }
 
     /**
