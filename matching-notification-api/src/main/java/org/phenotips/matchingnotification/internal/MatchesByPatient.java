@@ -164,6 +164,7 @@ public class MatchesByPatient
         return list;
     }
 
+
     /**
      * Returns an equivalent match, or null if doesn't exist.
      *
@@ -172,13 +173,7 @@ public class MatchesByPatient
      */
     public PatientMatch getEquivalentMatch(PatientMatch match)
     {
-        Set<PatientMatch> setToSearch = null;
-        if (match.getReferenceServerId() == null) {
-            setToSearch = this.getSet(match.getReferencePatientId(), match.getMatchedPatientId());
-        } else {
-            setToSearch = this.getSet(match.getMatchedPatientId(), match.getReferencePatientId());
-        }
-
+        Set<PatientMatch> setToSearch = this.getAnySet(match);
         if (setToSearch == null) {
             return null;
         }
@@ -209,6 +204,17 @@ public class MatchesByPatient
         set.add(match);
     }
 
+    /*
+     * Returns only one of the two possible sets where a match can be found. This method is good only for query methods
+     * because it is not guaranteed which set is returned.
+     */
+    private Set<PatientMatch> getAnySet(PatientMatch match) {
+        if (match.getReferenceServerId() == null) {
+            return this.getSet(match.getReferencePatientId(), match.getMatchedPatientId());
+        } else {
+            return this.getSet(match.getMatchedPatientId(), match.getReferencePatientId());
+        }
+    }
 
     private Set<PatientMatch> getSet(String localPatientId, String otherPatientId)
     {
