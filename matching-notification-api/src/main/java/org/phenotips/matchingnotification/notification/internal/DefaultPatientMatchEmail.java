@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.notification.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 
@@ -69,7 +70,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private ScriptMimeMessage mimeMessage;
 
-    private String subjectPatientId;
+    private PatientInMatch subjectPatient;
 
     private Collection<PatientMatch> matches;
 
@@ -104,8 +105,14 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
      */
     public DefaultPatientMatchEmail(String subjectPatientId, Collection<PatientMatch> matches)
     {
-        this.subjectPatientId = subjectPatientId;
         this.matches = matches;
+
+        PatientMatch anyMatch = this.matches.iterator().next();
+        if (anyMatch.isReference(subjectPatientId, null)) {
+            this.subjectPatient = anyMatch.getReference();
+        } else {
+            this.subjectPatient = anyMatch.getMatched();
+        }
         this.createMimeMessage();
     }
 
@@ -147,27 +154,25 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private void addSubjectPatientDetails(Map<String, Object> map)
     {
-        PatientMatch match = this.matches.iterator().next();
-        boolean useRef =
-            StringUtils.equals(match.getReferencePatientId(), this.subjectPatientId)
-            && StringUtils.equals(match.getReferenceServerId(), null);
-
-        map.put("subjectPatientId", useRef ? match.getReferencePatientId() : match.getMatchedPatientId());
-        map.put("subjectEmail", useRef ? match.getEmail() : match.getMatchedEmail());
-        map.put("subjectGenes", useRef ? match.getCandidateGenes() : match.getMatchedCandidateGenes());
+        map.put("subjectPatientId", this.subjectPatient.getPatientId());
+        map.put("subjectEmail", this.subjectPatient.getEmail());
+        map.put("subjectGenes", this.subjectPatient.getCandidateGenes());
     }
 
     private Map<String, Object> getMatchMap(PatientMatch match)
     {
         Map<String, Object> map = new HashMap<>();
-        boolean useRef =
-            StringUtils.equals(match.getMatchedPatientId(), this.subjectPatientId)
-            && StringUtils.equals(match.getMatchedServerId(), null);
+        PatientInMatch otherPatient;
+        if (match.isReference(this.subjectPatient.getPatientId(), null)) {
+            otherPatient = match.getMatched();
+        } else {
+            otherPatient = match.getReference();
+        }
 
-        map.put("patientId", useRef ? match.getReferencePatientId() : match.getMatchedPatientId());
-        map.put("serverId", useRef ? match.getReferenceServerId() :  match.getMatchedServerId());
-        map.put("email", useRef ? match.getEmail() : match.getMatchedEmail());
-        map.put("genes", useRef ? match.getCandidateGenes() : match.getMatchedCandidateGenes());
+        map.put("patientId", otherPatient.getPatientId());
+        map.put("serverId", otherPatient.getServerId());
+        map.put("email", otherPatient.getEmail());
+        map.put("genes", otherPatient.getCandidateGenes());
 
         map.put("score", match.getScore());
         map.put("genotypeScore", match.getGenotypeScore());
@@ -188,12 +193,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private void setTo()
     {
-        PatientMatch match = this.matches.iterator().next();
-        boolean useRef =
-            StringUtils.equals(match.getReferencePatientId(), this.subjectPatientId)
-            && StringUtils.equals(match.getReferenceServerId(), null);
-        String email = useRef ? match.getEmail() : match.getMatchedEmail();
-
+        String email = this.subjectPatient.getEmail();
         InternetAddress to = new InternetAddress();
         to.setAddress(email);
         this.mimeMessage.addRecipient(RecipientType.TO, to);
@@ -237,6 +237,6 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     @Override
     public String getSubjectPatientId() {
-        return this.subjectPatientId;
+        return this.subjectPatient.getPatientId();
     }
 }

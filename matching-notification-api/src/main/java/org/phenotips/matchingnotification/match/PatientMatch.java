@@ -131,4 +131,32 @@ public interface PatientMatch
      * @return true if equivalent
      */
     boolean isEquivalent(PatientMatch other);
+
+    /**
+     * @return {@code PatientInMatch} object representing the reference patient.
+     */
+    PatientInMatch getReference();
+
+    /**
+     * @return {@code PatientInMatch} object representing the matched patient.
+     */
+    PatientInMatch getMatched();
+
+    /**
+     * Checks if the patient given in parameter is the reference patient of the match.
+     *
+     * @param patientId id of patient
+     * @param serverId id of server where patient is found
+     * @return true if patient is reference patient in match
+     */
+    boolean isReference(String patientId, String serverId);
+
+    /**
+     * Checks if the patient given in parameter is the matched patient of the match.
+     *
+     * @param patientId id of patient
+     * @param serverId id of server where patient is found
+     * @return true if patient is matched patient in match
+     */
+    boolean isMatched(String patientId, String serverId);
 }

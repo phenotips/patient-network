@@ -21,6 +21,7 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.internal.TestMatchFinder;
+import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -138,6 +139,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Transient
     private PhenotypesMap matchedPhenotypesMap;
 
+    @Transient
+    private PatientInMatch referencePatientInMatch;
+
+    @Transient
+    private PatientInMatch matchedPatientInMatch;
+
     static {
         DefaultPatientMatchUtils utils = null;
         try {
@@ -204,6 +211,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.phenotypesMap = PhenotypesMap.getInstance(this.phenotypes);
         this.matchedPhenotypes = "";
         this.matchedPhenotypesMap = PhenotypesMap.getInstance(this.matchedPhenotypes);
+
+        this.createPatientInMatches();
     }
 
     private void initialize(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
@@ -236,6 +245,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.matchedGenes = UTILS.setToString(this.matchedGenesSet);
         this.matchedPhenotypesMap = new PhenotypesMap(matchedPatient);
         this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
+
+        this.createPatientInMatches();
     }
 
     @Override
@@ -413,6 +424,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.matchedGenesSet = UTILS.stringToSet(this.matchedGenes);
         this.phenotypesMap = PhenotypesMap.getInstance(this.phenotypes);
         this.matchedPhenotypesMap = PhenotypesMap.getInstance(this.matchedPhenotypes);
+
+        this.createPatientInMatches();
     }
 
     @Override
@@ -423,5 +436,37 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public boolean onUpdate(Session arg0) throws CallbackException {
         return false;
+    }
+
+    private void createPatientInMatches()
+    {
+        this.referencePatientInMatch = new ReferencePatientInMatch(this);
+        this.matchedPatientInMatch = new MatchedPatientInMatch(this);
+    }
+
+    @Override
+    public PatientInMatch getMatched()
+    {
+        return this.matchedPatientInMatch;
+    }
+
+    @Override
+    public PatientInMatch getReference()
+    {
+        return this.referencePatientInMatch;
+    }
+
+    @Override
+    public boolean isReference(String patientId, String serverId)
+    {
+        return StringUtils.equals(this.getReferencePatientId(), patientId)
+            && StringUtils.equals(this.getReferenceServerId(), serverId);
+    }
+
+    @Override
+    public boolean isMatched(String patientId, String serverId)
+    {
+        return StringUtils.equals(this.getMatchedPatientId(), patientId)
+            && StringUtils.equals(this.getMatchedServerId(), serverId);
     }
 }
