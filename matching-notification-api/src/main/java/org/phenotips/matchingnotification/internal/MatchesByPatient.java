@@ -29,8 +29,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.codec.binary.StringUtils;
-
 /**
  * @version $Id$
  */
@@ -69,17 +67,12 @@ public class MatchesByPatient
             this.localPatientId = localPatientId;
         }
 
-        public boolean isLocalPatientReference(PatientMatch m) {
-            return StringUtils.equals(m.getReferencePatientId(), localPatientId)
-                && StringUtils.equals(m.getReferenceServerId(), null);
-        }
-
         @Override
         // Matches where key patient (first key in internalMap) is matched come before matches where it's a reference.
         // In all other cases, order is not important (provided that m1!=m2 <==> compare(m1,m2)!=0).
         public int compare(PatientMatch m1, PatientMatch m2) {
-            boolean m1ref = this.isLocalPatientReference(m1);
-            boolean m2ref = this.isLocalPatientReference(m2);
+            boolean m1ref = m1.isReference(this.localPatientId, null);
+            boolean m2ref = m2.isReference(this.localPatientId, null);
             if (m1ref && !m2ref) {
                 return +1;
             } else if (!m1ref && m2ref) {
