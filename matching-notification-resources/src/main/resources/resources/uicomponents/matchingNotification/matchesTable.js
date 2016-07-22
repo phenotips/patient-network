@@ -84,7 +84,7 @@ define(["jquery", "dynatable"], function($, dyna)
         _rowWriter : function(rowIndex, record, columns, cellWriter)
         {
             var trClass = record.rejected ? 'rejected' : '';
-            var tr = '<tr id="tr_' + record.id + '" class="' + trClass + '">';
+            var tr = '<tr data-matchid="' + record.id + '" class="' + trClass + '">';
 
             // For each column in table, get record's attribute, or formatted element
             columns.each(function( column, index) {

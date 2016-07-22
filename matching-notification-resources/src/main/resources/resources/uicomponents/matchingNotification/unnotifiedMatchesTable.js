@@ -188,11 +188,14 @@ var PhenoTips = (function (PhenoTips) {
 
         this._matchesTable.update(this._matches);
 
-        failedIds.each(function (item) {
-            var tr = this._$('#matchesTable').find("#tr_" + item);
-            tr.addClass('failed');
-            tr.find('.notify').attr('checked', 'checked');
-        }.bind(this));
+        // Mark failed trs
+        var allTrs = this._$('#matchesTable tbody').find('tr');
+        this._$.grep(allTrs, this._identifyTr(failedIds))
+            .each(function (tr)
+            {
+                this._$(tr).addClass('failed');
+                this._$(tr).find('.notify').attr('checked', 'checked');
+            }.bind(this));
     },
 
     // When reject is true, request was sent to reject. When false, request was sent to unreject.
@@ -212,31 +215,19 @@ var PhenoTips = (function (PhenoTips) {
             }
         }
 
+        // Mark in model
         this._$.grep(this._matches, this._identifyMatch(successfulIds))
             .each(function(match) {match.rejected = reject});
 
         this._matchesTable.update(this._matches);
 
-        successfulIds.each(function (id) {
-            var tr =  this._$('#matchesTable').find("#tr_" + id);
-            if (reject) {
-                tr.addClass('rejected');
-                tr.find('.reject').attr('checked', 'checked');
-            } else {
-                tr.removeClass('rejected');
-                tr.find('.reject').removeAttr('checked');
-            }
-        }.bind(this));
-
-        failedIds.each(function (id) {
-            var tr = this._$('#matchesTable').find("#tr_" + id);
-            tr.addClass('failed');
-            if (reject) {
-                tr.find('.reject').removeAttr('checked');
-            } else {
-                tr.find('.reject').attr('checked', 'checked');
-            }
-        }.bind(this));
+        // Mark failed trs
+        var allTrs = this._$('#matchesTable tbody').find('tr');
+        this._$.grep(allTrs, this._identifyTr(failedIds))
+            .each(function (tr)
+            {
+                this._$(tr).addClass('failed');
+            }.bind(this));
     },
 
     _identifyMatch : function(successfulIds)
@@ -254,6 +245,21 @@ var PhenoTips = (function (PhenoTips) {
             } else {
                 return (this._$.inArray(match.id, successfulIds)>-1);
             }
+        }.bind(this);
+    },
+
+    _identifyTr : function(idsList)
+    {
+        return function(tr)
+        {
+            var ids = this._$(tr).data('matchid').split(",").map(function(id) {return Number(id);});
+            var allInList = true;
+            for (var i=0; i<ids.length; i++) {
+                if (this._$.inArray(ids[i], idsList)==-1) {
+                    allInList = false;
+                }
+            }
+            return allInList;
         }.bind(this);
     },
 
