@@ -161,40 +161,58 @@ public class MatchesByPatientTest
 
     @Test
     public void testContainsAndRemove() {
+        Assert.assertEquals(mbp.size(), 16);
         Assert.assertTrue(mbp.contains(m1_4));
         mbp.remove(m1_4);
         Assert.assertFalse(mbp.contains(m1_4));
+        Assert.assertEquals(mbp.size(), 15);
 
         Assert.assertTrue(mbp.contains(m1server3_4));
         mbp.remove(m1server3_4);
         Assert.assertFalse(mbp.contains(m1server3_4));
+        Assert.assertEquals(mbp.size(), 14);
 
         Assert.assertTrue(mbp.contains(m2_3server1));
         mbp.remove(m2_3server1);
         Assert.assertFalse(mbp.contains(m2_3server1));
+        Assert.assertEquals(mbp.size(), 13);
     }
 
     @Test
     public void testAdd()
     {
         MatchesByPatient mbp2 = new MatchesByPatient();
+        Assert.assertEquals(mbp2.size(), 0);
         Assert.assertTrue(mbp2.add(m1_3));
+        Assert.assertEquals(mbp2.size(), 1);
         Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertEquals(mbp2.size(), 1);
         Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertEquals(mbp2.size(), 1);
 
         Assert.assertTrue(mbp2.add(m2_3));
+        Assert.assertEquals(mbp2.size(), 2);
         Assert.assertFalse(mbp2.add(m2_3));
+        Assert.assertEquals(mbp2.size(), 2);
         Assert.assertFalse(mbp2.add(m2_3));
+        Assert.assertEquals(mbp2.size(), 2);
 
         Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertEquals(mbp2.size(), 2);
 
         Assert.assertTrue(mbp2.add(m1_5server1));
+        Assert.assertEquals(mbp2.size(), 3);
         Assert.assertFalse(mbp2.add(m1_5server1));
+        Assert.assertEquals(mbp2.size(), 3);
         Assert.assertFalse(mbp2.add(m1_5server1));
+        Assert.assertEquals(mbp2.size(), 3);
 
         Assert.assertTrue(mbp2.add(m1server4_4));
+        Assert.assertEquals(mbp2.size(), 4);
         Assert.assertFalse(mbp2.add(m1server4_4));
+        Assert.assertEquals(mbp2.size(), 4);
         Assert.assertFalse(mbp2.add(m1server4_4));
+        Assert.assertEquals(mbp2.size(), 4);
     }
 
     @Test
@@ -292,6 +310,7 @@ public class MatchesByPatientTest
     {
         Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
         MatchesByPatient mbp2 = new MatchesByPatient(toAddSet);
+        Assert.assertEquals(mbp2.size(), toAdd.length);
 
         Iterator<PatientMatch> iterator = mbp2.iterator(false);
 
@@ -308,6 +327,7 @@ public class MatchesByPatientTest
     private void testFilteredIterator(PatientMatch[] toAdd) {
         Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
         MatchesByPatient mbp2 = new MatchesByPatient(toAddSet);
+        Assert.assertEquals(mbp2.size(), toAdd.length);
 
         Iterator<PatientMatch> iterator = mbp2.iterator(true);
 

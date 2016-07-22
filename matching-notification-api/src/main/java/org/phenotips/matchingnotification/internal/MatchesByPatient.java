@@ -19,6 +19,7 @@ package org.phenotips.matchingnotification.internal;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
 
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ import java.util.TreeSet;
 /**
  * @version $Id$
  */
-public class MatchesByPatient
+public class MatchesByPatient extends AbstractCollection<PatientMatch>
 {
     /*
      * Main key of internalMap is id of local patient in match. Secondary key is id of the other patient.
@@ -59,6 +60,8 @@ public class MatchesByPatient
      * equivalent and m1.getMatchedPatientId()==id then m1 is returned and m2 is not.
      */
     private Map<String, Map<String, Set<PatientMatch>>> internalMap;
+
+    private int size;
 
     /**
      * @version $Id$
@@ -211,8 +214,9 @@ public class MatchesByPatient
     /**
      * Creates an empty collection.
      */
-    public MatchesByPatient() {
-        this.internalMap = new TreeMap<>();
+    public MatchesByPatient()
+    {
+        this.initialize();
     }
 
     /**
@@ -220,26 +224,25 @@ public class MatchesByPatient
      *
      * @param matches a collection of PatientMatch-es
      */
-    public MatchesByPatient(Collection<PatientMatch> matches) {
-        this();
-        for (PatientMatch match : matches) {
-            this.add(match);
-        }
+    public MatchesByPatient(Collection<PatientMatch> matches)
+    {
+        this.initialize();
+        this.addAll(matches);
+    }
+
+    private void initialize()
+    {
+        this.internalMap = new TreeMap<>();
+        this.size = 0;
     }
 
     /**
      * @return number of matches in collection
      */
+    @Override
     public int size()
     {
-        Set<PatientMatch> matches = new HashSet<PatientMatch>();
-        for (Map<String, Set<PatientMatch>> matchesForLocalPatient : this.internalMap.values()) {
-            for (Set<PatientMatch> set : matchesForLocalPatient.values()) {
-                matches.addAll(set);
-            }
-        }
-
-        return matches.size();
+        return this.size;
     }
 
 
@@ -249,20 +252,29 @@ public class MatchesByPatient
      * @param match to add
      * @return true if added
      */
+    @Override
     public boolean add(PatientMatch match)
     {
-        boolean addedAsRef = false;
-        boolean addedAdMatch = false;
+        boolean added = false;
 
         // This will insert a match once or twice, because at least one of the patients is local
         if (match.getReferenceServerId() == null) {
-            addedAsRef = this.add(match.getReferencePatientId(), match.getMatchedPatientId(), match);
+            if (this.add(match.getReferencePatientId(), match.getMatchedPatientId(), match)) {
+                added = true;
+            }
         }
         if (match.getMatchedServerId() == null) {
-            addedAdMatch = this.add(match.getMatchedPatientId(), match.getReferencePatientId(), match);
+            if (this.add(match.getMatchedPatientId(), match.getReferencePatientId(), match)) {
+                added = true;
+            }
         }
 
-        return addedAsRef || addedAdMatch;
+        if (added) {
+            size++;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -277,6 +289,7 @@ public class MatchesByPatient
     /**
      * @return iterator over the collection
      */
+    @Override
     public Iterator<PatientMatch> iterator()
     {
         return iterator(false);
@@ -288,18 +301,33 @@ public class MatchesByPatient
      * @param match to remove
      * @return false if not found
      */
-    public boolean remove(PatientMatch match) {
-        boolean removedAsRef = false;
-        boolean removedAsMatch = false;
+    @Override
+    public boolean remove(Object o)
+    {
+        if (!(o instanceof PatientMatch)) {
+            return false;
+        }
+
+        PatientMatch match = (PatientMatch) o;
+        boolean removed = false;
 
         if (match.getReferenceServerId() == null) {
-            removedAsRef = this.remove(match.getReferencePatientId(), match.getMatchedPatientId(), match);
+            if (this.remove(match.getReferencePatientId(), match.getMatchedPatientId(), match)) {
+                removed = true;
+            }
         }
         if (match.getMatchedServerId() == null) {
-            removedAsMatch = this.remove(match.getMatchedPatientId(), match.getReferencePatientId(), match);
+            if (this.remove(match.getMatchedPatientId(), match.getReferencePatientId(), match)) {
+                removed = true;
+            }
         }
 
-        return removedAsRef || removedAsMatch;
+        if (removed) {
+            size--;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -397,7 +425,15 @@ public class MatchesByPatient
      * @param match to check
      * @return true if the collection contains the match
      */
-    public boolean contains(PatientMatch match) {
+    @Override
+    public boolean contains(Object o)
+    {
+        if (!(o instanceof PatientMatch)) {
+            return false;
+        }
+
+        PatientMatch match = (PatientMatch) o;
+
         Set<PatientMatch> set = this.getAnySet(match);
         if (set == null) {
             return false;
@@ -410,7 +446,8 @@ public class MatchesByPatient
      * Returns only one of the two possible sets where a match can be found. This method is good only for query methods
      * because it is not guaranteed which set is returned.
      */
-    private Set<PatientMatch> getAnySet(PatientMatch match) {
+    private Set<PatientMatch> getAnySet(PatientMatch match)
+    {
         if (match.getReferenceServerId() == null) {
             return this.getSet(match.getReferencePatientId(), match.getMatchedPatientId());
         } else {
@@ -454,5 +491,11 @@ public class MatchesByPatient
             }
         }
         return false;
+    }
+
+    @Override
+    public void clear()
+    {
+        this.initialize();
     }
 }
