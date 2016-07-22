@@ -75,6 +75,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         private Iterator<PatientMatch> setIterator;
 
         private PatientMatch returnNext;
+        private PatientMatch returnedLast;
 
         private Set<PatientMatch> returnedSet;
 
@@ -115,9 +116,9 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         @Override
         public PatientMatch next()
         {
-            PatientMatch toReturn = this.returnNext;
+            this.returnedLast = this.returnNext;
 
-            this.returnedSet.add(toReturn);
+            this.returnedSet.add(returnedLast);
             boolean keepLooking = true;
             while (keepLooking) {
                 this.moveToNext();
@@ -133,7 +134,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
                 }
             }
 
-            return toReturn;
+            return returnedLast;
         }
 
         private void moveToNext()
@@ -182,7 +183,8 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         @Override
         public void remove()
         {
-            throw new UnsupportedOperationException();
+            // Note: this.returnNext cannot be the same as this.returnedLast because of the use of this.returnedSet
+            MatchesByPatient.this.remove(this.returnedLast);
         }
 
     }

@@ -306,6 +306,41 @@ public class MatchesByPatientTest
         testFilteredIterator(toAdd);
     }
 
+    @Test
+    public void testRemoveFromIterator1() {
+        Iterator<PatientMatch> iter = mbp.iterator();
+        while (iter.hasNext() && !(iter.next().getId() == this.m1_4.getId()))
+            ;
+        iter.remove();
+        Assert.assertFalse(mbp.contains(m1_4));
+        Assert.assertTrue(mbp.contains(m4_1));
+        Assert.assertEquals(mbp.size(), 15);
+
+        while (iter.hasNext()) {
+            iter.next();
+        }
+        iter.remove();
+        Assert.assertFalse(iter.hasNext());
+        Assert.assertEquals(mbp.size(), 14);
+    }
+
+    @Test
+    public void testRemoveFromIterator2() {
+        MatchesByPatient mbp2 = new MatchesByPatient();
+        mbp2.add(m1_3);
+        Collection<PatientMatch> matches1 = mbp2.getMatchesForLocalPatientId("P3", false);
+        Assert.assertTrue(matches1.contains(m1_3));
+
+        Iterator<PatientMatch> iter = mbp2.iterator();
+        Assert.assertTrue(iter.hasNext());
+        iter.next();
+        Assert.assertFalse(iter.hasNext());
+
+        iter.remove();
+        Collection<PatientMatch> matches2 = mbp2.getMatchesForLocalPatientId("P3", false);
+        Assert.assertTrue(matches2.isEmpty());
+    }
+
     private void testIterator(PatientMatch[] toAdd)
     {
         Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
