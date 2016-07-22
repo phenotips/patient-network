@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -149,7 +148,6 @@ public class PhenotypesMap
 
     private void readPhenotypes(Patient patient)
     {
-        Map<String, String> map = new TreeMap<>();
         Set<? extends Feature> features = patient.getFeatures();
 
         for (Feature feature : features) {
