@@ -272,7 +272,7 @@ define(["jquery", "dynatable"], function($, dyna)
             var matchId = $(target).data('matchid');
 
             // collapse/expand divs
-            this._tableElement.find('[data-matchid=' + matchId + '].collapse-gp-div').each(function (index, elm) {
+            this._tableElement.find('[data-matchid="' + matchId + '"].collapse-gp-div').each(function (index, elm) {
                 if (expand == undefined) {
                     expand = $(elm).hasClass('collapsed');
                 }
@@ -284,7 +284,7 @@ define(["jquery", "dynatable"], function($, dyna)
             }.bind(this));
 
             // change display of collapse/display component (+/-)
-            this._tableElement.find('[data-matchid=' + matchId + '].collapse-gp-tool').each(function (index, elm) {
+            this._tableElement.find('[data-matchid="' + matchId + '"].collapse-gp-tool').each(function (index, elm) {
                 if (expand) {
                     $(elm).removeClass("fa-plus-square-o");
                     $(elm).addClass("fa-minus-square-o");

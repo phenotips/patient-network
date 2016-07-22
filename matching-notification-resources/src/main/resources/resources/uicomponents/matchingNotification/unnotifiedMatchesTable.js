@@ -1,4 +1,4 @@
-require(["jquery", "matchingNotification/matchesTable"], function($, matchesTable) 
+require(["jquery", "matchingNotification/matchesTable"], function($, matchesTable)
 {
     var loadMNM = function($, matchesTable) {
         new PhenoTips.widgets.UnnotifiedMatchesTable($, matchesTable);
@@ -120,7 +120,7 @@ var PhenoTips = (function (PhenoTips) {
 
         var matchId = this._$(target).data("matchid");
         var reject = this._$(target).is(':checked');
-        var ids = JSON.stringify({ ids: [matchId]});
+        var ids = JSON.stringify({ ids: matchId.split(",")});
 
         new Ajax.Request(this._ajaxURL, {
             parameters : {action : 'reject-matches',
@@ -183,7 +183,8 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         // remove notified matches
-        this._matches = this._$.grep(this._matches, function(item) {return _this._$.inArray(item.id, successfulIds)==-1});
+        var toRemove = this._$.grep(this._matches, this._identifyMatch(successfulIds));
+        this._matches = this._$.grep(this._matches, function(match) {return _this._$.inArray(match, toRemove)==-1});
 
         this._matchesTable.update(this._matches);
 
@@ -211,8 +212,7 @@ var PhenoTips = (function (PhenoTips) {
             }
         }
 
-        // mark un/rejected in model
-        this._$.grep(this._matches, function(match) {return _this._$.inArray(match.id, successfulIds)>-1})
+        this._$.grep(this._matches, this._identifyMatch(successfulIds))
             .each(function(match) {match.rejected = reject});
 
         this._matchesTable.update(this._matches);
@@ -239,6 +239,24 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+    _identifyMatch : function(successfulIds)
+    {
+        return function(match)
+        {
+            // checks if match needs to be marked: all its ids are in successfulIds
+            if (this._$.isArray(match.id)) {
+                for (var i=0; i<match.id.length; i++) {
+                    if (this._$.inArray(match.id[i], successfulIds)==-1) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return (this._$.inArray(match.id, successfulIds)>-1);
+            }
+        }.bind(this);
+    },
+
     _notifyAllClicked : function(event)
     {
         var checked = event.target.checked;
@@ -256,19 +274,19 @@ var PhenoTips = (function (PhenoTips) {
     },
 
     _filterRejected : function(match) {
-    	return !match.rejected;
+        return !match.rejected;
     },
 
     _readMatchesToNotify : function()
     {
-        var ids = [];
+        var idsToNotify = [];
         this._$('#matchesTable').find(".notify").each(function (index, elm) {
             if (elm.checked && !elm.disabled) {
-                var id = Number(this._$(elm).data('matchid'));
-                ids.push(String(id));
+                var allIds = this._$(elm).data('matchid');
+                allIds.split(",").each(function(id) {idsToNotify.push(id)});
             }
         }.bind(this));
-        return ids;
+        return idsToNotify;
     }
 
     });
