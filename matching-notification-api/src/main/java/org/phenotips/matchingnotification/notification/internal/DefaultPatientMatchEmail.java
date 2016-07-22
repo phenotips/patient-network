@@ -96,9 +96,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     }
 
     /**
-     * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and every object in
-     * it should return the same value for getReferencePatientId(), the id of the reference patient about whom this
-     * email is created.
+     * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and one of
+     * the patients in every match should have same id as {@code subjectPatientId}.
      *
      * @param subjectPatientId id of patient who is the subject of this email (always local)
      * @param matches list of matches that the email notifies of.

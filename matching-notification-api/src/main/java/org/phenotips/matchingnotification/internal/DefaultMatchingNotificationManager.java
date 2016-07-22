@@ -196,7 +196,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
      * Gets a list of matches and removes matches that already exist in the database. When this is more mature, it might
      * belong in a separate component.
      */
-    private void filterExistingMatches(List<PatientMatch> matches) {
+    private void filterExistingMatches(List<PatientMatch> matches)
+    {
         Map<String, List<PatientMatch>> matchesByPatientId = new HashMap<>();
         List<PatientMatch> toRemove = new LinkedList<>();
         for (PatientMatch match : matches) {
@@ -205,6 +206,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             String patientId = match.getReferencePatientId();
             List<PatientMatch> matchesForPatient = matchesByPatientId.get(patientId);
             if (matchesForPatient == null) {
+                // TODO use loadMatchesByIds instead.
                 matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
                 matchesByPatientId.put(patientId, matchesForPatient);
             }
