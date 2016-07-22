@@ -476,4 +476,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         return StringUtils.equals(this.getMatchedPatientId(), patientId)
             && StringUtils.equals(this.getMatchedServerId(), serverId);
     }
+
+    @Override
+    public boolean isLocal()
+    {
+        return this.getReference().isLocal() && this.getMatched().isLocal();
+    }
 }

@@ -171,4 +171,9 @@ public interface PatientMatch
      * @return true if patient is matched patient in match
      */
     boolean isMatched(String patientId, String serverId);
+
+    /**
+     * @return true if both reference and matched patients are local.
+     */
+    boolean isLocal();
 }

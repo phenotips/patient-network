@@ -58,4 +58,10 @@ public abstract class AbstractPatientInMatch implements PatientInMatch
 
         return json;
     }
+
+    @Override
+    public boolean isLocal()
+    {
+        return this.getServerId() == null;
+    }
 }
