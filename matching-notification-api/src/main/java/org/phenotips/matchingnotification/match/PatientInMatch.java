@@ -57,4 +57,9 @@ public interface PatientInMatch
      * @return JSON representation of object
      */
     JSONObject toJSON();
+
+    /**
+     * @return true if patient is local
+     */
+    boolean isLocal();
 }
