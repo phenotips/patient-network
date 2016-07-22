@@ -17,10 +17,12 @@
  */
 package org.phenotips.matchingnotification.export;
 
+import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -42,14 +44,37 @@ public class PatientMatchExport
      * @param matches list of patient matches
      * @return list of matches in JSON format
      */
-    public JSONObject toJSON(List<PatientMatch> matches) {
+    public JSONObject toJSON(List<PatientMatch> matches)
+    {
         JSONObject matchesJSON = new JSONObject();
         JSONArray matchesJSONArray = new JSONArray();
-        for (PatientMatch match : matches) {
-            matchesJSONArray.put(match.toJSON());
+
+        // FIXME: combine only local matches
+        MatchesByPatient mbp = new MatchesByPatient(matches);
+        Iterator<PatientMatch> iterator = mbp.iterator(true);
+        while (iterator.hasNext()) {
+            PatientMatch match = iterator.next();
+            PatientMatch equivalent = mbp.getEquivalentMatch(match);
+
+            if (equivalent == null) {
+                matchesJSONArray.put(match.toJSON());
+            } else {
+                matchesJSONArray.put(this.createJSONFromMatches(match, equivalent));
+            }
         }
+
         matchesJSON.put(MATCHES, matchesJSONArray);
 
         return matchesJSON;
+    }
+
+    private JSONObject createJSONFromMatches(PatientMatch m1, PatientMatch m2)
+    {
+        JSONObject json = m1.toJSON();
+        JSONArray newId = new JSONArray();
+        newId.put(m1.getId());
+        newId.put(m2.getId());
+        json.put("id", newId);
+        return json;
     }
 }
