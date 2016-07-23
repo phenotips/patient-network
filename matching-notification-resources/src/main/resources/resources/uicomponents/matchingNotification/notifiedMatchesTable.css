@@ -1,0 +1,51 @@
+#notifiedMatchesTable .collapsed {
+  visibility: hidden;
+  height: 1px;
+  overflow: hidden;
+}
+
+.succeed {
+  color: green;
+}
+
+.failed {
+  color: red;
+}
+
+.rejected {
+  color: lightgrey;
+}
+
+.ok {
+  color: inherit;
+}
+
+.patient-div {
+    margin-bottom: 10px;
+}
+
+.patient-href {
+   margin-left: 3px;
+}
+
+.genes-div {
+    margin-bottom: 10px;
+    background: lightgrey;
+}
+
+.subtitle {
+    font-style: oblique;
+}
+
+#matchesTable th {
+    white-space: nowrap;
+}
+
+#matchesTable td {
+    vertical-align: text-top;
+}
+
+#filter-div {
+   margin-top: 40px;
+}
+
