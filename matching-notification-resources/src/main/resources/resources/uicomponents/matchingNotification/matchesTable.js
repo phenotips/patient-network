@@ -147,7 +147,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _getNotificationTd : function(record)
         {
-            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notified ? 'checked disabled ' : '') + '/></td>';
+            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '"/></td>';
         },
 
         _getRejectionTd : function(record)
