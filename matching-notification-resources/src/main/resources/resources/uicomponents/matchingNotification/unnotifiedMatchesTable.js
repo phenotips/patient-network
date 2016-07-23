@@ -118,7 +118,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         var _this = this;
 
-        var matchId = this._$(target).data("matchid");
+        var matchId = String(this._$(target).data("matchid"));
         var reject = this._$(target).is(':checked');
         var ids = JSON.stringify({ ids: matchId.split(",")});
 
@@ -252,7 +252,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         return function(tr)
         {
-            var ids = this._$(tr).data('matchid').split(",").map(function(id) {return Number(id);});
+            var ids = String(this._$(tr).data('matchid')).split(",").map(function(id) {return Number(id);});
             var allInList = true;
             for (var i=0; i<ids.length; i++) {
                 if (this._$.inArray(ids[i], idsList)==-1) {
@@ -288,7 +288,7 @@ var PhenoTips = (function (PhenoTips) {
         var idsToNotify = [];
         this._$('#matchesTable').find(".notify").each(function (index, elm) {
             if (elm.checked && !elm.disabled) {
-                var allIds = this._$(elm).data('matchid');
+                var allIds = String(this._$(elm).data('matchid'));
                 allIds.split(",").each(function(id) {idsToNotify.push(id)});
             }
         }.bind(this));
