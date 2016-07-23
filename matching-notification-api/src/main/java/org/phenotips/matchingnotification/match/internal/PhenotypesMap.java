@@ -70,13 +70,17 @@ public class PhenotypesMap
      */
     public PhenotypesMap(Patient patient)
     {
-        this.predefined = new HashMap<String, String>();
-        this.freeText = new HashSet<String>();
+        this();
         this.readPhenotypes(patient);
     }
 
-    protected PhenotypesMap()
+    /**
+     * Builds an empty PhenotypesMap, for debug.
+     */
+    public PhenotypesMap()
     {
+        this.predefined = new HashMap<String, String>();
+        this.freeText = new HashSet<String>();
     }
 
     /**
