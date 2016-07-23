@@ -147,7 +147,7 @@ var PhenoTips = (function (PhenoTips) {
         console.log(ajaxResponse.responseText);
         this._utils.showSuccess('send-notifications-messages');
 
-        [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
+        var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
         if (failedIds.length > 0) {
             alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
@@ -177,8 +177,7 @@ var PhenoTips = (function (PhenoTips) {
     // When reject is true, request was sent to reject. When false, request was sent to unreject.
     _onSuccessRejectMatch : function(results, reject)
     {
-        var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
-        var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+        var [successfulIds, failedIds] = this._utils.getResults(results);
 
         if (failedIds.length > 0) {
             var operation = reject ? "Rejecting" : "Unrejecting";
