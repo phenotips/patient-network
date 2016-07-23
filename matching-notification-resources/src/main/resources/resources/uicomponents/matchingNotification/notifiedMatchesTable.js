@@ -83,6 +83,14 @@ var PhenoTips = (function (PhenoTips) {
                 this._$(tr).addClass('failed');
                 this._$(tr).find('.notify').attr('checked', 'checked');
             }.bind(this));
+
+        this._matchesTable.getRowsWithIdsAllInArray(successfulIds)
+            .each(function (tr)
+            {
+                this._$(tr).addClass('succeed');
+                this._$(tr).find('.notify').removeAttr('checked');
+            }.bind(this));
+
     },
 
     _onFailSendNotification : function()
