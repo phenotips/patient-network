@@ -71,7 +71,7 @@ var PhenoTips = (function (PhenoTips) {
         console.log(ajaxResponse.responseText);
         this._utils.showSuccess('send-notifications-messages');
 
-        [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
+        var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
         if (failedIds.length > 0) {
             alert("Sending notification failed for the matches with the following ids: " + failedIds.join());

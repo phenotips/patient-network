@@ -31,10 +31,10 @@ define(["jquery", "dynatable"], function($, dyna)
             this._buildTable();
         },
 
-        getRowsWithIdsAllInArray : function(array)
+        getRowsWithIdsAllInArray : function(ids)
         {
             var allTrs = this._tableElement.find('tbody').find('tr');
-            return $.grep(allTrs, this._identifyTr(failedIds));
+            return $.grep(allTrs, this._identifyTr(ids));
         },
 
         //////////////////
