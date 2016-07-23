@@ -193,24 +193,27 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
         this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.referencePatientId = testData.referenceServerId;
-        this.matchedPatientId = testData.matchedPatientId;
-        this.matchedServerId = testData.matchedServerId;
         this.notified = false;
         this.rejected = false;
         this.score = testData.score;
         this.phenotypeScore = testData.phenotypeScore;
         this.genotypeScore = testData.genotypeScore;
+
+        this.referencePatientId = testData.referencePatientId;
+        this.referenceServerId = testData.referenceServerId;
         this.email = testData.email;
-        this.matchedHref = testData.matchedHref;
         this.genes = testData.genes;
         this.genesSet = UTILS.stringToSet(testData.genes);
+        this.phenotypesMap = PhenotypesMap.getInstance(testData.phenotypes);
+        this.phenotypes = this.phenotypesMap.toString();
+
+        this.matchedPatientId = testData.matchedPatientId;
+        this.matchedServerId = testData.matchedServerId;
+        this.matchedHref = testData.matchedHref;
         this.matchedGenes = testData.matchedGenes;
         this.matchedGenesSet = UTILS.stringToSet(testData.matchedGenes);
-        this.phenotypes = "";
-        this.phenotypesMap = PhenotypesMap.getInstance(this.phenotypes);
-        this.matchedPhenotypes = "";
-        this.matchedPhenotypesMap = PhenotypesMap.getInstance(this.matchedPhenotypes);
+        this.matchedPhenotypesMap = PhenotypesMap.getInstance(testData.matchedPhenotypes);
+        this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
 
         this.createPatientInMatches();
     }
