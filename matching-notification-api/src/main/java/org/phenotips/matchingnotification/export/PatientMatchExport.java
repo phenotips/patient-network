@@ -22,8 +22,9 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
 
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Singleton;
 
@@ -49,17 +50,19 @@ public class PatientMatchExport
         JSONObject matchesJSON = new JSONObject();
         JSONArray matchesJSONArray = new JSONArray();
 
-        // FIXME: combine only local matches
-        MatchesByPatient mbp = new MatchesByPatient(matches);
-        Iterator<PatientMatch> iterator = mbp.iterator(true);
-        while (iterator.hasNext()) {
-            PatientMatch match = iterator.next();
-            PatientMatch equivalent = mbp.getEquivalentMatch(match);
+        Set<PatientMatch> usedAsEquivalent = new HashSet<PatientMatch>();
 
-            if (equivalent == null) {
-                matchesJSONArray.put(match.toJSON());
-            } else {
+        MatchesByPatient mbp = new MatchesByPatient(matches);
+        for (PatientMatch match : mbp) {
+            if (usedAsEquivalent.contains(match)) {
+                continue;
+            }
+            if (match.isLocal()) {
+                PatientMatch equivalent = mbp.getEquivalentMatch(match);
                 matchesJSONArray.put(this.createJSONFromMatches(match, equivalent));
+                usedAsEquivalent.add(equivalent);
+            } else {
+                matchesJSONArray.put(match.toJSON());
             }
         }
 
