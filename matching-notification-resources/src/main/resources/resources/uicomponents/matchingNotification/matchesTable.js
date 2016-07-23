@@ -31,7 +31,28 @@ define(["jquery", "dynatable"], function($, dyna)
             this._buildTable();
         },
 
+        getRowsWithIdsAllInArray : function(array)
+        {
+            var allTrs = this._tableElement.find('tbody').find('tr');
+            return $.grep(allTrs, this._identifyTr(failedIds));
+        },
+
         //////////////////
+
+        _identifyTr : function(idsList)
+        {
+            return function(tr)
+            {
+                var ids = String($(tr).data('matchid')).split(",").map(function(id) {return Number(id);});
+                var allInList = true;
+                for (var i=0; i<ids.length; i++) {
+                    if ($.inArray(ids[i], idsList)==-1) {
+                        allInList = false;
+                    }
+                }
+                return allInList;
+            };
+        },
 
         _formatMatches : function()
         {
