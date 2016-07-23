@@ -250,6 +250,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', tru
 &lt;br/&gt;
 &lt;table id="notifiedMatchesTable"&gt;
   &lt;thead&gt;
+    &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="id"&gt;&lt;span title="Match ID"&gt;ID&lt;/a&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="referencePatient" title="Reference patient"&gt;Patient&lt;/th&gt;
     &lt;th data-dynatable-column="referenceServerId" title="Server where reference patient is located"&gt;Reference Server&lt;/th&gt;
@@ -265,6 +266,12 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', tru
   &lt;tbody&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;div&gt;
+  &lt;label&gt;Send notifications&lt;/label&gt;
+  &lt;button id="send-notifications-button" type="button"&gt;Go&lt;/button&gt;
+  &lt;div id="send-notifications-messages"/&gt;
+&lt;/div&gt;
+
 {{/html}}</codeToExecute>
     </property>
     <property>
