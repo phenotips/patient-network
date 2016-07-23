@@ -1,25 +1,39 @@
-require(["jquery", "matchingNotification/matchesTable"], function($, matchesTable)
+require(["jquery",
+         "matchingNotification/matchesTable",
+         "matchingNotification/matchesNotifier",
+         "matchingNotification/utils"],
+        function($, matchesTable, notifier, utils)
 {
-    var loadMNM = function($, matchesTable) {
-        new PhenoTips.widgets.NotifiedMatchesTable($, matchesTable);
+    var loadMNM = function($, matchesTable, notifier, utils) {
+        new PhenoTips.widgets.NotifiedMatchesTable($, matchesTable, notifier, utils);
     };
 
-    (XWiki.domIsLoaded && loadMNM($, matchesTable)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, $, matchesTable));
+    (XWiki.domIsLoaded && loadMNM($, matchesTable, notifier, utils)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, $, matchesTable, notifier, utils));
 });
 
 var PhenoTips = (function (PhenoTips) {
     var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
     widgets.NotifiedMatchesTable = Class.create({
 
-    initialize : function ($, matchesTable)
+    initialize : function ($, matchesTable, notifier, utils)
     {
         this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
         this._$ = $;
-
         this._matches = undefined;
-        this._matchesTable = new matchesTable(this._$('#notifiedMatchesTable'));
+
+        this._tableElement = this._$('#notifiedMatchesTable');
+
+        this._utils = new utils();
+        this._matchesTable = new matchesTable(this._tableElement);
+        this._notifier = new notifier({
+            ajaxHandler  : this._ajaxURL,
+            onSuccess    : this._onSuccessSendNotification.bind(this),
+            onFailure    : this._onFailSendNotification.bind(this),
+            matchesTable : this._tableElement
+        });
 
         $('#show-matches-button').on('click', this._showMatches.bind(this));
+        $('#send-notifications-button').on('click', this._sendNotification.bind(this));
     },
 
     _showMatches : function()
@@ -31,36 +45,49 @@ var PhenoTips = (function (PhenoTips) {
                           notified : true
             },
             onSuccess : function (response) {
-                _this._showSuccess('show-matches-messages');
+                this._utils.showSuccess('show-matches-messages');
                 console.log("show matches result");
                 console.log(response.responseJSON);
 
                 _this._matches = response.responseJSON.matches;
-                _this._matchesTable.update(_this._matches);
-            },
+                _this._matchesTable.update(this._matches);
+            }.bind(this),
             onFailure : function (response) {
-                _this._showFailure('show-matches-messages');
-            }
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
         });
-        _this._showSent('show-matches-messages');
+        this._utils.showSent('show-matches-messages');
     },
 
-    _showSent : function(messagesFieldName) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.requestSent')");
+    _sendNotification : function()
+    {
+        this._notifier.sendNotification();
+        this._utils.showSent('send-notifications-messages');
     },
 
-    _showSuccess : function(messagesFieldName, value) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.success')");
+    _onSuccessSendNotification : function(ajaxResponse)
+    {
+        console.log("onSuccess, received:");
+        console.log(ajaxResponse.responseText);
+        this._utils.showSuccess('send-notifications-messages');
+
+        [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
+
+        if (failedIds.length > 0) {
+            alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+        }
+
+        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
+            .each(function (tr)
+            {
+                this._$(tr).addClass('failed');
+                this._$(tr).find('.notify').attr('checked', 'checked');
+            }.bind(this));
     },
 
-    _showFailure : function(messagesFieldName) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.failure')");
-    },
-
-    _showHint : function(messagesFieldName, message) {
-        var messages = this._$('#' + messagesFieldName);
-        messages.empty();
-        messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+    _onFailSendNotification : function()
+    {
+        this._utils.showFailure('send-notifications-messages');
     }
 
     });
