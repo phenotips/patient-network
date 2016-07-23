@@ -1,23 +1,36 @@
-require(["jquery", "matchingNotification/matchesTable"], function($, matchesTable)
+require(["jquery",
+         "matchingNotification/matchesTable",
+         "matchingNotification/matchesNotifier",
+         "matchingNotification/utils"],
+        function($, matchesTable, notifier, utils)
 {
-    var loadMNM = function($, matchesTable) {
-        new PhenoTips.widgets.UnnotifiedMatchesTable($, matchesTable);
+    var loadMNM = function($, matchesTable, notifier, utils) {
+        new PhenoTips.widgets.UnnotifiedMatchesTable($, matchesTable, notifier, utils);
     };
 
-    (XWiki.domIsLoaded && loadMNM($, matchesTable)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, $, matchesTable));
+    (XWiki.domIsLoaded && loadMNM($, matchesTable, notifier, utils)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, $, matchesTable, notifier, utils));
 });
 
 var PhenoTips = (function (PhenoTips) {
     var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
     widgets.UnnotifiedMatchesTable = Class.create({
 
-    initialize : function ($, matchesTable)
+    initialize : function ($, matchesTable, notifier, utils)
     {
         this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
         this._$ = $;
-
         this._matches = undefined;
-        this._matchesTable = new matchesTable(this._$('#matchesTable'), this._afterProcessTableRegisterReject.bind(this));
+
+        this._tableElement = this._$('#matchesTable');
+
+        this._utils = new utils();
+        this._matchesTable = new matchesTable(this._tableElement, this._afterProcessTableRegisterReject.bind(this));
+        this._notifier = new notifier({
+            ajaxHandler  : this._ajaxURL,
+            onSuccess    : this._onSuccessSendNotification.bind(this),
+            onFailure    : this._onFailSendNotification.bind(this),
+            matchesTable : this._tableElement
+        });
 
         $('#find-matches-button').on('click', this._findMatches.bind(this));
         $('#show-matches-button').on('click', this._showMatches.bind(this));
@@ -36,35 +49,32 @@ var PhenoTips = (function (PhenoTips) {
 
     _findMatches : function()
     {
-        var _this = this;
-
         var score = this._checkScore('find-matches-score', 'find-matches-messages');
         if (score == undefined) {
             return;
         }
-        new Ajax.Request(_this._ajaxURL, {
+        new Ajax.Request(this._ajaxURL, {
             parameters : {action : 'find-matches',
                           score  : score
             },
             onSuccess : function (response) {
-                _this._showSuccess('find-matches-messages');
+                this._utils.showSuccess('find-matches-messages');
                 console.log("find matches result, score = " + score);
                 console.log(response.responseJSON);
 
-                _this._$('#show-matches-score').val(score);
-                _this._showMatches();
-            },
+                this._$('#show-matches-score').val(score);
+                this._showMatches();
+            }.bind(this),
             onFailure : function (response) {
-                _this._showFailure('find-matches-messages');
-            }
+                this._utils.showFailure('find-matches-messages');
+            }.bind(this)
         });
-        this._showSent('find-matches-messages');
+        this._utils.showSent('find-matches-messages');
     },
 
     _showMatches : function()
     {
-        var _this = this;
-        var score = _this._checkScore('show-matches-score', 'show-matches-messages');
+        var score = this._checkScore('show-matches-score', 'show-matches-messages');
         if (score == undefined) {
             return;
         }
@@ -74,50 +84,22 @@ var PhenoTips = (function (PhenoTips) {
                           notified : false
             },
             onSuccess : function (response) {
-                _this._showSuccess('show-matches-messages');
+                this._utils.showSuccess('show-matches-messages');
                 console.log("show matches result, score = " + score);
                 console.log(response.responseJSON);
 
-                _this._matches = response.responseJSON.matches;
-                _this._matchesTable.update(_this._matches);
-            },
+                this._matches = response.responseJSON.matches;
+                this._matchesTable.update(this._matches);
+            }.bind(this),
             onFailure : function (response) {
-                _this._showFailure('show-matches-messages');
-            }
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
         });
-        _this._showSent('show-matches-messages');
-    },
-
-    _sendNotification : function()
-    {
-        var _this = this;
-
-        var ids = this._readMatchesToNotify();
-        var idsJson = JSON.stringify({ ids: ids});
-        console.log("Sending " + idsJson);
-
-        new Ajax.Request(_this._ajaxURL, {
-            parameters : {action : 'send-notifications',
-                          ids    : idsJson
-            },
-            onSuccess : function (response) {
-                console.log("onSuccess, received:");
-                console.log(response.responseText);
-                _this._showSuccess('send-notifications-messages');
-
-               _this._onSuccessSendNotification(response.responseJSON.results);
-            },
-            onFailure : function (response) {
-                _this._showFailure('send-notifications-messages');
-            }
-        });
-        this._showSent('send-notifications-messages');
+        this._utils.showSent('show-matches-messages');
     },
 
     _rejectMatch : function(target)
     {
-        var _this = this;
-
         var matchId = String(this._$(target).data("matchid"));
         var reject = this._$(target).is(':checked');
         var ids = JSON.stringify({ ids: matchId.split(",")});
@@ -128,55 +110,44 @@ var PhenoTips = (function (PhenoTips) {
                           reject : reject
             },
             onSuccess : function (response) {
-                _this._onSuccessRejectMatch(response.responseJSON.results, reject);
-            },
+                this._onSuccessRejectMatch(response.responseJSON.results, reject);
+            }.bind(this),
             onFailure : function (response) {
                 console.log(response);
-            }
+            }.bind(this)
         });
     },
 
     _checkScore : function(scoreFieldName, messagesFieldName) {
         var score = this._$('#' + scoreFieldName).val();
         if (score == undefined || score == "") {
-            this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.emptyScore')");
+            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.emptyScore')");
             return;
         } else if (isNaN(score)) {
-            this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
+            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
             return;
         };
         scoreNumber = Number(score);
         if (scoreNumber < 0 || scoreNumber > 1) {
-            this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
+            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
             return;
         }
         return score;
     },
 
-    _showSent : function(messagesFieldName) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.requestSent')");
-    },
-
-    _showSuccess : function(messagesFieldName, value) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.success')");
-    },
-
-    _showFailure : function(messagesFieldName) {
-        this._showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.failure')");
-    },
-
-    _showHint : function(messagesFieldName, message) {
-        var messages = this._$('#' + messagesFieldName);
-        messages.empty();
-        messages.append(new Element('div', {'class' : 'xHint'}).update(message));
-    },
-
-    _onSuccessSendNotification : function(results)
+    _sendNotification : function()
     {
-        var _this = this;
+        this._notifier.sendNotification();
+        this._utils.showSent('send-notifications-messages');
+    },
 
-        var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
-        var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
+    _onSuccessSendNotification : function(ajaxResponse)
+    {
+        console.log("onSuccess, received:");
+        console.log(ajaxResponse.responseText);
+        this._utils.showSuccess('send-notifications-messages');
+
+        [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
         if (failedIds.length > 0) {
             alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
@@ -184,13 +155,13 @@ var PhenoTips = (function (PhenoTips) {
 
         // remove notified matches
         var toRemove = this._$.grep(this._matches, this._identifyMatch(successfulIds));
-        this._matches = this._$.grep(this._matches, function(match) {return _this._$.inArray(match, toRemove)==-1});
+        this._matches = this._$.grep(this._matches,
+                                     function(match) {return this._$.inArray(match, toRemove)==-1}.bind(this));
 
         this._matchesTable.update(this._matches);
 
         // Mark failed trs
-        var allTrs = this._$('#matchesTable tbody').find('tr');
-        this._$.grep(allTrs, this._identifyTr(failedIds))
+        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
             .each(function (tr)
             {
                 this._$(tr).addClass('failed');
@@ -198,11 +169,14 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
     },
 
+    _onFailSendNotification : function()
+    {
+        this._utils.showFailure('send-notifications-messages');
+    },
+
     // When reject is true, request was sent to reject. When false, request was sent to unreject.
     _onSuccessRejectMatch : function(results, reject)
     {
-        var _this = this;
-
         var successfulIds = this._$.grep(results, function(item) {return item.success} ).map(function(item) {return item.id});
         var failedIds     = this._$.grep(results, function(item) {return !item.success}).map(function(item) {return item.id});
 
@@ -222,8 +196,7 @@ var PhenoTips = (function (PhenoTips) {
         this._matchesTable.update(this._matches);
 
         // Mark failed trs
-        var allTrs = this._$('#matchesTable tbody').find('tr');
-        this._$.grep(allTrs, this._identifyTr(failedIds))
+        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
             .each(function (tr)
             {
                 this._$(tr).addClass('failed');
@@ -248,21 +221,6 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this);
     },
 
-    _identifyTr : function(idsList)
-    {
-        return function(tr)
-        {
-            var ids = String(this._$(tr).data('matchid')).split(",").map(function(id) {return Number(id);});
-            var allInList = true;
-            for (var i=0; i<ids.length; i++) {
-                if (this._$.inArray(ids[i], idsList)==-1) {
-                    allInList = false;
-                }
-            }
-            return allInList;
-        }.bind(this);
-    },
-
     _notifyAllClicked : function(event)
     {
         var checked = event.target.checked;
@@ -281,18 +239,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _filterRejected : function(match) {
         return !match.rejected;
-    },
-
-    _readMatchesToNotify : function()
-    {
-        var idsToNotify = [];
-        this._$('#matchesTable').find(".notify").each(function (index, elm) {
-            if (elm.checked && !elm.disabled) {
-                var allIds = String(this._$(elm).data('matchid'));
-                allIds.split(",").each(function(id) {idsToNotify.push(id)});
-            }
-        }.bind(this));
-        return idsToNotify;
     }
 
     });
