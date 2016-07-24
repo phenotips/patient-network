@@ -277,7 +277,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
     &lt;th data-dynatable-column="phenotypicScore" title="Phenotypic match score"&gt;Phen&lt;/th&gt;
     &lt;th data-dynatable-column="email" title="Email of owner of reference patient"&gt;Email&lt;/th&gt;
     &lt;th data-dynatable-column="matchedHref" title="Handle to owner of matched patient"&gt;Matched Href&lt;/th&gt;
-    &lt;th data-dynatable-column="timestamp" title="Time match was found"&gt;Timestamp&lt;/th&gt;
+    &lt;th data-dynatable-column="foundTimestamp" title="Time match was found"&gt;Found&lt;/th&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
   &lt;/tbody&gt;
