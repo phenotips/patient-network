@@ -84,10 +84,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String matchedServerId;
 
     @Basic
-    private Timestamp timestamp;
+    private Timestamp foundTimestamp;
 
     @Basic
     private Boolean notified;
+
+    @Basic
+    private Timestamp notifiedTimestamp;
 
     @Basic
     private Boolean rejected;
@@ -192,7 +195,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
      */
     public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
     {
-        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.foundTimestamp = new Timestamp(System.currentTimeMillis());
+        this.notifiedTimestamp = null;
+
         this.notified = false;
         this.rejected = false;
         this.score = testData.score;
@@ -228,7 +233,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.matchedPatientId = matchedPatient.getId();
         this.matchedServerId = matchedServerId;
 
-        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.foundTimestamp = new Timestamp(System.currentTimeMillis());
+        this.notifiedTimestamp = null;
 
         this.notified = false;
         this.rejected = false;
@@ -273,6 +279,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void setNotified()
     {
         this.notified = true;
+        this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
     }
 
     @Override
@@ -381,7 +388,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("reference", this.getReference().toJSON());
         json.put("matched", this.getMatched().toJSON());
 
-        json.put("timestamp", new SimpleDateFormat("yyyy/MM/dd HH:mm").format(this.timestamp));
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        json.put("foundTimestamp", sdf.format(this.foundTimestamp));
+        json.put("notifiedTimestamp",
+                this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
+
         json.put("notified", this.isNotified());
         json.put("rejected", this.isRejected());
         json.put("score", this.getScore());
