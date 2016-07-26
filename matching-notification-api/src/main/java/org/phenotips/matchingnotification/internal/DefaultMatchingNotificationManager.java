@@ -171,7 +171,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             if (response.isSuccessul()) {
                 successfulMatches.add(match);
             } else {
-                this.logger.error("Error on sending email for match {}.", match);
+                this.logger.error("Error on sending email for match {}: {}.", match, response.getErrorMessage());
             }
         }
 

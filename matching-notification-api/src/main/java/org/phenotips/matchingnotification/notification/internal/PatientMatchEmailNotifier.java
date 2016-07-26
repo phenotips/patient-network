@@ -34,6 +34,9 @@ import java.util.List;
 
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Notifies about patient matches.
  *
@@ -43,6 +46,8 @@ import javax.inject.Singleton;
 @Singleton
 public class PatientMatchEmailNotifier implements PatientMatchNotifier
 {
+    private Logger logger = LoggerFactory.getLogger(PatientMatchEmailNotifier.class);
+
     @Override
     public List<PatientMatchEmail> createEmails(List<PatientMatch> matches)
     {
@@ -66,6 +71,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     {
         email.send();
         if (!email.wasSent()) {
+            this.logger.error("Email was not sent successfully: {}.", email.getStatus());
             return Collections.emptyList();
         }
 
