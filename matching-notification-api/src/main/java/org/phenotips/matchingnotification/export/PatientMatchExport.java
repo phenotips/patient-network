@@ -59,8 +59,12 @@ public class PatientMatchExport
             }
             if (match.isLocal()) {
                 PatientMatch equivalent = mbp.getEquivalentMatch(match);
-                matchesJSONArray.put(this.createJSONFromMatches(match, equivalent));
-                usedAsEquivalent.add(equivalent);
+                if (equivalent != null) {
+                    matchesJSONArray.put(this.createJSONFromMatches(match, equivalent));
+                    usedAsEquivalent.add(equivalent);
+                } else {
+                    matchesJSONArray.put(match.toJSON());
+                }
             } else {
                 matchesJSONArray.put(match.toJSON());
             }
