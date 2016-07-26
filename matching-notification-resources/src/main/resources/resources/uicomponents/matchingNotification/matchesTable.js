@@ -170,6 +170,9 @@ define(["jquery", "dynatable"], function($, dyna)
             // Patient id and collapsible icon
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
+            if (patient.serverId) {
+                td += '<span>' + patient.serverId + '</span>';
+            }
             td += '</div>';
 
             // Collapsible div
