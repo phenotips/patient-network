@@ -41,6 +41,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _identifyTr : function(idsList)
         {
+            // TODO in some cases true/false is not enough. For example, row represents matches 1,2. 1 is in the list of 2 is not.
             return function(tr)
             {
                 var ids = String($(tr).data('matchid')).split(",").map(function(id) {return Number(id);});
