@@ -392,7 +392,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
         json.put("notifiedTimestamp",
-                this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
+            this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
         json.put("notified", this.isNotified());
         json.put("rejected", this.isRejected());
@@ -421,9 +421,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public boolean isEquivalent(PatientMatch other) {
         return StringUtils.equals(this.getReferencePatientId(), other.getMatchedPatientId())
-                && StringUtils.equals(this.getReferenceServerId(), other.getMatchedServerId())
-                && StringUtils.equals(this.getMatchedPatientId(), other.getReferencePatientId())
-                && StringUtils.equals(this.getMatchedServerId(), other.getReferenceServerId());
+            && StringUtils.equals(this.getReferenceServerId(), other.getMatchedServerId())
+            && StringUtils.equals(this.getMatchedPatientId(), other.getReferencePatientId())
+            && StringUtils.equals(this.getMatchedServerId(), other.getReferenceServerId());
     }
 
     @Override
