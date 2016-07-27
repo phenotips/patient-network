@@ -64,23 +64,10 @@ define(["jquery", "dynatable"], function($, dyna)
                 match.phenotypicScore = this._roundScore(match.phenotypicScore);
                 match.genotypicScore = this._roundScore(match.genotypicScore);
 
-                // server ids
-                match.reference.serverId = this._formatServerId(match.reference.serverId);
-                match.matched.serverId = this._formatServerId(match.matched.serverId);
-
                 // Phenotypes
                 [match.reference.phenotypes, match.matched.phenotypes] =
                     this._formatPhenotypes(match.reference.phenotypes, match.matched.phenotypes);
             }.bind(this));
-        },
-
-        _formatServerId : function(serverId)
-        {
-            if (serverId == undefined || serverId == 'undefined') {
-                return '-';
-            } else {
-                return serverId;
-            }
         },
 
         _roundScore : function(score)
@@ -122,12 +109,6 @@ define(["jquery", "dynatable"], function($, dyna)
                         break;
                     case 'matchedPatient':
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
-                        break;
-                    case 'referenceServerId':
-                        tr += this._simpleCellWriter(record.reference.serverId);
-                        break;
-                    case 'matchedServerId':
-                        tr += this._simpleCellWriter(record.matched.serverId);
                         break;
                     case 'email':
                         tr += this._simpleCellWriter(record.reference.email);
@@ -171,7 +152,7 @@ define(["jquery", "dynatable"], function($, dyna)
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
             if (patient.serverId) {
-                td += '<span>' + patient.serverId + '</span>';
+                td += '<span class="server-span">(' + patient.serverId + ')</span>';
             }
             td += '</div>';
 
