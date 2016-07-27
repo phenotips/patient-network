@@ -229,7 +229,7 @@
     </property>
     <property>
       <codeToExecute>{{velocity}}
-$xwiki.ssfx.use('uicomponents/matchingNotification/unnotifiedmatchesTable.css')##
+$xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
 $xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', true)##
@@ -263,7 +263,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;br/&gt;
-&lt;table id="matchesTable"&gt;
+&lt;table id="matchesTable" class="matches-table"&gt;
   &lt;thead&gt;
     &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="rejection"&gt;&lt;span title="Rejected"/&gt;Reject&lt;/th&gt;
