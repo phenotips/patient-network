@@ -19,6 +19,7 @@ package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.matchingnotification.match.PatientInMatch;
+import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -35,6 +36,8 @@ public abstract class AbstractPatientInMatch implements PatientInMatch
     private static final DefaultPatientMatchUtils UTILS;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientInMatch.class);
+
+    protected PatientMatch match;
 
     static {
         DefaultPatientMatchUtils utils = null;

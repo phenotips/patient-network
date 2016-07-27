@@ -27,8 +27,6 @@ import java.util.Set;
  */
 public class ReferencePatientInMatch extends AbstractPatientInMatch
 {
-    private PatientMatch match;
-
     /**
      * @param match PatientMatch on which this object is based
      */
