@@ -138,46 +138,26 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     private Map<String, Object> createVelocityVariablesMap()
     {
         Map<String, Object> velocityVariables = new HashMap<>();
+        velocityVariables.put("subjectPatient", subjectPatient);
 
-        this.addSubjectPatientDetails(velocityVariables);
-
-        // Read 'other' patient from each match
         List<Map<String, Object>> matchesForEmail = new ArrayList<>(this.matches.size());
         for (PatientMatch match : this.matches) {
-            matchesForEmail.add(this.getMatchMap(match));
+            Map<String, Object> matchMap = new HashMap<>();
+
+            PatientInMatch otherPatient;
+            if (match.isReference(this.subjectPatient.getPatientId(), null)) {
+                otherPatient = match.getMatched();
+            } else {
+                otherPatient = match.getReference();
+            }
+            matchMap.put("matchedPatient", otherPatient);
+            matchMap.put("match", match);
+
+            matchesForEmail.add(matchMap);
         }
         velocityVariables.put("matches", matchesForEmail);
 
         return velocityVariables;
-    }
-
-    private void addSubjectPatientDetails(Map<String, Object> map)
-    {
-        map.put("subjectPatientId", this.subjectPatient.getPatientId());
-        map.put("subjectEmail", this.subjectPatient.getEmail());
-        map.put("subjectGenes", this.subjectPatient.getCandidateGenes());
-    }
-
-    private Map<String, Object> getMatchMap(PatientMatch match)
-    {
-        Map<String, Object> map = new HashMap<>();
-        PatientInMatch otherPatient;
-        if (match.isReference(this.subjectPatient.getPatientId(), null)) {
-            otherPatient = match.getMatched();
-        } else {
-            otherPatient = match.getReference();
-        }
-
-        map.put("patientId", otherPatient.getPatientId());
-        map.put("serverId", otherPatient.getServerId());
-        map.put("email", otherPatient.getEmail());
-        map.put("genes", otherPatient.getCandidateGenes());
-
-        map.put("score", match.getScore());
-        map.put("genotypeScore", match.getGenotypeScore());
-        map.put("phenotypeScore", match.getPhenotypeScore());
-
-        return map;
     }
 
     private void setFrom()
