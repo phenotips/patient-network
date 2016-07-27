@@ -37,11 +37,11 @@
     font-style: oblique;
 }
 
-#matchesTable th {
+#notifiedMatchesTable th {
     white-space: nowrap;
 }
 
-#matchesTable td {
+#notifiedMatchesTable td {
     vertical-align: text-top;
 }
 
