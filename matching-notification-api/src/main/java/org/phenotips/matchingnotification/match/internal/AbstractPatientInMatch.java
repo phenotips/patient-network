@@ -54,7 +54,7 @@ public abstract class AbstractPatientInMatch implements PatientInMatch
         json.put("serverId", this.getServerId());
         json.put("email", this.getEmail());
         json.put("genes", UTILS.setToJSONArray(this.getCandidateGenes()));
-        json.put("phenotypes", this.getPhenotypesMap().toJSON());
+        json.put("phenotypes", this.getPhenotypes().toJSON());
 
         return json;
     }

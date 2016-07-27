@@ -49,7 +49,7 @@ public interface PatientInMatch
     /**
      * @return phenotypes map
      */
-    PhenotypesMap getPhenotypesMap();
+    PhenotypesMap getPhenotypes();
 
     /**
      * @return JSON representation of object
