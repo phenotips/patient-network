@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import java.util.Set;
 

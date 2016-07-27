@@ -23,6 +23,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.internal.TestMatchFinder;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -209,7 +210,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.email = testData.email;
         this.genes = testData.genes;
         this.genesSet = UTILS.stringToSet(testData.genes);
-        this.phenotypesMap = PhenotypesMap.getInstance(testData.phenotypes);
+        this.phenotypesMap = DefaultPhenotypesMap.getInstance(testData.phenotypes);
         this.phenotypes = this.phenotypesMap.toString();
 
         this.matchedPatientId = testData.matchedPatientId;
@@ -217,7 +218,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.matchedHref = testData.matchedHref;
         this.matchedGenes = testData.matchedGenes;
         this.matchedGenesSet = UTILS.stringToSet(testData.matchedGenes);
-        this.matchedPhenotypesMap = PhenotypesMap.getInstance(testData.matchedPhenotypes);
+        this.matchedPhenotypesMap = DefaultPhenotypesMap.getInstance(testData.matchedPhenotypes);
         this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
 
         this.createPatientInMatches();
@@ -246,13 +247,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.email = UTILS.getOwnerEmail(referencePatient);
         this.genesSet = UTILS.getGenes(referencePatient);
         this.genes = UTILS.setToString(this.genesSet);
-        this.phenotypesMap = new PhenotypesMap(referencePatient);
+        this.phenotypesMap = new DefaultPhenotypesMap(referencePatient);
         this.phenotypes = this.phenotypesMap.toString();
 
         this.matchedHref = UTILS.getOwnerEmail(matchedPatient);
         this.matchedGenesSet = UTILS.getGenes(matchedPatient);
         this.matchedGenes = UTILS.setToString(this.matchedGenesSet);
-        this.matchedPhenotypesMap = new PhenotypesMap(matchedPatient);
+        this.matchedPhenotypesMap = new DefaultPhenotypesMap(matchedPatient);
         this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
 
         this.createPatientInMatches();
@@ -443,8 +444,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void onLoad(Session arg0, Serializable arg1) {
         this.genesSet = UTILS.stringToSet(this.genes);
         this.matchedGenesSet = UTILS.stringToSet(this.matchedGenes);
-        this.phenotypesMap = PhenotypesMap.getInstance(this.phenotypes);
-        this.matchedPhenotypesMap = PhenotypesMap.getInstance(this.matchedPhenotypes);
+        this.phenotypesMap = DefaultPhenotypesMap.getInstance(this.phenotypes);
+        this.matchedPhenotypesMap = DefaultPhenotypesMap.getInstance(this.matchedPhenotypes);
 
         this.createPatientInMatches();
     }

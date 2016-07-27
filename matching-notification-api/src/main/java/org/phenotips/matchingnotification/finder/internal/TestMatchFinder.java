@@ -23,7 +23,7 @@ import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.matchingnotification.match.internal.DefaultPatientMatchUtils;
-import org.phenotips.matchingnotification.match.internal.PhenotypesMap;
+import org.phenotips.matchingnotification.match.internal.DefaultPhenotypesMap;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -133,13 +133,13 @@ public class TestMatchFinder implements MatchFinder
         td1.referenceServerId = null;
         td1.email = UTILS.getOwnerEmail(patient);
         td1.genes = UTILS.setToString(UTILS.getGenes(patient));
-        td1.phenotypes = (new PhenotypesMap(patient)).toString();
+        td1.phenotypes = (new DefaultPhenotypesMap(patient)).toString();
 
         td1.matchedPatientId = Q1;
         td1.matchedServerId = SERVER1;
         td1.matchedHref = Q1_EMAIL;
         td1.matchedGenes = Q1_GENES;
-        td1.matchedPhenotypes = (new PhenotypesMap()).toString();
+        td1.matchedPhenotypes = (new DefaultPhenotypesMap()).toString();
 
         td1.score = 0.3;
         td1.genotypeScore = 0.0;
@@ -154,13 +154,13 @@ public class TestMatchFinder implements MatchFinder
         td1.matchedServerId = null;
         td1.matchedHref = UTILS.getOwnerEmail(patient);
         td1.matchedGenes = UTILS.setToString(UTILS.getGenes(patient));
-        td1.matchedPhenotypes = (new PhenotypesMap(patient)).toString();
+        td1.matchedPhenotypes = (new DefaultPhenotypesMap(patient)).toString();
 
         td1.referencePatientId = Q1;
         td1.referenceServerId = SERVER1;
         td1.email = Q1_EMAIL;
         td1.genes = Q1_GENES;
-        td1.phenotypes = (new PhenotypesMap()).toString();
+        td1.phenotypes = (new DefaultPhenotypesMap()).toString();
 
         td1.score = 0.3;
         td1.genotypeScore = 0.0;

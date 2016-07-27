@@ -17,8 +17,6 @@
  */
 package org.phenotips.matchingnotification.match;
 
-import org.phenotips.matchingnotification.match.internal.PhenotypesMap;
-
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 

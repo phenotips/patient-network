@@ -20,13 +20,17 @@ package org.phenotips.matchingnotification.match.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,14 +44,14 @@ import org.slf4j.LoggerFactory;
 /**
  * @version $Id$
  */
-public class PhenotypesMap
+public class DefaultPhenotypesMap implements PhenotypesMap
 {
     private static final String FREE_TEXT = "freeText";
     private static final String PREDEFINED = "predefined";
 
     private static final VocabularyManager VOCABULARY_MANAGER;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PhenotypesMap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPhenotypesMap.class);
 
     private Map<String, String> predefined;
     private Set<String> freeText;
@@ -68,7 +72,7 @@ public class PhenotypesMap
      *
      * @param patient to build a PhenotypesMap from
      */
-    public PhenotypesMap(Patient patient)
+    public DefaultPhenotypesMap(Patient patient)
     {
         this();
         this.readPhenotypes(patient);
@@ -77,7 +81,7 @@ public class PhenotypesMap
     /**
      * Builds an empty PhenotypesMap, for debug.
      */
-    public PhenotypesMap()
+    public DefaultPhenotypesMap()
     {
         this.predefined = new HashMap<String, String>();
         this.freeText = new HashSet<String>();
@@ -98,10 +102,10 @@ public class PhenotypesMap
             predefinedArray = (JSONArray) obj.get(PREDEFINED);
             freeTextArray = (JSONArray) obj.get(FREE_TEXT);
         } catch (JSONException e) {
-            PhenotypesMap.LOGGER.error("Error creating a PhenotypesMap from {}.", string, e);
+            DefaultPhenotypesMap.LOGGER.error("Error creating a PhenotypesMap from {}.", string, e);
         }
 
-        PhenotypesMap map = new PhenotypesMap();
+        DefaultPhenotypesMap map = new DefaultPhenotypesMap();
         map.freeText = new HashSet<String>();
         for (Object o : freeTextArray) {
             String id = (String) o;
@@ -111,7 +115,7 @@ public class PhenotypesMap
         map.predefined = new HashMap<String, String>();
         for (Object o : predefinedArray) {
             String id = (String) o;
-            VocabularyTerm term = PhenotypesMap.VOCABULARY_MANAGER.resolveTerm(id);
+            VocabularyTerm term = DefaultPhenotypesMap.VOCABULARY_MANAGER.resolveTerm(id);
             if (term != null) {
                 map.predefined.put(id, term.getName());
             }
@@ -132,6 +136,7 @@ public class PhenotypesMap
     /**
      * @return JSON representation of the object
      */
+    @Override
     public JSONObject toJSON()
     {
         JSONObject toJSON = new JSONObject();
@@ -148,6 +153,14 @@ public class PhenotypesMap
         toJSON.put(FREE_TEXT, this.freeText);
         return toJSON;
 
+    }
+
+    @Override
+    public Collection<String> getNames() {
+        List<String> names = new ArrayList<String>(this.predefined.size() + this.freeText.size());
+        names.addAll(this.predefined.values());
+        names.addAll(this.freeText);
+        return names;
     }
 
     private void readPhenotypes(Patient patient)

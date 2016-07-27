@@ -17,47 +17,22 @@
  */
 package org.phenotips.matchingnotification.match;
 
-import java.util.Set;
+import java.util.Collection;
 
 import org.json.JSONObject;
 
 /**
  * @version $Id$
  */
-public interface PatientInMatch
+public interface PhenotypesMap
 {
     /**
-     * @return id of patient.
-     */
-    String getPatientId();
-
-    /**
-     * @return id of server where patient is found. Null if local.
-     */
-    String getServerId();
-
-    /**
-     * @return patient's owner email.
-     */
-    String getEmail();
-
-    /**
-     * @return a set of candidate genes for patient.
-     */
-    Set<String> getCandidateGenes();
-
-    /**
-     * @return phenotypes map
-     */
-    PhenotypesMap getPhenotypesMap();
-
-    /**
-     * @return JSON representation of object
+     * @return JSON representation of the object
      */
     JSONObject toJSON();
 
     /**
-     * @return true if patient is local
+     * @return Collection of names of phenotypes in map
      */
-    boolean isLocal();
+    Collection<String> getNames();
 }
