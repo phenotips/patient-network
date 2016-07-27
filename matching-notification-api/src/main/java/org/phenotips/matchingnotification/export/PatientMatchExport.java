@@ -22,6 +22,9 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +44,8 @@ public class PatientMatchExport
     /** Key for matches array. */
     public static final String MATCHES = "matches";
 
+    private static final String SCORE = "score";
+
     /**
      * @param matches list of patient matches
      * @return list of matches in JSON format
@@ -48,11 +53,12 @@ public class PatientMatchExport
     public JSONObject toJSON(List<PatientMatch> matches)
     {
         JSONObject matchesJSON = new JSONObject();
-        JSONArray matchesJSONArray = new JSONArray();
 
         Set<PatientMatch> usedAsEquivalent = new HashSet<PatientMatch>();
 
+        // Build a list of JSONObject-s representing matches
         MatchesByPatient mbp = new MatchesByPatient(matches);
+        List<JSONObject> matchesObjects = new ArrayList<>(mbp.size());
         for (PatientMatch match : mbp) {
             if (usedAsEquivalent.contains(match)) {
                 continue;
@@ -60,16 +66,30 @@ public class PatientMatchExport
             if (match.isLocal()) {
                 PatientMatch equivalent = mbp.getEquivalentMatch(match);
                 if (equivalent != null) {
-                    matchesJSONArray.put(this.createJSONFromMatches(match, equivalent));
+                    matchesObjects.add(this.createJSONFromMatches(match, equivalent));
                     usedAsEquivalent.add(equivalent);
                 } else {
-                    matchesJSONArray.put(match.toJSON());
+                    matchesObjects.add(match.toJSON());
                 }
             } else {
-                matchesJSONArray.put(match.toJSON());
+                matchesObjects.add(match.toJSON());
             }
         }
 
+        // Sort by score
+        Collections.sort(matchesObjects, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject o1, JSONObject o2) {
+                double score1 = (Double) o1.get(SCORE);
+                double score2 = (Double) o2.get(SCORE);
+                return (int) Math.signum(score2 - score1);
+            }
+        });
+
+        JSONArray matchesJSONArray = new JSONArray();
+        for (JSONObject json : matchesObjects) {
+            matchesJSONArray.put(json);
+        }
         matchesJSON.put(MATCHES, matchesJSONArray);
 
         return matchesJSON;
