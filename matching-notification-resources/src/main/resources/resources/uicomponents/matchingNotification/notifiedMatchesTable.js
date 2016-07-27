@@ -34,6 +34,8 @@ var PhenoTips = (function (PhenoTips) {
 
         $('#show-matches-button').on('click', this._showMatches.bind(this));
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
+
+        this._showMatches();
     },
 
     _showMatches : function()
