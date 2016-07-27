@@ -117,12 +117,12 @@ public interface PatientMatch
     /**
      * @return phenotypes map of reference patient.
      */
-    PhenotypesMap getReferencePhenotypesMap();
+    PhenotypesMap getReferencePhenotypes();
 
     /**
      * @return phenotypes map of matched patient.
      */
-    PhenotypesMap getMatchedPhenotypesMap();
+    PhenotypesMap getMatchedPhenotypes();
 
     /**
      * @return true only if match is rejected.

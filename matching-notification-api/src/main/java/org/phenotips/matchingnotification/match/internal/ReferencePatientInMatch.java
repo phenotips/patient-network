@@ -62,9 +62,9 @@ public class ReferencePatientInMatch extends AbstractPatientInMatch
     }
 
     @Override
-    public PhenotypesMap getPhenotypesMap()
+    public PhenotypesMap getPhenotypes()
     {
-        return this.match.getReferencePhenotypesMap();
+        return this.match.getReferencePhenotypes();
     }
 
 }

@@ -355,13 +355,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public PhenotypesMap getReferencePhenotypesMap()
+    public PhenotypesMap getReferencePhenotypes()
     {
         return this.phenotypesMap;
     }
 
     @Override
-    public PhenotypesMap getMatchedPhenotypesMap()
+    public PhenotypesMap getMatchedPhenotypes()
     {
         return this.matchedPhenotypesMap;
     }
