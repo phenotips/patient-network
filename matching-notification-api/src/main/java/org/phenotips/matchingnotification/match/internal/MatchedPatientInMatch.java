@@ -48,12 +48,6 @@ public class MatchedPatientInMatch extends AbstractPatientInMatch
     }
 
     @Override
-    public String getEmail()
-    {
-        return this.match.getMatchedEmail();
-    }
-
-    @Override
     public Set<String> getCandidateGenes()
     {
         return this.match.getMatchedCandidateGenes();

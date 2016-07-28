@@ -172,10 +172,12 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private void setTo()
     {
-        String email = this.subjectPatient.getEmail();
-        InternetAddress to = new InternetAddress();
-        to.setAddress(email);
-        this.mimeMessage.addRecipient(RecipientType.TO, to);
+        Collection<String> emails = this.subjectPatient.getEmails();
+        for (String emailAddress : emails) {
+            InternetAddress to = new InternetAddress();
+            to.setAddress(emailAddress);
+            this.mimeMessage.addRecipient(RecipientType.TO, to);
+        }
     }
 
     @Override

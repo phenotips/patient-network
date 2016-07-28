@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -37,11 +38,6 @@ public interface PatientInMatch
     String getServerId();
 
     /**
-     * @return patient's owner email.
-     */
-    String getEmail();
-
-    /**
      * @return a set of candidate genes for patient.
      */
     Set<String> getCandidateGenes();
@@ -60,4 +56,11 @@ public interface PatientInMatch
      * @return true if patient is local
      */
     boolean isLocal();
+
+    /**
+     * @return a collection of email addresses associated with the patient. If the patient is local, this collection
+     *         will contain the patient's owner's address, addresses of people from project the patient is part of, etc.
+     *         If the patient is remote, the collection will contain only an href taken from the match.
+     */
+    Collection<String> getEmails();
 }
