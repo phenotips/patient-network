@@ -95,14 +95,9 @@ public interface PatientMatch
     Double getGenotypeScore();
 
     /**
-     * @return reference patient's owner email.
+     * @return href of remote patient. If this.isLocal() returns null.
      */
-    String getEmail();
-
-    /**
-     * @return matched patient's owner email.
-     */
-    String getMatchedEmail();
+    String getHref();
 
     /**
      * @return a set of candidate genes for reference patient.

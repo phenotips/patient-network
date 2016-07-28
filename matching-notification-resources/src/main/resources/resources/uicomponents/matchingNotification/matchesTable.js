@@ -64,10 +64,22 @@ define(["jquery", "dynatable"], function($, dyna)
                 match.phenotypicScore = this._roundScore(match.phenotypicScore);
                 match.genotypicScore = this._roundScore(match.genotypicScore);
 
+                // emails
+                match.reference.emails = this._formatEmails(match.reference.emails);
+                match.matched.emails = this._formatEmails(match.matched.emails);
+
                 // Phenotypes
                 [match.reference.phenotypes, match.matched.phenotypes] =
                     this._formatPhenotypes(match.reference.phenotypes, match.matched.phenotypes);
             }.bind(this));
+        },
+
+        _formatEmails : function(emails) {
+            if (emails.length == 0) {
+                return "-";
+            } else {
+                return emails;
+            }
         },
 
         _roundScore : function(score)
@@ -110,11 +122,11 @@ define(["jquery", "dynatable"], function($, dyna)
                     case 'matchedPatient':
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                         break;
-                    case 'email':
-                        tr += this._simpleCellWriter(record.reference.email);
+                    case 'referenceEmails':
+                        tr += this._getEmailsTd(record.reference.emails);
                         break;
-                    case 'matchedHref':
-                        tr += this._simpleCellWriter(record.matched.email);
+                    case 'matchedEmails':
+                        tr += this._getEmailsTd(record.matched.emails);
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -204,6 +216,16 @@ define(["jquery", "dynatable"], function($, dyna)
             // End collapsible div
             td += '</div>';
 
+            td += '</td>';
+            return td;
+        },
+
+        _getEmailsTd : function(emails)
+        {
+            var td = '<td>';
+            for (var i=0; i<emails.length; i++) {
+                td += '<div>' + emails[i] + '</div>';
+            }
             td += '</td>';
             return td;
         },

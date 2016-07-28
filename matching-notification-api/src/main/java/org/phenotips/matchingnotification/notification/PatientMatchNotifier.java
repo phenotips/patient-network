@@ -17,10 +17,12 @@
  */
 package org.phenotips.matchingnotification.notification;
 
+import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,4 +50,12 @@ public interface PatientMatchNotifier
      */
     List<PatientMatchNotificationResponse> notify(PatientMatchEmail email);
 
+    /**
+     * Receives a patient, and returns a collection of emails of people who need to be notified about a match for this
+     * patient, including the patient's owner, users from projects the patient belongs to, etc.
+     *
+     * @param patient to get emails for
+     * @return a collection of emails addresses
+     */
+    Collection<String> getNotificationEmailsForPatient(Patient patient);
 }

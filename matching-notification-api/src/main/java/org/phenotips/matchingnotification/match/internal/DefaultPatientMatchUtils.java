@@ -18,14 +18,10 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.Owner;
-import org.phenotips.data.permissions.PatientAccess;
-import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.EntityReference;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,13 +33,6 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.web.Utils;
 
 /**
  * @version $Id$
@@ -53,12 +42,7 @@ import com.xpn.xwiki.web.Utils;
 public class DefaultPatientMatchUtils
 {
     @Inject
-    private PermissionsManager permissionsManager;
-
-    @Inject
     private PatientGenotypeManager patientGenotypeManager;
-
-    private Logger logger = LoggerFactory.getLogger(DefaultPatientMatchUtils.class);
 
     /**
      * Returns a set of genes for a given patient.
@@ -106,32 +90,6 @@ public class DefaultPatientMatchUtils
             return "";
         } else {
             return StringUtils.join(set, DefaultPatientMatch.SEPARATOR);
-        }
-    }
-
-    // TODO only works for reference patient. Get HREF for matched patient.
-    /**
-     * Returns the email of the owner of a patient.
-     *
-     * @param patient to get owner's email from
-     * @return email of owner
-     */
-    public String getOwnerEmail(Patient patient)
-    {
-        PatientAccess referenceAccess = this.permissionsManager.getPatientAccess(patient);
-        Owner owner = referenceAccess.getOwner();
-        if (owner == null) {
-            return "";
-        }
-        EntityReference ownerUser = owner.getUser();
-
-        XWikiContext context = Utils.getContext();
-        XWiki xwiki = context.getWiki();
-        try {
-            return xwiki.getDocument(ownerUser, context).getStringValue("email");
-        } catch (XWikiException e) {
-            this.logger.error("Error reading owner's email for patient {}.", patient.getId(), e);
-            return "";
         }
     }
 

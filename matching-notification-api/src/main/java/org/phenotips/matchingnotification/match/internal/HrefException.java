@@ -17,46 +17,25 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
-import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.PhenotypesMap;
-
-import java.util.Set;
-
 /**
+ * Thrown whenever there's an attempt to read an href from a local match.
+ *
  * @version $Id$
  */
-public class ReferencePatientInMatch extends AbstractPatientInMatch
+public class HrefException extends RuntimeException
 {
     /**
-     * @param match PatientMatch on which this object is based
+     *
      */
-    public ReferencePatientInMatch(PatientMatch match)
-    {
-        this.match = match;
-    }
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    public String getPatientId()
+    /**
+     * Default constructor with message.
+     *
+     * @param message message
+     */
+    public HrefException(String message)
     {
-        return this.match.getReferencePatientId();
+        super(message);
     }
-
-    @Override
-    public String getServerId()
-    {
-        return this.match.getReferenceServerId();
-    }
-
-    @Override
-    public Set<String> getCandidateGenes()
-    {
-        return this.match.getCandidateGenes();
-    }
-
-    @Override
-    public PhenotypesMap getPhenotypes()
-    {
-        return this.match.getReferencePhenotypes();
-    }
-
 }

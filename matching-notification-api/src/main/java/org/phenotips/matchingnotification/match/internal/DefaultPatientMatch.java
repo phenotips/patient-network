@@ -105,10 +105,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Double phenotypeScore;
 
-    // Attributes related to reference patient
-
     @Basic
-    private String email;
+    /*
+     * an href to remote patient. The fields serverId and href are both null or both not null.
+     */
+    private String href;
+
+    // Attributes related to reference patient
 
     @Basic
     @Column(columnDefinition = "CLOB")
@@ -125,9 +128,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private PhenotypesMap phenotypesMap;
 
     // Attributes related to matched patient
-
-    @Basic
-    private String matchedHref;
 
     @Basic
     @Column(columnDefinition = "CLOB")
@@ -207,7 +207,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         this.referencePatientId = testData.referencePatientId;
         this.referenceServerId = testData.referenceServerId;
-        this.email = testData.email;
         this.genes = testData.genes;
         this.genesSet = UTILS.stringToSet(testData.genes);
         this.phenotypesMap = DefaultPhenotypesMap.getInstance(testData.phenotypes);
@@ -215,7 +214,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         this.matchedPatientId = testData.matchedPatientId;
         this.matchedServerId = testData.matchedServerId;
-        this.matchedHref = testData.matchedHref;
+        this.href = testData.href;
         this.matchedGenes = testData.matchedGenes;
         this.matchedGenesSet = UTILS.stringToSet(testData.matchedGenes);
         this.matchedPhenotypesMap = DefaultPhenotypesMap.getInstance(testData.matchedPhenotypes);
@@ -244,13 +243,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        this.email = UTILS.getOwnerEmail(referencePatient);
+        // TODO this.href = ?
+
         this.genesSet = UTILS.getGenes(referencePatient);
         this.genes = UTILS.setToString(this.genesSet);
         this.phenotypesMap = new DefaultPhenotypesMap(referencePatient);
         this.phenotypes = this.phenotypesMap.toString();
 
-        this.matchedHref = UTILS.getOwnerEmail(matchedPatient);
         this.matchedGenesSet = UTILS.getGenes(matchedPatient);
         this.matchedGenes = UTILS.setToString(this.matchedGenesSet);
         this.matchedPhenotypesMap = new DefaultPhenotypesMap(matchedPatient);
@@ -331,15 +330,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String getEmail()
+    public String getHref()
     {
-        return this.email;
-    }
-
-    @Override
-    public String getMatchedEmail()
-    {
-        return this.matchedHref;
+        if (this.isLocal()) {
+            throw new HrefException("Trying to read href for a local match " + this.toString());
+        }
+        return this.href;
     }
 
     @Override
@@ -399,6 +395,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
+        json.put("href", this.isLocal() ? "" : this.getHref());
 
         return json;
     }
