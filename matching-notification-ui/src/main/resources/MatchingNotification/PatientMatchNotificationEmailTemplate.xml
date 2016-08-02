@@ -186,6 +186,15 @@ found for the following patient you submitted to PhenomCentral.&lt;/p&gt;
          &lt;td&gt;
          &lt;/td&gt;
       &lt;/tr&gt;
+      &lt;tr&gt;
+         &lt;td colspan="2"&gt;
+            &lt;div&gt;Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:&lt;/div&gt;
+#foreach ($email in $match.matchedPatient.emails)
+&lt;div&gt;$email&lt;/div&gt;
+#end
+            &lt;/span&gt;
+         &lt;/td&gt;
+      &lt;/tr&gt;
    &lt;tbody&gt;
 &lt;/table&gt;
 &lt;div class="space-between-matches"/&gt;
@@ -230,6 +239,11 @@ Phenotypes:
 #foreach ($name in $match.matchedPatient.phenotypes.names)
 $name
 #end
+Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:
+#foreach ($email in $match.matchedPatient.emails)
+$email
+#end
+
 
 #end</text>
     </property>
