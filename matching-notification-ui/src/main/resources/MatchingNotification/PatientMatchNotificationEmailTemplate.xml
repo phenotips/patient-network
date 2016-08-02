@@ -92,38 +92,146 @@
       </text>
     </class>
     <property>
-      <html>&lt;p&gt;New matches were found for patient $!{escapetool.xml($subjectPatientId)}:&lt;/p&gt;
+      <html>&lt;style&gt;
+table, td, th {
+   border          : 1px solid black;
+   border-collapse : collapse;
+   text-align      : left;
+   vertical-align  : top;
+   font-weight     : normal;
+}
 
-#foreach ($match in $matches)
-&lt;p&gt;Patient id: $!{escapetool.xml($match.patientId)}&lt;/p&gt;
-&lt;p&gt;Remote id: $!{escapetool.xml($match.serverId)}&lt;/p&gt;
-&lt;p&gt;Matched email: $!{escapetool.xml($match.email)}&lt;/p&gt;
-&lt;p&gt;Matched Candidate genes: $!{escapetool.xml($match.genes)}&lt;/p&gt;
-&lt;p&gt;Score: $!{escapetool.xml($match.score)}&lt;/p&gt;
-&lt;p&gt;Genotypic score: $!{escapetool.xml($match.genotypeScore)}&lt;/p&gt;
-&lt;p&gt;Phenotypic score: $!{escapetool.xml($match.phenotypeScore)}&lt;/p&gt;
+th {
+   width : 300px;
+}
+
+.subheader {
+   font-weight : bold;
+}
+
+.grey-background {
+   background -color : light-grey;
+}
+
+.space-between-matches {
+   margin-top : 25px;
+}
+
+.disclaimer {
+   font-size : 10px;
+}
+
+.patient-id {
+   white-space : no-wrap;
+}
+&lt;/style&gt;
+&lt;p&gt;Hello,&lt;/p&gt;
+&lt;p&gt;
+#if ($matches.size() == 1)
+A potential match was
+#else
+Potential matches were
 #end
+found for the following patient you submitted to PhenomCentral.&lt;/p&gt;
+#foreach ($match in $matches)
+&lt;table&gt;
+   &lt;thead&gt;
+      &lt;tr&gt;
+         &lt;th class="grey-background"&gt;
+            &lt;div&gt;Your patient&lt;/div&gt;
+            &lt;div class="patient-id"&gt;
+               &lt;span&gt;$subjectPatient.patientId&lt;/span&gt;
+               &lt;span&gt;$subjectPatient.externalId&lt;/span&gt;
+            &lt;/div&gt;
+         &lt;/th&gt;
+         &lt;th class="grey-background"&gt;
+            &lt;div&gt;Potential match&lt;/div&gt;
+            &lt;div&gt;
+               &lt;span&gt;$match.matchedPatient.patientId&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($match.matchedPatient.serverId)}&lt;/span&gt;
+            &lt;/div&gt;
+         &lt;/ht&gt;
+      &lt;/tr&gt;
+   &lt;/thead&gt;
+   &lt;tbody&gt;
+      &lt;tr&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Genes:&lt;/div&gt;
+#foreach ($gene in $subjectPatient.candidateGenes)
+&lt;div&gt;$gene&lt;/div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Genes:&lt;/div&gt;
+#foreach ($gene in $match.matchedPatient.candidateGenes)
+&lt;div&gt;$gene&lt;/div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
+#foreach ($name in $subjectPatient.phenotypes.names)
+&lt;div&gt;$name&lt;/div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
+#foreach ($name in $match.matchedPatient.phenotypes.names)
+&lt;div&gt;$name&lt;/div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr class="grey-background"&gt;
+         &lt;td&gt;
+         &lt;/td&gt;
+      &lt;/tr&gt;
+   &lt;tbody&gt;
+&lt;/table&gt;
+&lt;div class="space-between-matches"/&gt;
+#end
+&lt;p class="disclaimer"&gt;
+IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
+If PhenomeCentral enables a research publication, the authors much acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
+&lt;/p&gt;
 </html>
     </property>
     <property>
       <language>English</language>
     </property>
     <property>
-      <subject>Patient Match Found</subject>
+      <subject>Matches found for patient $!{escapetool.xml($subjectPatient.patientId)}</subject>
     </property>
     <property>
-      <text>New matches were found for patient $!{escapetool.xml($subjectPatientId)}:
+      <text>Hello,
+#if ($matches.size() == 1)
+A potential match was ##
+#else
+Potential matches were ##
+#end
+found for the following patient you submitted to PhenomCentral.
+Your patient: $!{escapetool.xml($subjectPatient.patientId)} $!{escapetool.xml($subjectPatient.externalId)}
+Genes:
+#foreach ($gene in $subjectPatient.candidateGenes)
+$gene
+#end
+Phenotypes:
+#foreach ($name in $subjectPatient.phenotypes.names)
+$name
+#end
 
 #foreach ($match in $matches)
-Patient id: $!{escapetool.xml($match.patientId)}
-Remote id: $!{escapetool.xml($match.serverId)}
-Matched email: $!{escapetool.xml($match.email)}
-Matched Candidate genes: $!{escapetool.xml($match.genes)}
-Score: $!{escapetool.xml($match.score)}
-Genotypic score: $!{escapetool.xml($match.genotypeScore)}
-Phenotypic score: $!{escapetool.xml($match.phenotypeScore)}
+Potential match: $!{escapetool.xml($match.matchedPatient.patientId)} $!{escapetool.xml($match.matchedPatient.serverId)}
+Genes:
+#foreach ($gene in $match.matchedPatient.candidateGenes)
+$gene
 #end
-</text>
+Phenotypes:
+#foreach ($name in $match.matchedPatient.phenotypes.names)
+$name
+#end
+
+#end</text>
     </property>
   </object>
 </xwikidoc>
