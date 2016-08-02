@@ -102,6 +102,11 @@ public abstract class AbstractPatientInMatch implements PatientInMatch
         return emails;
     }
 
+    @Override
+    public String getExternalId() {
+        return this.getPatient().getExternalId();
+    }
+
     private Patient getPatient()
     {
         if (this.patient == null) {
