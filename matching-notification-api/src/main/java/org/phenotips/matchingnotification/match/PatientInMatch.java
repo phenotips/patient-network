@@ -63,4 +63,9 @@ public interface PatientInMatch
      *         If the patient is remote, the collection will contain only an href taken from the match.
      */
     Collection<String> getEmails();
+
+    /**
+     * @return the external id of the patient.
+     */
+    String getExternalId();
 }
