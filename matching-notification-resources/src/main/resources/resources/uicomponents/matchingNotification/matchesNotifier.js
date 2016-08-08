@@ -12,14 +12,14 @@ define(["jquery", "dynatable"], function($, dyna)
             this._params = params || {};
         },
 
-        sendNotification : function()
+        sendNotification : function(ids)
         {
-            var ids = this._readMatchesToNotify();
-            console.log("Sending " + ids);
+            var idsToNotify = JSON.stringify({ ids: ids});
+            console.log("Sending " + idsToNotify);
 
             new Ajax.Request(this._params.ajaxHandler, {
                 parameters : {action : 'send-notifications',
-                              ids    : ids
+                              ids    : idsToNotify
                 },
                 onSuccess : function (response) {
                     if (this._params.onSuccess) {
@@ -32,21 +32,7 @@ define(["jquery", "dynatable"], function($, dyna)
                     }
                 }.bind(this)
             });
-        },
-
-        //////////////////
-
-        _readMatchesToNotify : function() 
-        {
-            var idsToNotify = [];
-            $(this._params.matchesTable).find(".notify").each(function (index, elm) {
-                if (elm.checked && !elm.disabled) {
-                    var allIds = String($(elm).data('matchid'));
-                    allIds.split(",").each(function(id) {idsToNotify.push(id)});
-                }
-            }.bind(this));
-            idsToNotify = JSON.stringify({ ids: idsToNotify});
-            return idsToNotify;
         }
+
     });
 });

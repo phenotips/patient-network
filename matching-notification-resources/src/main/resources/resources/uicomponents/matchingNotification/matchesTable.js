@@ -9,6 +9,8 @@ define(["jquery", "dynatable"], function($, dyna)
             this._tableElement = tableElement;
             this._afterProcessingCallback = afterProcessingCallback;
 
+            this._markedToNotify = [];
+
             this._tableBuilt = false;
 
             $('#expand_all').on('click', this._expandAllClicked.bind(this));
@@ -35,6 +37,17 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var allTrs = this._tableElement.find('tbody').find('tr');
             return $.grep(allTrs, this._identifyTr(ids));
+        },
+
+        getMarkedToNotify : function()
+        {
+            var allIds = [];
+            $.each(this._markedToNotify, function(key, value) {
+                $.each(String(value).split(","), function(idkey, id) {
+                    allIds.push(id);
+                }.bind(this));
+            }.bind(this));
+            return allIds;
         },
 
         //////////////////
@@ -264,6 +277,8 @@ define(["jquery", "dynatable"], function($, dyna)
             this._afterProcessTablePatientsDivs();
             this._expandAllClicked();
 
+            this._afterProcessTableNotifyListeners();
+
             if (this._afterProcessingCallback != undefined) {
                 this._afterProcessingCallback();
             }
@@ -273,6 +288,20 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             this._tableElement.find('.collapse-gp-tool').on('click', function(event) {
                 this._expandCollapseGP(event.target);
+            }.bind(this));
+        },
+
+        _afterProcessTableNotifyListeners : function()
+        {
+            // Check rows marked as notified, then register listeners
+            this._tableElement.find('tbody').find('tr').each(function (index, elm)
+            {
+                matchid = $(elm).data('matchid');
+                $(elm).find('.notify').attr('checked', $.inArray(matchid, this._markedToNotify)>-1);
+            }.bind(this));
+
+            this._tableElement.find('.notify').on('click', function(event) {
+                this._markToNotify(event.target);
             }.bind(this));
         },
 
@@ -330,6 +359,21 @@ define(["jquery", "dynatable"], function($, dyna)
             this._tableElement.find('.collapse-gp-tool').each(function (index, elm) {
                 this._expandCollapseGP(elm, expand);
             }.bind(this));
+        },
+
+        _markToNotify : function(elm)
+        {
+            var matchid = $(elm).data('matchid');
+            var checked = $(elm).is(':checked');
+            if (checked) {
+                // Add to array if not there
+                if ($.inArray(matchid, this._markedToNotify)==-1) {
+                    this._markedToNotify.push(matchid);
+                }
+            } else {
+                // Remove from array in there
+                this._markedToNotify = $.grep(this._markedToNotify, function(item) {return item != matchid;});
+            }
         }
 
     });
