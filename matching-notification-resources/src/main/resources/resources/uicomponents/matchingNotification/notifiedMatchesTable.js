@@ -28,8 +28,7 @@ var PhenoTips = (function (PhenoTips) {
         this._notifier = new notifier({
             ajaxHandler  : this._ajaxURL,
             onSuccess    : this._onSuccessSendNotification.bind(this),
-            onFailure    : this._onFailSendNotification.bind(this),
-            matchesTable : this._tableElement
+            onFailure    : this._onFailSendNotification.bind(this)
         });
 
         $('#show-matches-button').on('click', this._showMatches.bind(this));
@@ -63,7 +62,8 @@ var PhenoTips = (function (PhenoTips) {
 
     _sendNotification : function()
     {
-        this._notifier.sendNotification();
+        var idsToNotify = this._matchesTable.getMarkedToNotify();
+        this._notifier.sendNotification(idsToNotify);
         this._utils.showSent('send-notifications-messages');
     },
 
