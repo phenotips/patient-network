@@ -36,6 +36,8 @@ var PhenoTips = (function (PhenoTips) {
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
         $('#notify_all').on('click', this._notifyAllClicked.bind(this));
         $('#filter_rejected').on('click', this._filterRejectedClicked.bind(this));
+
+        this._filterRejectedClicked();
     },
 
     // callback for after matches table is drawn
@@ -232,7 +234,12 @@ var PhenoTips = (function (PhenoTips) {
 
     _filterRejectedClicked : function(event)
     {
-        var checked = event.target.checked;
+        var checked;
+        if (event == undefined) {
+            checked = this._$('#filter_rejected').is(':checked');
+        } else {
+            checked = event.target.checked;
+        }
         this._matchesTable.setFilter(checked ? this._filterRejected : undefined);
     },
 
