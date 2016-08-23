@@ -31,6 +31,7 @@ import org.xwiki.component.manager.ComponentManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -389,6 +390,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
         json.put("notifiedTimestamp",
             this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
+
+        // Less accurate timestamp for sorting before presentation.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(this.foundTimestamp);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        json.put("foundCalendar", calendar);
 
         json.put("notified", this.isNotified());
         json.put("rejected", this.isRejected());
