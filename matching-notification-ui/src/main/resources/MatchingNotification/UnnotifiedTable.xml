@@ -254,7 +254,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
   Select all to notify
 &lt;/div&gt;
 &lt;div&gt;
-  &lt;input type="checkbox" id="filter_rejected" /&gt;
+  &lt;input type="checkbox" id="filter_rejected" checked /&gt;
   Hide filtered
 &lt;/div&gt;
 &lt;div&gt;
