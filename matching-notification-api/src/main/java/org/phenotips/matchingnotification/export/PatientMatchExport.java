@@ -45,7 +45,6 @@ public class PatientMatchExport
     public static final String MATCHES = "matches";
 
     private static final String SCORE = "score";
-    private static final String FOUND_CALENDAR = "foundCalendar";
 
     /**
      * @param matches list of patient matches
