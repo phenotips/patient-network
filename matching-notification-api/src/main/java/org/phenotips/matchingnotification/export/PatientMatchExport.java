@@ -23,7 +23,6 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import org.xwiki.component.annotation.Component;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -82,18 +81,9 @@ public class PatientMatchExport
         Collections.sort(matchesObjects, new Comparator<JSONObject>() {
             @Override
             public int compare(JSONObject o1, JSONObject o2) {
-
-                Calendar c1 = (Calendar) o1.get(FOUND_CALENDAR);
-                Calendar c2 = (Calendar) o2.get(FOUND_CALENDAR);
-                if (c1.before(c2)) {
-                    return +1;
-                } else if (c1.after(c2)) {
-                    return -1;
-                } else {
-                    double score1 = (Double) o1.get(SCORE);
-                    double score2 = (Double) o2.get(SCORE);
-                    return (int) Math.signum(score2 - score1);
-                }
+                double score1 = (Double) o1.get(SCORE);
+                double score2 = (Double) o2.get(SCORE);
+                return (int) Math.signum(score2 - score1);
             }
         });
 
