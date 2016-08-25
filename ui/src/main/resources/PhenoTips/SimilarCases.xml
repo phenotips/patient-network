@@ -1687,7 +1687,7 @@
       #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
-      == Similar cases available in the database ==
+      == Similar cases ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
 
 === Patient profiles contributed by users ===
