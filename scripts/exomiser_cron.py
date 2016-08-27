@@ -42,7 +42,8 @@ MODES_OF_INHERITANCE = {
     'HP:0001419': 'X',
     'HP:0001423': 'X',
     }
-
+DEFAULT_EXOMISER_TEMPLATE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                         'exomiser_settings.txt')
 
 class RecordLockedException(Exception):
     pass
@@ -50,8 +51,7 @@ class RecordLockedException(Exception):
 class Settings:
     DEFAULT_SETTINGS = {
         'date': datetime.datetime.now().strftime('%Y-%m-%d.%H%M%S'),
-        'exomiser_template': os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                          'exomiser_settings.txt'),
+        'exomiser_template': DEFAULT_EXOMISER_TEMPLATE,
         'attach_subdir': '~this/attachments',
         'host': 'http://localhost:8080',
         'clear_cache_url': '/bin/get/PhenoTips/ClearPatientCache',
@@ -91,7 +91,7 @@ class Settings:
         return self.get_record_prefix(record_id)
 
     def get_out_filename(self, record_id):
-        return self.get_record_prefix(record_id) + '.variants.tsv.pass'
+        return self.get_record_prefix(record_id) + '.variants.tsv'
 
     def get_settings_filename(self, record_id):
         return os.path.join(self.get_job_dir(), record_id + '.settings')
@@ -274,26 +274,10 @@ def get_record_data(record_id, vcf_filepath, settings):
         'exomiser_phenotypes': phenotypes_to_exomiser(phenotypes),
         'exomiser_inheritance': inheritance_to_exomiser(inheritance),
         'exomiser_out_prefix': settings.get_exomiser_out_prefix(record_id),
-        'exomiser_filename': settings.get_exomiser_out_filename(record_id),
+        'exomiser_out_filename': settings.get_exomiser_out_filename(record_id),
         'out_filename': settings.get_out_filename(record_id),
     }
     return data
-
-def filter_variants(from_filename, to_filename):
-    n_dropped = 0
-    with open(from_filename) as ifp:
-        with open(to_filename, 'w') as ofp:
-            for line in ifp:
-                if line.startswith('#'):
-                    ofp.write(line)
-                else:
-                    fields = line.strip().split('\t')
-                    if fields[5] == 'PASS':
-                        ofp.write(line)
-                    else:
-                        n_dropped += 1
-
-    logging.warn('Filtered out {0} variants'.format(n_dropped))
 
 def delete_exomiser(record_id, settings):
     any_removed = False
@@ -326,10 +310,6 @@ def run_exomiser(record_id, new_data, settings):
     retcode = subprocess.call(command)
     if retcode == 0:
         # Success!
-        # Parse out PASSed variants to new output file
-        raw_filename = new_data['exomiser_filename']
-        out_filename = new_data['out_filename']
-        filter_variants(raw_filename, out_filename)
         # Cache updated data and clear patient cache.
         cache_data(record_id, new_data, settings)
         clear_cache(record_id, settings)
@@ -377,6 +357,9 @@ def parse_args(args):
                       help="Check exomiser for records updated since the"
                       " provided ISO datetime (default: all records)",
                       metavar="ISO")
+    parser.add_option("--exomiser-template", dest="exomiser_template",
+                      help="Exomiser settings file template (default: %default)",
+                      metavar="FILE", default=DEFAULT_EXOMISER_TEMPLATE)
     (options, args) = parser.parse_args()
 
     if len(args) == 3:
@@ -385,10 +368,12 @@ def parse_args(args):
         parser.error('Invalid number of arguments')
 
     # Populate settings from arguments
+    exomiser_template = options.__dict__.pop('exomiser_template')
     settings = Settings(out_dir=os.path.join(phenotips_dir, 'exomiser'),
                         record_dir=os.path.join(phenotips_dir, 'storage/xwiki/data'),
                         exomiser_jar=exomiser_jar,
-                        credentials=load_credentials(credentials_file))
+                        credentials=load_credentials(credentials_file),
+                        exomiser_template=exomiser_template)
 
     return (options, settings)
 
