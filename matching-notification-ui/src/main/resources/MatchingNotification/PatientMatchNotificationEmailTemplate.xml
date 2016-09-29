@@ -132,7 +132,7 @@ A potential match was
 #else
 Potential matches were
 #end
-found for the following patient you submitted to PhenomCentral.&lt;/p&gt;
+found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 #foreach ($match in $matches)
 &lt;table&gt;
    &lt;thead&gt;
@@ -201,7 +201,7 @@ found for the following patient you submitted to PhenomCentral.&lt;/p&gt;
 #end
 &lt;p class="disclaimer"&gt;
 IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
-If PhenomeCentral enables a research publication, the authors much acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
+If PhenomeCentral enables a research publication, the authors must acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
 &lt;/p&gt;
 </html>
     </property>
@@ -218,7 +218,7 @@ A potential match was ##
 #else
 Potential matches were ##
 #end
-found for the following patient you submitted to PhenomCentral.
+found for the following patient you submitted to PhenomeCentral.
 Your patient: $!{escapetool.xml($subjectPatient.patientId)} $!{escapetool.xml($subjectPatient.externalId)}
 Genes:
 #foreach ($gene in $subjectPatient.candidateGenes)
