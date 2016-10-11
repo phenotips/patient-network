@@ -116,7 +116,7 @@ class Lock(object):
         if os.path.isfile(self._filename):
             raise RecordLockedException()
         else:
-            open(self._filename, 'wa').close()
+            open(self._filename, 'w').close()
 
     def __exit__(self, *args, **kwargs):
         if os.path.isfile(self._filename):
