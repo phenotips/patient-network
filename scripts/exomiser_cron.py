@@ -57,6 +57,7 @@ class Settings:
         'clear_cache_url': '/bin/get/PhenoTips/ClearPatientCache',
         'export_id_url': '/bin/get/PhenomeCentral/ExportIDs',
         'export_patient_url': '/bin/get/PhenoTips/ExportPatient',
+        'export_vcf_url': '/bin/get/PhenomeCentral/ExportVCF',
         }
     _settings = {}
     def __init__(self, **kwargs):
@@ -103,9 +104,8 @@ class Settings:
         make_directory(job_dir)
         return job_dir
 
-    def get_attachments(self, record_id):
-        return glob.glob(os.path.join(self._settings['record_dir'], record_id, self._settings['attach_subdir'], '*', '*'))
-
+    def get_vcf_path(self, record_id, filename):
+        return os.path.join(self._settings['record_dir'], record_id, self._settings['attach_subdir'], filename, filename)
 
 class Lock(object):
     def __init__(self, record_id, settings):
@@ -116,7 +116,7 @@ class Lock(object):
         if os.path.isfile(self._filename):
             raise RecordLockedException()
         else:
-            open(self._filename, 'wa').close()
+            open(self._filename, 'w').close()
 
     def __exit__(self, *args, **kwargs):
         if os.path.isfile(self._filename):
@@ -172,27 +172,36 @@ def fetch_changed_records(settings, since=None):
 
     return sorted(record_ids)
 
-def get_record_vcfs(record_id, settings):
+def get_record_vcf(record_id, settings):
     # vcf named like: F0000009/~this/attachments/exome.vcf/exome.vcf
-    vcfs = []
-    for filename in settings.get_attachments(record_id):
-        parts = filename.split('/')
-        # Primary files (not metadata) follow the xwiki attachment convention of .../(filename)/\1
-        if parts[-1] != parts[-2]:
-            continue
+    logging.info('Fetching VCF for record: {0}'.format(record_id))
+    fields = {'id': record_id}
+    url = '{0}{1}?basicauth=1'.format(settings['host'], settings['export_vcf_url'])
+    command = ['curl', '-s', '-S', '-u', settings['credentials'], url, '--data', urlencode(fields)]
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+    stdout = proc.communicate()[0]
 
-        # Detect vcf format from header
-        with open(filename) as ifp:
-            header = ifp.readline()
+    filename = stdout.strip()
+    if not filename:
+        return
 
-        if header.startswith('##fileformat=VCF'):
-            logging.info('Found VCF attachment: {0}'.format(filename))
-            vcfs.append(filename)
-        else:
-            logging.debug('Found non-VCF attachment: {0}'.format(filename))
+    logging.info('Found VCF file selected: {0}'.format(filename))
 
-    return vcfs
+    filepath = settings.get_vcf_path(record_id, filename)
+    if not os.path.isfile(filepath):
+        logging.warning('VCF file missing: {0}'.format(filepath))
+        return
 
+    # Detect vcf format from header
+    with open(filepath) as ifp:
+        header = ifp.readline()
+
+    if not header.startswith('##fileformat=VCF'):
+        logging.warning('VCF is not in VCF format: {0}'.format(filepath))
+        return
+
+    logging.info('Found VCF attachment: {0}'.format(filepath))
+    return filepath
 
 # Hashing
 def get_file_hash(filename, hash_func=hashlib.md5, blocksize=65536):
@@ -331,18 +340,14 @@ def script(settings, start_time=None):
         try:
             with Lock(record_id, settings):
                 logging.info('Processing patient: {0!r}'.format(record_id))
-                vcfs = get_record_vcfs(record_id, settings)
+                vcf_filepath = get_record_vcf(record_id, settings)
 
                 # If the record doesn't have a VCF file (anymore), clean up record
-                if len(vcfs) == 0:
+                if not vcf_filepath:
                     delete_exomiser(record_id, settings)
                     continue
 
                 # If the record has a VCF file, compare to see if it changed
-                if len(vcfs) > 1:
-                    logging.warning('{0} has multiple VCFs, choosing first'.format(record_id))
-                vcf_filepath = vcfs[0]
-
                 new_data = get_record_data(record_id, vcf_filepath, settings)
                 old_data = get_cached_data(record_id, settings)
 
