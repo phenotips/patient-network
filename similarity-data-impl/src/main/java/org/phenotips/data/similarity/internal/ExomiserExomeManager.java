@@ -62,7 +62,7 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     private static final String GENOTYPE_SUBDIR = "exomiser";
 
     /** Suffix of patient exome files. */
-    private static final String GENOTYPE_SUFFIX = ".variants.tsv.pass";
+    private static final String GENOTYPE_SUFFIX = ".variants.tsv";
 
     /** Environment handle, to access exome data on filesystem. */
     @Inject

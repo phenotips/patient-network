@@ -5,7 +5,7 @@ prioritiser=hiphive
 max-freq=${min_freq}
 min-qual=${min_qual}
 keep-non-pathogenic=false
-remove-dbsnp=false
+remove-known-variants=false
 keep-off-target=false
 full-analysis=false
 
@@ -16,5 +16,6 @@ inheritance-mode=${exomiser_inheritance}
 
 #OUTPUT OPTIONS
 num-genes=0
-out-file=${exomiser_out_prefix}
+out-prefix=${exomiser_out_prefix}
 out-format=TSV-VARIANT,TSV-GENE
+output-pass-variants-only=true
