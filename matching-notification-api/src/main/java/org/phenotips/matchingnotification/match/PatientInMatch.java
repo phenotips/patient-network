@@ -34,7 +34,7 @@ import org.json.JSONObject;
  *        patientMatch.getMatchedPatientId(), patientMatch.getMatchedServerId(), etc.
  *     }
  *
- * See {@code DefaultPatientMatchEmail} for some usage examples.
+ * See {@link DefaultPatientMatchEmail} for some usage examples.
  *
  * @version $Id$
  */
