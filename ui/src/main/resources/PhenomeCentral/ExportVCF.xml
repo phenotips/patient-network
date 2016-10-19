@@ -28,6 +28,7 @@
   <creationDate>1476214802000</creationDate>
   <parent>PhenoTips.VCF</parent>
   <author>xwiki:XWiki.Admin</author>
+  <parent>PhenoTips.WebHome</parent>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <date>1476219533000</date>
   <contentUpdateDate>1476215613000</contentUpdateDate>
