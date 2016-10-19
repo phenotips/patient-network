@@ -23,6 +23,19 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
+ * The interface is used for unified access to reference and matched patients.
+ * For example:
+ *     PatientInMatch pim = condition ? PatientMatch.getReference() : patientMatch.getMatched();
+ * and then expressions like pim.getPatientId(), pim.getServerId() can be used in the code.
+ * This in comparison to
+ *     if (condition) {
+ *        patientMatch.getReferencePatientId(), patientMatch.getReferenceServerId(), etc.
+ *     } else {
+ *        patientMatch.getMatchedPatientId(), patientMatch.getMatchedServerId(), etc.
+ *     }
+ *
+ * See {@code DefaultPatientMatchEmail} for some usage examples.
+ *
  * @version $Id$
  */
 public interface PatientInMatch
