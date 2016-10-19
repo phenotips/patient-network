@@ -126,8 +126,11 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         for (String patientId : potentialPatientIds) {
             Patient patient = this.patientRepository.getPatientById(patientId);
-            Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
+            if (patient == null) {
+                continue;
+            }
 
+            Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
             if (patientVisibility.compareTo(matchableVisibility) >= 0) {
                 patients.add(patient);
             }
