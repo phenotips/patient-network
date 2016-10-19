@@ -114,9 +114,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<Patient> patients = new LinkedList<>();
         try {
             Query q = this.qm.createQuery(
-                "select doc.name " + "from Document doc, " + "doc.object(PhenoTips.PatientClass) as patient "
-                    + "where patient.identifier is not null order by patient.identifier desc",
-                    Query.XWQL);
+                "select doc.name "
+                + "from Document doc, "
+                + "doc.object(PhenoTips.PatientClass) as patient "
+                + "where patient.identifier is not null order by patient.identifier desc", Query.XWQL);
             potentialPatientIds = q.execute();
         } catch (QueryException e) {
             this.logger.error("Error retrieving a list of patients for matching: {}", e);
