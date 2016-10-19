@@ -190,7 +190,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     /**
-     * TODO remove.
+     * TODO remove. This is used for artificially creating remote matches (between a local reference patient and
+     * a patient on a remote server) without needing to set up an environment for it. When we are confident enough
+     * that all the issues with remote matching are handled well, this can be removed. Such issues can be: sending
+     * emails to the right patient's owner, not combining equivalent remote matches in display, not exposing private
+     * information, connecting a local patient's owner with remote patient's owner through phenomecentral.
      *
      * @param testData testData
      */

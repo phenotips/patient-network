@@ -25,6 +25,8 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
+ * Encapsulates a match between a reference patient and a matched patient.
+ *
  * @version $Id$
  */
 public interface PatientMatch

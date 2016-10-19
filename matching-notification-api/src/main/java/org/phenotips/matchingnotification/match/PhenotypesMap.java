@@ -22,6 +22,9 @@ import java.util.Collection;
 import org.json.JSONObject;
 
 /**
+ * Used for handling the collection of phenotypes of a patient, and in particular, for dealing with predefined and free
+ * text phenotypes.
+ *
  * @version $Id$
  */
 public interface PhenotypesMap

@@ -125,9 +125,12 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
 
                 keepLooking = false;
                 if (this.returnNext != null) {
+                    // Item already returned
                     if (this.returnedSet.contains(this.returnNext)) {
                         keepLooking = true;
                     }
+
+                    // Item was not returned but an equivalent match was returned
                     if (this.skipEquivalents && containsEquivalent(returnedSet, this.returnNext)) {
                         keepLooking = true;
                     }
@@ -141,22 +144,27 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         {
             this.returnNext = null;
 
+            // Read next item in current set, if found
             if (this.setReturnNext()) {
                 return;
             }
 
+            // Current set was fully traversed: Move to next secondary map, then start iterating over first set.
             this.moveSecondary();
             if (this.setReturnNext()) {
                 return;
             }
 
+            // Secondary map was fully traversed: Move to next primary map, go to first secondary map and start
+            // iterating over the first set.
             this.movePrimary();
             this.moveSecondary();
             this.setReturnNext();
 
-            // if this.setReturnNext() returned false, it's the end of the collection.
+            // At this point, if this.setReturnNext() returned false, it's the end of the collection.
         }
 
+        // Move to next primary map and read first secondary map
         private void movePrimary()
         {
             while (!this.secondaryKeyIterator.hasNext() && this.primaryKeyIterator.hasNext()) {
@@ -164,6 +172,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
             }
         }
 
+        // Move to next secondary map and read first set
         private void moveSecondary()
         {
             while (!this.setIterator.hasNext() && this.secondaryKeyIterator.hasNext()) {
@@ -171,7 +180,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
             }
         }
 
-        // Return value - true if returned next set. If false, continue looking for next item.
+        // Read next item in current set. Return true if next value was found, else false.
         private boolean setReturnNext() {
             if (this.setIterator != null && this.setIterator.hasNext()) {
                 this.returnNext = this.setIterator.next();
