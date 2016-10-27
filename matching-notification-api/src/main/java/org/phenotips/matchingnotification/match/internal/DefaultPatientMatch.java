@@ -55,11 +55,11 @@ import org.slf4j.LoggerFactory;
  */
 @Entity
 @Table(name = "patient_matching",
-       uniqueConstraints = { @UniqueConstraint(columnNames =
-           { "referencePatientId", "referenceServerId", "matchedPatientId", "matchedServerId" }) })
+    uniqueConstraints = { @UniqueConstraint(columnNames =
+        { "referencePatientId", "referenceServerId", "matchedPatientId", "matchedServerId" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
-    /** separate between tokens. */
+    /** separates between tokens. */
     public static final String SEPARATOR = ";";
 
     private static final String ID = "id";
@@ -68,21 +68,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
 
+    /*
+     * Attributes of the match
+     */
     @Id
     @GeneratedValue
     private Long id;
-
-    @Basic
-    private String referencePatientId;
-
-    @Basic
-    private String referenceServerId;
-
-    @Basic
-    private String matchedPatientId;
-
-    @Basic
-    private String matchedServerId;
 
     @Basic
     private Timestamp foundTimestamp;
@@ -105,13 +96,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Double phenotypeScore;
 
-    @Basic
     /*
-     * an href to remote patient. The fields serverId and href are both null or both not null.
+     * Attributes of reference patient
      */
-    private String href;
+    @Basic
+    private String referencePatientId;
 
-    // Attributes related to reference patient
+    @Basic
+    private String referenceServerId;
+
+    @Basic
+    /* an href to remote patient. The fields serverId and href are both null or both not null. */
+    private String href;
 
     @Basic
     @Column(columnDefinition = "CLOB")
@@ -127,7 +123,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Transient
     private PhenotypesMap phenotypesMap;
 
-    // Attributes related to matched patient
+    @Transient
+    private PatientInMatch referencePatientInMatch;
+
+    /*
+     * Attributes of matched patient
+     */
+    @Basic
+    private String matchedPatientId;
+
+    @Basic
+    private String matchedServerId;
 
     @Basic
     @Column(columnDefinition = "CLOB")
@@ -142,9 +148,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Transient
     private PhenotypesMap matchedPhenotypesMap;
-
-    @Transient
-    private PatientInMatch referencePatientInMatch;
 
     @Transient
     private PatientInMatch matchedPatientInMatch;
