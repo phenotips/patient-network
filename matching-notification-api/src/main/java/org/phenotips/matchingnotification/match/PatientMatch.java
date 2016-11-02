@@ -20,8 +20,6 @@ package org.phenotips.matchingnotification.match;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
-import java.util.Set;
-
 import org.json.JSONObject;
 
 /**
@@ -100,26 +98,6 @@ public interface PatientMatch
      * @return href of remote patient. If this.isLocal() returns null.
      */
     String getHref();
-
-    /**
-     * @return a set of candidate genes for reference patient.
-     */
-    Set<String> getCandidateGenes();
-
-    /**
-     * @return a set of candidate genes for matched patient.
-     */
-    Set<String> getMatchedCandidateGenes();
-
-    /**
-     * @return phenotypes map of reference patient.
-     */
-    PhenotypesMap getReferencePhenotypes();
-
-    /**
-     * @return phenotypes map of matched patient.
-     */
-    PhenotypesMap getMatchedPhenotypes();
 
     /**
      * @return true only if match is rejected.

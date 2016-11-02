@@ -17,21 +17,14 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.matchingnotification.finder.internal.TestMatchFinder;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.PhenotypesMap;
-
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -47,8 +40,6 @@ import org.hibernate.CallbackException;
 import org.hibernate.Session;
 import org.hibernate.classic.Lifecycle;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -63,10 +54,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public static final String SEPARATOR = ";";
 
     private static final String ID = "id";
-
-    private static final DefaultPatientMatchUtils UTILS;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
 
     /*
      * Attributes of the match
@@ -96,6 +83,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Double phenotypeScore;
 
+    @Basic
+    /* an href to remote patient (either matched or reference). Only one of these options is true
+     * 1. matched patient and reference patient are local =>
+     *       referenceServerId==null, matchedServerId==null, href==null
+     * 2. matched patient is remote and reference is local =>
+     *       referenceServerId==null, matchedServerId!=null, href!=null, href then refers to matched patient.
+     * 3. reference patient is remote and matched is local =>
+     *       referenceServerId!=null, matchedServerId==null, href!=null, href then refers to reference patient.
+     */
+    private String href;
+
     /*
      * Attributes of reference patient
      */
@@ -106,22 +104,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String referenceServerId;
 
     @Basic
-    /* an href to remote patient. The fields serverId and href are both null or both not null. */
-    private String href;
-
-    @Basic
     @Column(columnDefinition = "CLOB")
-    private String genes;
-
-    @Transient
-    private Set<String> genesSet;
-
-    @Basic
-    @Column(columnDefinition = "CLOB")
-    private String phenotypes;
-
-    @Transient
-    private PhenotypesMap phenotypesMap;
+    private String referenceDetails;
 
     @Transient
     private PatientInMatch referencePatientInMatch;
@@ -137,31 +121,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Basic
     @Column(columnDefinition = "CLOB")
-    private String matchedGenes;
-
-    @Transient
-    private Set<String> matchedGenesSet;
-
-    @Basic
-    @Column(columnDefinition = "CLOB")
-    private String matchedPhenotypes;
-
-    @Transient
-    private PhenotypesMap matchedPhenotypesMap;
+    private String matchedDetails;
 
     @Transient
     private PatientInMatch matchedPatientInMatch;
-
-    static {
-        DefaultPatientMatchUtils utils = null;
-        try {
-            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-            utils = ccm.getInstance(DefaultPatientMatchUtils.class);
-        } catch (ComponentLookupException e) {
-            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
-        }
-        UTILS = utils;
-    }
 
     /**
      * Hibernate requires a no-args constructor.
@@ -192,44 +155,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.initialize(similarityView, referenceServerId, matchedServerId);
     }
 
-    /**
-     * TODO remove. This is used for artificially creating remote matches (between a local reference patient and
-     * a patient on a remote server) without needing to set up an environment for it. When we are confident enough
-     * that all the issues with remote matching are handled well, this can be removed. Such issues can be: sending
-     * emails to the right patient's owner, not combining equivalent remote matches in display, not exposing private
-     * information, connecting a local patient's owner with remote patient's owner through phenomecentral.
-     *
-     * @param testData testData
-     */
-    public DefaultPatientMatch(TestMatchFinder.TestMatchData testData)
-    {
-        this.foundTimestamp = new Timestamp(System.currentTimeMillis());
-        this.notifiedTimestamp = null;
-
-        this.notified = false;
-        this.rejected = false;
-        this.score = testData.score;
-        this.phenotypeScore = testData.phenotypeScore;
-        this.genotypeScore = testData.genotypeScore;
-
-        this.referencePatientId = testData.referencePatientId;
-        this.referenceServerId = testData.referenceServerId;
-        this.genes = testData.genes;
-        this.genesSet = UTILS.stringToSet(testData.genes);
-        this.phenotypesMap = DefaultPhenotypesMap.getInstance(testData.phenotypes);
-        this.phenotypes = this.phenotypesMap.toString();
-
-        this.matchedPatientId = testData.matchedPatientId;
-        this.matchedServerId = testData.matchedServerId;
-        this.href = testData.href;
-        this.matchedGenes = testData.matchedGenes;
-        this.matchedGenesSet = UTILS.stringToSet(testData.matchedGenes);
-        this.matchedPhenotypesMap = DefaultPhenotypesMap.getInstance(testData.matchedPhenotypes);
-        this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
-
-        this.createPatientInMatches();
-    }
-
     private void initialize(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
     {
         Patient referencePatient = similarityView.getReference();
@@ -237,8 +162,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         this.referencePatientId = referencePatient.getId();
         this.referenceServerId = referenceServerId;
+        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
+        this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
+
         this.matchedPatientId = matchedPatient.getId();
         this.matchedServerId = matchedServerId;
+        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId);
+        this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
 
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
@@ -250,19 +180,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        // TODO this.href = ?
-
-        this.genesSet = UTILS.getGenes(referencePatient);
-        this.genes = UTILS.setToString(this.genesSet);
-        this.phenotypesMap = new DefaultPhenotypesMap(referencePatient);
-        this.phenotypes = this.phenotypesMap.toString();
-
-        this.matchedGenesSet = UTILS.getGenes(matchedPatient);
-        this.matchedGenes = UTILS.setToString(this.matchedGenesSet);
-        this.matchedPhenotypesMap = new DefaultPhenotypesMap(matchedPatient);
-        this.matchedPhenotypes = this.matchedPhenotypesMap.toString();
-
-        this.createPatientInMatches();
+        // TODO
+        this.href = null;
     }
 
     @Override
@@ -272,13 +191,14 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public Boolean isNotified()
+    public void setRejected(boolean rejected)
     {
-        return notified;
+        this.rejected = rejected;
     }
 
     @Override
-    public boolean isRejected() {
+    public boolean isRejected()
+    {
         return this.rejected;
     }
 
@@ -290,8 +210,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setRejected(boolean rejected) {
-        this.rejected = rejected;
+    public Boolean isNotified()
+    {
+        return notified;
     }
 
     @Override
@@ -339,34 +260,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public String getHref()
     {
-        if (this.isLocal()) {
-            throw new HrefException("Trying to read href for a local match " + this.toString());
-        }
         return this.href;
-    }
-
-    @Override
-    public Set<String> getCandidateGenes()
-    {
-        return this.genesSet;
-    }
-
-    @Override
-    public Set<String> getMatchedCandidateGenes()
-    {
-        return this.matchedGenesSet;
-    }
-
-    @Override
-    public PhenotypesMap getReferencePhenotypes()
-    {
-        return this.phenotypesMap;
-    }
-
-    @Override
-    public PhenotypesMap getMatchedPhenotypes()
-    {
-        return this.matchedPhenotypesMap;
     }
 
     @Override
@@ -423,7 +317,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public boolean isEquivalent(PatientMatch other) {
+    public boolean isEquivalent(PatientMatch other)
+    {
         return StringUtils.equals(this.getReferencePatientId(), other.getMatchedPatientId())
             && StringUtils.equals(this.getReferenceServerId(), other.getMatchedServerId())
             && StringUtils.equals(this.getMatchedPatientId(), other.getReferencePatientId())
@@ -431,7 +326,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         String forhash = this.getReferencePatientId() + SEPARATOR
             + this.getReferenceServerId() + SEPARATOR
             + this.getMatchedPatientId() + SEPARATOR
@@ -440,34 +336,30 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public boolean onDelete(Session arg0) throws CallbackException {
-        return false;
-    }
-
-    @Override
-    public void onLoad(Session arg0, Serializable arg1) {
-        this.genesSet = UTILS.stringToSet(this.genes);
-        this.matchedGenesSet = UTILS.stringToSet(this.matchedGenes);
-        this.phenotypesMap = DefaultPhenotypesMap.getInstance(this.phenotypes);
-        this.matchedPhenotypesMap = DefaultPhenotypesMap.getInstance(this.matchedPhenotypes);
-
-        this.createPatientInMatches();
-    }
-
-    @Override
-    public boolean onSave(Session arg0) throws CallbackException {
-        return false;
-    }
-
-    @Override
-    public boolean onUpdate(Session arg0) throws CallbackException {
-        return false;
-    }
-
-    private void createPatientInMatches()
+    public boolean onDelete(Session arg0) throws CallbackException
     {
-        this.referencePatientInMatch = new ReferencePatientInMatch(this);
-        this.matchedPatientInMatch = new MatchedPatientInMatch(this);
+        return false;
+    }
+
+    @Override
+    public void onLoad(Session arg0, Serializable arg1)
+    {
+        this.referencePatientInMatch = new DefaultPatientInMatch(
+           this, this.referencePatientId, this.referenceServerId, this.referenceDetails);
+        this.matchedPatientInMatch = new DefaultPatientInMatch(
+           this, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
+    }
+
+    @Override
+    public boolean onSave(Session arg0) throws CallbackException
+    {
+        return false;
+    }
+
+    @Override
+    public boolean onUpdate(Session arg0) throws CallbackException
+    {
+        return false;
     }
 
     @Override

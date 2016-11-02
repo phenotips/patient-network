@@ -103,10 +103,10 @@ define(["jquery", "dynatable"], function($, dyna)
         // Format two JSON objects containing phenotypes for display
         _formatPhenotypes : function(obj1, obj2)
         {
-            // Replace predefined with name field. For example {'id':'myid', 'name':'myname'} -> 'name'.
-            var toName = function(phenotype) {return phenotype.name};
-            obj1.predefined = $.map(obj1.predefined, toName);
-            obj2.predefined = $.map(obj2.predefined, toName);
+            // Replace key:value pairs with values. For example { 'HP:0004325': 'Decreased body weight' } -> 'Decreased body weight'.
+            var toVal = function(val) {return val};
+            obj1.predefined = $.map(obj1.predefined, toVal);
+            obj2.predefined = $.map(obj2.predefined, toVal);
 
             // If there are no phenotypes, set empty to true
             obj1.empty = (obj1.predefined.size() + obj1.freeText.size() == 0);
