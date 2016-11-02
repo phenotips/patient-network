@@ -23,18 +23,30 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
- * The interface is used for unified access to reference and matched patients.
- * For example:
- *     PatientInMatch pim = condition ? PatientMatch.getReference() : patientMatch.getMatched();
- * and then expressions like pim.getPatientId(), pim.getServerId() can be used in the code.
- * This in comparison to
- *     if (condition) {
- *        patientMatch.getReferencePatientId(), patientMatch.getReferenceServerId(), etc.
- *     } else {
- *        patientMatch.getMatchedPatientId(), patientMatch.getMatchedServerId(), etc.
- *     }
+ * The interface is used for unified access to reference and matched patients. It calculate the content of the
+ * column for each patient in the match and gives a simpler access for their details (these two concerns could
+ * potentially be handled in different classes, but for now are handled together).
  *
- * See {@link DefaultPatientMatchEmail} for some usage examples.
+ * The advantage of using this interface over a direct access to the match can be seen in comparing these two
+ * code blocks:
+ *     PatientInMatch pim = condition ? PatientMatch.getReference() : patientMatch.getMatched();
+ *     pim.getPatientId();
+ *     pim.getServerId();
+ *     pim.getGenes();
+ * compared to
+ *     if (condition) {
+ *        patientMatch.getReferencePatientId(),
+ *        patientMatch.getReferenceServerId(),
+ *        patientMatch.getReferenceGenes() (see comment)
+ *     } else {
+ *        patientMatch.getMatchedPatientId(),
+ *        patientMatch.getMatchedServerId(),
+ *        patientMatch.getMatchedGenes() (see comment)
+ *     }
+ * See {@link DefaultPatientMatchEmail} for some actual usage examples.
+ *
+ * Comment: getMatchedGenes()/getReferenceGenes() do not exist - the code serves as an example why it's not a good idea.
+ * The access to genes is via PatientInMatch as in the first example.
  *
  * @version $Id$
  */
@@ -78,7 +90,8 @@ public interface PatientInMatch
     Collection<String> getEmails();
 
     /**
-     * @return the external id of the patient.
+     * @return the content of details columns for the patient in the match table
      */
-    String getExternalId();
+    String getDetailsColumn();
+
 }
