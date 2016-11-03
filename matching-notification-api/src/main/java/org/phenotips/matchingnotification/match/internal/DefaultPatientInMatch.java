@@ -109,14 +109,10 @@ public class DefaultPatientInMatch implements PatientInMatch
      * call to getDetailsColumn. This is used when a PatientMatch is retrieved
      * from the DB.
      *
-     * @param match
-     *            the match that contains the patient this object represents
-     * @param patientId
-     *            the id of the patient that this object represents
-     * @param serverId
-     *            id of server where patient is found
-     * @param patientDetails
-     *            the result of a previous call to getDetailsColumn.
+     * @param match the match that contains the patient this object represents
+     * @param patientId the id of the patient that this object represents
+     * @param serverId id of server where patient is found
+     * @param patientDetails the result of a previous call to getDetailsColumn.
      */
     public DefaultPatientInMatch(PatientMatch match, String patientId, String serverId, String patientDetails)
     {
