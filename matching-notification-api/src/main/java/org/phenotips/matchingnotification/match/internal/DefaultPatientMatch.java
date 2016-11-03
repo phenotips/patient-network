@@ -393,4 +393,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         return this.getReference().isLocal() && this.getMatched().isLocal();
     }
+
+    @Override
+    public boolean isIncoming()
+    {
+        return this.referenceServerId != null && this.matchedServerId == null;
+    }
+
+    @Override
+    public boolean isOutgoing()
+    {
+        return this.referenceServerId == null && this.matchedServerId != null;
+    }
 }

@@ -146,7 +146,27 @@ public interface PatientMatch
     boolean isMatched(String patientId, String serverId);
 
     /**
+     * Checks if a request is local. The relationship between isLocal(), isIncoming() and isOutgoing() is:
+     *    isLocal()==true  ==> isIncoming()==false && isOutgoing()==false
+     * and
+     *    isLocal()==false ==> only one of (isIncoming(), isOutgoing()) is true
+     *
      * @return true if both reference and matched patients are local.
      */
     boolean isLocal();
+
+    /**
+     * See {@link isLocal}.
+     *
+     * @return true if match request was initiated in remote server.
+     */
+    boolean isIncoming();
+
+    /**
+     * See {@link isLocal}.
+     *
+     * @return true if match was initiated locally and was sent to a remote server.
+     */
+    boolean isOutgoing();
+
 }
