@@ -129,9 +129,14 @@ public class DefaultPatientInMatch implements PatientInMatch
         JSONObject json = new JSONObject();
         json.put("patientId", this.getPatientId());
         json.put("serverId", this.getServerId());
-        json.put(GENES, this.genes);
-        json.put(PHENOTYPES, this.phenotypes.toJSON());
         json.put("emails", this.getEmails());
+
+        // Merge in all items from details column
+        JSONObject detailsColumn = this.getDetailsColumnJSON();
+        for (String key : detailsColumn.keySet()) {
+            json.put(key, detailsColumn.get(key));
+        }
+
         return json;
     }
 
@@ -141,10 +146,15 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public String getDetailsColumn()
     {
+        return getDetailsColumnJSON().toString();
+    }
+
+    private JSONObject getDetailsColumnJSON()
+    {
         JSONObject json = new JSONObject();
         json.put(GENES, this.genes);
         json.put(PHENOTYPES, this.phenotypes.toJSON());
-        return json.toString();
+        return json;
     }
 
     @Override
