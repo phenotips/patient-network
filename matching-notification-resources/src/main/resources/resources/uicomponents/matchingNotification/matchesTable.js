@@ -171,13 +171,16 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<td id="' + tdId + '">';
 
-            var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
-
             // Patient id and collapsible icon
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
-            td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
-            if (patient.serverId) {
-                td += '<span> (' + patient.serverId + ')</span>';
+            if (!patient.serverId) { // local patient
+                var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
+                td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
+                if (patient.serverId) {
+                    td += '<span> (' + patient.serverId + ')</span>';
+                }
+            } else { // remote patient
+                td += '<label class="patient-href">' + patient.patientId + '(' + patient.serverId + ')</label>';
             }
             td += '</div>';
 
