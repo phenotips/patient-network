@@ -17,10 +17,15 @@
  */
 package org.phenotips.matchingnotification.match.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
+
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -157,25 +162,34 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private void initialize(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
     {
+        // Reference patient
         Patient referencePatient = similarityView.getReference();
-        Patient matchedPatient = similarityView;
-
         this.referencePatientId = referencePatient.getId();
         this.referenceServerId = referenceServerId;
         this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
         this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
 
-        this.matchedPatientId = matchedPatient.getId();
+        // Matched patient: The matched patient is provided by the similarity view in all cases but one: For an
+        // incoming match, where the reference patient is remote and the matched is local, similarity view will
+        // hold a patient with restricted access, because of the restricted visibility of the local patient to
+        // the remote server. Reading the patient's details will not work. However, since it's a local patient,
+        // it's possible to get a non-restricted version of it.
         this.matchedServerId = matchedServerId;
+        Patient matchedPatient = null;
+        if (this.isIncoming()) {
+            matchedPatient = getPatient(similarityView.getId());
+        } else {
+            matchedPatient = similarityView;
+        }
+        this.matchedPatientId = matchedPatient.getId();
         this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId);
         this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
 
+        // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
-
         this.notified = false;
         this.rejected = false;
-
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
@@ -404,5 +418,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public boolean isOutgoing()
     {
         return this.referenceServerId == null && this.matchedServerId != null;
+    }
+
+    private static Patient getPatient(String patientId)
+    {
+        PatientRepository patientRepository = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            patientRepository = ccm.getInstance(PatientRepository.class);
+        } catch (ComponentLookupException e) {
+            return null;
+        }
+        return patientRepository.getPatientById(patientId);
     }
 }
