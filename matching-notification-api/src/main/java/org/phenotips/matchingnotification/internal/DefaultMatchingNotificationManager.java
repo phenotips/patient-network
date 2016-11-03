@@ -228,7 +228,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     {
         List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView view : similarityViews) {
-            PatientMatch match = new DefaultPatientMatch(view, null, remoteId);
+            PatientMatch match = new DefaultPatientMatch(view, remoteId, null);
             matches.add(match);
         }
 
