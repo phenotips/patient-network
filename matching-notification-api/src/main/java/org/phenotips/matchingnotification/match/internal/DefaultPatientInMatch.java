@@ -19,6 +19,7 @@ package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
@@ -26,6 +27,7 @@ import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
+import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -35,6 +37,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,9 +63,17 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final String PHENOTYPES = "phenotypes";
 
+    private static final String AGE_ON_ONSET = "age_of_onset";
+
+    private static final String MODE_OF_INHERITANCE = "mode_of_inheritance";
+
     private String patientId;
 
     private String serverId;
+
+    private String ageOfOnset;
+
+    private Set<String> modeOfInheritance;
 
     private String href;
 
@@ -154,6 +165,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         JSONObject json = new JSONObject();
         json.put(GENES, this.genes);
         json.put(PHENOTYPES, this.phenotypes.toJSON());
+        json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
+        json.put(AGE_ON_ONSET, this.ageOfOnset);
         return json;
     }
 
@@ -213,23 +226,31 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         JSONObject json = new JSONObject(patientDetails);
 
-        // Genes
-        genes = new HashSet<>();
-        JSONArray genesArray = json.getJSONArray(GENES);
-        Iterator<Object> iterator = genesArray.iterator();
-        while (iterator.hasNext()) {
-            genes.add((String) iterator.next());
-        }
-        genes = Collections.unmodifiableSet(genes);
+        this.genes = jsonArrayToSet(json.getJSONArray(GENES));
+        this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
+        this.ageOfOnset = json.getString(AGE_ON_ONSET);
+        this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
+    }
 
-        // Phenotypes
-        phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
+    // Returns an unmodifiable set of Strings
+    private static Set<String> jsonArrayToSet(JSONArray jsonArray)
+    {
+        Set<String> set = new HashSet<>();
+        Iterator<Object> iterator = jsonArray.iterator();
+        while (iterator.hasNext()) {
+            set.add((String) iterator.next());
+        }
+        return Collections.unmodifiableSet(set);
     }
 
     private void readDetails(Patient patient)
     {
         this.genes = this.getGenes(patient);
         this.phenotypes = new DefaultPhenotypesMap(patient);
+
+        PatientData<List<SolrVocabularyTerm>> globalControllers = patient.getData("global-qualifiers");
+        this.ageOfOnset = this.getAgeOfOnset(globalControllers);
+        this.modeOfInheritance = this.getModeOfInheritance(globalControllers);
     }
 
     private Set<String> getGenes(Patient patient)
@@ -241,6 +262,28 @@ public class DefaultPatientInMatch implements PatientInMatch
         } else {
             return Collections.emptySet();
         }
+    }
+
+    private Set<String> getModeOfInheritance(PatientData<List<SolrVocabularyTerm>> globalControllers)
+    {
+        Set<String> modes = new HashSet<>();
+        if (globalControllers != null) {
+            List<SolrVocabularyTerm> modeTermList = globalControllers.get("global_mode_of_inheritance");
+            for (SolrVocabularyTerm term : modeTermList) {
+                modes.add(term.getName());
+            }
+        }
+        return Collections.unmodifiableSet(modes);
+    }
+
+    private String getAgeOfOnset(PatientData<List<SolrVocabularyTerm>> globalControllers) {
+        if (globalControllers != null) {
+            List<SolrVocabularyTerm> modeTermList = globalControllers.get("global_age_of_onset");
+            if (modeTermList.size() == 1) {
+                return modeTermList.get(0).getName();
+            }
+        }
+        return "";
     }
 
     private Patient getPatient()
