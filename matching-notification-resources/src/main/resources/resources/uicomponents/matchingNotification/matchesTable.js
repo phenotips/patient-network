@@ -187,9 +187,21 @@ define(["jquery", "dynatable"], function($, dyna)
             // Collapsible div
             td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
-            // Genes
-            var genes = patient.genes;
-            td += '<div class="genes-div">';
+            td += this._getGenesDiv(patient.genes);
+            td += this._getPhenotypesDiv(patient.phenotypes);
+            td += this._getAgeOfOnset(patient.age_of_onset);
+            td += this._getModeOfInheritance(patient.mode_of_inheritance);
+
+            // End collapsible div
+            td += '</div>';
+
+            td += '</td>';
+            return td;
+        },
+
+        _getGenesDiv : function(genes)
+        {
+            var td = '<div class="genes-div">';
             var genesTitle = 'Genes';
             if (genes.size() == 0) {
                 genesTitle += ': -';
@@ -203,10 +215,12 @@ define(["jquery", "dynatable"], function($, dyna)
                 td += '</ul>';
             }
             td += '</div>';
+            return td;
+        },
 
-            // Phenotypes
-            var phenotypes = patient.phenotypes;
-            td += '<div class="phenotypes-div">';
+        _getPhenotypesDiv : function(phenotypes)
+        {
+            var td = '<div class="phenotypes-div">';
             var phenotypesTitle = 'Phenotypes';
             if (phenotypes.empty) {
                 phenotypesTitle += ': -';
@@ -228,11 +242,41 @@ define(["jquery", "dynatable"], function($, dyna)
                 td += '</ul>';
             }
             td += '</div>';
+            return td;
+        },
 
-            // End collapsible div
+        _getAgeOfOnset(age_of_onset)
+        {
+            var td = '<div class="age-of-onset-div">';
+
+            var aooTitle = 'Age of onset: ';
+            if (age_of_onset == '' || age_of_onset == undefined) {
+                aooTitle += ': -';
+            }
+            td += '<div class="subtitle">' + aooTitle + '</div>';
+            if (age_of_onset) {
+                td += age_of_onset;
+            }
             td += '</div>';
+            return td;
+        },
 
-            td += '</td>';
+        _getModeOfInheritance(mode_of_inheritance)
+        {
+            var td = '<div class="mode-of-inheritance-div">';
+            var moiTitle = 'Mode of inheritance: ';
+            if (mode_of_inheritance.size() == 0) {
+                moiTitle += ': -';
+            }
+            td += '<div class="subtitle">' + moiTitle + '</div>';
+            if (mode_of_inheritance.size() != 0) {
+                td += '<ul>';
+                for (var i = 0 ; i < mode_of_inheritance.size() ; i++) {
+                    td += '<li>' + mode_of_inheritance[i] + '</li>';
+                }
+                td += '</ul>';
+            }
+            td += '</div>';
             return td;
         },
 
@@ -308,7 +352,7 @@ define(["jquery", "dynatable"], function($, dyna)
             }.bind(this));
         },
 
-        // Makes genes-div the same height in patient and matched patient columns
+        // Makes patient details divs the same height in patient and matched patient columns
         _afterProcessTablePatientsDivs : function()
         {
             this._tableElement.find('tbody').find('tr').each(function (index, elm)
@@ -316,13 +360,21 @@ define(["jquery", "dynatable"], function($, dyna)
                 var referencePatientTd = $(elm).find('#referencePatientTd');
                 var matchedPatientTd = $(elm).find('#matchedPatientTd');
 
-                var genesDiv = $(referencePatientTd).find('.genes-div');
-                var matchedGenesDiv = $(matchedPatientTd).find('.genes-div');
-
-                var h = Math.max(genesDiv.height(), matchedGenesDiv.height());
-                genesDiv.height(h);
-                matchedGenesDiv.height(h);
+                var divs = ['.genes-div', '.phenotypes-div', '.age-of-onset-div', '.mode-of-inheritance-div'];
+                $.each(divs, function(key, div_class) {
+                    this._makeSameHeight(referencePatientTd, matchedPatientTd, div_class);
+                }.bind(this));
             }.bind(this));
+        },
+
+        _makeSameHeight : function(td1, td2, div_class)
+        {
+            var div1 = $(td1).find(div_class);
+            var div2 = $(td2).find(div_class);
+
+            var h = Math.max(div1.height(), div2.height());
+            div1.height(h);
+            div2.height(h);
         },
 
         // target is the component that was clicked to expand/collapse (this +/- sign).

@@ -28,7 +28,7 @@
    margin-left: 3px;
 }
 
-.matches-table .genes-div {
+.matches-table .genes-div, .matches-table .age-of-onset-div  {
     margin-bottom: 10px;
     background: lightgrey;
 }
