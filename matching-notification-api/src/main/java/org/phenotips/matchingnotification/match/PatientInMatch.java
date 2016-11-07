@@ -58,6 +58,11 @@ public interface PatientInMatch
     String getPatientId();
 
     /**
+     * @return external id of patient.
+     */
+    String getExternalId();
+
+    /**
      * @return id of server where patient is found. Null if local.
      */
     String getServerId();
