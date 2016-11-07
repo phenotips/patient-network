@@ -212,6 +212,12 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     @Override
+    public String getExternalId()
+    {
+        return isLocal() ? this.getPatient().getExternalId() : "";
+    }
+
+    @Override
     public String getServerId()
     {
         return this.serverId;
