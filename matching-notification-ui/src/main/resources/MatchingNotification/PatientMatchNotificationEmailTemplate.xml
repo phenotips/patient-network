@@ -205,6 +205,9 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 &lt;/table&gt;
 &lt;div class="space-between-matches"/&gt;
 #end
+&lt;p&gt;
+We welcome any feedback on this match notification to be emailed to matchmaker@phenomecentral.org. Particularly, we are interested to know if this match notification led to improved patient care, collaboration, or publication. We are equally interested to know if this match notification was not appropriate (the patients did not match after further review/discussion). Your feedback improves the matchmaking process and is very much appreciated!
+&lt;/p&gt;
 &lt;p class="disclaimer"&gt;
 IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
 If PhenomeCentral enables a research publication, the authors must acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
