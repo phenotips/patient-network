@@ -21,11 +21,10 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.AbstractMap;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,13 +36,36 @@ import org.json.JSONObject;
 /**
  * @version $Id$
  */
-public class DefaultPhenotypesMap implements PhenotypesMap
+public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, String>>> implements PhenotypesMap
 {
     private static final String FREE_TEXT = "freeText";
+
     private static final String PREDEFINED = "predefined";
 
-    private Set<String> freeText;
-    private Map<String, String> predefined;
+    private static final String NAME_FIELD = "name";
+
+    private static final String ID_FIELD = "id";
+
+    private static final String OBSERVED_FIELD = "observed";
+
+    private static final String OBSERVED = "yes";
+
+    private static final String NOT_OBSERVED = "no";
+
+    // Sorts alphabetically by the value of {@link NAME_FIELD} in map
+    private static final Comparator<Map<String, String>> PHENOTYPES_COMPARATOR = new Comparator<Map<String, String>>()
+    {
+        @Override
+        public int compare(Map<String, String> phenotype0, Map<String, String> phenotype1)
+        {
+            return phenotype0.get(NAME_FIELD).compareTo(phenotype1.get(NAME_FIELD));
+        }
+    };
+
+    // Example:
+    // freeText -> [{"label":"freetext1", "observed":"no"}, {"label":"freetext2", "observed":"yes"}]
+    // predefined -> [{"id":"HP:004323", "label":"Abnormality of body weight", "observed":"yes"}]
+    private Map<String, List<Map<String, String>>> phenotypes;
 
     /**
      * Builds a new PhenotypesMap object for a patient.
@@ -63,68 +85,71 @@ public class DefaultPhenotypesMap implements PhenotypesMap
      */
     public DefaultPhenotypesMap(JSONObject jsonObject)
     {
-        // Free text
-        JSONArray freeTextArray = jsonObject.getJSONArray(FREE_TEXT);
-        Iterator<Object> freeTextIterator = freeTextArray.iterator();
-        freeText = new HashSet<>();
-        while (freeTextIterator.hasNext()) {
-            freeText.add((String) freeTextIterator.next());
+        this.phenotypes = new HashMap<>();
+        this.phenotypes.put(FREE_TEXT, this.readJSONArray(jsonObject, FREE_TEXT));
+        this.phenotypes.put(PREDEFINED, this.readJSONArray(jsonObject, PREDEFINED));
+    }
+
+    private List<Map<String, String>> readJSONArray(JSONObject jsonObject, String arrayKey)
+    {
+        List<Map<String, String>> result = new LinkedList<>();
+
+        JSONArray array = jsonObject.getJSONArray(arrayKey);
+        for (Object object : array) {
+            Map<String, String> m = new HashMap<>();
+            JSONObject item = (JSONObject) object;
+            for (String key : item.keySet()) {
+                m.put(key, item.getString(key));
+            }
+            result.add(m);
         }
 
-        // Predefined
-        JSONObject predefinedObject = jsonObject.getJSONObject(PREDEFINED);
-        predefined = new HashMap<>();
-        for (String key : predefinedObject.keySet()) {
-            predefined.put(key, predefinedObject.getString(key));
-        }
+        return result;
     }
 
     @Override
     public String toString()
     {
-        JSONObject o = new JSONObject();
-        o.put(PREDEFINED, this.predefined.keySet());
-        o.put(FREE_TEXT, this.freeText);
-        return o.toString();
+        return this.toJSON().toString();
     }
 
     @Override
     public JSONObject toJSON()
     {
-        JSONObject toJSON = new JSONObject();
-        toJSON.put(PREDEFINED, this.predefined);
-        toJSON.put(FREE_TEXT, this.freeText);
-        return toJSON;
-
-    }
-
-    @Override
-    public Collection<String> getNames()
-    {
-        List<String> names = new ArrayList<String>(this.predefined.size() + this.freeText.size());
-        names.addAll(predefined.values());
-        names.addAll(freeText);
-        return names;
+        return new JSONObject(this.phenotypes);
     }
 
     private void readPhenotypes(Patient patient)
     {
-        this.predefined = new HashMap<>();
-        this.freeText = new HashSet<>();
+        List<Map<String, String>> predefined = new LinkedList<>();
+        List<Map<String, String>> freeText = new LinkedList<>();
 
         Set<? extends Feature> features = patient.getFeatures();
         for (Feature feature : features) {
-            if (!feature.isPresent()) {
-                continue;
-            }
+            Map<String, String> item = new HashMap<>();
+            item.put(NAME_FIELD, feature.getName());
+            item.put(OBSERVED_FIELD, feature.isPresent() ? OBSERVED : NOT_OBSERVED);
 
             String id = feature.getId();
-            String name = feature.getName();
             if (StringUtils.isEmpty(id)) {
-                freeText.add(name);
+                freeText.add(item);
             } else {
-                predefined.put(id, name);
+                item.put(ID_FIELD, id);
+                predefined.add(item);
             }
         }
+
+        predefined.sort(PHENOTYPES_COMPARATOR);
+        freeText.sort(PHENOTYPES_COMPARATOR);
+
+        this.phenotypes = new HashMap<>();
+        this.phenotypes.put(PREDEFINED, predefined);
+        this.phenotypes.put(FREE_TEXT, freeText);
+    }
+
+    @Override
+    public Set<java.util.Map.Entry<String, List<Map<String, String>>>> entrySet()
+    {
+        return this.phenotypes.entrySet();
     }
 }

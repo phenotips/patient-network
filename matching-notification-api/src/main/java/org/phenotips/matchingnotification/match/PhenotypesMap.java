@@ -17,25 +17,22 @@
  */
 package org.phenotips.matchingnotification.match;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
 /**
  * Used for handling the collection of phenotypes of a patient, and in particular, for dealing with predefined and free
- * text phenotypes.
+ * text phenotypes. It is a map so that the email (velocity) can use expressions like phenotypes.predefined and
+ * phenotypes.freeText without special access methods.
  *
  * @version $Id$
  */
-public interface PhenotypesMap
+public interface PhenotypesMap extends Map<String, List<Map<String, String>>>
 {
     /**
      * @return JSON representation of the object
      */
     JSONObject toJSON();
-
-    /**
-     * @return Collection of names of phenotypes in map
-     */
-    Collection<String> getNames();
 }
