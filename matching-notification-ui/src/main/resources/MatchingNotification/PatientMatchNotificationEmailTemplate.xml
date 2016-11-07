@@ -171,14 +171,20 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
       &lt;tr&gt;
          &lt;td&gt;
             &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
-#foreach ($name in $subjectPatient.phenotypes.names)
-&lt;div&gt;$name&lt;/div&gt;
+#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
          &lt;/td&gt;
          &lt;td&gt;
             &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
-#foreach ($name in $match.matchedPatient.phenotypes.names)
-&lt;div&gt;$name&lt;/div&gt;
+#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
@@ -225,8 +231,11 @@ Genes:
 $gene
 #end
 Phenotypes:
-#foreach ($name in $subjectPatient.phenotypes.names)
-$name
+#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+#if ($phenotype.observed == 'no')NO #end
+#end
+#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
+#if ($phenotype.observed == 'no')NO #end
 #end
 
 #foreach ($match in $matches)
@@ -236,8 +245,11 @@ Genes:
 $gene
 #end
 Phenotypes:
-#foreach ($name in $match.matchedPatient.phenotypes.names)
-$name
+#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#end
+#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
 Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:
 #foreach ($email in $match.matchedPatient.emails)

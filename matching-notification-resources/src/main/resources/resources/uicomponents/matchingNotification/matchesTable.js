@@ -80,10 +80,6 @@ define(["jquery", "dynatable"], function($, dyna)
                 // emails
                 match.reference.emails = this._formatEmails(match.reference.emails);
                 match.matched.emails = this._formatEmails(match.matched.emails);
-
-                // Phenotypes
-                [match.reference.phenotypes, match.matched.phenotypes] =
-                    this._formatPhenotypes(match.reference.phenotypes, match.matched.phenotypes);
             }.bind(this));
         },
 
@@ -98,21 +94,6 @@ define(["jquery", "dynatable"], function($, dyna)
         _roundScore : function(score)
         {
             return Math.round(Number(score) * 100) / 100;
-        },
-
-        // Format two JSON objects containing phenotypes for display
-        _formatPhenotypes : function(obj1, obj2)
-        {
-            // Replace key:value pairs with values. For example { 'HP:0004325': 'Decreased body weight' } -> 'Decreased body weight'.
-            var toVal = function(val) {return val};
-            obj1.predefined = $.map(obj1.predefined, toVal);
-            obj2.predefined = $.map(obj2.predefined, toVal);
-
-            // If there are no phenotypes, set empty to true
-            obj1.empty = (obj1.predefined.size() + obj1.freeText.size() == 0);
-            obj2.empty = (obj2.predefined.size() + obj2.freeText.size() == 0);
-
-            return [obj1, obj2];
         },
 
         _rowWriter : function(rowIndex, record, columns, cellWriter)
@@ -220,22 +201,26 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _getPhenotypesDiv : function(phenotypes)
         {
+            var empty = phenotypes.predefined.size() + phenotypes.freeText.size() == 0;
+
             var td = '<div class="phenotypes-div">';
             var phenotypesTitle = 'Phenotypes';
-            if (phenotypes.empty) {
+            if (empty) {
                 phenotypesTitle += ': -';
             }
             td += '<div class="subtitle">' + phenotypesTitle + '</div>';
-            if (!phenotypes.empty) {
+            if (!empty) {
                 td += '<ul>';
                 for (var i = 0 ; i < phenotypes.predefined.size() ; i++) {
-                    td += '<li>' + phenotypes.predefined[i] + '</li>';
+                    var observed = phenotypes.predefined[i].observed != "no";
+                    td += '<li>' + (!observed ? 'NO ' : '') + phenotypes.predefined[i].name + '</li>';
                 }
                 for (var i = 0 ; i < phenotypes.freeText.size() ; i++) {
+                    var observed = phenotypes.freeText[i].observed != "no";
                     td += '<li>'
                     td += '<div>';
                     td += '<span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/> ';
-                    td += phenotypes.freeText[i];
+                    td += (!observed ? 'NO ' : '') + phenotypes.freeText[i].name;
                     td += '</div>';
                     td += '</li>';
                 }
