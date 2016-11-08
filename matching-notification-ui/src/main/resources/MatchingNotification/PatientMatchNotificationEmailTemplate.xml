@@ -188,6 +188,30 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
+      &lt;tr&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Mode of inheritance:&lt;/div&gt;
+#foreach ($item in $subjectPatient.modeOfInheritance)
+&lt;div&gt;$item&lt;div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Mode of inheritance:&lt;/div&gt;
+#foreach ($item in $match.matchedPatient.modeOfInheritance)
+&lt;div&gt;$item&lt;div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;
+$subjectPatient.ageOfOnset
+         &lt;/td&gt;
+         &lt;td&gt;
+            &lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;
+$match.matchedPatient.ageOfOnset
+         &lt;/td&gt;
+      &lt;/tr&gt;
       &lt;tr class="grey-background"&gt;
          &lt;td&gt;
          &lt;/td&gt;
@@ -240,6 +264,11 @@ Phenotypes:
 #foreach ($phenotype in $subjectPatient.phenotypes.freeText)
 #if ($phenotype.observed == 'no')NO #end
 #end
+Global mode of inheritance:
+#foreach ($item in $subjectPatient.modeOfInheritance)
+$item
+#end
+Age of onset: $subjectPatient.ageOfOnset
 
 #foreach ($match in $matches)
 Potential match: $!{escapetool.xml($match.matchedPatient.patientId)} $!{escapetool.xml($match.matchedPatient.serverId)}
@@ -254,6 +283,11 @@ Phenotypes:
 #foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
 #if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
+Global mode of inheritance:
+#foreach ($item in $match.matchedPatient.modeOfInheritance)
+$item
+#end
+Age of onset: $match.matchedPatient.ageOfOnset
 Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:
 #foreach ($email in $match.matchedPatient.emails)
 $email
