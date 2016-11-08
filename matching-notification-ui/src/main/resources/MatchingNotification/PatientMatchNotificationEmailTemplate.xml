@@ -218,7 +218,7 @@ $match.matchedPatient.ageOfOnset
       &lt;/tr&gt;
       &lt;tr&gt;
          &lt;td colspan="2"&gt;
-            &lt;div&gt;Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:&lt;/div&gt;
+            &lt;div&gt;Contact information:&lt;/div&gt;
 #foreach ($email in $match.matchedPatient.emails)
 &lt;div&gt;$email&lt;/div&gt;
 #end
@@ -288,7 +288,7 @@ Global mode of inheritance:
 $item
 #end
 Age of onset: $match.matchedPatient.ageOfOnset
-Match's email#if ($match.matchedPatient.emails.size() &gt; 1)s#end:
+Contact information:
 #foreach ($email in $match.matchedPatient.emails)
 $email
 #end
