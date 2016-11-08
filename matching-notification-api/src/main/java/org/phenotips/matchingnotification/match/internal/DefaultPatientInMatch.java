@@ -223,6 +223,18 @@ public class DefaultPatientInMatch implements PatientInMatch
         return this.serverId;
     }
 
+    @Override
+    public String getAgeOfOnset()
+    {
+        return this.ageOfOnset;
+    }
+
+    @Override
+    public Collection<String> getModeOfInheritance()
+    {
+        return this.modeOfInheritance;
+    }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible
      * that some data is missing in case more details added in newer versions. So, it is ok for some values to
