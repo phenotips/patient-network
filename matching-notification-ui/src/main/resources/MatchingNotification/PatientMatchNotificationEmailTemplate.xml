@@ -259,10 +259,10 @@ $gene
 #end
 Phenotypes:
 #foreach ($phenotype in $subjectPatient.phenotypes.predefined)
-#if ($phenotype.observed == 'no')NO #end
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
 #foreach ($phenotype in $subjectPatient.phenotypes.freeText)
-#if ($phenotype.observed == 'no')NO #end
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
 Global mode of inheritance:
 #foreach ($item in $subjectPatient.modeOfInheritance)
