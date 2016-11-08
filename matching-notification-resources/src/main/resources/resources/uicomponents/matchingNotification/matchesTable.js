@@ -80,6 +80,8 @@ define(["jquery", "dynatable"], function($, dyna)
                 // emails
                 match.reference.emails = this._formatEmails(match.reference.emails);
                 match.matched.emails = this._formatEmails(match.matched.emails);
+                [match.reference.phenotypes, match.matched.phenotypes] =
+                   this._formatPhenotypes(match.reference.phenotypes, match.matched.phenotypes);
             }.bind(this));
         },
 
@@ -94,6 +96,61 @@ define(["jquery", "dynatable"], function($, dyna)
         _roundScore : function(score)
         {
             return Math.round(Number(score) * 100) / 100;
+        },
+
+         // Find common predefined phenotypes (ignoring whether observed or not)
+         // This method will remove all common phenotypes from pheontypes?.predfined and move them into
+         // phenotypes?.common. Freetext phenotypes are never matched. phenotypes?.empty is set too true/false.
+        _formatPhenotypes : function(phenotypes1, phenotypes2)
+        {
+            var predefined1 = phenotypes1.predefined;
+            var predefined2 = phenotypes2.predefined;
+
+            function byName(a, b) {
+               var aName = a.name.toLowerCase();
+               var bName = b.name.toLowerCase();
+               return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+            }
+            predefined1.sort(byName);
+            predefined1.sort(byName);
+
+            var common = [];
+            var new1 = [];
+            var new2 = [];
+            var index1 = 0, index2 = 0;
+            while (index1 < predefined1.length && index2 < predefined2.length) {
+                if (predefined1[index1].name == predefined2[index2].name) {
+                    common.push(predefined1[index1]);
+                    index1++;
+                    index2++;
+                } else {
+                    if (predefined1[index1] < predefined2[index2]) {
+                       new1.push(predefined1[index1]);
+                       index1++;
+                    } else {
+                       new2.push(predefined2[index2]);
+                       index2++;
+                    }
+                }
+            }
+            while (index1 < predefined1.length) {
+                new1.push(predefined1[index1]);
+                index1++;
+            }
+            while (index2 < predefined2.length) {
+                new2.push(predefined2[index2]);
+                index2++;
+            }
+
+            phenotypes1.common = common;
+            phenotypes1.predefined = new1;
+            phenotypes1.empty = (phenotypes1.common.size() + phenotypes1.predefined.size() + phenotypes1.freeText.size() == 0);
+
+            phenotypes2.common = common;
+            phenotypes2.predefined = new2;
+            phenotypes2.empty = (phenotypes2.common.size() + phenotypes2.predefined.size() + phenotypes2.freeText.size() == 0);
+
+            return [phenotypes1, phenotypes2];
         },
 
         _rowWriter : function(rowIndex, record, columns, cellWriter)
@@ -201,32 +258,39 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _getPhenotypesDiv : function(phenotypes)
         {
-            var empty = phenotypes.predefined.size() + phenotypes.freeText.size() == 0;
-
             var td = '<div class="phenotypes-div">';
             var phenotypesTitle = 'Phenotypes';
-            if (empty) {
+            if (phenotypes.empty) {
                 phenotypesTitle += ': -';
             }
             td += '<p class="subtitle">' + phenotypesTitle + '</p>';
-            if (!empty) {
+            if (!phenotypes.empty) {
                 td += '<ul>';
-                for (var i = 0 ; i < phenotypes.predefined.size() ; i++) {
-                    var observed = phenotypes.predefined[i].observed != "no";
-                    td += '<li>' + (!observed ? 'NO ' : '') + phenotypes.predefined[i].name + '</li>';
-                }
-                for (var i = 0 ; i < phenotypes.freeText.size() ; i++) {
-                    var observed = phenotypes.freeText[i].observed != "no";
-                    td += '<li>'
-                    td += '<div>';
-                    td += '<span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/> ';
-                    td += (!observed ? 'NO ' : '') + phenotypes.freeText[i].name;
-                    td += '</div>';
-                    td += '</li>';
-                }
+                td += this._addPhenotypes(phenotypes.common, false);
+                td += this._addPhenotypes(phenotypes.predefined, false);
+                td += this._addPhenotypes(phenotypes.freeText, true);
                 td += '</ul>';
             }
             td += '</div>';
+            return td;
+        },
+
+        _addPhenotypes : function(phenotypesArray, asFreeText)
+        {
+            var td = '';
+            for (var i = 0 ; i < phenotypesArray.size() ; i++) {
+                var observed = phenotypesArray[i].observed != "no";
+                td += '<li>'
+                if (asFreeText) {
+                    td += '<div>';
+                    td += '<span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/> ';
+                }
+                td += (!observed ? 'NO ' : '') + phenotypesArray[i].name;
+                if (asFreeText) {
+                    td += '</div>';
+                }
+                td += '</li>';
+            }
             return td;
         },
 
