@@ -99,4 +99,13 @@ public interface PatientInMatch
      */
     String getDetailsColumn();
 
+    /**
+     * @return mode of inheritance
+     */
+    Collection<String> getModeOfInheritance();
+
+    /**
+     * @return age of onset
+     */
+    String getAgeOfOnset();
 }
