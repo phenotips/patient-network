@@ -101,16 +101,13 @@ table, td, th {
    font-weight     : normal;
 }
 
-th {
-   width : 300px;
-}
-
 .subheader {
    font-weight : bold;
 }
 
 .grey-background {
    background -color : light-grey;
+   width : 300px;
 }
 
 .space-between-matches {
@@ -137,15 +134,16 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 &lt;table&gt;
    &lt;thead&gt;
       &lt;tr&gt;
+         &lt;th&gt;
          &lt;th class="grey-background"&gt;
-            &lt;div&gt;Your patient&lt;/div&gt;
+            &lt;div class="subheader"&gt;Your patient&lt;/div&gt;
             &lt;div class="patient-id"&gt;
                &lt;span&gt;$subjectPatient.patientId&lt;/span&gt;
                &lt;span&gt;$subjectPatient.externalId&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
          &lt;th class="grey-background"&gt;
-            &lt;div&gt;Potential match&lt;/div&gt;
+            &lt;div class="subheader"&gt;Potential match&lt;/div&gt;
             &lt;div&gt;
                &lt;span&gt;$match.matchedPatient.patientId&lt;/span&gt;
                &lt;span&gt;$!{escapetool.xml($match.matchedPatient.serverId)}&lt;/span&gt;
@@ -155,22 +153,21 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
    &lt;/thead&gt;
    &lt;tbody&gt;
       &lt;tr&gt;
+         &lt;td&gt;&lt;div class="subheader"&gt;Genes&lt;/div&gt;&lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Genes:&lt;/div&gt;
 #foreach ($gene in $subjectPatient.candidateGenes)
 &lt;div&gt;$gene&lt;/div&gt;
 #end
          &lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Genes:&lt;/div&gt;
 #foreach ($gene in $match.matchedPatient.candidateGenes)
 &lt;div&gt;$gene&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
+         &lt;td&gt;&lt;div class="subheader"&gt;Phenotypes&lt;/div&gt;&lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
 #foreach ($phenotype in $subjectPatient.phenotypes.predefined)
 &lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
@@ -179,7 +176,6 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 #end
          &lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Phenotypes:&lt;/div&gt;
 #foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
 &lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
@@ -189,35 +185,28 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
+         &lt;td&gt;&lt;div class="subheader"&gt;Mode of inheritance&lt;/div&gt;&lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Mode of inheritance:&lt;/div&gt;
 #foreach ($item in $subjectPatient.modeOfInheritance)
 &lt;div&gt;$item&lt;div&gt;
 #end
          &lt;/td&gt;
          &lt;td&gt;
-            &lt;div class="subheader"&gt;Mode of inheritance:&lt;/div&gt;
 #foreach ($item in $match.matchedPatient.modeOfInheritance)
 &lt;div&gt;$item&lt;div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-         &lt;td&gt;
-            &lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;
-$subjectPatient.ageOfOnset
-         &lt;/td&gt;
-         &lt;td&gt;
-            &lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;
-$match.matchedPatient.ageOfOnset
-         &lt;/td&gt;
+         &lt;td&gt;&lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;&lt;/td&gt;
+         &lt;td&gt;$subjectPatient.ageOfOnset&lt;/td&gt;
+         &lt;td&gt;$match.matchedPatient.ageOfOnset&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr class="grey-background"&gt;
-         &lt;td&gt;
-         &lt;/td&gt;
+         &lt;td/&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-         &lt;td colspan="2"&gt;
+         &lt;td colspan="3"&gt;
             &lt;div&gt;Contact information:&lt;/div&gt;
 #foreach ($email in $match.matchedPatient.emails)
 &lt;div&gt;$email&lt;/div&gt;
