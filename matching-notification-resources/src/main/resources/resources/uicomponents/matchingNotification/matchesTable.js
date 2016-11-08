@@ -187,7 +187,7 @@ define(["jquery", "dynatable"], function($, dyna)
             if (genes.size() == 0) {
                 genesTitle += ': -';
             }
-            td += '<div class="subtitle">' + genesTitle + '</div>';
+            td += '<p class="subtitle">' + genesTitle + '</p>';
             if (genes.size() != 0) {
                 td += '<ul>';
                 for (var i = 0 ; i < genes.size() ; i++) {
@@ -208,7 +208,7 @@ define(["jquery", "dynatable"], function($, dyna)
             if (empty) {
                 phenotypesTitle += ': -';
             }
-            td += '<div class="subtitle">' + phenotypesTitle + '</div>';
+            td += '<p class="subtitle">' + phenotypesTitle + '</p>';
             if (!empty) {
                 td += '<ul>';
                 for (var i = 0 ; i < phenotypes.predefined.size() ; i++) {
@@ -238,7 +238,7 @@ define(["jquery", "dynatable"], function($, dyna)
             if (age_of_onset == '' || age_of_onset == undefined) {
                 aooTitle += ': -';
             }
-            td += '<div class="subtitle">' + aooTitle + '</div>';
+            td += '<p class="subtitle">' + aooTitle + '</p>';
             if (age_of_onset) {
                 td += age_of_onset;
             }
@@ -253,7 +253,7 @@ define(["jquery", "dynatable"], function($, dyna)
             if (mode_of_inheritance.size() == 0) {
                 moiTitle += ': -';
             }
-            td += '<div class="subtitle">' + moiTitle + '</div>';
+            td += '<p class="subtitle">' + moiTitle + '</p>';
             if (mode_of_inheritance.size() != 0) {
                 td += '<ul>';
                 for (var i = 0 ; i < mode_of_inheritance.size() ; i++) {
@@ -337,9 +337,15 @@ define(["jquery", "dynatable"], function($, dyna)
             }.bind(this));
         },
 
-        // Makes patient details divs the same height in patient and matched patient columns
         _afterProcessTablePatientsDivs : function()
         {
+            var referenceTh = $(this._tableElement.find('[data-dynatable-column="referencePatient"]')[0]);
+            var matchedTh = $(this._tableElement.find('[data-dynatable-column="matchedPatient"]')[0]);
+            var w = Math.max(referenceTh.width(), matchedTh.width());
+            referenceTh.width(w);
+            matchedTh.width(w);
+
+            // Makes patient details divs the same height in patient and matched patient columns
             this._tableElement.find('tbody').find('tr').each(function (index, elm)
             {
                 var referencePatientTd = $(elm).find('#referencePatientTd');
