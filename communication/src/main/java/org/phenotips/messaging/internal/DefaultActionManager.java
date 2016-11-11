@@ -22,7 +22,9 @@ import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.messaging.ActionManager;
 import org.phenotips.messaging.Connection;
 
+import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -37,7 +39,7 @@ import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.plugin.mailsender.Mail;
 import com.xpn.xwiki.plugin.mailsender.MailSenderPlugin;
 import com.xpn.xwiki.web.Utils;
@@ -53,6 +55,8 @@ import com.xpn.xwiki.web.Utils;
 public class DefaultActionManager implements ActionManager
 {
     private static final String MAIL_SENDER = "mailsender";
+
+    private static final String GROUP_EMAIL = "contact";
 
     private static final String EMAIL = "email";
 
@@ -86,6 +90,9 @@ public class DefaultActionManager implements ActionManager
     private AccessLevel defaultAccess;
 
     @Inject
+    private DocumentAccessBridge bridge;
+
+    @Inject
     private Logger logger;
 
     @Override
@@ -95,8 +102,8 @@ public class DefaultActionManager implements ActionManager
             XWikiContext context = Utils.getContext();
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
-            String to = xwiki.getDocument(connection.getContactedUser(), context).getStringValue(EMAIL);
-            String replyTo = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
+            String to = getEmail(connection.getContactedUser());
+            String replyTo = getEmail(connection.getInitiatingUser());
             Mail mail = new Mail();
             mail.setTo(to);
             mail.setHeader("Reply-To", replyTo);
@@ -108,9 +115,6 @@ public class DefaultActionManager implements ActionManager
             mailsender.sendMail(mail, context);
             return 0;
         } catch (MessagingException e) {
-            this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
-            return 500;
-        } catch (XWikiException e) {
             this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
             return 500;
         } catch (UnsupportedEncodingException e) {
@@ -143,7 +147,7 @@ public class DefaultActionManager implements ActionManager
             XWikiContext context = Utils.getContext();
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
-            String to = xwiki.getDocument(connection.getInitiatingUser(), context).getStringValue(EMAIL);
+            String to = getEmail(connection.getInitiatingUser());
             options.put("platformName", PLATFORM);
             options.put(SUBJECT_FIELD_STRING, SUBJECT);
             options.put(RECIPIENT_NAME,
@@ -164,5 +168,23 @@ public class DefaultActionManager implements ActionManager
             this.logger.error(FAILED_MAIL_MSG, ex.getMessage(), ex);
             return 1;
         }
+    }
+
+    private String getEmail(DocumentReference userDocument)
+    {
+        String email = "";
+        try {
+            XWikiDocument doc = (XWikiDocument) this.bridge.getDocument(userDocument);
+
+            // TODO after projects is merged: UsersAndGroups.getType(userDocument).equals(UsersAndGroups.GROUP)
+            if ("Groups".equals(userDocument.getLastSpaceReference().getName())) {
+                email = doc.getStringValue(GROUP_EMAIL);
+            } else {
+                email = doc.getStringValue(EMAIL);
+            }
+        } catch (Exception e) {
+        }
+
+        return email;
     }
 }
