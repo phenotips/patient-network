@@ -63,8 +63,8 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     };
 
     // Example:
-    // freeText -> [{"label":"freetext1", "observed":"no"}, {"label":"freetext2", "observed":"yes"}]
-    // predefined -> [{"id":"HP:004323", "label":"Abnormality of body weight", "observed":"yes"}]
+    // freeText -> [{"name":"freetext1", "observed":"no"}, {"name":"freetext2", "observed":"yes"}]
+    // predefined -> [{"id":"HP:004323", "name":"Abnormality of body weight", "observed":"yes"}]
     private Map<String, List<Map<String, String>>> phenotypes;
 
     /**

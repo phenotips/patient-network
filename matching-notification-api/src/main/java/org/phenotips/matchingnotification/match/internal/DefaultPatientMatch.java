@@ -169,10 +169,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
         this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
 
-        // Matched patient: The matched patient is provided by the similarity view in all cases but one: For an
-        // incoming match, where the reference patient is remote and the matched is local, similarity view will
-        // hold a patient with restricted access, because of the restricted visibility of the local patient to
-        // the remote server. Reading the patient's details will not work. However, since it's a local patient,
+        // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
+        // incoming remote match, where the reference patient is remote and the matched is local, similarity view
+        // will hold a patient with restricted access, because of the restricted visibility of the local patient
+        // to the remote server. Reading the patient's details will not work. However, since it's a local patient,
         // it's possible to get a non-restricted version of it.
         this.matchedServerId = matchedServerId;
         Patient matchedPatient = null;
