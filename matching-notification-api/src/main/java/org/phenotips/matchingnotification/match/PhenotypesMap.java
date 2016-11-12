@@ -31,6 +31,12 @@ import org.json.JSONObject;
  */
 public interface PhenotypesMap extends Map<String, List<Map<String, String>>>
 {
+    /** Key for free text phenotypes. **/
+    String FREE_TEXT = "freeText";
+
+    /** Key for predefined phenotypes. **/
+    String PREDEFINED = "predefined";
+
     /**
      * @return JSON representation of the object
      */
