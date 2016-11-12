@@ -23,6 +23,7 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -167,7 +168,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.referencePatientId = referencePatient.getId();
         this.referenceServerId = referenceServerId;
         this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
-        this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
@@ -183,7 +183,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         }
         this.matchedPatientId = matchedPatient.getId();
         this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId);
-        this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
@@ -196,6 +195,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         // TODO
         this.href = null;
+
+        // Reorder phenotype
+        DefaultPhenotypesMap.reorder(
+            referencePatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED),
+            matchedPatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED));
+
+        // After reordering!
+        this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
+        this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
     }
 
     @Override

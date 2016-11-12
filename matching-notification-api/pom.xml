@@ -28,8 +28,9 @@
   <name>PhenoTips - Patient Network - Matching Notification - API</name>
   <artifactId>matching-notification-api</artifactId>
   <properties>
+    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
     <coverage.instructionRatio>0.00</coverage.instructionRatio>
-</properties>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.phenotips</groupId>
