@@ -38,10 +38,6 @@ import org.json.JSONObject;
  */
 public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, String>>> implements PhenotypesMap
 {
-    private static final String FREE_TEXT = "freeText";
-
-    private static final String PREDEFINED = "predefined";
-
     private static final String NAME_FIELD = "name";
 
     private static final String ID_FIELD = "id";
