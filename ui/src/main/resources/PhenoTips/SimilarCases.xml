@@ -620,9 +620,58 @@
 
     _displayMatchData : function(query, r) {
       var result = new Element("div", {"class" : "match-details"});
+      result.insert(this._displayAgeOfOnset(r));
+      result.insert(this._displayModeOfInheritance(r));
       result.insert(this._displayFeatureMatches(r));
       result.insert(this._displayGeneMatches(r));
       return result;
+    },
+
+    _displayAgeOfOnset : function(r) {
+      var container = new Element('div', {'class' : 'match-type age-of-onset'});
+      container.insert(new Element('h3').update('Age of onset'));
+      var formatAgeOfOnset = function(age) {return age ? age : 'Unknown';};
+      var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
+      container.insert(ageOfOnsetTable);
+
+      var row = this._getEmptyTableRow(ageOfOnsetTable);
+      row.insert(new Element('td', {'class' : 'hint query'}).update('&lt;strong&gt;' + this._getDisplayedQueryId(true) + '&lt;/strong&gt;:'));
+      row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r, true) + '&lt;/strong&gt;:'));
+
+      var row = this._getEmptyTableRow(ageOfOnsetTable);
+      row.insert(new Element('td', {'class' : 'age-of-onset-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
+      row.insert(new Element('td', {'class' : 'age-of-onset-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
+
+      return container;
+    },
+
+    _displayModeOfInheritance : function(r) {
+      var container = new Element('div', {'class' : 'match-type mode-of-inheritance'});
+      container.insert(new Element('h3').update('Mode of inheritance'));
+      var modeOfInheritanceTable = new Element('table', {'class' : 'mode-of-inheritance'});
+      container.insert(modeOfInheritanceTable);
+
+      var row = this._getEmptyTableRow(modeOfInheritanceTable);
+      row.insert(new Element('td', {'class' : 'hint query'}).update('&lt;strong&gt;' + this._getDisplayedQueryId(true) + '&lt;/strong&gt;:'));
+      row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r, true) + '&lt;/strong&gt;:'));
+
+      var row = this._getEmptyTableRow(modeOfInheritanceTable);
+
+      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ['-'];};
+
+      var referenceElement = new Element('td', {'class' : 'mode-of-inheritance-data query'});
+      row.insert(referenceElement);
+      handleEmptyArray(r.global_mode_of_inheritance).each(function (item) {
+          referenceElement.insert(new Element('div').update(item));
+      });
+
+      var matchedElement = new Element('td', {'class' : 'mode-of-inheritance-data result'});
+      row.insert(matchedElement);
+      handleEmptyArray(r.matched_global_mode_of_inheritance).each(function (item) {
+          matchedElement.insert(new Element('div').update(item));
+      });
+
+      return container;
     },
 
     _displayFeatureMatches : function (r) {
@@ -1537,6 +1586,13 @@
   padding-top: 0;
 }
 
+.match-details table.age-of-onset &gt; tr &gt; td,
+.match-details table.mode-of-inheritance &gt; tr &gt; td {
+  padding-top: 0;
+  padding-bottom: 0;
+  background-color: $theme.menuLinkColor;
+}
+
 .match-details table &gt; tr &gt; td.result {
   background: $theme.highlightColor;
 }
@@ -1589,7 +1645,9 @@
 .match-details table.phenotype-matches .result {
   text-align: left;
 }
-.match-details table.phenotype-matches .phenotypes {
+.match-details table.phenotype-matches .phenotypes,
+.match-details table.mode-of-inheritance .mode-of-inheritance-data,
+.match-details table.age-of-onset .age-of-onset-data {
   padding-left: 2em;
 }</code>
     </property>

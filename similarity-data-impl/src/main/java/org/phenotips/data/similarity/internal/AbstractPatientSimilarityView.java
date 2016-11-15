@@ -24,12 +24,17 @@ import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,6 +47,16 @@ import org.json.JSONObject;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
+    private static final String MATCHED_GLOBAL_MODE_OF_INHERITANCE = "matched_global_mode_of_inheritance";
+
+    private static final String MATCHED_GLOBAL_AGE_OF_ONSET = "matched_global_age_of_onset";
+
+    private static final String GLOBAL_MODE_OF_INHERITANCE = "global_mode_of_inheritance";
+
+    private static final String GLOBAL_AGE_OF_ONSET = "global_age_of_onset";
+
+    private static final String GLOBAL_QUALIFIERS = "global-qualifiers";
+
     private static final String ID_KEY = "id";
 
     private static final String NAME_KEY = "name";
@@ -181,6 +196,28 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return this.contactToken;
     }
 
+    private String getAgeOfOnset(PatientData<List<VocabularyTerm>> globalControllers) {
+        if (globalControllers != null) {
+            List<VocabularyTerm> ageOfOnset = globalControllers.get(GLOBAL_AGE_OF_ONSET);
+            if (ageOfOnset.size() == 1) {
+                return ageOfOnset.get(0).getName();
+            }
+        }
+        return "";
+    }
+
+    private Set<String> getModeOfInheritance(PatientData<List<VocabularyTerm>> globalControllers)
+    {
+        Set<String> modes = new HashSet<>();
+        if (globalControllers != null) {
+            List<VocabularyTerm> modeTermList = globalControllers.get(GLOBAL_MODE_OF_INHERITANCE);
+            for (VocabularyTerm term : modeTermList) {
+                modes.add(term.getName());
+            }
+        }
+        return Collections.unmodifiableSet(modes);
+    }
+
     @Override
     public AccessLevel getAccess()
     {
@@ -230,6 +267,20 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         }
         // Gene variant matching
         result.putOpt("genes", getGenesJSON());
+
+        // The controllers are assigned by this.match.getData(..) and not this.getData(..) because the latter can
+        // be restricted in overriding methods (like RestrictedPatientSimilarityView). The age of onset and mode
+        // of inheritance should be exposed for the matching display even if the rest of the patient is not.
+        PatientData<List<VocabularyTerm>> matchedControllers = this.match.getData(GLOBAL_QUALIFIERS);
+        PatientData<List<VocabularyTerm>> referenceControllers = this.reference.getData(GLOBAL_QUALIFIERS);
+
+        // Age of onset
+        result.put(GLOBAL_AGE_OF_ONSET, this.getAgeOfOnset(referenceControllers));
+        result.put(MATCHED_GLOBAL_AGE_OF_ONSET, this.getAgeOfOnset(matchedControllers));
+
+        // Mode of inheritance
+        result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
+        result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
         return result;
     }
