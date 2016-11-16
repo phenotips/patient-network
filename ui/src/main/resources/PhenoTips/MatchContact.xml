@@ -54,7 +54,10 @@
       'groups'   : "#if($options.groups)${groups}#end",
 
       'subject'  : "[$!{platformName}] $!{options.subject}",
-      'message'  : "$!{options.message}"
+      'message'  : "$!{options.message}",
+
+      'patientURL': $xwiki.getDocument($services.patients.getPatientById("$!{request.patient}").getDocument()).getExternalURL(),
+      'matchURL'  : $xwiki.getDocument($services.patients.getPatientById("$!{request.matchId}").getDocument()).getExternalURL()
   })
 #end
 
@@ -234,6 +237,11 @@ My patient##
 #end
 #end
 #end
+#end
+
+Link to my patient: $!{config.patientURL}
+#if ($!{config.matchURL})##
+Link to your patient: $!{config.matchURL}
 #end
 
 Please let me know if you are interested in my case.
