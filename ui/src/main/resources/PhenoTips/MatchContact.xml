@@ -63,7 +63,7 @@
   #set ($emailObj = $doc.getObject('XWiki.Mail'))
   &lt;dl&gt;
     &lt;dt&gt;&lt;label for="anon-msg-subject"&gt;Subject&lt;/label&gt;&lt;/dt&gt;
-    &lt;dd&gt;&lt;input type="text" name="subject" class="subject" value="Interested in one of your cases"&gt;&lt;/input&gt;&lt;/dd&gt;
+    &lt;dd&gt;&lt;input type="text" name="subject" class="subject" value="Interested in one of your cases: #evaluate($request.matchId)"&gt;&lt;/input&gt;&lt;/dd&gt;
     &lt;dt&gt;&lt;label for="anon-msg-body"&gt;Message&lt;/label&gt;&lt;/dt&gt;
     &lt;dd class="message"&gt;
       &lt;textarea name="message"&gt;

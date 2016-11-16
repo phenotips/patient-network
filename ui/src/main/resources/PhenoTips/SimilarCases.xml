@@ -483,7 +483,7 @@
         var _this = this;
         contactInfo.observe('click', function (event) {
           event.stop();
-          _this._launchContactDialog(r.token, r.owner.id);
+          _this._launchContactDialog(r.token, r.owner.id, r.id);
         });
       }
       return contactInfo.insert({top: " "}).insert({top: icon});
@@ -523,11 +523,12 @@
       return contactInfo.insert({top: " "});
     },
 
-    _launchContactDialog : function (token, contact) {
+    _launchContactDialog : function (token, contact, matchId) {
       var _this = this;
       new Ajax.Request(this.matchContactURL, {
         parameters : {
           'patient': _this.query,
+          'matchId': matchId,
           'token' : token,
           'contact': contact
         },
