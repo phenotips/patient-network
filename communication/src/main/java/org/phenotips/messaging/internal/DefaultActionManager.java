@@ -109,6 +109,7 @@ public class DefaultActionManager implements ActionManager
             mail.setHeader("Reply-To", replyTo);
             mail.setHeader("Return-Path", replyTo);
             mail.setFrom(PHENOMECENTRAL_EMAIL);
+            mail.setCc(getEmail(connection.getInitiatingUser()));
             mail.setBcc("qc@phenomecentral.org");
             mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
