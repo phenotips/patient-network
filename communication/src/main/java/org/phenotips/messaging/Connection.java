@@ -25,6 +25,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.UserManager;
 
 import java.util.UUID;
 
@@ -89,7 +90,7 @@ public class Connection
         this.targetPatient = patientPair;
         this.referencePatient = patientPair.getReference();
         PatientAccess pa = getAccess(patientPair.getReference());
-        this.initiatingUser = new DocumentReference(pa.getOwner().getUser());
+        this.initiatingUser = this.getUserManager().getCurrentUser().getProfileDocument();
         pa = getAccess(patientPair);
         this.contactedUser = new DocumentReference(pa.getOwner().getUser());
     }
@@ -227,6 +228,15 @@ public class Connection
     {
         try {
             return ComponentManagerRegistry.getContextComponentManager().getInstance(type);
+        } catch (ComponentLookupException e) {
+            return null;
+        }
+    }
+
+    private UserManager getUserManager()
+    {
+        try {
+            return ComponentManagerRegistry.getContextComponentManager().getInstance(UserManager.class);
         } catch (ComponentLookupException e) {
             return null;
         }
