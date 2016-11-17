@@ -122,10 +122,10 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
                     geneSolvedNames.add(geneName);
                 }
             }
-            if (!geneCandidateNames.isEmpty()) {
-                return Collections.unmodifiableSet(geneCandidateNames);
-            } else if (!geneSolvedNames.isEmpty()) {
+            if (!geneSolvedNames.isEmpty()) {
                 return Collections.unmodifiableSet(geneSolvedNames);
+            } else if (!geneCandidateNames.isEmpty()) {
+                return Collections.unmodifiableSet(geneCandidateNames);
             }
 
         }
