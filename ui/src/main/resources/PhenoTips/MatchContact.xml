@@ -91,8 +91,11 @@
   #set ($discard = $xwiki.ssx.use($doc.fullName))
   #set ($platformName = 'PhenomeCentral')## TODO: get this from a configuration
   #if ($request.send)
-    #_prepareConfig($request)
-    #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $config))
+    #set ($options = {
+      'subject'  : "$!{request.subject}",
+      'message'  : "$!{request.message}"
+    })
+    #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $options))
     #if ($result != 0)
       $response.setStatus($result)
     #end
