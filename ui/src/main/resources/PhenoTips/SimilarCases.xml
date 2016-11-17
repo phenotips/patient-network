@@ -639,8 +639,8 @@
       row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r, true) + '&lt;/strong&gt;:'));
 
       var row = this._getEmptyTableRow(ageOfOnsetTable);
-      row.insert(new Element('td', {'class' : 'age-of-onset-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
-      row.insert(new Element('td', {'class' : 'age-of-onset-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
+      row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
+      row.insert(new Element('td', {'class' : 'table-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
 
       return container;
     },
@@ -659,13 +659,13 @@
 
       var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ['-'];};
 
-      var referenceElement = new Element('td', {'class' : 'mode-of-inheritance-data query'});
+      var referenceElement = new Element('td', {'class' : 'table-data query'});
       row.insert(referenceElement);
       handleEmptyArray(r.global_mode_of_inheritance).each(function (item) {
           referenceElement.insert(new Element('div').update(item));
       });
 
-      var matchedElement = new Element('td', {'class' : 'mode-of-inheritance-data result'});
+      var matchedElement = new Element('td', {'class' : 'table-data result'});
       row.insert(matchedElement);
       handleEmptyArray(r.matched_global_mode_of_inheritance).each(function (item) {
           matchedElement.insert(new Element('div').update(item));
@@ -701,8 +701,8 @@
            labelsRow.insert(new Element('td', {'class' : 'hint query'}).update(columns.query.title));
            labelsRow.insert(new Element('td', {'class' : 'hint result'}).update(columns.result.title));
            var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           var crtPFeatures = new Element('td', {'class' : 'phenotypes query'});
-           var otherPFeatures = new Element('td', {'class' : 'phenotypes result'});
+           var crtPFeatures = new Element('td', {'class' : 'table-data query'});
+           var otherPFeatures = new Element('td', {'class' : 'table-data result'});
            phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
            if (featureMatch.reference) {
              featureMatch.reference.each(function (fId) {
@@ -1645,10 +1645,8 @@
 .match-details table.phenotype-matches .result {
   text-align: left;
 }
-.match-details table.phenotype-matches .phenotypes,
-.match-details table.mode-of-inheritance .mode-of-inheritance-data,
-.match-details table.age-of-onset .age-of-onset-data {
-  padding-left: 2em;
+.match-details table .table-data {
+  padding-left: 2em !important;
 }</code>
     </property>
     <property>
