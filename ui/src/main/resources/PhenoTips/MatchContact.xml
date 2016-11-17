@@ -211,7 +211,7 @@
     <property>
       <text>Hello#if("$!{firstName}" != '') $firstName#end,
 
-${platformName} has identified significant similarities between one of your cases and one of mine. I would like to discuss our cases.
+${platformName} has identified similarities between one of my patients and one of yours: $!{config.matchURL}
 
 My patient##
 #if($patient.disorders.size() == 0)
@@ -234,7 +234,7 @@ My patient##
 #set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
 #end
 #set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
- presents the following phenotypic features:
+ presents with the following phenotypic features:
 #foreach ($f in $sortedFeatures)
 * #if (!$f.feature.isPresent())NO #end$f.name
 #if ($f.feature.metadata.size() &gt; 0)
@@ -244,13 +244,24 @@ My patient##
 #end
 #end
 #end
+#set($sortedGenes = [])
+#foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
+#set ($symbol = $gene.getProperty('gene').value)
+#set ($status = $gene.getProperty('status').value)
+#if ($status != 'rejected')
+#set ($discard = $sortedGenes.add({'symbol' : $symbol, 'status' : $status}))
+#end
+#end
+#set($sortedGenes = $sorttool.sort($sortedGenes, ['status', 'symbol']))
+#if ($sortedGenes.size() &gt; 0)
 
-Link to my patient: $!{config.patientURL}
-#if ($!{config.matchURL})##
-Link to your patient: $!{config.matchURL}
+I've identified the following genes as relevant:
+#foreach ($g in $sortedGenes)
+* $g.symbol ($g.status)
+#end
 #end
 
-Please let me know if you are interested in my case.
+Please let me know if you are interested in my case: $!{config.patientURL}
 
 #if ("$!{config.name}$!{config.email}" != '')
 Regards,
