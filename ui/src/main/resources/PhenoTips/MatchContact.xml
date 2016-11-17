@@ -48,6 +48,10 @@
       #set ($groups = "$groups#if ($foreach.index &gt; 0) | #end$g")
     #end
   #end
+
+  #set ($patientURL = $xwiki.getDocument($services.patients.getPatientById("$!{request.patient}").getDocument()).getExternalURL())
+  ## Circumvent rights check to get matching patient's URL
+  #set ($matchURL = $patientURL.replace($request.patient, $request.matchId))
   #set ($config = {
       'name'     : "#if($options.name)$xwiki.getUserName($xcontext.user, false)#end",
       'email'    : "#if($options.email)$!{email}#end",
@@ -56,8 +60,8 @@
       'subject'  : "[$!{platformName}] $!{options.subject}",
       'message'  : "$!{options.message}",
 
-      'patientURL': $xwiki.getDocument($services.patients.getPatientById("$!{request.patient}").getDocument()).getExternalURL(),
-      'matchURL'  : $xwiki.getDocument($services.patients.getPatientById("$!{request.matchId}").getDocument()).getExternalURL()
+      'patientURL': "$!{patientURL}",
+      'matchURL'  : "$!{matchURL}"
   })
 #end
 
