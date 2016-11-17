@@ -44,8 +44,10 @@
   #set ($groupDocs = $xwiki.wrapDocs($xwiki.rightsmanager.getAllGroupsNamesForMember($xcontext.userReference)))
   #foreach ($gDoc in $groupDocs)
     #if ($gDoc.getObject('PhenoTips.PhenoTipsGroupClass'))
-      #set ($g = "#if ($gDoc.plainTitle != '')$gDoc.plainTitle#else${gDoc.name}#end")
-      #set ($groups = "$groups#if ($foreach.index &gt; 0) | #end$g")
+      #set ($g = "#if ($gDoc.plainTitle != '')${gDoc.plainTitle}#else${gDoc.name}#end")
+      #if ($g != '')
+        #set ($groups = "#if ($groups != '')${groups} | #end${g}")
+      #end
     #end
   #end
 
