@@ -212,42 +212,24 @@
       <subject>$config.subject</subject>
     </property>
     <property>
-      <text>Hello#if("$!{firstName}" != '') $firstName#end,
-
-${platformName} has identified similarities between one of my patients and one of yours: $!{config.matchURL}
-
-My patient##
-#if($patient.disorders.size() == 0)
- is undiagnosed##
-#else
- is diagnosed with
+      <text>## ===== Look up disorders =====
+#set($sortedDisorders = [])
+#set($hasDisorders = $patient.disorders &amp;&amp; $patient.disorders.size() &gt; 0)
+#if ($hasDisorders)
 #set($sortedDisorders = $sorttool.sort($patient.disorders, 'name'))
-#foreach ($d in $sortedDisorders)
-* $d.name
 #end
-#end
-#if ($patient.features.size() &gt; 0)
- and##
-#else
-.
-#end
-#if ($patient.features.size() &gt; 0)
+##
+## ===== Look up features =====
 #set($sortedFeatures = [])
+#set($hasFeatures = $patient.features &amp;&amp; $patient.features.size() &gt; 0)
+#if ($hasFeatures)
 #foreach ($f in $patient.features)
 #set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
 #end
 #set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
- presents with the following phenotypic features:
-#foreach ($f in $sortedFeatures)
-* #if (!$f.feature.isPresent())NO #end$f.name
-#if ($f.feature.metadata.size() &gt; 0)
-#foreach ($m in $f.feature.metadata.keySet())
-  - $f.feature.metadata.get($m).name
 #end
-#end
-#end
-#end
-#set($sortedGenes = [])
+##
+## ===== Look up genes =====
 #foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
 #set ($symbol = $gene.getValue('gene'))
 #set ($status = $gene.getValue('status'))
@@ -256,9 +238,45 @@ My patient##
 #end
 #end
 #set($sortedGenes = $sorttool.sort($sortedGenes, ['status:desc', 'symbol:asc']))
-#if ($sortedGenes.size() &gt; 0)
+#set($hasGenes = $sortedGenes.size() &gt; 0)
+##
+## ===== Begin email template =====
+Hello#if("$!{firstName}" != '') $firstName#end,
 
-I've identified the following genes as relevant:
+${platformName} has identified similarities between one of my patients and your patient: $!{config.matchURL}
+
+My patient##
+#if($hasDisorders)
+ is diagnosed with:
+#foreach ($d in $sortedDisorders)
+* $d.name
+#end
+#if ($hasFeatures)
+
+My patient##
+#end
+#else
+ is undiagnosed##
+#if ($hasFeatures)
+ and##
+#else
+.
+#end
+#end
+#if ($hasFeatures)
+ presents with the following phenotypic features:
+#foreach ($f in $sortedFeatures)
+* #if (!$f.feature.isPresent())NO #end$f.name
+#if ($f.feature.metadata)
+#foreach ($m in $f.feature.metadata.keySet())
+  - $f.feature.metadata.get($m).name
+#end
+#end
+#end
+#end
+#if ($hasGenes)
+
+I have identified the following genes as relevant:
 #foreach ($g in $sortedGenes)
 * $g.symbol ($g.status)
 #end
