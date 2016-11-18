@@ -44,17 +44,26 @@
   #set ($groupDocs = $xwiki.wrapDocs($xwiki.rightsmanager.getAllGroupsNamesForMember($xcontext.userReference)))
   #foreach ($gDoc in $groupDocs)
     #if ($gDoc.getObject('PhenoTips.PhenoTipsGroupClass'))
-      #set ($g = "#if ($gDoc.plainTitle != '')$gDoc.plainTitle#else${gDoc.name}#end")
-      #set ($groups = "$groups#if ($foreach.index &gt; 0) | #end$g")
+      #set ($g = "#if ($gDoc.plainTitle != '')${gDoc.plainTitle}#else${gDoc.name}#end")
+      #if ($g != '')
+        #set ($groups = "#if ($groups != '')${groups} | #end${g}")
+      #end
     #end
   #end
+
+  #set ($patientURL = $xwiki.getDocument($services.patients.getPatientById("$!{request.patient}").getDocument()).getExternalURL())
+  ## Circumvent rights check to get matching patient's URL
+  #set ($matchURL = $patientURL.replace($request.patient, $request.matchId))
   #set ($config = {
       'name'     : "#if($options.name)$xwiki.getUserName($xcontext.user, false)#end",
       'email'    : "#if($options.email)$!{email}#end",
       'groups'   : "#if($options.groups)${groups}#end",
 
       'subject'  : "[$!{platformName}] $!{options.subject}",
-      'message'  : "$!{options.message}"
+      'message'  : "$!{options.message}",
+
+      'patientURL': "$!{patientURL}",
+      'matchURL'  : "$!{matchURL}"
   })
 #end
 
@@ -63,7 +72,7 @@
   #set ($emailObj = $doc.getObject('XWiki.Mail'))
   &lt;dl&gt;
     &lt;dt&gt;&lt;label for="anon-msg-subject"&gt;Subject&lt;/label&gt;&lt;/dt&gt;
-    &lt;dd&gt;&lt;input type="text" name="subject" class="subject" value="Interested in one of your cases"&gt;&lt;/input&gt;&lt;/dd&gt;
+    &lt;dd&gt;&lt;input type="text" name="subject" class="subject" value="Interested in one of your cases: ${request.matchId}"&gt;&lt;/input&gt;&lt;/dd&gt;
     &lt;dt&gt;&lt;label for="anon-msg-body"&gt;Message&lt;/label&gt;&lt;/dt&gt;
     &lt;dd class="message"&gt;
       &lt;textarea name="message"&gt;
@@ -82,8 +91,11 @@
   #set ($discard = $xwiki.ssx.use($doc.fullName))
   #set ($platformName = 'PhenomeCentral')## TODO: get this from a configuration
   #if ($request.send)
-    #_prepareConfig($request)
-    #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $config))
+    #set ($options = {
+      'subject'  : "$!{request.subject}",
+      'message'  : "$!{request.message}"
+    })
+    #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $options))
     #if ($result != 0)
       $response.setStatus($result)
     #end
@@ -202,7 +214,7 @@
     <property>
       <text>Hello#if("$!{firstName}" != '') $firstName#end,
 
-${platformName} has identified significant similarities between one of your cases and one of mine. I would like to discuss our cases.
+${platformName} has identified similarities between one of my patients and one of yours: $!{config.matchURL}
 
 My patient##
 #if($patient.disorders.size() == 0)
@@ -225,7 +237,7 @@ My patient##
 #set($discard = $sortedFeatures.add({'name' : $f.name, 'feature' : $f}))
 #end
 #set($sortedFeatures = $sorttool.sort($sortedFeatures, 'name'))
- presents the following phenotypic features:
+ presents with the following phenotypic features:
 #foreach ($f in $sortedFeatures)
 * #if (!$f.feature.isPresent())NO #end$f.name
 #if ($f.feature.metadata.size() &gt; 0)
@@ -235,8 +247,24 @@ My patient##
 #end
 #end
 #end
+#set($sortedGenes = [])
+#foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
+#set ($symbol = $gene.getValue('gene'))
+#set ($status = $gene.getValue('status'))
+#if ($status != 'rejected')
+#set ($discard = $sortedGenes.add({'symbol' : $symbol, 'status' : $status}))
+#end
+#end
+#set($sortedGenes = $sorttool.sort($sortedGenes, ['status:desc', 'symbol:asc']))
+#if ($sortedGenes.size() &gt; 0)
 
-Please let me know if you are interested in my case.
+I've identified the following genes as relevant:
+#foreach ($g in $sortedGenes)
+* $g.symbol ($g.status)
+#end
+#end
+
+Please let me know if you are interested in my case: $!{config.patientURL}
 
 #if ("$!{config.name}$!{config.email}" != '')
 Regards,
