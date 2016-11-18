@@ -230,6 +230,7 @@
 #end
 ##
 ## ===== Look up genes =====
+#set($sortedGenes = [])
 #foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
 #set ($symbol = $gene.getValue('gene'))
 #set ($status = $gene.getValue('status'))
