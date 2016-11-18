@@ -94,11 +94,11 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     @Override
     public Exome getExome(Patient patient)
     {
-        String id = patient.getId();
-        if (id == null) {
+        if (patient.getDocument() == null) {
             // this must be a remote patient: such patients never have an exome
             return null;
         }
+        String id = patient.getId();
         Exome exome = null;
         if (this.exomeCache != null) {
             exome = this.exomeCache.get(id);
