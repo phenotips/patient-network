@@ -384,11 +384,13 @@
       return summary;
     },
 
-    _getDisplayedQueryId : function (capitalize) {
-      return (capitalize ? 'T' : 't') + 'he current patient' + (this._data &amp;&amp; this._data.query &amp;&amp; this._data.query.id &amp;&amp; (' (' + this._data.query.id + ')') || '');
+    _getDisplayedQueryId : function () {
+      var patientExpression = this._data &amp;&amp; this._data.query &amp;&amp; this._data.query.id &amp;&amp; (' (' + this._data.query.id + ')') || '';
+      return "$escapetool.javascript($services.localization.render('phenotips.similarCases.currentPatient.title'))" + patientExpression;
     },
-    _getDisplayedResultId : function (r, capitalize) {
-      return (capitalize ? 'T' : 't') + 'he matched patient' + (r &amp;&amp; r.id &amp;&amp; (' (' + r.id + ')') || '');
+    _getDisplayedResultId : function (r) {
+      var patientExpression = r &amp;&amp; r.id &amp;&amp; (' (' + r.id + ')') || '';
+      return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchedPatient.title'))" + patientExpression;
     },
 
     _createFeatureIndex : function(features) {
@@ -588,8 +590,8 @@
 
       // Provide access to the actual matching details
 
-      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("Show phenotype and genotype similarity...");
-      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("Hide phenotype and genotype similarity...");
+      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.show'))");
+      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.hide'))");
       var matchSummary = this.displaySummary("", details).insert(new Element('span', {"class" : "buttonwrapper"}).insert(showDetails).insert(hideDetails));
 
       // Generate the feature/variant comparison table
@@ -635,7 +637,7 @@
 
     _displayAgeOfOnset : function(r) {
       var container = new Element('div', {'class' : 'match-type age-of-onset'});
-      container.insert(new Element('h3').update('Age of onset'));
+      container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))"));
       var formatAgeOfOnset = function(age) {return age ? age : 'Unknown';};
       var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
       container.insert(ageOfOnsetTable);
@@ -651,7 +653,7 @@
 
     _displayModeOfInheritance : function(r) {
       var container = new Element('div', {'class' : 'match-type mode-of-inheritance'});
-      container.insert(new Element('h3').update('Mode of inheritance'));
+      container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))"));
       var modeOfInheritanceTable = new Element('table', {'class' : 'mode-of-inheritance'});
       container.insert(modeOfInheritanceTable);
 
@@ -678,7 +680,7 @@
 
     _displayFeatureMatches : function (r) {
       var container = new Element('div', {'class' : 'match-type features'});
-      container.insert(new Element('h3').update('Phenotypic features breakdown'));
+      container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))"));
       if (!r.featureMatches) {
         container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'));
         return container;
@@ -687,10 +689,10 @@
       var _this = this;
       var columns = {
         "query" : {
-          "title" : '&lt;strong&gt;' + this._getDisplayedQueryId(true) + "&lt;/strong&gt; presented with:",
+          "title" : '&lt;strong&gt;' + this._getDisplayedQueryId() + "&lt;/strong&gt; " + "$services.localization.render("phenotips.similarCases.patient.subtitle")",
         },
         "result" : {
-          "title" : '&lt;strong&gt;' + this._getDisplayedResultId(r, true) + "&lt;/strong&gt; presented with:",
+          "title" : '&lt;strong&gt;' + this._getDisplayedResultId(r) + "&lt;/strong&gt; " + "$services.localization.render("phenotips.similarCases.patient.subtitle")",
         }
       };
       var resultFeatures = _this._createFeatureIndex(r.features);
@@ -763,7 +765,7 @@
 
     _displayGeneMatches : function(r) {
       var container = new Element('div', {'class' : 'match-type genes'});
-      container.insert(new Element('h3').update('Gene matching breakdown'));
+      container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.geneMatchingBreakdown'))"));
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
