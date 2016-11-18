@@ -207,25 +207,18 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     @Override
     public Double getGeneScore(String gene)
     {
-        // If gene is a candidate gene, reduce distance of score to 1.0
-        // by 1 / (# of candidate genes).
-        // If variant is not found in exome, score is 0.9 ** (# candidate genes - 1)
+        // If gene is a candidate gene, score is 1.0
+        // Else, score is exomizer score * 0.5
         Double score = null;
-        if (this.exome != null) {
+        if (this.candidateGenes != null && this.candidateGenes.contains(gene)) {
+            score = 1.0;
+        } else if (this.exome != null) {
             score = this.exome.getGeneScore(gene);
             if (score != null) {
                 score *= 0.5;
             }
         }
-        // Boost score closer to 1.0 if manual candidate gene
-        if (this.candidateGenes != null && this.candidateGenes.contains(gene)) {
-            if (score == null) {
-                score = Math.pow(0.9, this.candidateGenes.size() - 1);
-            } else {
-                double candidateGeneBoost = (1.0 - score) / this.candidateGenes.size();
-                score += candidateGeneBoost;
-            }
-        }
+
         return score;
     }
 }
