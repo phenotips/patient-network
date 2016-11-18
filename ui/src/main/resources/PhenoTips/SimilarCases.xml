@@ -627,6 +627,12 @@
       return result;
     },
 
+    _createTableSectionTitle : function(table,r ) {
+      var row = this._getEmptyTableRow(table);
+      row.insert(new Element('td', {'class' : 'hint query'}).update('&lt;strong&gt;' + this._getDisplayedQueryId() + '&lt;/strong&gt;:'));
+      row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r) + '&lt;/strong&gt;:'));
+    },
+
     _displayAgeOfOnset : function(r) {
       var container = new Element('div', {'class' : 'match-type age-of-onset'});
       container.insert(new Element('h3').update('Age of onset'));
@@ -634,9 +640,7 @@
       var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
       container.insert(ageOfOnsetTable);
 
-      var row = this._getEmptyTableRow(ageOfOnsetTable);
-      row.insert(new Element('td', {'class' : 'hint query'}).update('&lt;strong&gt;' + this._getDisplayedQueryId(true) + '&lt;/strong&gt;:'));
-      row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r, true) + '&lt;/strong&gt;:'));
+      this._createTableSectionTitle(ageOfOnsetTable, r);
 
       var row = this._getEmptyTableRow(ageOfOnsetTable);
       row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
@@ -651,9 +655,7 @@
       var modeOfInheritanceTable = new Element('table', {'class' : 'mode-of-inheritance'});
       container.insert(modeOfInheritanceTable);
 
-      var row = this._getEmptyTableRow(modeOfInheritanceTable);
-      row.insert(new Element('td', {'class' : 'hint query'}).update('&lt;strong&gt;' + this._getDisplayedQueryId(true) + '&lt;/strong&gt;:'));
-      row.insert(new Element('td', {'class' : 'hint result'}).update('&lt;strong&gt;' + this._getDisplayedResultId(r, true) + '&lt;/strong&gt;:'));
+      this._createTableSectionTitle(modeOfInheritanceTable, r);
 
       var row = this._getEmptyTableRow(modeOfInheritanceTable);
 
