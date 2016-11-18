@@ -249,13 +249,13 @@ My patient##
 #end
 #set($sortedGenes = [])
 #foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
-#set ($symbol = $gene.getProperty('gene').value)
-#set ($status = $gene.getProperty('status').value)
+#set ($symbol = $gene.getValue('gene'))
+#set ($status = $gene.getValue('status'))
 #if ($status != 'rejected')
 #set ($discard = $sortedGenes.add({'symbol' : $symbol, 'status' : $status}))
 #end
 #end
-#set($sortedGenes = $sorttool.sort($sortedGenes, ['status', 'symbol']))
+#set($sortedGenes = $sorttool.sort($sortedGenes, ['status:desc', 'symbol:asc']))
 #if ($sortedGenes.size() &gt; 0)
 
 I've identified the following genes as relevant:
