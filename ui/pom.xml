@@ -52,11 +52,6 @@
     </dependency>
     <dependency>
       <groupId>org.phenotips</groupId>
-      <artifactId>patient-similarity-configuration</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phenotips</groupId>
       <artifactId>anonymous-communication</artifactId>
       <version>${project.version}</version>
     </dependency>

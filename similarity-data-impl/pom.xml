@@ -40,11 +40,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-similarity-configuration</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>anonymous-communication</artifactId>
       <version>${project.version}</version>
     </dependency>
