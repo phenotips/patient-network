@@ -76,6 +76,7 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
      * Retrieve all genotype match information in a JSON format. For example:
      *
      * <pre>
+     * {@code
      *      [
      *         {
      *            "gene" : <gene name>,
@@ -110,6 +111,7 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
      *        },
      *        ...
      *     ]
+     * }
      * </pre>
      *
      * @return the data about this value, using the org.json classes, empty if there are no matches and null if the

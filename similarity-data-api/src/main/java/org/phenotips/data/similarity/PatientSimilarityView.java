@@ -48,8 +48,8 @@ public interface PatientSimilarityView extends Patient
     AccessLevel getAccess();
 
     /**
-     * A JSON-formated string containing the matching patient's owners information. "id" key stores
-     * owner's username. "name" key stores owner's full name (First Last).
+     * A JSON-formated string containing the matching patient's owners information. "id" key stores owner's username.
+     * "name" key stores owner's full name (First Last).
      *
      * @return the name of the owner of the matching patient, or {@code null} if not available
      */
@@ -57,7 +57,7 @@ public interface PatientSimilarityView extends Patient
 
     /**
      * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
-     * token as an identifier for the pair (reference patient<->matched patient).
+     * token as an identifier for the pair (reference patient&lt;-&gt;matched patient).
      *
      * @return a token which can be used for identifying the anonymous email session
      */
@@ -74,16 +74,14 @@ public interface PatientSimilarityView extends Patient
     /**
      * Get the phenotypic similarity score for this patient match.
      *
-     * @return the similarity score, between 0 (a poor match) and 1 (a good
-     *         match)
+     * @return the similarity score, between 0 (a poor match) and 1 (a good match)
      */
     double getPhenotypeScore();
 
     /**
      * Get the genotypic similarity score for this patient match.
      *
-     * @return the similarity score, between 0 (a poor match) and 1 (a good
-     *         match)
+     * @return the similarity score, between 0 (a poor match) and 1 (a good match)
      */
     double getGenotypeScore();
 }

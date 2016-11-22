@@ -35,7 +35,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 /**
  * Stores a connection between the owners of two matched patients, anonymously, to be used for email communication. The
  * identities of the two parties are kept private, since mails are sent behind the scenes, while the users only see the
- * {@link #id identifier of the connection}.
+ * {@link Connection#getToken() identifier of the connection}.
  *
  * @version $Id$
  * @since 1.0M1
