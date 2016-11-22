@@ -112,7 +112,7 @@ public class ExomiserViewScriptService implements ScriptService
             geneJSON.put("score", patientExome.getGeneScore(geneName));
 
             JSONArray variantsJSON = new JSONArray();
-            List<Variant> topVariants = patientExome.getTopVariants(geneName);
+            List<Variant> topVariants = patientExome.getTopVariants(geneName, maxVars);
             for (int i = 0; i < Math.min(maxVars, topVariants.size()); i++) {
                 Variant variant = topVariants.get(i);
                 if (variant != null) {

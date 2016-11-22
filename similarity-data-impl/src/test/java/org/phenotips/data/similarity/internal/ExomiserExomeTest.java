@@ -74,7 +74,7 @@ public class ExomiserExomeTest
         Assert.assertEquals(0.9876266, exome.getGeneScore("SRCAP"), 0.00001);
 
         // Get top variant and make sure it was parsed correctly
-        List<Variant> vs = exome.getTopVariants("SRCAP");
+        List<Variant> vs = exome.getTopVariants("SRCAP", 99);
         Assert.assertEquals(1, vs.size());
 
         Variant v1 = vs.get(0);
@@ -93,7 +93,7 @@ public class ExomiserExomeTest
     {
         Exome exome = parseExomeFromString(TEST_FILE);
 
-        List<Variant> vs = exome.getTopVariants("NOTCH2");
+        List<Variant> vs = exome.getTopVariants("NOTCH2", 99);
         Assert.assertEquals(3, vs.size());
         Assert.assertTrue(vs.get(0).getScore() > vs.get(1).getScore() &&
             vs.get(1).getScore() > vs.get(2).getScore());
@@ -106,7 +106,7 @@ public class ExomiserExomeTest
         Exome exome = parseExomeFromString(TEST_FILE);
         String geneName = "Unknown gene";
         Assert.assertNull(exome.getGeneScore(geneName));
-        Assert.assertTrue(exome.getTopVariants(geneName).isEmpty());
+        Assert.assertTrue(exome.getTopVariants(geneName, 99).isEmpty());
     }
 
     /** Genes should iterate in decreasing order of score. */

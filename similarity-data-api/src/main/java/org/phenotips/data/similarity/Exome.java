@@ -49,12 +49,12 @@ public interface Exome
     Double getGeneScore(String gene);
 
     /**
-     * Get {@link Variant}s for a gene.
-     *
+     * Get {@link Variant}s for a gene, limit to k variants.
      * @param gene the gene to get {@link Variant}s for.
+     * @param k the number of variants to return.
      * @return an unmodifiable (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score
      */
-    List<Variant> getTopVariants(String gene);
+    List<Variant> getTopVariants(String gene, int k);
 
     /**
      * Get the n highest genes, in descending order of score. If there are fewer than n genes, all will be returned.

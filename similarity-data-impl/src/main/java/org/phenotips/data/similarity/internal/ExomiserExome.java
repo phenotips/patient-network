@@ -152,16 +152,6 @@ public class ExomiserExome extends AbstractExome implements Exome
     }
 
     @Override
-    public List<Variant> getTopVariants(String gene)
-    {
-        List<Variant> vs = this.variants.get(gene);
-        if (vs == null) {
-            vs = Collections.emptyList();
-        }
-        return vs;
-    }
-
-    @Override
     public JSONArray toJSON()
     {
         JSONArray geneList = new JSONArray();
