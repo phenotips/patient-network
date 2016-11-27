@@ -318,9 +318,9 @@
         return;
       }
       data.featuresCount = data.query.features ? data.query.features.size() : 0;
-
       data.resultsCount = Math.min(data.resultsCount, this._MAX_RESULTS_DISPLAYED);
       data.results = data.results.slice(0, data.resultsCount);
+
       this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
 
       // Process features
