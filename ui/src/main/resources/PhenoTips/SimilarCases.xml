@@ -1231,6 +1231,16 @@
   display: none !important;
 }
 
+.chapter.similarity-info .similar-cases-category {
+  margin-top: 3.5em;
+}
+.chapter.similarity-info h3 {
+  border: 0 none;
+}
+.chapter.similarity-info .similar-cases-local h3 {
+  float: left;
+  margin-top: 5px;
+}
 .similarity-results-container .similarity-results {
   border: 0 none;
   margin: 1em 0 0;
@@ -1754,13 +1764,15 @@
       (% class="clear clinical-info similarity-info chapter"%)(((##
       == Similar cases ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
-
-=== Patient profiles contributed by users ===
+(% class="similar-cases-category similar-cases-local" %)(((
+=== Matches with patient profiles deposited in this database ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
-
+)))
 ## Allow to plug in other data sources
 #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
+(% class="similar-cases-category" %)(((
  {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
+)))
 #end
     #end## can see similar patients
   #end## suggestions enabled
