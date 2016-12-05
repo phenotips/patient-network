@@ -94,13 +94,16 @@ public class ExomiserViewScriptService implements ScriptService
             return result;
         }
 
-        boolean restrictGenes =
-            (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess) && g > MAXIMUM_UNPRIVILEGED_GENES);
-        int maxGenes = restrictGenes ? MAXIMUM_UNPRIVILEGED_GENES : g;
-
         Exome patientExome = this.exomeManager.getExome(patient);
         if (patientExome == null) {
             return result;
+        }
+
+        int maxGenes = g;
+        int maxVars = v;
+        if (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)) {
+            maxGenes = Math.min(g, MAXIMUM_UNPRIVILEGED_GENES);
+            maxVars = Math.min(v, MAXIMUM_UNPRIVILEGED_VARIANTS);
         }
 
         for (String geneName : patientExome.getTopGenes(maxGenes)) {
@@ -109,12 +112,8 @@ public class ExomiserViewScriptService implements ScriptService
             geneJSON.put("score", patientExome.getGeneScore(geneName));
 
             JSONArray variantsJSON = new JSONArray();
-            boolean restrictVariants = (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)
-                && v > MAXIMUM_UNPRIVILEGED_VARIANTS);
-            int maxVars = restrictVariants ? MAXIMUM_UNPRIVILEGED_VARIANTS : v;
             List<Variant> topVariants = patientExome.getTopVariants(geneName);
-            maxVars = Math.min(maxVars, topVariants.size());
-            for (int i = 0; i < maxVars; i++) {
+            for (int i = 0; i < Math.min(maxVars, topVariants.size()); i++) {
                 Variant variant = topVariants.get(i);
                 if (variant != null) {
                     variantsJSON.put(variant.toJSON());
