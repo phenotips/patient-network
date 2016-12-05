@@ -99,6 +99,10 @@ public class ExomiserViewScriptService implements ScriptService
         int maxGenes = restrictGenes ? MAXIMUM_UNPRIVILEGED_GENES : g;
 
         Exome patientExome = this.exomeManager.getExome(patient);
+        if (patientExome == null) {
+            return result;
+        }
+
         for (String geneName : patientExome.getTopGenes(maxGenes)) {
             JSONObject geneJSON = new JSONObject();
             geneJSON.put("name", geneName);
