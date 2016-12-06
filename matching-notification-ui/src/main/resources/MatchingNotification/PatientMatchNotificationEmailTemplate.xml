@@ -92,38 +92,15 @@
       </text>
     </class>
     <property>
-      <html>&lt;style&gt;
-table, td, th {
-   border          : 1px solid black;
-   border-collapse : collapse;
-   text-align      : left;
-   vertical-align  : top;
-   font-weight     : normal;
-}
-
-.subheader {
-   font-weight : bold;
-}
-
-.grey-background {
-   background -color : light-grey;
-   width : 300px;
-}
-
-.space-between-matches {
-   margin-top : 25px;
-}
-
-.disclaimer {
-   font-size : 10px;
-}
-
-.patient-id {
-   white-space : no-wrap;
-}
-&lt;/style&gt;
+      <html>
 &lt;p&gt;Hello,&lt;/p&gt;
 &lt;p&gt;
+#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal; padding: 0.2em;')
+#set($subheader = 'font-weight : bold;')
+#set($grey-background = 'background-color : lightgrey; width : 300px;')
+#set($space-between-matches = 'margin-top : 25px;')
+#set($disclaimer = 'font-size : 10px;')
+#set($patient-id = 'white-space : no-wrap;')
 #if ($matches.size() == 1)
 A potential match was
 #else
@@ -131,43 +108,43 @@ Potential matches were
 #end
 found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 #foreach ($match in $matches)
-&lt;table&gt;
+&lt;table  style="$table"&gt;
    &lt;thead&gt;
       &lt;tr&gt;
-         &lt;th&gt;
-         &lt;th class="grey-background"&gt;
-            &lt;div class="subheader"&gt;Your patient&lt;/div&gt;
-            &lt;div class="patient-id"&gt;
+         &lt;th&gt;&lt;/th&gt;
+         &lt;th style="$grey-background $table"&gt;
+            &lt;div style="$subheader"&gt;Your patient&lt;/div&gt;
+            &lt;div style="$patient-id"&gt;
                &lt;span&gt;$subjectPatient.patientId&lt;/span&gt;
                &lt;span&gt;$subjectPatient.externalId&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
-         &lt;th class="grey-background"&gt;
-            &lt;div class="subheader"&gt;Potential match&lt;/div&gt;
+         &lt;th style="$grey-background $table"&gt;
+            &lt;div style="$subheader"&gt;Potential match&lt;/div&gt;
             &lt;div&gt;
                &lt;span&gt;$match.matchedPatient.patientId&lt;/span&gt;
                &lt;span&gt;$!{escapetool.xml($match.matchedPatient.serverId)}&lt;/span&gt;
             &lt;/div&gt;
-         &lt;/ht&gt;
+         &lt;/th&gt;
       &lt;/tr&gt;
    &lt;/thead&gt;
    &lt;tbody&gt;
-      &lt;tr&gt;
-         &lt;td&gt;&lt;div class="subheader"&gt;Genes&lt;/div&gt;&lt;/td&gt;
-         &lt;td&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Genes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($gene in $subjectPatient.candidateGenes)
 &lt;div&gt;$gene&lt;/div&gt;
 #end
          &lt;/td&gt;
-         &lt;td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($gene in $match.matchedPatient.candidateGenes)
 &lt;div&gt;$gene&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
-      &lt;tr&gt;
-         &lt;td&gt;&lt;div class="subheader"&gt;Phenotypes&lt;/div&gt;&lt;/td&gt;
-         &lt;td&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Phenotypes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($phenotype in $subjectPatient.phenotypes.predefined)
 &lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
@@ -175,7 +152,7 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 &lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
          &lt;/td&gt;
-         &lt;td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
 &lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
 #end
@@ -184,28 +161,28 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
-      &lt;tr&gt;
-         &lt;td&gt;&lt;div class="subheader"&gt;Mode of inheritance&lt;/div&gt;&lt;/td&gt;
-         &lt;td&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Mode of inheritance&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($item in $subjectPatient.modeOfInheritance)
 &lt;div&gt;$item&lt;div&gt;
 #end
          &lt;/td&gt;
-         &lt;td&gt;
+         &lt;td style="$table"&gt;
 #foreach ($item in $match.matchedPatient.modeOfInheritance)
 &lt;div&gt;$item&lt;div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
-      &lt;tr&gt;
-         &lt;td&gt;&lt;div class="subheader"&gt;Age of onset:&lt;/div&gt;&lt;/td&gt;
-         &lt;td&gt;$subjectPatient.ageOfOnset&lt;/td&gt;
-         &lt;td&gt;$match.matchedPatient.ageOfOnset&lt;/td&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Age of onset:&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;$subjectPatient.ageOfOnset&lt;/td&gt;
+         &lt;td style="$table"&gt;$match.matchedPatient.ageOfOnset&lt;/td&gt;
       &lt;/tr&gt;
-      &lt;tr class="grey-background"&gt;
-         &lt;td/&gt;
+      &lt;tr style="$grey-background $table"&gt;
+         &lt;td/&gt;&lt;td/&gt;&lt;td/&gt;
       &lt;/tr&gt;
-      &lt;tr&gt;
+      &lt;tr style="$table"&gt;
          &lt;td colspan="3"&gt;
             &lt;div&gt;Contact information:&lt;/div&gt;
 #foreach ($email in $match.matchedPatient.emails)
@@ -216,12 +193,12 @@ found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
       &lt;/tr&gt;
    &lt;tbody&gt;
 &lt;/table&gt;
-&lt;div class="space-between-matches"/&gt;
+&lt;div style="$space-between-matches"/&gt;
 #end
 &lt;p&gt;
 We welcome any feedback on this match notification to be emailed to matchmaker@phenomecentral.org. Particularly, we are interested to know if this match notification led to improved patient care, collaboration, or publication. We are equally interested to know if this match notification was not appropriate (the patients did not match after further review/discussion). Your feedback improves the matchmaking process and is very much appreciated!
 &lt;/p&gt;
-&lt;p class="disclaimer"&gt;
+&lt;p style="$disclaimer"&gt;
 IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
 If PhenomeCentral enables a research publication, the authors must acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
 &lt;/p&gt;
