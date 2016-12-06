@@ -32,7 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Base class for implementing exome-related classes, specifically those that include scored genes with variants.
+ * Base class for implementing exome-related classes, specifically those that
+ * include scored genes with variants.
  *
  * @version $Id$
  * @since 1.0M6
@@ -58,13 +59,18 @@ public abstract class AbstractExome implements Exome
     }
 
     @Override
-    public List<Variant> getTopVariants(String gene)
+    public List<Variant> getTopVariants(String gene, int k)
     {
         List<Variant> result = this.variants.get(gene);
         if (result == null) {
-            result = Collections.emptyList();
+            return Collections.emptyList();
         }
-        return result;
+
+        if (k < result.size()) {
+            return result.subList(0, k);
+        } else {
+            return result;
+        }
     }
 
     @Override

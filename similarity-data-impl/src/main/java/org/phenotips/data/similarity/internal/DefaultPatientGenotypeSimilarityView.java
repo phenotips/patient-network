@@ -60,6 +60,12 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     private static final int MAX_GENES_REPORTED_IN_JSON = 20;
 
     /**
+     * Maximum number of variants to report per gene in JSON (0 for all). TODO: pull out into configuration.
+     */
+    private static final int MAX_VARIANTS_PER_GENE_REPORTED_IN_JSON = 10;
+
+
+    /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.
      *
@@ -211,12 +217,12 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     {
         JSONObject variantsJSON = new JSONObject();
         if (this.refGenotype != null) {
-            List<Variant> variants = this.refGenotype.getTopVariants(gene);
+            List<Variant> variants = this.refGenotype.getTopVariants(gene, MAX_VARIANTS_PER_GENE_REPORTED_IN_JSON);
             variantsJSON.put("reference", getVariantsJSON(variants));
         }
         if (this.matchGenotype != null) {
             // Use potentially access-controlled method to try to get variants
-            List<Variant> variants = this.getTopVariants(gene);
+            List<Variant> variants = this.getTopVariants(gene, MAX_VARIANTS_PER_GENE_REPORTED_IN_JSON);
             variantsJSON.put("match", getVariantsJSON(variants));
         }
         return variantsJSON;

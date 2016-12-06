@@ -192,14 +192,14 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     }
 
     @Override
-    public List<Variant> getTopVariants(String gene)
+    public List<Variant> getTopVariants(String gene, int k)
     {
         //TODO add manually entered variants
         List<Variant> variants;
         if (this.exome == null) {
             variants = new ArrayList<Variant>();
         } else {
-            variants = this.exome.getTopVariants(gene);
+            variants = this.exome.getTopVariants(gene, k);
         }
         return variants;
     }

@@ -104,13 +104,12 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
     }
 
     @Override
-    public List<Variant> getTopVariants(String gene)
+    public List<Variant> getTopVariants(String gene, int k)
     {
         if (this.matchGenotype == null) {
-            List<Variant> topVariants = Collections.emptyList();
-            return topVariants;
+            return Collections.emptyList();
         } else {
-            return this.matchGenotype.getTopVariants(gene);
+            return this.matchGenotype.getTopVariants(gene, k);
         }
     }
 }

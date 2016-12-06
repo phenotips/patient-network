@@ -23,8 +23,11 @@ import logging
 
 from gzip import open as _gzip_open
 from contextlib import closing
-from urllib import urlencode
 from string import Template
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 CACHED_DATA_FIELDS = ['phenotypes', 'inheritance', 'vcf_hash', 'min_qual', 'min_freq']
 MODES_OF_INHERITANCE = {
@@ -58,6 +61,7 @@ class Settings:
         'export_id_url': '/bin/get/PhenomeCentral/ExportIDs',
         'export_patient_url': '/bin/get/PhenoTips/ExportPatient',
         'export_vcf_url': '/bin/get/PhenomeCentral/ExportVCF',
+        'variantstore_upload_url': '/bin/PhenoTips/VariantStoreUploadService',
         }
     _settings = {}
     def __init__(self, **kwargs):
@@ -66,7 +70,9 @@ class Settings:
         for key in kwargs:
             settings[key] = kwargs[key]
 
-        assert os.path.isdir(settings['out_dir'])
+        if not os.path.isdir(settings['out_dir']):
+            os.mkdir(settings['out_dir'])
+
         assert os.path.isdir(settings['record_dir'])
         assert os.path.isfile(settings['exomiser_jar'])
         assert os.path.isfile(settings['exomiser_template'])
@@ -140,14 +146,18 @@ def maybe_gzip_open(filename, *args, **kwargs):
 def fetch_patient_data(record_id, settings):
     logging.info('Fetching patient data for {0}'.format(record_id))
     url = '{0}{1}?id={2}&basicauth=1'.format(settings['host'], settings['export_patient_url'], record_id)
-    proc = subprocess.Popen(['curl', '-s', '-S', '-u', settings['credentials'], url], stdout=subprocess.PIPE)
+    command = ['curl', '-s', '-S', '-u', settings['credentials'], url]
+    logging.info(' '.join(command))
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE)
     output = proc.communicate()[0]
     return json.loads(output)
 
 def clear_cache(record_id, settings):
     logging.info('Clearing cache for {0}'.format(record_id))
     url = '{0}{1}?id={2}&basicauth=1'.format(settings['host'], settings['clear_cache_url'], record_id)
-    retcode = subprocess.call(['curl', '-s', '-S', '-u', settings['credentials'], url], stdout=subprocess.PIPE)
+    command = ['curl', '-s', '-S', '-u', settings['credentials'], url]
+    logging.info(' '.join(command))
+    retcode = subprocess.call(command, stdout=subprocess.PIPE)
     if retcode != 0:
         logging.error('Attempt to clear cache for {0} failed'.format(record_id))
 
@@ -159,6 +169,7 @@ def fetch_changed_records(settings, since=None):
     logging.info('Fetching records changed since: {0}'.format(since))
     url = '{0}{1}?basicauth=1'.format(settings['host'], settings['export_id_url'])
     command = ['curl', '-s', '-S', '-u', settings['credentials'], url, '--data', urlencode(fields)]
+    logging.info(' '.join(command))
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
     stdout = proc.communicate()[0]
 
@@ -302,7 +313,7 @@ def enqueue_exomiser(record_id, record_data, settings):
 
     return settings_filename
 
-def run_exomiser(record_id, new_data, settings):
+def run_exomiser(record_id, new_data, settings, add_to_variant_store=False):
     settings_filename = enqueue_exomiser(record_id, new_data, settings)
     logging.info('Running Exomiser on settings file: {0}'.format(settings_filename))
     command = ['java', '-Xms5g', '-Xmx10g', '-jar', settings['exomiser_jar'], '--settings-file', settings_filename]
@@ -313,8 +324,23 @@ def run_exomiser(record_id, new_data, settings):
         # Cache updated data and clear patient cache.
         cache_data(record_id, new_data, settings)
         clear_cache(record_id, settings)
+        # pass it to the variant store
+        if add_to_variant_store:
+            out_filename = settings.get_out_filename(record_id)
+            push_to_variant_store(out_filename, record_id, settings)
 
-def script(settings, start_time=None):
+def push_to_variant_store(path, record_id, settings):
+    url = '{}{}?outputSyntax=plain&xpage=plain&path={}&individualId={}'.format(
+        settings['host'], settings['variantstore_upload_url'],
+        path, record_id)
+
+    command = ['curl', '-s', '-S', '-u', settings['credentials'], '-X', 'POST', url]
+    logging.info(' '.join(command))
+    retcode = subprocess.call(command, stdout=subprocess.PIPE)
+    if retcode != 0:
+        logging.error('Attempt to add {0} to Variant Store failed'.format(record_id))
+
+def script(settings, start_time=None, add_to_variant_store=False):
     changed_records = fetch_changed_records(settings, since=start_time)
     for record_id in changed_records:
         try:
@@ -345,7 +371,7 @@ def script(settings, start_time=None):
                     continue
 
                 # Patient record has changed, (re-)run Exomiser
-                run_exomiser(record_id, new_data, settings)
+                run_exomiser(record_id, new_data, settings, add_to_variant_store=add_to_variant_store)
         except RecordLockedException:
             logging.error('Skipping locked record: {0}'.format(record_id))
 
@@ -357,6 +383,9 @@ def parse_args(args):
                       help="Check exomiser for records updated since the"
                       " provided ISO datetime (default: all records)",
                       metavar="ISO")
+    parser.add_option("--add-to-variant-store", dest='add_to_variant_store',
+                      action='store_true',
+                      help="Push Exomiser results to variant store")
     parser.add_option("--exomiser-template", dest="exomiser_template",
                       help="Exomiser settings file template (default: %default)",
                       metavar="FILE", default=DEFAULT_EXOMISER_TEMPLATE)
