@@ -9,8 +9,6 @@ define(["jquery", "dynatable"], function($, dyna)
             this._tableElement = tableElement;
             this._afterProcessingCallback = afterProcessingCallback;
 
-            this._markedToNotify = [];
-
             this._tableBuilt = false;
 
             $('#expand_all').on('click', this._expandAllClicked.bind(this));
@@ -33,45 +31,71 @@ define(["jquery", "dynatable"], function($, dyna)
             this._buildTable();
         },
 
-        getRowsWithIdsAllInArray : function(ids)
-        {
-            var allTrs = this._tableElement.find('tbody').find('tr');
-            return $.grep(allTrs, this._identifyTr(ids));
-        },
-
         getMarkedToNotify : function()
         {
-            var allIds = [];
-            $.each(this._markedToNotify, function(key, value) {
-                $.each(String(value).split(","), function(idkey, id) {
-                    allIds.push(id);
-                }.bind(this));
+            var ids = [];
+            $.each(this._matches, function(index, match) {
+                if (match.notify) {
+                    $.each(String(match.id).split(","), function(idIndex, id) {
+                        ids.push(id);
+                    });
+                }
             }.bind(this));
-            return allIds;
+            return ids;
+        },
+
+
+        setState : function(matchIds, state)
+        {
+            var strMatchIds = String(matchIds).split(",");
+            var matchesToSet = $.grep(this._matches, function(match) {
+                var curIds = String(match.id).split(",");
+                return this._listIsSubset(curIds, strMatchIds);
+            }.bind(this));
+
+            $.each(matchesToSet, function(index, match) {
+                if (state.hasOwnProperty('notified')) {
+                    match.notified = state.notified;
+                }
+                if (state.hasOwnProperty('notify')) {
+                    match.notify = state.notify;
+                }
+                if (state.hasOwnProperty('rejected')) {
+                    match.rejected = state.rejected;
+                }
+                if (state.hasOwnProperty('status')) {
+                    match.status = state.status;
+                }
+                // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
+            }.bind(this))
         },
 
         //////////////////
 
-        _identifyTr : function(idsList)
+        // Return true if all elements of the first list are found in the second
+        _listIsSubset : function(first, second)
         {
-            // TODO in some cases true/false is not enough. For example, row represents matches 1,2. 1 is in the list of 2 is not.
-            return function(tr)
-            {
-                var ids = String($(tr).data('matchid')).split(",").map(function(id) {return Number(id);});
-                var allInList = true;
-                for (var i=0; i<ids.length; i++) {
-                    if ($.inArray(ids[i], idsList)==-1) {
-                        allInList = false;
-                    }
+            for (var i = 0; i < first.length; i++) {
+                if ($.inArray(first[i], second) == -1) {
+                    return false;
                 }
-                return allInList;
-            };
+            }
+            return true;
         },
 
         _formatMatches : function()
         {
-            this._matches.each(function (match)
+            this._matches.each(function (match, index)
             {
+                // add field for match row index
+                match.rowIndex = index;
+
+                // to-notify flag
+                match.notify = match.notify || false;
+
+                // validation flag
+                match.status = match.status || '';
+
                 // scores
                 match.score = this._roundScore(match.score);
                 match.phenotypicScore = this._roundScore(match.phenotypicScore);
@@ -99,7 +123,15 @@ define(["jquery", "dynatable"], function($, dyna)
         _rowWriter : function(rowIndex, record, columns, cellWriter)
         {
             var trClass = record.rejected ? 'rejected' : '';
-            var tr = '<tr data-matchid="' + record.id + '" class="' + trClass + '">';
+            switch(record.status) {
+                case 'success':
+                    trClass += ' succeed';
+                    break;
+                case 'failure':
+                    trClass += ' failed';
+                    break;
+            }
+            var tr = '<tr id="row-' + record.rowIndex + '" data-matchid="' + record.id + '" class="' + trClass + '">';
 
             // For each column in table, get record's attribute, or formatted element
             columns.each(function( column, index) {
@@ -135,7 +167,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _getNotificationTd : function(record)
         {
-            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '"/></td>';
+            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
         },
 
         _getRejectionTd : function(record)
@@ -333,13 +365,6 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _afterProcessTableNotifyListeners : function()
         {
-            // Check rows marked as notified, then register listeners
-            this._tableElement.find('tbody').find('tr').each(function (index, elm)
-            {
-                matchid = $(elm).data('matchid');
-                $(elm).find('.notify').attr('checked', $.inArray(matchid, this._markedToNotify)>-1);
-            }.bind(this));
-
             this._tableElement.find('.notify').on('click', function(event) {
                 this._markToNotify(event.target);
             }.bind(this));
@@ -417,18 +442,10 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _markToNotify : function(elm)
         {
-            var matchid = $(elm).data('matchid');
-            var checked = $(elm).is(':checked');
-            if (checked) {
-                // Add to array if not there
-                if ($.inArray(matchid, this._markedToNotify)==-1) {
-                    this._markedToNotify.push(matchid);
-                }
-            } else {
-                // Remove from array in there
-                this._markedToNotify = $.grep(this._markedToNotify, function(item) {return item != matchid;});
-            }
+            var matchIndex = $(elm).closest('tr').attr('id').split('-')[1];
+            this._matches[matchIndex].notify = $(elm).is(':checked');
+            console.log("To notify: " + this._matches[matchIndex].id);
+            this.update();
         }
-
     });
 });
