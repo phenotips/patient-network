@@ -215,16 +215,13 @@
       this.query = query;
       this.container = resultsContainer;
 
+      this.buttonContainer = new Element('div',{'class':'similarity-results-button-container'});
+      this.container.insert({before: this.buttonContainer});
       if (options) {
         if (options.enableRefresh) {
           var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
-          if (options.refreshButtonContainer) {
-            var container = $(options.refreshButtonContainer);
-            container.insert({top: this.refreshButton});
-          } else {
-            this.container.insert({before : this.refreshButton});
-          }
+          this.buttonContainer.insert({top: this.refreshButton});
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
           this.refreshButton.observe('click', this.launchSearchRefresh);
         }
@@ -233,6 +230,15 @@
         this._minScore = options.minScore || '';
         this._mmeServer = options.mmeServer || "";
         this._mmeMode = (this._mmeServer != "");
+        if (options.serviceDisclaimer) {
+          var disclaimerButton = new Element('span', {'class' : 'buttonwrapper similarity-results-disclaimer'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('gavel')).insert("$escapetool.javascript($services.localization.render('phenotips.similarCases.showDisclaimer'))"));
+          this.buttonContainer.insert({bottom : disclaimerButton});
+          this.displayDisclaimer = this.displayDisclaimer.bindAsEventListener(this);
+          disclaimerButton.observe('click', this.displayDisclaimer);
+          this._disclaimerContainer = new Element('div', {'class' : 'mme-disclaimer'});
+          this._disclaimerContainer.update(options.serviceDisclaimer);
+          this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
+        }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
       }
       this.launchSearchExisting();
@@ -244,6 +250,14 @@
     launchSearchRefresh: function(event) {
       if (event) {event.stop();}
       this.launchSearch(true);
+    },
+
+    displayDisclaimer: function(event) {
+      if (event) {event.stop();}
+      /* TODO: This should use the reasonable default verticalAlignment once PhenoTips.Widgets is updated */
+      this._disclaimerDialog.createDialog();
+      this._disclaimerDialog.positionDialogInViewport(200, 200);
+      this._disclaimerDialog.showDialog();
     },
 
     launchSearchExisting: function() {
@@ -998,7 +1012,7 @@
       var serviceInfo = container.down('input[name="service"]');
       var mmeServer = container.down('input[name="mmeServer"]');
       var omimSection = container.down('input[name="omimSection"]');
-      var buttonContainer = container.down('input[name="refreshButtonContainer"]');
+      var serviceDisclaimer = container.down('input[name="serviceDisclaimer"]');
       new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
         enableRefresh: true,
         serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
@@ -1006,7 +1020,7 @@
         minScore: minScore &amp;&amp; minScore.value,
         mmeServer: mmeServer &amp;&amp; mmeServer.value,
         omimSection: omimSection &amp;&amp; omimSection.value,
-        refreshButtonContainer: buttonContainer &amp;&amp; buttonContainer.value
+        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
       });
     });
   };
@@ -1230,12 +1244,16 @@
 .chapter.similarity-info .action-edit {
   display: none !important;
 }
-.similarity-results-refresh {
+.similarity-results-refresh,
+.similarity-results-disclaimer {
   float: right;
 }
 .similarity-results-container {
   clear: both;
   min-height: 3em;
+}
+.similarity-results-button-container {
+  float: right;
 }
 .chapter.similarity-info .similar-cases-category {
   margin-top: 3.5em;
