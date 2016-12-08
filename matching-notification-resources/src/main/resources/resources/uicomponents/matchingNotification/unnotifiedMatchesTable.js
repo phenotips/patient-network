@@ -19,7 +19,6 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
         this._$ = $;
-        this._matches = undefined;
 
         this._tableElement = this._$('#matchesTable');
 
@@ -89,8 +88,8 @@ var PhenoTips = (function (PhenoTips) {
                 console.log("show matches result, score = " + score);
                 console.log(response.responseJSON);
 
-                this._matches = response.responseJSON.matches;
-                this._matchesTable.update(this._matches);
+                var matches = response.responseJSON.matches;
+                this._matchesTable.update(matches);
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');
@@ -155,20 +154,11 @@ var PhenoTips = (function (PhenoTips) {
             alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
         }
 
-        // remove notified matches
-        var toRemove = this._$.grep(this._matches, this._identifyMatch(successfulIds));
-        this._matches = this._$.grep(this._matches,
-                                     function(match) {return this._$.inArray(match, toRemove)==-1}.bind(this));
+        // Update table state
+        this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
+        this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
+        this._matchesTable.update();
 
-        this._matchesTable.update(this._matches);
-
-        // Mark failed trs
-        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
-            .each(function (tr)
-            {
-                this._$(tr).addClass('failed');
-                this._$(tr).find('.notify').attr('checked', 'checked');
-            }.bind(this));
     },
 
     _onFailSendNotification : function()
@@ -190,18 +180,10 @@ var PhenoTips = (function (PhenoTips) {
             }
         }
 
-        // Mark in model
-        this._$.grep(this._matches, this._identifyMatch(successfulIds))
-            .each(function(match) {match.rejected = reject});
-
-        this._matchesTable.update(this._matches);
-
-        // Mark failed trs
-        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
-            .each(function (tr)
-            {
-                this._$(tr).addClass('failed');
-            }.bind(this));
+        // Update table state
+        this._matchesTable.setState(successfulIds, { 'rejected': reject });
+        this._matchesTable.setState(failedIds, { 'status': 'failure' });
+        this._matchesTable.update();
     },
 
     _identifyMatch : function(successfulIds)
@@ -240,13 +222,16 @@ var PhenoTips = (function (PhenoTips) {
         } else {
             checked = event.target.checked;
         }
-        this._matchesTable.setFilter(checked ? this._filterRejected : undefined);
+        this._matchesTable.setFilter(checked ? this._filterNotifiedAndRejected : this._filterNotified);
     },
 
-    _filterRejected : function(match) {
-        return !match.rejected;
-    }
+    _filterNotified : function(match) {
+        return !match.notified;
+    },
 
+    _filterNotifiedAndRejected : function(match) {
+        return !match.notified && !match.rejected;
+    }
     });
     return PhenoTips;
 }(PhenoTips || {}));

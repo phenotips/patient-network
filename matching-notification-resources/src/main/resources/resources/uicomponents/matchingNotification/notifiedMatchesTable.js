@@ -19,7 +19,6 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
         this._$ = $;
-        this._matches = undefined;
 
         this._tableElement = this._$('#notifiedMatchesTable');
 
@@ -50,8 +49,8 @@ var PhenoTips = (function (PhenoTips) {
                 console.log("show matches result");
                 console.log(response.responseJSON);
 
-                _this._matches = response.responseJSON.matches;
-                _this._matchesTable.update(this._matches);
+                var matches = response.responseJSON.matches;
+                _this._matchesTable.update(matches);
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');
@@ -79,20 +78,10 @@ var PhenoTips = (function (PhenoTips) {
             alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
         }
 
-        this._matchesTable.getRowsWithIdsAllInArray(failedIds)
-            .each(function (tr)
-            {
-                this._$(tr).addClass('failed');
-                this._$(tr).find('.notify').attr('checked', 'checked');
-            }.bind(this));
-
-        this._matchesTable.getRowsWithIdsAllInArray(successfulIds)
-            .each(function (tr)
-            {
-                this._$(tr).addClass('succeed');
-                this._$(tr).find('.notify').removeAttr('checked');
-            }.bind(this));
-
+        // Update table state
+        this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
+        this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
+        this._matchesTable.update();
     },
 
     _onFailSendNotification : function()
