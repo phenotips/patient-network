@@ -33,7 +33,6 @@ var PhenoTips = (function (PhenoTips) {
         $('#find-matches-button').on('click', this._findMatches.bind(this));
         $('#show-matches-button').on('click', this._showMatches.bind(this));
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
-        $('#notify_all').on('click', this._notifyAllClicked.bind(this));
         $('#filter_rejected').on('click', this._filterRejectedClicked.bind(this));
 
         this._filterRejectedClicked();
@@ -202,16 +201,6 @@ var PhenoTips = (function (PhenoTips) {
                 return (this._$.inArray(match.id, successfulIds)>-1);
             }
         }.bind(this);
-    },
-
-    _notifyAllClicked : function(event)
-    {
-        var checked = event.target.checked;
-        this._$('#matchesTable').find(".notify").each(function (index, elm) {
-            if (!elm.disabled) {
-                elm.checked = checked;
-            }
-        });
     },
 
     _filterRejectedClicked : function(event)
