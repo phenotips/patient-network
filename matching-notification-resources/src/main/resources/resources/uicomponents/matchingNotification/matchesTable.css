@@ -1,0 +1,66 @@
+.matches-table .collapsed {
+  visibility: hidden;
+  height: 1px;
+  overflow: hidden;
+}
+
+.matches-table .succeed {
+  color: green;
+}
+
+.matches-table .failed {
+  color: red;
+}
+
+.matches-table .rejected {
+  color: lightgrey;
+}
+
+.matches-table .ok {
+  color: inherit;
+}
+
+.matches-table .patient-div {
+    margin-bottom: 10px;
+}
+
+.matches-table .patient-href {
+   margin-left: 3px;
+}
+
+.matches-table .genes-div, .matches-table .age-of-onset-div  {
+    background: lightgrey;
+}
+
+.matches-table .subtitle {
+    margin-bottom: 0px;
+    margin-top: 0px;
+    font-style: oblique;
+}
+
+.matches-table ul {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.matches-table .collapse-gp-div div {
+    padding-top: 5px;
+    padding-left: 5px;
+    padding-bottom: 5px;
+}
+
+.matches-table th {
+    white-space: nowrap;
+}
+
+.matches-table td {
+    vertical-align: text-top;
+}
+
+.matches-table .collapse-gp-tool {
+    white-space: nowrap;
+}
+
+#filter-div {
+   margin-top: 40px;
+}
