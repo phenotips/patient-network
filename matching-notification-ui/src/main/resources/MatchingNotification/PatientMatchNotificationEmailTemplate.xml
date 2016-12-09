@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+-->
+
+<xwikidoc version="1.1">
+  <web>MatchingNotification</web>
+  <name>PatientMatchNotificationEmailTemplate</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1459795227000</creationDate>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1459898008000</date>
+  <contentUpdateDate>1459897988000</contentUpdateDate>
+  <parent>PhenoTips.WebHome</parent>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content/>
+  <object>
+    <name>MatchingNotification.PatientMatchNotificationEmailTemplate</name>
+    <number>0</number>
+    <className>XWiki.Mail</className>
+    <guid>bfa66698-2404-4fdc-84cf-394b41f602a8</guid>
+    <class>
+      <name>XWiki.Mail</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <html>
+        <disabled>0</disabled>
+        <name>html</name>
+        <number>4</number>
+        <prettyName>HTML</prettyName>
+        <rows>15</rows>
+        <size>80</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </html>
+      <language>
+        <disabled>0</disabled>
+        <name>language</name>
+        <number>2</number>
+        <prettyName>Language</prettyName>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </language>
+      <subject>
+        <disabled>0</disabled>
+        <name>subject</name>
+        <number>1</number>
+        <prettyName>Subject</prettyName>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </subject>
+      <text>
+        <disabled>0</disabled>
+        <name>text</name>
+        <number>3</number>
+        <prettyName>Text</prettyName>
+        <rows>15</rows>
+        <size>80</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </text>
+    </class>
+    <property>
+      <html>
+&lt;p&gt;Hello,&lt;/p&gt;
+&lt;p&gt;
+#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal; padding: 0.2em;')
+#set($subheader = 'font-weight : bold;')
+#set($grey-background = 'background-color : lightgrey; width : 300px;')
+#set($space-between-matches = 'margin-top : 25px;')
+#set($disclaimer = 'font-size : 10px;')
+#set($patient-id = 'white-space : no-wrap;')
+#if ($matches.size() == 1)
+A potential match was
+#else
+Potential matches were
+#end
+found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
+#foreach ($match in $matches)
+&lt;table  style="$table"&gt;
+   &lt;thead&gt;
+      &lt;tr&gt;
+         &lt;th&gt;&lt;/th&gt;
+         &lt;th style="$grey-background $table"&gt;
+            &lt;div style="$subheader"&gt;Your patient&lt;/div&gt;
+            &lt;div style="$patient-id"&gt;
+               &lt;span&gt;$subjectPatient.patientId&lt;/span&gt;
+               &lt;span&gt;$subjectPatient.externalId&lt;/span&gt;
+            &lt;/div&gt;
+         &lt;/th&gt;
+         &lt;th style="$grey-background $table"&gt;
+            &lt;div style="$subheader"&gt;Potential match&lt;/div&gt;
+            &lt;div&gt;
+               &lt;span&gt;$match.matchedPatient.patientId&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($match.matchedPatient.serverId)}&lt;/span&gt;
+            &lt;/div&gt;
+         &lt;/th&gt;
+      &lt;/tr&gt;
+   &lt;/thead&gt;
+   &lt;tbody&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Genes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($gene in $subjectPatient.candidateGenes)
+&lt;div&gt;$gene&lt;/div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($gene in $match.matchedPatient.candidateGenes)
+&lt;div&gt;$gene&lt;/div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Phenotypes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
+&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Mode of inheritance&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($item in $subjectPatient.modeOfInheritance)
+&lt;div&gt;$item&lt;div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($item in $match.matchedPatient.modeOfInheritance)
+&lt;div&gt;$item&lt;div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Age of onset:&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;$subjectPatient.ageOfOnset&lt;/td&gt;
+         &lt;td style="$table"&gt;$match.matchedPatient.ageOfOnset&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$grey-background $table"&gt;
+         &lt;td/&gt;&lt;td/&gt;&lt;td/&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td colspan="3"&gt;
+            &lt;div&gt;Contact information:&lt;/div&gt;
+#foreach ($email in $match.matchedPatient.emails)
+&lt;div&gt;$email&lt;/div&gt;
+#end
+            &lt;/span&gt;
+         &lt;/td&gt;
+      &lt;/tr&gt;
+   &lt;tbody&gt;
+&lt;/table&gt;
+&lt;div style="$space-between-matches"/&gt;
+#end
+&lt;p&gt;
+We welcome any feedback on this match notification to be emailed to matchmaker@phenomecentral.org. Particularly, we are interested to know if this match notification led to improved patient care, collaboration, or publication. We are equally interested to know if this match notification was not appropriate (the patients did not match after further review/discussion). Your feedback improves the matchmaking process and is very much appreciated!
+&lt;/p&gt;
+&lt;p style="$disclaimer"&gt;
+IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
+If PhenomeCentral enables a research publication, the authors must acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
+&lt;/p&gt;
+</html>
+    </property>
+    <property>
+      <language>English</language>
+    </property>
+    <property>
+      <subject>Matches found for patient $!{escapetool.xml($subjectPatient.patientId)}</subject>
+    </property>
+    <property>
+      <text>Hello,
+#if ($matches.size() == 1)
+A potential match was ##
+#else
+Potential matches were ##
+#end
+found for the following patient you submitted to PhenomeCentral.
+Your patient: $!{escapetool.xml($subjectPatient.patientId)} $!{escapetool.xml($subjectPatient.externalId)}
+Genes:
+#foreach ($gene in $subjectPatient.candidateGenes)
+$gene
+#end
+Phenotypes:
+#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#end
+#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#end
+Global mode of inheritance:
+#foreach ($item in $subjectPatient.modeOfInheritance)
+$item
+#end
+Age of onset: $subjectPatient.ageOfOnset
+
+#foreach ($match in $matches)
+Potential match: $!{escapetool.xml($match.matchedPatient.patientId)} $!{escapetool.xml($match.matchedPatient.serverId)}
+Genes:
+#foreach ($gene in $match.matchedPatient.candidateGenes)
+$gene
+#end
+Phenotypes:
+#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#end
+#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
+#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#end
+Global mode of inheritance:
+#foreach ($item in $match.matchedPatient.modeOfInheritance)
+$item
+#end
+Age of onset: $match.matchedPatient.ageOfOnset
+Contact information:
+#foreach ($email in $match.matchedPatient.emails)
+$email
+#end
+
+
+#end</text>
+    </property>
+  </object>
+</xwikidoc>
