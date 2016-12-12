@@ -92,179 +92,205 @@
       </text>
     </class>
     <property>
-      <html>
-&lt;p&gt;Hello,&lt;/p&gt;
-&lt;p&gt;
-#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal; padding: 0.2em;')
+      <html>#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal; padding: 0.2em;')
 #set($subheader = 'font-weight : bold;')
 #set($grey-background = 'background-color : lightgrey; width : 300px;')
 #set($space-between-matches = 'margin-top : 25px;')
 #set($disclaimer = 'font-size : 10px;')
 #set($patient-id = 'white-space : no-wrap;')
-#if ($matches.size() == 1)
-A potential match was
-#else
-Potential matches were
-#end
-found for the following patient you submitted to PhenomeCentral.&lt;/p&gt;
+&lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.salutation', 'xhtml/1.0')&lt;/p&gt;
+&lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.introduction', 'xhtml/1.0', [$matches.size()])&lt;/p&gt;
 #foreach ($match in $matches)
 &lt;table  style="$table"&gt;
    &lt;thead&gt;
       &lt;tr&gt;
          &lt;th&gt;&lt;/th&gt;
          &lt;th style="$grey-background $table"&gt;
-            &lt;div style="$subheader"&gt;Your patient&lt;/div&gt;
+            &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div style="$patient-id"&gt;
-               &lt;span&gt;$subjectPatient.patientId&lt;/span&gt;
-               &lt;span&gt;$subjectPatient.externalId&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($!subjectPatient.patientId)}&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($!subjectPatient.externalId)}&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
          &lt;th style="$grey-background $table"&gt;
-            &lt;div style="$subheader"&gt;Potential match&lt;/div&gt;
+            &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div&gt;
-               &lt;span&gt;$match.matchedPatient.patientId&lt;/span&gt;
-               &lt;span&gt;$!{escapetool.xml($match.matchedPatient.serverId)}&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($!match.matchedPatient.patientId)}&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($!match.matchedPatient.serverId)}&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
       &lt;/tr&gt;
    &lt;/thead&gt;
    &lt;tbody&gt;
       &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Genes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.genes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($gene in $subjectPatient.candidateGenes)
-&lt;div&gt;$gene&lt;/div&gt;
+&lt;div&gt;$!{escapetool.xml($!gene)}&lt;/div&gt;
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($gene in $match.matchedPatient.candidateGenes)
-&lt;div&gt;$gene&lt;/div&gt;
+&lt;div&gt;$!{escapetool.xml($!gene)}&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Phenotypes&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($phenotype in $subjectPatient.phenotypes.predefined)
-&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+&lt;div&gt;
+#if ($phenotype.observed == 'no')
+$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
+#else
+$!{escapetool.xml($phenotype.name)}
+#end
+&lt;/div&gt;
 #end
 #foreach ($phenotype in $subjectPatient.phenotypes.freeText)
-&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+&lt;div&gt;
+#if ($phenotype.observed == 'no')
+$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
+#else
+$!{escapetool.xml($!phenotype.name)}
+#end
+&lt;/div&gt;
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
-&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+&lt;div&gt;
+#if ($phenotype.observed == 'no')
+$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
+#else
+$!{escapetool.xml($!phenotype.name)}
+#end
+&lt;/div&gt;
 #end
 #foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
-&lt;div&gt;#if ($phenotype.observed == 'no')NO #end$phenotype.name&lt;/div&gt;
+&lt;div&gt;
+#if ($phenotype.observed == 'no')
+$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
+#else
+$!{escapetool.xml($!phenotype.name)}
+#end
+&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Mode of inheritance&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($item in $subjectPatient.modeOfInheritance)
-&lt;div&gt;$item&lt;div&gt;
+#foreach ($item in $!subjectPatient.modeOfInheritance)
+&lt;div&gt;$!{escapetool.xml($item)}&lt;div&gt;
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($item in $match.matchedPatient.modeOfInheritance)
-&lt;div&gt;$item&lt;div&gt;
+#foreach ($item in $!match.matchedPatient.modeOfInheritance)
+&lt;div&gt;$!{escapetool.xml($!item)}&lt;div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;Age of onset:&lt;/div&gt;&lt;/td&gt;
-         &lt;td style="$table"&gt;$subjectPatient.ageOfOnset&lt;/td&gt;
-         &lt;td style="$table"&gt;$match.matchedPatient.ageOfOnset&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr style="$grey-background $table"&gt;
-         &lt;td/&gt;&lt;td/&gt;&lt;td/&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;$!{escapetool.xml($!subjectPatient.ageOfOnset)}&lt;/td&gt;
+         &lt;td style="$table"&gt;$!{escapetool.xml($!match.matchedPatient.ageOfOnset)}&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
          &lt;td colspan="3"&gt;
-            &lt;div&gt;Contact information:&lt;/div&gt;
+            &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.label', 'xhtml/1.0')&lt;/div&gt;
 #foreach ($email in $match.matchedPatient.emails)
-&lt;div&gt;$email&lt;/div&gt;
+&lt;div&gt;$!{escapetool.xml($!email)}&lt;/div&gt;
 #end
-            &lt;div&gt;We encourage you to contact the individual/group who uploaded the matching patient at the contact information above if you are interested in exploring this match further.&lt;/div&gt;
+&lt;div&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.instructions', 'xhtml/1.0')&lt;/div&gt;
          &lt;/td&gt;
       &lt;/tr&gt;
    &lt;tbody&gt;
 &lt;/table&gt;
 &lt;div style="$space-between-matches"/&gt;
 #end
-&lt;p&gt;
-We welcome any feedback on this match notification to be emailed to matchmaker@phenomecentral.org. Particularly, we are interested to know if this match notification led to improved patient care, collaboration, or publication. We are equally interested to know if this match notification was not appropriate (the patients did not match after further review/discussion). Your feedback improves the matchmaking process and is very much appreciated!
-&lt;/p&gt;
-&lt;p&gt;
-Best wishes,&lt;br /&gt;
-PhenomeCentral
-&lt;/p&gt;
-&lt;p style="$disclaimer"&gt;
-IMPORTANT NOTE: PhenomeCentral displays user Submissions in good faith as a research tool, does not verify the accuracy, clinical validity or utility of the data. Prior to using PhenomeCentral Data in publication, the user will contact the owner of the matching dataset to assess the integrity of the match and if validated will offer appropriate agreed recognition of their contribution.
-If PhenomeCentral enables a research publication, the authors must acknowledge PhenomeCentral using the following wording: “This study makes use of data shared through the PhenomeCentral repository.Funding for PhenomeCentral was provided by Genome Canada and the Canadian Institute of Health”
-&lt;/p&gt;
-</html>
+&lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.conclusion', 'xhtml/1.0')&lt;/p&gt;
+&lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.closing', 'xhtml/1.0')&lt;br /&gt;
+$!services.localization.render('phenotips.matchingNotifications.email.signature', 'xhtml/1.0')&lt;/p&gt;
+&lt;p style="$disclaimer"&gt;$!services.localization.render('phenotips.matchingNotifications.email.disclaimer', 'xhtml/1.0')&lt;/p&gt;</html>
     </property>
     <property>
       <language>English</language>
     </property>
     <property>
-      <subject>Matches found for patient $!{escapetool.xml($subjectPatient.patientId)}</subject>
+      <subject>$services.localization.render('phenotips.matchingNotifications.email.subject', [$!subjectPatient.patientId])</subject>
     </property>
     <property>
-      <text>Hello,
-#if ($matches.size() == 1)
-A potential match was ##
+      <text>$services.localization.render('phenotips.matchingNotifications.email.salutation')
+
+$services.localization.render('phenotips.matchingNotifications.email.introduction', [$matches.size()])
+
+$services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label'): $!subjectPatient.patientId $!subjectPatient.externalId
+$services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
+#foreach ($gene in $!subjectPatient.candidateGenes)
+* $!gene
+#end
+$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'):
+#foreach ($!phenotype in $!subjectPatient.phenotypes.predefined)
+#if ($!phenotype.observed == 'no')
+* $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
 #else
-Potential matches were ##
+* $!phenotype.name
 #end
-found for the following patient you submitted to PhenomeCentral.
-Your patient: $!{escapetool.xml($subjectPatient.patientId)} $!{escapetool.xml($subjectPatient.externalId)}
-Genes:
-#foreach ($gene in $subjectPatient.candidateGenes)
-$gene
 #end
-Phenotypes:
-#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
-#if ($phenotype.observed == 'no')NO #end$phenotype.name
+#foreach ($!phenotype in $subjectPatient.phenotypes.freeText)
+#if ($!phenotype.observed == 'no')
+* $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
+#else
+* $!phenotype.name
 #end
-#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
-#if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
-Global mode of inheritance:
-#foreach ($item in $subjectPatient.modeOfInheritance)
-$item
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
+#foreach ($item in $!subjectPatient.modeOfInheritance)
+* $!item
 #end
-Age of onset: $subjectPatient.ageOfOnset
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!subjectPatient.ageOfOnset
 
 #foreach ($match in $matches)
-Potential match: $!{escapetool.xml($match.matchedPatient.patientId)} $!{escapetool.xml($match.matchedPatient.serverId)}
-Genes:
+$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $match.matchedPatient.patientId $!match.matchedPatient.serverId
+$services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
 #foreach ($gene in $match.matchedPatient.candidateGenes)
-$gene
+* $!gene
 #end
-Phenotypes:
-#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
-#if ($phenotype.observed == 'no')NO #end$phenotype.name
+$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'):
+#foreach ($!phenotype in $match.matchedPatient.phenotypes.predefined)
+#if ($!phenotype.observed == 'no')
+* $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
+#else
+* $!phenotype.name
 #end
-#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
-#if ($phenotype.observed == 'no')NO #end$phenotype.name
 #end
-Global mode of inheritance:
+#foreach ($!phenotype in $match.matchedPatient.phenotypes.freeText)
+#if ($!phenotype.observed == 'no')
+* $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
+#else
+* $!phenotype.name
+#end
+#end
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
 #foreach ($item in $match.matchedPatient.modeOfInheritance)
-$item
+* $!item
 #end
-Age of onset: $match.matchedPatient.ageOfOnset
-Contact information:
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.matchedPatient.ageOfOnset
+$services.localization.render('phenotips.matchingNotifications.email.table.contact.label'):
 #foreach ($email in $match.matchedPatient.emails)
-$email
+* $!email
 #end
 
+$services.localization.render('phenotips.matchingNotifications.email.table.contact.instructions')
 
-#end</text>
+#end
+$services.localization.render('phenotips.matchingNotifications.email.conclusion')
+
+$services.localization.render('phenotips.matchingNotifications.email.closing')
+$services.localization.render('phenotips.matchingNotifications.email.signature')
+
+$services.localization.render('phenotips.matchingNotifications.email.disclaimer')</text>
     </property>
   </object>
 </xwikidoc>
