@@ -48,7 +48,7 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatches(double score, boolean notified);
 
     /**
-     * Load all matches with ids in {@link matchesIds}.
+     * Load all matches with ids in {@code matchesIds}.
      *
      * @param matchesIds list of ids of matches to load
      * @return list of matches
