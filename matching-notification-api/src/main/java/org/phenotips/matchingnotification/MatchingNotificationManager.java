@@ -40,7 +40,7 @@ public interface MatchingNotificationManager
     List<PatientMatch> findAndSaveMatches(double score);
 
     /**
-     * Sends notification to the owner of every match with id in {@matchesId}, then marks match as notified.
+     * Sends notification to the owner of every match with id in {@code matchesId}, then marks match as notified.
      *
      * @param matchesIds list of ids of matches to be notified
      * @return a list of PatientmatchNotificationResponse

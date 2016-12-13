@@ -76,8 +76,8 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     /**
-     * Rebuilds an object from its toJSON() representation. This is used when the data is rebuilt when a row is
-     * fetched from the DB.
+     * Rebuilds an object from its toJSON() representation. This is used when the data is rebuilt when a row is fetched
+     * from the DB.
      *
      * @param jsonObject a result of a previous call to toJSON().
      */
@@ -152,11 +152,12 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     /**
-     * Reorders predefined phenotypes lists in both maps, for display. After reordering, all common phenotypes appear
-     * in the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed
-     * or not. Order remains by `name` fields as before. Free text list remains the same.
+     * Reorders predefined phenotypes lists in both maps, for display. After reordering, all common phenotypes appear in
+     * the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed or not.
+     * Order remains by `name` fields as before. Free text list remains the same. Example:
      *
-     * Example:
+     * <pre>
+     * {@code
      *     list1: [{name=Ambiguous genitalia, id=HP:0000062, observed=yes},            1
      *             {name=Arrhythmia, id=HP:0011675, observed=yes},                     2
      *             {name=Hypopigmentation of the skin, id=HP:0001010, observed=no}]    3
@@ -164,7 +165,13 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
      *             {name=Camptodactyly of toe, id=HP:0001836, observed=no},            b
      *             {name=Eunuchoid habitus, id=HP:0003782, observed=yes},              c
      *             {name=Hypopigmentation of the skin, id=HP:0001010, observed=yes}]   d
+     *             }
+     * </pre>
+     *
      * will turn into
+     *
+     * <pre>
+     * {@code
      *     list1: [{name=Ambiguous genitalia, id=HP:0000062, observed=yes},            1
      *             {name=Hypopigmentation of the skin, id=HP:0001010, observed=no},    3
      *             {name=Arrhythmia, id=HP:0011675, observed=yes}]                     2
@@ -172,6 +179,8 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
      *             {name=Hypopigmentation of the skin, id=HP:0001010, observed=yes},   d
      *             {name=Camptodactyly of toe, id=HP:0001836, observed=no},            b
      *             {name=Eunuchoid habitus, id=HP:0003782, observed=yes}]              c
+     *}
+     * </pre>
      *
      * @param predefined1 list of predefined phenotypes for one patient
      * @param predefined2 list of predefined phenotypes for another patient
@@ -181,10 +190,10 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
         // Break lists to common predefined phenotypes, and those unique to each list. There are two common lists
         // because the same phenotype can have different properties in each patient (for example, observed in one
         // but not in the other).
-        List<Map<String, String>> common1 = new LinkedList<Map<String, String>>();
-        List<Map<String, String>> common2 = new LinkedList<Map<String, String>>();
-        List<Map<String, String>> unique1 = new LinkedList<Map<String, String>>();
-        List<Map<String, String>> unique2 = new LinkedList<Map<String, String>>();
+        List<Map<String, String>> common1 = new LinkedList<>();
+        List<Map<String, String>> common2 = new LinkedList<>();
+        List<Map<String, String>> unique1 = new LinkedList<>();
+        List<Map<String, String>> unique2 = new LinkedList<>();
 
         Iterator<Map<String, String>> iterator1 = predefined1.iterator();
         Iterator<Map<String, String>> iterator2 = predefined2.iterator();
