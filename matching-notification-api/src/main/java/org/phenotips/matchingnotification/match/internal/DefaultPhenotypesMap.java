@@ -22,6 +22,7 @@ import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -136,8 +137,8 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
             }
         }
 
-        predefined.sort(PHENOTYPES_COMPARATOR);
-        freeText.sort(PHENOTYPES_COMPARATOR);
+        Collections.sort(predefined, PHENOTYPES_COMPARATOR);
+        Collections.sort(freeText, PHENOTYPES_COMPARATOR);
 
         this.phenotypes = new HashMap<>();
         this.phenotypes.put(PREDEFINED, predefined);
