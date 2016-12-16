@@ -29,7 +29,6 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -51,10 +50,6 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
 {
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
-
-    /** List of genes variant interpretations of pathogenic status 3-5 (VUS or higher). */
-    private static final String[] TOP_INTERPRETATIONS =
-    {"pathogenic", "likely_pathogenic", "variant_u_s"};
 
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
@@ -88,7 +83,6 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         }
         this.candidateGenes = new HashSet<String>();
         this.candidateGenes.addAll(getManualGeneNames(patient));
-        this.candidateGenes.addAll(getManualVariantGeneNames(patient));
 
         // Score all genes
         for (String gene : this.getGenes()) {
@@ -128,36 +122,6 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
                 return Collections.unmodifiableSet(geneCandidateNames);
             }
 
-        }
-        return Collections.emptySet();
-    }
-
-    /**
-     * Return a set of the gene symbols of variants with pathogenic status 3-5 (VUS or higher).
-     *
-     * @param p the {@link Patient}
-     * @return a (potentially-empty) unmodifiable set of the names of genes
-     */
-    private static Set<String> getManualVariantGeneNames(Patient p)
-    {
-        PatientData<Map<String, String>> variants = null;
-        Set<String> geneNames = new HashSet<String>();
-        if (p != null) {
-            variants = p.getData("variants");
-        }
-        if (variants != null && variants.isIndexed()) {
-            for (Map<String, String> variant : variants) {
-                String geneSymbol = variant.get("genesymbol");
-                if (StringUtils.isBlank(geneSymbol)) {
-                    continue;
-                }
-                geneSymbol = geneSymbol.trim();
-                String interpretation = variant.get("interpretation");
-                if (interpretation != null && Arrays.asList(TOP_INTERPRETATIONS).contains(interpretation)) {
-                    geneNames.add(geneSymbol);
-                }
-            }
-            return Collections.unmodifiableSet(geneNames);
         }
         return Collections.emptySet();
     }
