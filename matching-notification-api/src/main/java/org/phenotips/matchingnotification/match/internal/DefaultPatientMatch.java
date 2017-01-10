@@ -110,7 +110,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String referenceServerId;
 
     @Basic
-    @Column(columnDefinition = "CLOB")
+    @Column(length = 0xFFFFFF)
     private String referenceDetails;
 
     @Transient
@@ -126,7 +126,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String matchedServerId;
 
     @Basic
-    @Column(columnDefinition = "CLOB")
+    @Column(length = 0xFFFFFF)
     private String matchedDetails;
 
     @Transient
