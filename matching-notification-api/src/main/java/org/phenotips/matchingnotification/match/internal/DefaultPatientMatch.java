@@ -198,8 +198,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         // Reorder phenotype
         DefaultPhenotypesMap.reorder(
-            referencePatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED),
-            matchedPatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED));
+            this.referencePatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED),
+            this.matchedPatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED));
 
         // After reordering!
         this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
@@ -234,13 +234,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public Boolean isNotified()
     {
-        return notified;
+        return this.notified;
     }
 
     @Override
     public String getReferencePatientId()
     {
-        return referencePatientId;
+        return this.referencePatientId;
     }
 
     @Override
@@ -252,7 +252,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public String getMatchedPatientId()
     {
-        return matchedPatientId;
+        return this.matchedPatientId;
     }
 
     @Override
@@ -367,9 +367,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void onLoad(Session arg0, Serializable arg1)
     {
         this.referencePatientInMatch = new DefaultPatientInMatch(
-           this, this.referencePatientId, this.referenceServerId, this.referenceDetails);
+            this, this.referencePatientId, this.referenceServerId, this.referenceDetails);
         this.matchedPatientInMatch = new DefaultPatientInMatch(
-           this, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
+            this, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
     }
 
     @Override
