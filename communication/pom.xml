@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   <artifactId>anonymous-communication</artifactId>
   <name>PhenoTips - Patient network - Anonymous communication between users</name>
