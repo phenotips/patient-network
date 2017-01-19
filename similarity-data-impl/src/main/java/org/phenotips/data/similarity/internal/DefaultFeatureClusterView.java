@@ -25,6 +25,7 @@ import org.phenotips.vocabulary.VocabularyTerm;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -193,5 +194,19 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         }
 
         return featureMatchJSON;
+    }
+
+    @Override
+    public String getPropertyName()
+    {
+        // This is not relevant for the ancestor term.
+        return "";
+    }
+
+    @Override
+    public List<String> getCategories()
+    {
+        // This is not relevant for the ancestor term.
+        return Collections.emptyList();
     }
 }

@@ -21,6 +21,7 @@ import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.translation.TranslationManager;
 
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 import org.junit.Assert;
@@ -158,5 +159,11 @@ public class MatchAccessLevelTest
         Assert.assertNotEquals(edit.hashCode(), other.hashCode());
         other = new MockAccessLevel("none", 5, true);
         Assert.assertNotEquals(edit.hashCode(), other.hashCode());
+    }
+
+    @Test
+    public void grantsNoRight() throws ComponentLookupException
+    {
+        Assert.assertEquals(Right.ILLEGAL, this.mocker.getComponentUnderTest().getGrantedRight());
     }
 }

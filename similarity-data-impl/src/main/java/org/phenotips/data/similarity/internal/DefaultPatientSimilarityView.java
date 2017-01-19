@@ -27,6 +27,8 @@ import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
+import org.xwiki.model.reference.EntityReference;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -356,6 +358,24 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             return 0.5 * (phenotypeScore + genotypeScore);
         }
         return this.score;
+    }
+
+    @Override
+    public EntityReference getType()
+    {
+        return Patient.CLASS_REFERENCE;
+    }
+
+    @Override
+    public String getName()
+    {
+        return getExternalId();
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "";
     }
 
     /**

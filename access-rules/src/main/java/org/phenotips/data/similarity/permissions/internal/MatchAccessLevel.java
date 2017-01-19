@@ -20,6 +20,7 @@ package org.phenotips.data.similarity.permissions.internal;
 import org.phenotips.data.permissions.internal.AbstractAccessLevel;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.security.authorization.Right;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -49,5 +50,11 @@ public class MatchAccessLevel extends AbstractAccessLevel
     public String getName()
     {
         return "match";
+    }
+
+    @Override
+    public Right getGrantedRight()
+    {
+        return Right.ILLEGAL;
     }
 }

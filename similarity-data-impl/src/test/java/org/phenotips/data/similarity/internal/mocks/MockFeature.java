@@ -21,6 +21,7 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -112,5 +113,17 @@ public class MockFeature implements Feature
     public String getValue()
     {
         return (StringUtils.isNotBlank(this.id) ? this.id : this.name);
+    }
+
+    @Override
+    public String getPropertyName()
+    {
+        return "";
+    }
+
+    @Override
+    public List<String> getCategories()
+    {
+        return Collections.emptyList();
     }
 }
