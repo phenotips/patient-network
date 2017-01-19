@@ -44,6 +44,8 @@ import static org.mockito.Mockito.when;
  */
 public class RestrictedFeatureClusterViewTest
 {
+    private static final String PHENOTYPE = "phenotype";
+
     private static AccessType open;
 
     private static AccessType limited;
@@ -76,8 +78,8 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetAncestorDetailsWithPublicAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
@@ -101,8 +103,8 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetAncestorDetailsWithMatchAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
@@ -129,8 +131,8 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetAncestorParentDetailsWithMatchAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
@@ -143,8 +145,8 @@ public class RestrictedFeatureClusterViewTest
         when(ancestorParent.getId()).thenReturn("HP:0000517");
         when(ancestor.getParents()).thenReturn(Collections.singleton(ancestorParent));
 
-        reference.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0010696", "Polar cataract", "phenotype", true));
+        reference.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0010696", "Polar cataract", PHENOTYPE, true));
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, limited, ancestor, score);
         // Test that ancestor information is not retrieved as Feature methods of ClusterView
@@ -163,8 +165,8 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetAncestorDetailsWithPrivateAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
@@ -188,18 +190,18 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetMatchWithPublicAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
         double score = 0.0;
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, open, null, score);
         Assert.assertTrue(o.getMatch().isEmpty());
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, false));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         o = new RestrictedFeatureClusterView(match, reference, open, null, score);
         Assert.assertEquals(match.size(), o.getMatch().size());
@@ -212,18 +214,18 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetMatchWithMatchAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
         double score = 0.0;
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, limited, null, score);
         Assert.assertTrue(o.getMatch().isEmpty());
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, false));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         // All features are null, but the count is correct
         o = new RestrictedFeatureClusterView(match, reference, limited, null, score);
@@ -237,18 +239,18 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testGetMatchWithPrivateAccess()
     {
-        Collection<Feature> match = new ArrayList<Feature>();
-        Collection<Feature> reference = new ArrayList<Feature>();
+        Collection<Feature> match = new ArrayList<>();
+        Collection<Feature> reference = new ArrayList<>();
         double score = 0.0;
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, priv, null, score);
         Assert.assertTrue(o.getMatch().isEmpty());
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", false));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, false));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         // All features are null, but the count is correct
         o = new RestrictedFeatureClusterView(match, reference, priv, null, score);
@@ -259,22 +261,22 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testToJSONWithPublicAccess()
     {
-        List<Feature> match = new ArrayList<Feature>();
-        List<Feature> reference = new ArrayList<Feature>();
+        List<Feature> match = new ArrayList<>();
+        List<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
 
-        reference.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        reference.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        reference.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true));
+        reference.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, true));
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, open, ancestor, score);
 
@@ -312,22 +314,22 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testToJSONWithMatchAccess()
     {
-        List<Feature> match = new ArrayList<Feature>();
-        List<Feature> reference = new ArrayList<Feature>();
+        List<Feature> match = new ArrayList<>();
+        List<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
 
-        reference.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        reference.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        reference.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true));
+        reference.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, true));
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, limited, ancestor, score);
 
@@ -362,22 +364,22 @@ public class RestrictedFeatureClusterViewTest
     @Test
     public void testToJSONWithPrivateAccess()
     {
-        List<Feature> match = new ArrayList<Feature>();
-        List<Feature> reference = new ArrayList<Feature>();
+        List<Feature> match = new ArrayList<>();
+        List<Feature> reference = new ArrayList<>();
 
         VocabularyTerm ancestor = mock(VocabularyTerm.class);
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
         double score = 0.1234;
 
-        reference.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        reference.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        reference.add(new MockFeature("HP:0001249", "Intellectual disability", "phenotype", true));
+        reference.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        reference.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, true));
 
-        match.add(new MockFeature("HP:0001382", "Joint hypermobility", "phenotype", true));
-        match.add(new MockFeature("HP:0012165", "Oligodactyly", "phenotype", true));
-        match.add(new MockFeature("HP:0000518", "Cataract", "phenotype", true));
-        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", true));
+        match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0012165", "Oligodactyly", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
+        match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
         FeatureClusterView o = new RestrictedFeatureClusterView(match, reference, priv, ancestor, score);
 

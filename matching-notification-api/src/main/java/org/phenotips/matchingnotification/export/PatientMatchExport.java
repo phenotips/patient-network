@@ -54,7 +54,7 @@ public class PatientMatchExport
     {
         JSONObject matchesJSON = new JSONObject();
 
-        Set<PatientMatch> usedAsEquivalent = new HashSet<PatientMatch>();
+        Set<PatientMatch> usedAsEquivalent = new HashSet<>();
 
         // Build a list of JSONObject-s representing matches
         MatchesByPatient mbp = new MatchesByPatient(matches);
@@ -77,9 +77,11 @@ public class PatientMatchExport
         }
 
         // Sort by score
-        Collections.sort(matchesObjects, new Comparator<JSONObject>() {
+        Collections.sort(matchesObjects, new Comparator<JSONObject>()
+        {
             @Override
-            public int compare(JSONObject o1, JSONObject o2) {
+            public int compare(JSONObject o1, JSONObject o2)
+            {
                 double score1 = (Double) o1.get(SCORE);
                 double score2 = (Double) o2.get(SCORE);
                 return (int) Math.signum(score2 - score1);

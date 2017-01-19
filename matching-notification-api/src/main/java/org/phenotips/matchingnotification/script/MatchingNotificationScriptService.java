@@ -72,7 +72,7 @@ public class MatchingNotificationScriptService implements ScriptService
     public String findAndSaveMatches(double score)
     {
         List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
-        JSONObject json = patientMatchExport.toJSON(matches);
+        JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
 
@@ -83,9 +83,10 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param notified whether the matches were notified of
      * @return a JSON object with a list of matches
      */
-    public String getMatches(double score, boolean notified) {
-        List<PatientMatch> matches = matchStorageManager.loadMatches(score, notified);
-        JSONObject json = patientMatchExport.toJSON(matches);
+    public String getMatches(double score, boolean notified)
+    {
+        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
+        JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
 
@@ -99,7 +100,8 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param rejected whether the matches should be rejected or unrejected
      * @return result JSON
      */
-    public String rejectMatches(String ids, boolean rejected) {
+    public String rejectMatches(String ids, boolean rejected)
+    {
         List<Long> idsList = this.jsonToIdsList(ids);
         this.matchingNotificationManager.markRejected(idsList, rejected);
         return this.successfulIdsToJSON(idsList, idsList).toString();
@@ -122,7 +124,7 @@ public class MatchingNotificationScriptService implements ScriptService
 
         // create result JSON. The successfullyNotified list is used to take care of a case
         // where there is match that was supposed to be notified but no response was received on it.
-        List<Long> successfullyNotified = new LinkedList<Long>();
+        List<Long> successfullyNotified = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
             if (response.isSuccessul()) {
                 successfullyNotified.add(response.getPatientMatch().getId());
@@ -132,8 +134,9 @@ public class MatchingNotificationScriptService implements ScriptService
         return this.successfulIdsToJSON(idsList, successfullyNotified).toString();
     }
 
-    private List<Long> jsonToIdsList(String idsJson) {
-        List<Long> ids = new ArrayList<Long>();
+    private List<Long> jsonToIdsList(String idsJson)
+    {
+        List<Long> ids = new ArrayList<>();
         try {
             if (StringUtils.isNotEmpty(idsJson)) {
                 JSONObject idsObject = new JSONObject(idsJson);

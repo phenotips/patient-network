@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format
+ * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format.
  *
  * @version $Id$
  */
@@ -44,7 +44,7 @@ public class ExomiserExomeTest
             + "chr1\t120611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\n"
             + "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
 
-    /** Parse an {@link Exome} object from a raw String */
+    /** Parse an {@link Exome} object from a raw String. */
     private Exome parseExomeFromString(String exomeString)
     {
         Exome exome = null;
@@ -95,8 +95,8 @@ public class ExomiserExomeTest
 
         List<Variant> vs = exome.getTopVariants("NOTCH2", 99);
         Assert.assertEquals(3, vs.size());
-        Assert.assertTrue(vs.get(0).getScore() > vs.get(1).getScore() &&
-            vs.get(1).getScore() > vs.get(2).getScore());
+        Assert.assertTrue(vs.get(0).getScore() > vs.get(1).getScore()
+            && vs.get(1).getScore() > vs.get(2).getScore());
     }
 
     /** Unknown genes should have null score, empty variants. */
@@ -114,7 +114,7 @@ public class ExomiserExomeTest
     public void testGetTopGenes()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
-        List<String> geneNames = new ArrayList<String>();
+        List<String> geneNames = new ArrayList<>();
         for (String gene : exome.getTopGenes(0)) {
             geneNames.add(gene);
         }

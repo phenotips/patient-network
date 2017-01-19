@@ -158,7 +158,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     /**
      * Bound probability to between (0, 1) exclusive.
      *
-     * @param prob
+     * @param prob the input value to bound
      * @return probability bounded between (0, 1) exclusive
      */
     private static double limitProb(double prob)
@@ -175,9 +175,9 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     private Collection<VocabularyTerm> queryAllTerms(Vocabulary vocabulary)
     {
         this.logger.info("Querying all terms in vocabulary: " + vocabulary.getAliases().iterator().next());
-        Map<String, String> queryAll = new HashMap<String, String>();
+        Map<String, String> queryAll = new HashMap<>();
         queryAll.put("id", "*");
-        Map<String, String> queryAllParams = new HashMap<String, String>();
+        Map<String, String> queryAllParams = new HashMap<>();
         queryAllParams.put(CommonParams.ROWS, String.valueOf(vocabulary.size()));
         Collection<VocabularyTerm> results = vocabulary.search(queryAll, queryAllParams);
         this.logger.info(String.format("  ... found %d entries.", results.size()));
@@ -193,8 +193,8 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
      */
     private Map<VocabularyTerm, Double> getTermICs(Vocabulary mim, Vocabulary hpo)
     {
-        Map<VocabularyTerm, Double> termFreq = new HashMap<VocabularyTerm, Double>();
-        Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
+        Map<VocabularyTerm, Double> termFreq = new HashMap<>();
+        Map<VocabularyTerm, Double> termICs = new HashMap<>();
         // Add up frequencies of each term across diseases
         Collection<VocabularyTerm> diseases = queryAllTerms(mim);
         for (VocabularyTerm disease : diseases) {
@@ -237,7 +237,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @SuppressWarnings("unchecked")
     private Collection<VocabularyTerm> getDiseaseVocabularyTerms(Vocabulary hpo, VocabularyTerm disease)
     {
-        Collection<VocabularyTerm> terms = new LinkedList<VocabularyTerm>();
+        Collection<VocabularyTerm> terms = new LinkedList<>();
         Object symptomNames = disease.get("actual_symptom");
         if (symptomNames != null) {
             if (symptomNames instanceof Collection<?>) {
@@ -246,7 +246,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
                     // Ideally use frequency with which symptom occurs in disease
                     // This information isn't prevalent or reliable yet, however
                     if (symptom == null) {
-                        logger.warn("Unable to find term in HPO: " + symptomName);
+                        this.logger.warn("Unable to find term in HPO: " + symptomName);
                     } else {
                         terms.add(symptom);
                     }
@@ -266,7 +266,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         this.logger.info("Initializing...");
         if (this.viewCache == null) {
             try {
-                this.viewCache = new PairCache<PatientSimilarityView>();
+                this.viewCache = new PairCache<>();
             } catch (CacheException e) {
                 this.logger.warn("Unable to create cache for PatientSimilarityViews");
             }

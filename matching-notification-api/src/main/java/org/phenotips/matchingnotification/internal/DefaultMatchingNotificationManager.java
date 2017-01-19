@@ -115,9 +115,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         try {
             Query q = this.qm.createQuery(
                 "select doc.name "
-                + "from Document doc, "
-                + "doc.object(PhenoTips.PatientClass) as patient "
-                + "where patient.identifier is not null order by patient.identifier desc", Query.XWQL);
+                    + "from Document doc, "
+                    + "doc.object(PhenoTips.PatientClass) as patient "
+                    + "where patient.identifier is not null order by patient.identifier desc",
+                Query.XWQL);
             potentialPatientIds = q.execute();
         } catch (QueryException e) {
             this.logger.error("Error retrieving a list of patients for matching: {}", e);
@@ -131,7 +132,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
 
             Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
-            if (patientVisibility.compareTo(matchableVisibility) >= 0) {
+            if (patientVisibility.compareTo(this.matchableVisibility) >= 0) {
                 patients.add(patient);
             }
         }
@@ -146,14 +147,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             return Collections.emptyList();
         }
 
-        List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
-        List<PatientMatchEmail> emails = notifier.createEmails(matches);
+        List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+        List<PatientMatchEmail> emails = this.notifier.createEmails(matches);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         for (PatientMatchEmail email : emails) {
 
             Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-            List<PatientMatchNotificationResponse> notificationResults = notifier.notify(email);
+            List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
             this.markSuccessfulNotification(session, notificationResults);
             boolean successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
 
@@ -187,7 +188,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
      */
     private void filterMatchesByScore(List<PatientMatch> matches, double score)
     {
-        List<PatientMatch> toRemove = new LinkedList<PatientMatch>();
+        List<PatientMatch> toRemove = new LinkedList<>();
         for (PatientMatch match : matches) {
             if (match.getScore() < score) {
                 toRemove.add(match);
@@ -243,7 +244,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     {
         boolean successful = false;
         try {
-            List<PatientMatch> matches = matchStorageManager.loadMatchesByIds(matchesIds);
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
 
             Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
             this.matchStorageManager.markRejected(session, matches, rejected);

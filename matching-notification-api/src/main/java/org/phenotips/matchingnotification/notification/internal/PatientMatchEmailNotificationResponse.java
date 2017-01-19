@@ -39,23 +39,27 @@ public class PatientMatchEmailNotificationResponse implements PatientMatchNotifi
      * @param mailStatus mail status object
      * @param patientMatch the match this response is associated with
      */
-    public PatientMatchEmailNotificationResponse(MailStatus mailStatus, PatientMatch patientMatch) {
+    public PatientMatchEmailNotificationResponse(MailStatus mailStatus, PatientMatch patientMatch)
+    {
         this.mailStatus = mailStatus;
         this.patientMatch = patientMatch;
     }
 
     @Override
-    public boolean isSuccessul() {
+    public boolean isSuccessul()
+    {
         return StringUtils.isEmpty(this.getErrorMessage());
     }
 
     @Override
-    public String getErrorMessage() {
+    public String getErrorMessage()
+    {
         return this.mailStatus.getErrorDescription();
     }
 
     @Override
-    public PatientMatch getPatientMatch() {
+    public PatientMatch getPatientMatch()
+    {
         return this.patientMatch;
     }
 

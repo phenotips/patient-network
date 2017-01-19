@@ -196,7 +196,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return this.contactToken;
     }
 
-    private String getAgeOfOnset(PatientData<List<VocabularyTerm>> globalControllers) {
+    private String getAgeOfOnset(PatientData<List<VocabularyTerm>> globalControllers)
+    {
         if (globalControllers != null) {
             List<VocabularyTerm> ageOfOnset = globalControllers.get(GLOBAL_AGE_OF_ONSET);
             if (ageOfOnset.size() == 1) {

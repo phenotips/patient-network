@@ -101,6 +101,8 @@ public class RestrictedPatientGenotypeSimilarityViewTest
             +
             "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
 
+    private static final String SRCAP = "SRCAP";
+
     private static AccessType open;
 
     private static AccessType limited;
@@ -216,7 +218,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     private void setPatientVariants(Patient mockPatient, List<Map<String, String>> variants)
     {
         PatientData<Map<String, String>> variantData =
-            new IndexedPatientData<Map<String, String>>("variants", variants);
+            new IndexedPatientData<>("variants", variants);
         doReturn(variantData).when(this.mockMatch).getData("variants");
     }
 
@@ -289,15 +291,15 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneMatch()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         matchGenes.add("TTN");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
-        refGenes.add("SRCAP");
+        refGenes.add(SRCAP);
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
         PatientGenotypeSimilarityView o =
@@ -305,13 +307,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
         Set<String> genes = o.getMatchingGenes();
         Assert.assertEquals(1, genes.size());
-        Assert.assertTrue(genes.contains("SRCAP"));
+        Assert.assertTrue(genes.contains(SRCAP));
 
         JSONArray results = o.toJSON();
         Assert.assertEquals(1, results.length());
 
         JSONObject top = results.getJSONObject(0);
-        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
+        Assert.assertTrue(top.getString("gene").equals(SRCAP));
         Assert.assertTrue(top.getDouble("score") > 0.7);
 
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
@@ -325,11 +327,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testSolvedGenesMatch()
     {
         List<Map<String, String>> matchGenes = new ArrayList<>();
-        matchGenes.add(mockManualGene("SRCAP", "solved"));
+        matchGenes.add(mockManualGene(SRCAP, "solved"));
         setPatientGenes(this.mockMatch, matchGenes);
 
         List<Map<String, String>> refGenes = new ArrayList<>();
-        refGenes.add(mockManualGene("SRCAP", "candidate"));
+        refGenes.add(mockManualGene(SRCAP, "candidate"));
         setPatientGenes(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
@@ -337,7 +339,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
         Set<String> genes = view.getMatchingGenes();
         Assert.assertEquals(1, genes.size());
-        Assert.assertTrue(genes.contains("SRCAP"));
+        Assert.assertTrue(genes.contains(SRCAP));
 
         JSONArray results = view.toJSON();
         Assert.assertEquals(1, results.length());
@@ -348,11 +350,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testRejectedGenesDoNotMatch()
     {
         List<Map<String, String>> matchGenes = new ArrayList<>();
-        matchGenes.add(mockManualGene("SRCAP", "rejected"));
+        matchGenes.add(mockManualGene(SRCAP, "rejected"));
         setPatientGenes(this.mockMatch, matchGenes);
 
         List<Map<String, String>> refGenes = new ArrayList<>();
-        refGenes.add(mockManualGene("SRCAP", "candidate"));
+        refGenes.add(mockManualGene(SRCAP, "candidate"));
         setPatientGenes(this.mockReference, refGenes);
 
         PatientGenotypeSimilarityView view =
@@ -365,12 +367,12 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneNoMatch()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         matchGenes.add("TTN");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
@@ -385,13 +387,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneNoMatchOnBlanks()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         matchGenes.add("   ");
         matchGenes.add("");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("");
         refGenes.add("HEXA");
         refGenes.add("  ");
@@ -407,11 +409,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneMatchIgnoreWhitespace()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("  SRCAP  ");
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
@@ -429,7 +431,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneWithoutMatchGenetics()
     {
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("Corf27");
         refGenes.add("HEXA");
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
@@ -444,8 +446,8 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testCandidateGeneWithoutRefGenetics()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         matchGenes.add("TTN");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
@@ -460,13 +462,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testManualVariantsNotUsedInMatching()
     {
         // Candidate variant in match
-        List<Map<String, String>> fakeVariants = new ArrayList<Map<String, String>>();
-        fakeVariants.add(mockManualVariant("SRCAP", "variant_u_s"));
+        List<Map<String, String>> fakeVariants = new ArrayList<>();
+        fakeVariants.add(mockManualVariant(SRCAP, "variant_u_s"));
         setPatientVariants(this.mockMatch, fakeVariants);
 
         // Candidate gene in reference
-        Collection<String> refGenes = new ArrayList<String>();
-        refGenes.add("SRCAP");
+        Collection<String> refGenes = new ArrayList<>();
+        refGenes.add(SRCAP);
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
         PatientGenotypeSimilarityView view =
@@ -480,17 +482,17 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testManualVUSInNegativeGene()
     {
         // VUS in candidate gene in match
-        List<Map<String, String>> fakeGenes = new ArrayList<Map<String, String>>();
-        fakeGenes.add(mockManualGene("SRCAP", "rejected"));
+        List<Map<String, String>> fakeGenes = new ArrayList<>();
+        fakeGenes.add(mockManualGene(SRCAP, "rejected"));
         setPatientGenes(this.mockMatch, fakeGenes);
 
-        List<Map<String, String>> fakeVariants = new ArrayList<Map<String, String>>();
-        fakeVariants.add(mockManualVariant("SRCAP", "variant_u_s"));
+        List<Map<String, String>> fakeVariants = new ArrayList<>();
+        fakeVariants.add(mockManualVariant(SRCAP, "variant_u_s"));
         setPatientVariants(this.mockMatch, fakeVariants);
 
         // Candidate gene in reference
-        Collection<String> refGenes = new ArrayList<String>();
-        refGenes.add("SRCAP");
+        Collection<String> refGenes = new ArrayList<>();
+        refGenes.add(SRCAP);
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
         PatientGenotypeSimilarityView view =
@@ -503,13 +505,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testVariantInCandidateGene()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
-        matchGenes.add("SRCAP");
+        Collection<String> matchGenes = new ArrayList<>();
+        matchGenes.add(SRCAP);
         matchGenes.add("TTN");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
-        Collection<String> refGenes = new ArrayList<String>();
-        refGenes.add("SRCAP");
+        Collection<String> refGenes = new ArrayList<>();
+        refGenes.add(SRCAP);
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
         // Include exome with variant in SRCAP in match patient
@@ -522,13 +524,13 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         // SRCAP (candidate + exome vs. candidate) should match
         Set<String> genes = view.getMatchingGenes();
         Assert.assertEquals(1, genes.size());
-        Assert.assertTrue(genes.contains("SRCAP"));
+        Assert.assertTrue(genes.contains(SRCAP));
 
         JSONArray results = view.toJSON();
         Assert.assertEquals(1, results.length());
 
         JSONObject top = results.getJSONObject(0);
-        Assert.assertTrue(top.getString("gene").equals("SRCAP"));
+        Assert.assertTrue(top.getString("gene").equals(SRCAP));
         double score = top.getDouble("score");
         Assert.assertTrue(String.format("Unexpected score: %.4f", score), score > 0.5);
 
@@ -543,7 +545,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testNoVariantsInCandidateGene()
     {
-        Collection<String> matchGenes = new ArrayList<String>();
+        Collection<String> matchGenes = new ArrayList<>();
         matchGenes.add("NOTCH2");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
@@ -583,7 +585,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         // Include exome with variants in HLA-DQB1 in match patient
         setPatientExome(this.mockMatch, EXOME_1);
 
-        Collection<String> refGenes = new ArrayList<String>();
+        Collection<String> refGenes = new ArrayList<>();
         refGenes.add("HLA-DQB1");
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 

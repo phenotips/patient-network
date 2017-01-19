@@ -34,8 +34,8 @@ import java.util.Map;
 /**
  * Wrapper over an xwiki cache to better handle keys corresponding to pairs of entities.
  *
+ * @param <T> the type of data to put in the cache
  * @version $Id$
- * @param <T>
  * @since 1.0M2
  */
 public class PairCache<T>
@@ -53,7 +53,7 @@ public class PairCache<T>
      */
     public PairCache() throws CacheException
     {
-        this.idEntries = new HashMap<String, Collection<String>>();
+        this.idEntries = new HashMap<>();
 
         try {
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
@@ -78,7 +78,7 @@ public class PairCache<T>
     {
         Collection<String> associatedKeys = this.idEntries.get(id);
         if (associatedKeys == null) {
-            associatedKeys = new HashSet<String>();
+            associatedKeys = new HashSet<>();
             this.idEntries.put(id, associatedKeys);
         }
         associatedKeys.add(cacheKey);

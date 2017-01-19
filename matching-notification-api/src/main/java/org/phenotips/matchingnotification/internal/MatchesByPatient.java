@@ -71,10 +71,13 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         private MatchesByPatient mbp;
 
         private Iterator<Map<String, Set<PatientMatch>>> primaryKeyIterator;
+
         private Iterator<Set<PatientMatch>> secondaryKeyIterator;
+
         private Iterator<PatientMatch> setIterator;
 
         private PatientMatch returnNext;
+
         private PatientMatch returnedLast;
 
         private Set<PatientMatch> returnedSet;
@@ -118,7 +121,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         {
             this.returnedLast = this.returnNext;
 
-            this.returnedSet.add(returnedLast);
+            this.returnedSet.add(this.returnedLast);
             boolean keepLooking = true;
             while (keepLooking) {
                 this.moveToNext();
@@ -131,13 +134,13 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
                     }
 
                     // Item was not returned but an equivalent match was returned
-                    if (this.skipEquivalents && containsEquivalent(returnedSet, this.returnNext)) {
+                    if (this.skipEquivalents && containsEquivalent(this.returnedSet, this.returnNext)) {
                         keepLooking = true;
                     }
                 }
             }
 
-            return returnedLast;
+            return this.returnedLast;
         }
 
         private void moveToNext()
@@ -181,7 +184,8 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         }
 
         // Read next item in current set. Return true if next value was found, else false.
-        private boolean setReturnNext() {
+        private boolean setReturnNext()
+        {
             if (this.setIterator != null && this.setIterator.hasNext()) {
                 this.returnNext = this.setIterator.next();
                 return true;
@@ -202,14 +206,16 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
     {
         private String localPatientId;
 
-        PatientMatchSetComparator(String localPatientId) {
+        PatientMatchSetComparator(String localPatientId)
+        {
             this.localPatientId = localPatientId;
         }
 
         @Override
         // Matches where key patient (first key in internalMap) is matched come before matches where it's a reference.
         // In all other cases, order is not important (provided that m1!=m2 <==> compare(m1,m2)!=0).
-        public int compare(PatientMatch m1, PatientMatch m2) {
+        public int compare(PatientMatch m1, PatientMatch m2)
+        {
             boolean m1ref = m1.isReference(this.localPatientId, null);
             boolean m2ref = m2.isReference(this.localPatientId, null);
             if (m1ref && !m2ref) {
@@ -256,7 +262,6 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         return this.size;
     }
 
-
     /**
      * Adds a PatientMatch to the collection.
      *
@@ -281,7 +286,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         }
 
         if (added) {
-            size++;
+            this.size++;
             return true;
         } else {
             return false;
@@ -309,7 +314,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
     /**
      * Removes a match from the collection.
      *
-     * @param match to remove
+     * @param o to remove
      * @return false if not found
      */
     @Override
@@ -334,7 +339,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         }
 
         if (removed) {
-            size--;
+            this.size--;
             return true;
         } else {
             return false;
@@ -350,8 +355,8 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
     }
 
     /**
-     * Returns all matches for a local patient id. This will return matches where the patient is both
-     * reference patient and matched patient.
+     * Returns all matches for a local patient id. This will return matches where the patient is both reference patient
+     * and matched patient.
      *
      * @param localPatientId id of local patient
      * @param filterEquivalents if true, the return value will contain no equivalent matches
@@ -411,7 +416,8 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         return set.add(match);
     }
 
-    private boolean remove(String localPatientId, String otherPatientId, PatientMatch match) {
+    private boolean remove(String localPatientId, String otherPatientId, PatientMatch match)
+    {
         Map<String, Set<PatientMatch>> map = this.internalMap.get(localPatientId);
         if (map == null) {
             return false;
@@ -433,7 +439,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
     /**
      * Checks if the collection contains a match.
      *
-     * @param match to check
+     * @param o to check
      * @return true if the collection contains the match
      */
     @Override

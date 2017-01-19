@@ -30,8 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Matchers;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

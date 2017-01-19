@@ -172,7 +172,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     @Override
     public Set<? extends Disorder> getDisorders()
     {
-        Set<Disorder> result = new HashSet<Disorder>();
+        Set<Disorder> result = new HashSet<>();
         for (DisorderSimilarityView disorder : getMatchedDisorders()) {
             if (disorder.getId() != null) {
                 result.add(disorder);
@@ -191,7 +191,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     protected Set<DisorderSimilarityView> getMatchedDisorders()
     {
         if (this.matchedDisorders == null) {
-            Set<DisorderSimilarityView> result = new HashSet<DisorderSimilarityView>();
+            Set<DisorderSimilarityView> result = new HashSet<>();
             for (Disorder disorder : this.match.getDisorders()) {
                 result.add(createDisorderSimilarityView(disorder,
                     findMatchingDisorder(disorder, this.reference.getDisorders()), this.access));
@@ -209,12 +209,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /**
      * Return a (potentially empty) collection of terms present in the patient.
      *
-     * @param patient
+     * @param patient the patient to process
      * @return a collection of terms present in the patient
      */
     private Collection<VocabularyTerm> getPresentPatientTerms(Patient patient)
     {
-        Set<VocabularyTerm> terms = new HashSet<VocabularyTerm>();
+        Set<VocabularyTerm> terms = new HashSet<>();
         for (Feature feature : patient.getFeatures()) {
             if (!feature.isPresent()) {
                 continue;
@@ -233,12 +233,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * Return a (potentially empty) mapping from VocabularyTerm IDs back to features in the patient. Un-mappable
      * features are not included.
      *
-     * @param patient
+     * @param patient the patient to process
      * @return a mapping from term IDs to features in the patient
      */
     private Map<String, Feature> getTermLookup(Patient patient)
     {
-        Map<String, Feature> lookup = new HashMap<String, Feature>();
+        Map<String, Feature> lookup = new HashMap<>();
         for (Feature feature : patient.getFeatures()) {
             String id = feature.getId();
             if (!id.isEmpty()) {
@@ -256,7 +256,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     private Set<VocabularyTerm> getAncestors(Collection<VocabularyTerm> terms)
     {
-        Set<VocabularyTerm> ancestors = new HashSet<VocabularyTerm>(terms);
+        Set<VocabularyTerm> ancestors = new HashSet<>(terms);
         for (VocabularyTerm term : terms) {
             // Add all ancestors
             ancestors.addAll(term.getAncestorsAndSelf());
@@ -284,7 +284,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     @Override
-    public double getGenotypeScore() {
+    public double getGenotypeScore()
+    {
         PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
         double genotypeScore = genotypeSimilarity.getScore();
         return genotypeScore;
@@ -304,11 +305,11 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
                 return 0.0;
             } else {
                 // Score overlapping ancestors
-                Set<VocabularyTerm> commonAncestors = new HashSet<VocabularyTerm>();
+                Set<VocabularyTerm> commonAncestors = new HashSet<>();
                 commonAncestors.addAll(refAncestors);
                 commonAncestors.retainAll(matchAncestors);
 
-                Set<VocabularyTerm> allAncestors = new HashSet<VocabularyTerm>();
+                Set<VocabularyTerm> allAncestors = new HashSet<>();
                 allAncestors.addAll(refAncestors);
                 allAncestors.addAll(matchAncestors);
 
@@ -441,7 +442,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     private Collection<VocabularyTerm> popTermsWithAncestor(Collection<VocabularyTerm> terms, VocabularyTerm ancestor)
     {
-        Collection<VocabularyTerm> matched = new HashSet<VocabularyTerm>();
+        Collection<VocabularyTerm> matched = new HashSet<>();
         for (VocabularyTerm term : terms) {
             if (term.getAncestorsAndSelf().contains(ancestor)) {
                 matched.add(term);
@@ -502,7 +503,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 
     private Collection<FeatureClusterView> getMatchedFeatures()
     {
-        Collection<FeatureClusterView> clusters = new LinkedList<FeatureClusterView>();
+        Collection<FeatureClusterView> clusters = new LinkedList<>();
 
         // Get term -> feature lookups for creating cluster views
         Map<String, Feature> matchFeatureLookup = getTermLookup(this.match);
@@ -540,7 +541,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      */
     private Collection<Feature> termsToFeatures(Collection<VocabularyTerm> terms, Map<String, Feature> termLookup)
     {
-        Collection<Feature> features = new ArrayList<Feature>();
+        Collection<Feature> features = new ArrayList<>();
         for (VocabularyTerm term : terms) {
             String id = term.getId();
             if (id != null) {

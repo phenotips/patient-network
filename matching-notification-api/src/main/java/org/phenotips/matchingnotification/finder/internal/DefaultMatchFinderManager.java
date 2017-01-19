@@ -55,7 +55,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     @Override
     public List<PatientMatch> findMatches(Patient patient)
     {
-        List<PatientMatch> matches = new LinkedList<PatientMatch>();
+        List<PatientMatch> matches = new LinkedList<>();
 
         for (MatchFinder service : this.matchFinderProvider.get()) {
             try {

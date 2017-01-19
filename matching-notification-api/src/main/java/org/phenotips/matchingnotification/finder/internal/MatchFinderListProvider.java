@@ -45,7 +45,8 @@ public class MatchFinderListProvider implements Provider<List<MatchFinder>>
     private ComponentManager componentManager;
 
     @Override
-    public List<MatchFinder> get() {
+    public List<MatchFinder> get()
+    {
 
         List<MatchFinder> services = null;
         try {
@@ -54,9 +55,11 @@ public class MatchFinderListProvider implements Provider<List<MatchFinder>>
             throw new RuntimeException("Failed to look up instance of MatchFinder", ex);
         }
 
-        Collections.sort(services, new Comparator<MatchFinder>() {
+        Collections.sort(services, new Comparator<MatchFinder>()
+        {
             @Override
-            public int compare(MatchFinder o1, MatchFinder o2) {
+            public int compare(MatchFinder o1, MatchFinder o2)
+            {
                 return o2.getPriority() - o1.getPriority();
             }
         });

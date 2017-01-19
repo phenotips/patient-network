@@ -51,44 +51,44 @@ public class MatchesByPatientTest
     @Before
     public void setup()
     {
-        m1_3 = newMatch(1, "P1", null, "P3", null);
-        m1_4 = newMatch(2, "P1", null, "P4", null);
-        m1_5server1 = newMatch(3, "P1", null, "P5", "server1");
-        m1server3_4 = newMatch(4, "P1", "server3", "P4", null);
-        m1server4_4 = newMatch(5, "P1", "server4", "P4", null);
-        m1server5_4 = newMatch(6, "P1", "server5", "P4", null);
+        this.m1_3 = newMatch(1, "P1", null, "P3", null);
+        this.m1_4 = newMatch(2, "P1", null, "P4", null);
+        this.m1_5server1 = newMatch(3, "P1", null, "P5", "server1");
+        this.m1server3_4 = newMatch(4, "P1", "server3", "P4", null);
+        this.m1server4_4 = newMatch(5, "P1", "server4", "P4", null);
+        this.m1server5_4 = newMatch(6, "P1", "server5", "P4", null);
 
-        m2_1 = newMatch(7, "P2", null, "P1", null);
-        m2_3 = newMatch(8, "P2", null, "P3", null);
-        m2_3server1 = newMatch(9, "P2", null, "P3", "server1");
+        this.m2_1 = newMatch(7, "P2", null, "P1", null);
+        this.m2_3 = newMatch(8, "P2", null, "P3", null);
+        this.m2_3server1 = newMatch(9, "P2", null, "P3", "server1");
 
-        m3_1 = newMatch(10, "P3", null, "P1", null);
-        m3server1_2 = newMatch(11, "P3", "server1", "P2", null);
+        this.m3_1 = newMatch(10, "P3", null, "P1", null);
+        this.m3server1_2 = newMatch(11, "P3", "server1", "P2", null);
 
-        m4_1 = newMatch(12, "P4", null, "P1", null);
-        m4_1server3 = newMatch(13, "P4", null, "P1", "server3");
-        m4_2 = newMatch(14, "P4", null, "P2", null);
+        this.m4_1 = newMatch(12, "P4", null, "P1", null);
+        this.m4_1server3 = newMatch(13, "P4", null, "P1", "server3");
+        this.m4_2 = newMatch(14, "P4", null, "P2", null);
 
-        m5server1_1 = newMatch(15, "P5", "server1", "P1", null);
-        m5server1_2 = newMatch(16, "P5", "server1", "P2", null);
+        this.m5server1_1 = newMatch(15, "P5", "server1", "P1", null);
+        this.m5server1_2 = newMatch(16, "P5", "server1", "P2", null);
 
         this.mbp = new MatchesByPatient();
-        mbp.add(m1_3);
-        mbp.add(m1_4);
-        mbp.add(m1_5server1);
-        mbp.add(m1server3_4);
-        mbp.add(m1server4_4);
-        mbp.add(m1server5_4);
-        mbp.add(m2_1);
-        mbp.add(m2_3);
-        mbp.add(m2_3server1);
-        mbp.add(m3_1);
-        mbp.add(m3server1_2);
-        mbp.add(m4_1);
-        mbp.add(m4_1server3);
-        mbp.add(m4_2);
-        mbp.add(m5server1_1);
-        mbp.add(m5server1_2);
+        this.mbp.add(this.m1_3);
+        this.mbp.add(this.m1_4);
+        this.mbp.add(this.m1_5server1);
+        this.mbp.add(this.m1server3_4);
+        this.mbp.add(this.m1server4_4);
+        this.mbp.add(this.m1server5_4);
+        this.mbp.add(this.m2_1);
+        this.mbp.add(this.m2_3);
+        this.mbp.add(this.m2_3server1);
+        this.mbp.add(this.m3_1);
+        this.mbp.add(this.m3server1_2);
+        this.mbp.add(this.m4_1);
+        this.mbp.add(this.m4_1server3);
+        this.mbp.add(this.m4_2);
+        this.mbp.add(this.m5server1_1);
+        this.mbp.add(this.m5server1_2);
     }
 
     @Test
@@ -111,71 +111,72 @@ public class MatchesByPatientTest
     @Test
     public void testGetMatches1()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P1", false);
+        Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P1", false);
         Assert.assertEquals(7, matches.size());
-        Assert.assertTrue(matches.contains(m1_3));
-        Assert.assertTrue(matches.contains(m1_4));
-        Assert.assertTrue(matches.contains(m1_5server1));
-        Assert.assertTrue(matches.contains(m2_1));
-        Assert.assertTrue(matches.contains(m3_1));
-        Assert.assertTrue(matches.contains(m4_1));
-        Assert.assertTrue(matches.contains(m5server1_1));
+        Assert.assertTrue(matches.contains(this.m1_3));
+        Assert.assertTrue(matches.contains(this.m1_4));
+        Assert.assertTrue(matches.contains(this.m1_5server1));
+        Assert.assertTrue(matches.contains(this.m2_1));
+        Assert.assertTrue(matches.contains(this.m3_1));
+        Assert.assertTrue(matches.contains(this.m4_1));
+        Assert.assertTrue(matches.contains(this.m5server1_1));
     }
 
     @Test
     public void testGetMatches2()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P2", false);
+        Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P2", false);
         Assert.assertEquals(6, matches.size());
-        Assert.assertTrue(matches.contains(m2_1));
-        Assert.assertTrue(matches.contains(m2_3));
-        Assert.assertTrue(matches.contains(m2_3server1));
-        Assert.assertTrue(matches.contains(m3server1_2));
-        Assert.assertTrue(matches.contains(m4_2));
-        Assert.assertTrue(matches.contains(m5server1_2));
+        Assert.assertTrue(matches.contains(this.m2_1));
+        Assert.assertTrue(matches.contains(this.m2_3));
+        Assert.assertTrue(matches.contains(this.m2_3server1));
+        Assert.assertTrue(matches.contains(this.m3server1_2));
+        Assert.assertTrue(matches.contains(this.m4_2));
+        Assert.assertTrue(matches.contains(this.m5server1_2));
     }
 
     @Test
     public void testGetMatches3()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P3", false);
+        Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P3", false);
         Assert.assertEquals(3, matches.size());
-        Assert.assertTrue(matches.contains(m1_3));
-        Assert.assertTrue(matches.contains(m2_3));
-        Assert.assertTrue(matches.contains(m3_1));
+        Assert.assertTrue(matches.contains(this.m1_3));
+        Assert.assertTrue(matches.contains(this.m2_3));
+        Assert.assertTrue(matches.contains(this.m3_1));
     }
 
     @Test
     public void testGetMatches4()
     {
-        Collection<PatientMatch> matches = mbp.getMatchesForLocalPatientId("P4", false);
+        Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P4", false);
         Assert.assertEquals(7, matches.size());
-        Assert.assertTrue(matches.contains(m1_4));
-        Assert.assertTrue(matches.contains(m1server3_4));
-        Assert.assertTrue(matches.contains(m1server4_4));
-        Assert.assertTrue(matches.contains(m1server5_4));
-        Assert.assertTrue(matches.contains(m4_1));
-        Assert.assertTrue(matches.contains(m4_1server3));
-        Assert.assertTrue(matches.contains(m4_2));
+        Assert.assertTrue(matches.contains(this.m1_4));
+        Assert.assertTrue(matches.contains(this.m1server3_4));
+        Assert.assertTrue(matches.contains(this.m1server4_4));
+        Assert.assertTrue(matches.contains(this.m1server5_4));
+        Assert.assertTrue(matches.contains(this.m4_1));
+        Assert.assertTrue(matches.contains(this.m4_1server3));
+        Assert.assertTrue(matches.contains(this.m4_2));
     }
 
     @Test
-    public void testContainsAndRemove() {
-        Assert.assertEquals(mbp.size(), 16);
-        Assert.assertTrue(mbp.contains(m1_4));
-        mbp.remove(m1_4);
-        Assert.assertFalse(mbp.contains(m1_4));
-        Assert.assertEquals(mbp.size(), 15);
+    public void testContainsAndRemove()
+    {
+        Assert.assertEquals(this.mbp.size(), 16);
+        Assert.assertTrue(this.mbp.contains(this.m1_4));
+        this.mbp.remove(this.m1_4);
+        Assert.assertFalse(this.mbp.contains(this.m1_4));
+        Assert.assertEquals(this.mbp.size(), 15);
 
-        Assert.assertTrue(mbp.contains(m1server3_4));
-        mbp.remove(m1server3_4);
-        Assert.assertFalse(mbp.contains(m1server3_4));
-        Assert.assertEquals(mbp.size(), 14);
+        Assert.assertTrue(this.mbp.contains(this.m1server3_4));
+        this.mbp.remove(this.m1server3_4);
+        Assert.assertFalse(this.mbp.contains(this.m1server3_4));
+        Assert.assertEquals(this.mbp.size(), 14);
 
-        Assert.assertTrue(mbp.contains(m2_3server1));
-        mbp.remove(m2_3server1);
-        Assert.assertFalse(mbp.contains(m2_3server1));
-        Assert.assertEquals(mbp.size(), 13);
+        Assert.assertTrue(this.mbp.contains(this.m2_3server1));
+        this.mbp.remove(this.m2_3server1);
+        Assert.assertFalse(this.mbp.contains(this.m2_3server1));
+        Assert.assertEquals(this.mbp.size(), 13);
     }
 
     @Test
@@ -183,35 +184,35 @@ public class MatchesByPatientTest
     {
         MatchesByPatient mbp2 = new MatchesByPatient();
         Assert.assertEquals(mbp2.size(), 0);
-        Assert.assertTrue(mbp2.add(m1_3));
+        Assert.assertTrue(mbp2.add(this.m1_3));
         Assert.assertEquals(mbp2.size(), 1);
-        Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertFalse(mbp2.add(this.m1_3));
         Assert.assertEquals(mbp2.size(), 1);
-        Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertFalse(mbp2.add(this.m1_3));
         Assert.assertEquals(mbp2.size(), 1);
 
-        Assert.assertTrue(mbp2.add(m2_3));
+        Assert.assertTrue(mbp2.add(this.m2_3));
         Assert.assertEquals(mbp2.size(), 2);
-        Assert.assertFalse(mbp2.add(m2_3));
+        Assert.assertFalse(mbp2.add(this.m2_3));
         Assert.assertEquals(mbp2.size(), 2);
-        Assert.assertFalse(mbp2.add(m2_3));
-        Assert.assertEquals(mbp2.size(), 2);
-
-        Assert.assertFalse(mbp2.add(m1_3));
+        Assert.assertFalse(mbp2.add(this.m2_3));
         Assert.assertEquals(mbp2.size(), 2);
 
-        Assert.assertTrue(mbp2.add(m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m1_3));
+        Assert.assertEquals(mbp2.size(), 2);
+
+        Assert.assertTrue(mbp2.add(this.m1_5server1));
         Assert.assertEquals(mbp2.size(), 3);
-        Assert.assertFalse(mbp2.add(m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m1_5server1));
         Assert.assertEquals(mbp2.size(), 3);
-        Assert.assertFalse(mbp2.add(m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m1_5server1));
         Assert.assertEquals(mbp2.size(), 3);
 
-        Assert.assertTrue(mbp2.add(m1server4_4));
+        Assert.assertTrue(mbp2.add(this.m1server4_4));
         Assert.assertEquals(mbp2.size(), 4);
-        Assert.assertFalse(mbp2.add(m1server4_4));
+        Assert.assertFalse(mbp2.add(this.m1server4_4));
         Assert.assertEquals(mbp2.size(), 4);
-        Assert.assertFalse(mbp2.add(m1server4_4));
+        Assert.assertFalse(mbp2.add(this.m1server4_4));
         Assert.assertEquals(mbp2.size(), 4);
     }
 
@@ -224,19 +225,23 @@ public class MatchesByPatientTest
     @Test
     public void testIterator2()
     {
-        testIterator(new PatientMatch[] { m1_3 });
+        testIterator(new PatientMatch[] { this.m1_3 });
     }
 
     @Test
     public void testIterator3()
     {
-        testIterator(new PatientMatch[] { m1_3, m1_4, m1_5server1, m1server3_4, m1server4_4, m1server5_4});
+        testIterator(new PatientMatch[] { this.m1_3, this.m1_4, this.m1_5server1, this.m1server3_4, this.m1server4_4,
+            this.m1server5_4 });
     }
 
     @Test
-    public void testIterator4() {
-        testIterator(new PatientMatch[] { m1_3, m1_4, m1_5server1, m1server3_4, m1server4_4, m1server5_4, m2_1, m2_3,
-            m2_3server1, m3_1, m3server1_2, m4_1, m4_1server3, m4_2, m5server1_1, m5server1_2 });
+    public void testIterator4()
+    {
+        testIterator(new PatientMatch[] { this.m1_3, this.m1_4, this.m1_5server1, this.m1server3_4, this.m1server4_4,
+            this.m1server5_4, this.m2_1, this.m2_3,
+            this.m2_3server1, this.m3_1, this.m3server1_2, this.m4_1, this.m4_1server3, this.m4_2, this.m5server1_1,
+            this.m5server1_2 });
     }
 
     @Test
@@ -248,11 +253,12 @@ public class MatchesByPatientTest
     @Test
     public void testIterator6()
     {
-        testFilteredIterator(new PatientMatch[] { m1_3 });
+        testFilteredIterator(new PatientMatch[] { this.m1_3 });
     }
 
     @Test
-    public void testIterator6_5() {
+    public void testIterator6_5()
+    {
         PatientMatch n1_2 = newMatch(1, "P1", null, "P2", null);
         PatientMatch n1_3 = newMatch(2, "P1", null, "P3", null);
         PatientMatch n2_1 = newMatch(3, "P2", null, "P1", null);
@@ -307,29 +313,32 @@ public class MatchesByPatientTest
     }
 
     @Test
-    public void testRemoveFromIterator1() {
-        Iterator<PatientMatch> iter = mbp.iterator();
-        while (iter.hasNext() && !(iter.next().getId() == this.m1_4.getId()))
-            ;
+    public void testRemoveFromIterator1()
+    {
+        Iterator<PatientMatch> iter = this.mbp.iterator();
+        while (iter.hasNext() && !(iter.next().getId() == this.m1_4.getId())) {
+            // Just skipping to the right position
+        }
         iter.remove();
-        Assert.assertFalse(mbp.contains(m1_4));
-        Assert.assertTrue(mbp.contains(m4_1));
-        Assert.assertEquals(mbp.size(), 15);
+        Assert.assertFalse(this.mbp.contains(this.m1_4));
+        Assert.assertTrue(this.mbp.contains(this.m4_1));
+        Assert.assertEquals(this.mbp.size(), 15);
 
         while (iter.hasNext()) {
             iter.next();
         }
         iter.remove();
         Assert.assertFalse(iter.hasNext());
-        Assert.assertEquals(mbp.size(), 14);
+        Assert.assertEquals(this.mbp.size(), 14);
     }
 
     @Test
-    public void testRemoveFromIterator2() {
+    public void testRemoveFromIterator2()
+    {
         MatchesByPatient mbp2 = new MatchesByPatient();
-        mbp2.add(m1_3);
+        mbp2.add(this.m1_3);
         Collection<PatientMatch> matches1 = mbp2.getMatchesForLocalPatientId("P3", false);
-        Assert.assertTrue(matches1.contains(m1_3));
+        Assert.assertTrue(matches1.contains(this.m1_3));
 
         Iterator<PatientMatch> iter = mbp2.iterator();
         Assert.assertTrue(iter.hasNext());
@@ -349,7 +358,7 @@ public class MatchesByPatientTest
 
         Iterator<PatientMatch> iterator = mbp2.iterator(false);
 
-        Set<PatientMatch> newSet = new HashSet<PatientMatch>();
+        Set<PatientMatch> newSet = new HashSet<>();
         for (int i = 0; i < toAddSet.size(); i++) {
             Assert.assertTrue(iterator.hasNext());
             newSet.add(iterator.next());
@@ -359,14 +368,15 @@ public class MatchesByPatientTest
         Assert.assertEquals(toAddSet, newSet);
     }
 
-    private void testFilteredIterator(PatientMatch[] toAdd) {
+    private void testFilteredIterator(PatientMatch[] toAdd)
+    {
         Set<PatientMatch> toAddSet = new HashSet<>(Arrays.asList(toAdd));
         MatchesByPatient mbp2 = new MatchesByPatient(toAddSet);
         Assert.assertEquals(mbp2.size(), toAdd.length);
 
         Iterator<PatientMatch> iterator = mbp2.iterator(true);
 
-        Set<PatientMatch> newSet = new HashSet<PatientMatch>();
+        Set<PatientMatch> newSet = new HashSet<>();
         while (iterator.hasNext()) {
             newSet.add(iterator.next());
         }

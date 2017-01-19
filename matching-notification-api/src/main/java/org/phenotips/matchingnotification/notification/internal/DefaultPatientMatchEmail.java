@@ -96,8 +96,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     }
 
     /**
-     * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and one of
-     * the patients in every match should have same id as {@code subjectPatientId}.
+     * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and one of the
+     * patients in every match should have same id as {@code subjectPatientId}.
      *
      * @param subjectPatientId id of patient who is the subject of this email (always local)
      * @param matches list of matches that the email notifies of.
@@ -126,7 +126,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private Map<String, Object> createEmailParameters()
     {
-        Map<String, Object> emailParameters = new HashMap<String, Object>();
+        Map<String, Object> emailParameters = new HashMap<>();
         String language = CONTEXT_PROVIDER.get().getLocale().getLanguage();
         emailParameters.put("language", language);
 
@@ -138,7 +138,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     private Map<String, Object> createVelocityVariablesMap()
     {
         Map<String, Object> velocityVariables = new HashMap<>();
-        velocityVariables.put("subjectPatient", subjectPatient);
+        velocityVariables.put("subjectPatient", this.subjectPatient);
 
         List<Map<String, Object>> matchesForEmail = new ArrayList<>(this.matches.size());
         for (PatientMatch match : this.matches) {
@@ -217,7 +217,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     }
 
     @Override
-    public String getSubjectPatientId() {
+    public String getSubjectPatientId()
+    {
         return this.subjectPatient.getPatientId();
     }
 }

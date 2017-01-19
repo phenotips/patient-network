@@ -77,14 +77,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public List<PatientMatch> loadMatches(double score, boolean notified) {
+    public List<PatientMatch> loadMatches(double score, boolean notified)
+    {
         return this.loadMatchesByCriteria(
             new Criterion[] { Restrictions.ge("score", score),
-                              Restrictions.eq("notified", notified) });
+            Restrictions.eq("notified", notified) });
     }
 
     @Override
-    public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds) {
+    public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds)
+    {
         if (matchesIds != null && matchesIds.size() > 0) {
             return this.loadMatchesByCriteria(
                 new Criterion[] { Restrictions.in("id", matchesIds.toArray()) });
@@ -127,14 +129,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public Session beginNotificationMarkingTransaction() {
+    public Session beginNotificationMarkingTransaction()
+    {
         Session session = this.sessionFactory.getSessionFactory().openSession();
         session.beginTransaction();
         return session;
     }
 
     @Override
-    public boolean markNotified(Session session, List<PatientMatch> matches) {
+    public boolean markNotified(Session session, List<PatientMatch> matches)
+    {
         for (PatientMatch match : matches) {
             match.setNotified();
             session.update(match);
@@ -143,7 +147,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean markRejected(Session session, List<PatientMatch> matches, boolean rejected) {
+    public boolean markRejected(Session session, List<PatientMatch> matches, boolean rejected)
+    {
         for (PatientMatch match : matches) {
             match.setRejected(rejected);
             session.update(match);
@@ -152,7 +157,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean endNotificationMarkingTransaction(Session session) {
+    public boolean endNotificationMarkingTransaction(Session session)
+    {
         Transaction t = null;
         try {
             t = session.getTransaction();

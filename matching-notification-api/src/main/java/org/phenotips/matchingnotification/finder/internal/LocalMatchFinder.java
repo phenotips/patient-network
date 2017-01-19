@@ -50,17 +50,19 @@ public class LocalMatchFinder implements MatchFinder
     private SimilarPatientsFinder finder;
 
     @Override
-    public int getPriority() {
+    public int getPriority()
+    {
         return 200;
     }
 
     @Override
-    public List<PatientMatch> findMatches(Patient patient) {
+    public List<PatientMatch> findMatches(Patient patient)
+    {
 
         this.logger.debug("Finding local matches for patient {}.", patient.getId());
 
         List<PatientMatch> matches = new LinkedList<>();
-        List<PatientSimilarityView> similarPatients = finder.findSimilarPatients(patient);
+        List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
         for (PatientSimilarityView similarityView : similarPatients) {
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);

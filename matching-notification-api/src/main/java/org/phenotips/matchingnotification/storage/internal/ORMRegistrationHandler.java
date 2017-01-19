@@ -48,17 +48,20 @@ public class ORMRegistrationHandler implements EventListener
     private HibernateSessionFactory sessionFactory;
 
     @Override
-    public String getName() {
+    public String getName()
+    {
         return "patient-match-orm-registration";
     }
 
     @Override
-    public List<Event> getEvents() {
+    public List<Event> getEvents()
+    {
         return Collections.<Event>singletonList(new ApplicationStartedEvent());
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data) {
+    public void onEvent(Event event, Object source, Object data)
+    {
         Configuration configuration = this.sessionFactory.getConfiguration();
         configuration.addAnnotatedClass(DefaultPatientMatch.class);
     }

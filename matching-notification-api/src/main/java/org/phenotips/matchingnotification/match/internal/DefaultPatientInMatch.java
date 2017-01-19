@@ -99,8 +99,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /**
-     * Builds an object from PatientMatch and Patient objects. This is used when a PatientMatch object
-     * is built the first time.
+     * Builds an object from PatientMatch and Patient objects. This is used when a PatientMatch object is built the
+     * first time.
      *
      * @param match the match that contains the patient this object represents
      * @param patient the patient that this object represents
@@ -116,9 +116,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /**
-     * Builds an object for a patient from a PatientMatch and the result of a
-     * call to getDetailsColumn. This is used when a PatientMatch is retrieved
-     * from the DB.
+     * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumn. This is used
+     * when a PatientMatch is retrieved from the DB.
      *
      * @param match the match that contains the patient this object represents
      * @param patientId the id of the patient that this object represents
@@ -186,8 +185,8 @@ public class DefaultPatientInMatch implements PatientInMatch
             // a Patient object when the patient is remote.
             emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.getPatient()));
         } else {
-            if (StringUtils.isNotEmpty(href)) {
-                emails.add(href);
+            if (StringUtils.isNotEmpty(this.href)) {
+                emails.add(this.href);
             }
         }
         return emails;
@@ -236,9 +235,9 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /*
-     * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible
-     * that some data is missing in case more details added in newer versions. So, it is ok for some values to
-     * be missing (but not genes or phenotypes).
+     * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
+     * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
+     * genes or phenotypes).
      */
     private void rebuildDetails(String patientDetails)
     {
@@ -294,7 +293,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         return Collections.unmodifiableSet(modes);
     }
 
-    private String getAgeOfOnset(PatientData<List<SolrVocabularyTerm>> globalControllers) {
+    private String getAgeOfOnset(PatientData<List<SolrVocabularyTerm>> globalControllers)
+    {
         if (globalControllers != null) {
             List<SolrVocabularyTerm> modeTermList = globalControllers.get("global_age_of_onset");
             if (modeTermList.size() == 1) {
