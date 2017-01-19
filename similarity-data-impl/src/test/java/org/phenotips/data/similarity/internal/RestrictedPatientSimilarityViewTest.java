@@ -575,12 +575,12 @@ public class RestrictedPatientSimilarityViewTest
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; i < match.length(); i++) {
+            for (int j = 0; j < match.length(); j++) {
                 String id = match.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }
             JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; i < reference.length(); i++) {
+            for (int j = 0; j < reference.length(); j++) {
                 String id = reference.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }
@@ -603,12 +603,12 @@ public class RestrictedPatientSimilarityViewTest
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; i < match.length(); i++) {
+            for (int j = 0; j < match.length(); j++) {
                 String id = match.getString(j);
                 Assert.assertEquals("", id);
             }
             JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; i < reference.length(); i++) {
+            for (int j = 0; j < reference.length(); j++) {
                 String id = reference.getString(j);
                 Assert.assertEquals("HP:", id.substring(0, 3));
             }
