@@ -22,7 +22,7 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotificationR
 
 import org.xwiki.mail.MailStatus;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @version $Id$
