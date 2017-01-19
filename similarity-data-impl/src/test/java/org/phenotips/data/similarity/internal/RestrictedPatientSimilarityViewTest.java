@@ -574,15 +574,19 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertTrue(clusters.length() >= 2);
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
-            JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; j < match.length(); j++) {
-                String id = match.getString(j);
-                Assert.assertEquals("HP:", id.substring(0, 3));
+            if (cluster.has("match")) {
+                JSONArray match = cluster.getJSONArray("match");
+                for (int j = 0; j < match.length(); j++) {
+                    String id = match.getString(j);
+                    Assert.assertEquals("HP:", id.substring(0, 3));
+                }
             }
-            JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; j < reference.length(); j++) {
-                String id = reference.getString(j);
-                Assert.assertEquals("HP:", id.substring(0, 3));
+            if (cluster.has("reference")) {
+                JSONArray reference = cluster.getJSONArray("reference");
+                for (int j = 0; j < reference.length(); j++) {
+                    String id = reference.getString(j);
+                    Assert.assertEquals("HP:", id.substring(0, 3));
+                }
             }
         }
     }
@@ -602,15 +606,19 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertTrue(clusters.length() >= 2);
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
-            JSONArray match = cluster.getJSONArray("match");
-            for (int j = 0; j < match.length(); j++) {
-                String id = match.getString(j);
-                Assert.assertEquals("", id);
+            if (cluster.has("match")) {
+                JSONArray match = cluster.getJSONArray("match");
+                for (int j = 0; j < match.length(); j++) {
+                    String id = match.getString(j);
+                    Assert.assertEquals("", id);
+                }
             }
-            JSONArray reference = cluster.getJSONArray("reference");
-            for (int j = 0; j < reference.length(); j++) {
-                String id = reference.getString(j);
-                Assert.assertEquals("HP:", id.substring(0, 3));
+            if (cluster.has("reference")) {
+                JSONArray reference = cluster.getJSONArray("reference");
+                for (int j = 0; j < reference.length(); j++) {
+                    String id = reference.getString(j);
+                    Assert.assertEquals("HP:", id.substring(0, 3));
+                }
             }
         }
     }
