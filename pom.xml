@@ -62,8 +62,7 @@
   </repositories>
 
   <properties>
-    <!-- Disable Clirr since this is the first version -->
-    <clirr.skip>true</clirr.skip>
+    <project.version.previous>1.0</project.version.previous>
   </properties>
 
   <modules>
@@ -85,11 +84,18 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
+          <comparisonVersion>${project.version.previous}</comparisonVersion>
           <!-- List of specific CLIRR excludes.
                See http://mojo.codehaus.org/clirr-maven-plugin/examples/ignored-differences.html
           -->
           <ignored>
             <!-- Remove the following ignores after we release the current version as final -->
+            <difference>
+              <className>org/phenotips/data/similarity/Exome</className>
+              <differenceType>7004</differenceType>
+              <method>java.util.List getTopVariants(java.lang.String)</method>
+              <justification>Allow to specify _how many_ top variants to return.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
