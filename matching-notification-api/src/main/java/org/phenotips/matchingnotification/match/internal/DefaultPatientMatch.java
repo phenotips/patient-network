@@ -18,7 +18,10 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientContactsManager;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
@@ -193,8 +196,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        // TODO
-        this.href = null;
+        PatientData<PatientContactsManager> data = similarityView.getData("contact");
+        if (data != null) {
+        	ContactInfo contact = data.getValue().getFirst();
+            if (contact != null) {
+            	this.href = contact.getUrl();
+            }
+        }
 
         // Reorder phenotype
         DefaultPhenotypesMap.reorder(

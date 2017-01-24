@@ -96,6 +96,12 @@
               <method>java.util.List getTopVariants(java.lang.String)</method>
               <justification>Allow to specify _how many_ top variants to return.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientSimilarityView</className>
+              <differenceType>7002</differenceType>
+              <method>org.json.JSONObject getOwnerJSON()</method>
+              <justification>Removed for better patient contact acces via getData() method.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

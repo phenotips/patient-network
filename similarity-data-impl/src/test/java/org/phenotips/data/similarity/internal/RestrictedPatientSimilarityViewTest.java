@@ -18,13 +18,16 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.DictionaryPatientData;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.SimpleValuePatientData;
+import org.phenotips.data.internal.DefaultContactInfo;
+import org.phenotips.data.internal.DefaultPatientContactsManager;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -51,6 +54,7 @@ import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,11 +88,14 @@ public class RestrictedPatientSimilarityViewTest
     /** The matched patient document. */
     private static final DocumentReference PATIENT_1 = new DocumentReference("xwiki", "data", "P0000001");
 
-    /** The default user used as the referrer of the matched patient, and of the reference patient for public access. */
+    /** The default user used as the reporter of the matched patient, and of the reference patient for public access. */
     private static final DocumentReference USER_1 = new DocumentReference("xwiki", "XWiki", "padams");
 
     /** The name of the owner of the matched patient. */
-    private static final String OWNER_1 = "First Last";
+    private static final String OWNER_1_NAME = "First Last";
+    
+    /** The name of the owner of the matched patient. */
+    private static final String OWNER_1_ID = "ownerId";
 
     /** The contact token. */
     private static final String CONTACT_TOKEN = "1234567890123456";
@@ -168,9 +175,13 @@ public class RestrictedPatientSimilarityViewTest
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
 
-        Map<String, String> ownerData = new HashMap<>();
-        ownerData.put("name", OWNER_1);
-        PatientData<String> ownerPatientData = new DictionaryPatientData<>("contact", ownerData);
+        DefaultContactInfo contactInfo = new DefaultContactInfo();
+        contactInfo.setUserId(OWNER_1_ID);
+        contactInfo.setName(OWNER_1_NAME);
+        PatientContactsManager contactInfos = new DefaultPatientContactsManager(mockPatient);
+        doReturn(contactInfo).when(contactInfos).getFirst();
+        doReturn(Arrays.asList(contactInfo)).when(contactInfos).getAll();
+        PatientData<PatientContactsManager> ownerPatientData = new SimpleValuePatientData<>("contact", contactInfos);
         doReturn(ownerPatientData).when(mockPatient).getData("contact");
         return mockPatient;
     }
@@ -229,6 +240,13 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertNull(o.getReporter());
     }
+    
+    /** The referrer's name is used when there is no Owner controller. */		
+    @Test		
+    public void testGetOwnerWithNoOwnerController()		
+    {
+	
+    }
 
     /** The reporter is not disclosed for private patients. */
     @Test
@@ -241,52 +259,26 @@ public class RestrictedPatientSimilarityViewTest
         Assert.assertNull(o.getReporter());
     }
 
-    /** The referrer's name is used when there is no Owner controller. */
-    @Test
-    public void testGetOwnerWithNoOwnerController()
-    {
-        Patient mockMatch = getEmptyMockMatch();
-        when(mockMatch.getData("contact")).thenReturn(null);
-        Patient mockReference = mock(Patient.class);
-
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(USER_1.getName(), o.getOwnerJSON().getString("id"));
-    }
-
-    /** The referrer's name is used when the owner does not have a name. */
-    @Test
-    public void testGetOwnerWithNoOwnerName()
-    {
-        Patient mockMatch = getEmptyMockMatch();
-        PatientData<String> ownerPatientData =
-            new DictionaryPatientData<>("contact", Collections.<String, String>emptyMap());
-        doReturn(ownerPatientData).when(mockMatch).getData("contact");
-        Patient mockReference = mock(Patient.class);
-
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(USER_1.getName(), o.getOwnerJSON().getString("id"));
-    }
-
     /** The owner is disclosed for public patients. */
     @Test
-    public void testGetOwnerWithPublicAccess()
+    public void testToJSONContactsWithPublicAccess()
     {
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertEquals(OWNER_1, o.getOwnerJSON().getString("name"));
+        Assert.assertEquals(OWNER_1_NAME, o.toJSON().getJSONObject("owner").getString("name"));
     }
 
     /** The owner is disclosed for matchable patients. */
     @Test
-    public void testGetOwnerWithMatchAccess()
+    public void testToJSONContactsWithMatchAccess()
     {
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertEquals(OWNER_1, o.getOwnerJSON().getString("name"));
+        Assert.assertEquals(OWNER_1_NAME, o.toJSON().getJSONObject("owner").getString("name"));
     }
 
     /** The owner is not disclosed for private patients. */
@@ -297,7 +289,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertTrue(o.getOwnerJSON().length() == 0);
+        Assert.assertTrue(o.toJSON().length() == 0);
     }
 
     /** The reference is always disclosed. */

@@ -507,7 +507,7 @@
     },
 
     _displayRemoteContactInfo : function (r) {
-      if (!r.hasOwnProperty("contact") || !r.contact.hasOwnProperty("href") || !r.contact.href) {
+      if (!r.hasOwnProperty("contact") || !r.contact.hasOwnProperty("url") || !r.contact.url) {
         return "No contact info";
       }
       var contactName = r.contact.name;
@@ -533,7 +533,7 @@
         contactLabel = "Anonymous";
       }
       var contactInfo = new Element("a", {
-        "href"  : r.contact.href,
+        "href"  : r.contact.url,
         "title" : "Contact owner for further information",
         "class" : "owner-info "
       }).update(contactLabel);

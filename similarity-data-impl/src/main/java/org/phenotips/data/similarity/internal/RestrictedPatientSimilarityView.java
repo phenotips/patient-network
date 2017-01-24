@@ -90,12 +90,6 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     }
 
     @Override
-    public JSONObject getOwnerJSON()
-    {
-        return this.access.isPrivateAccess() ? new JSONObject() : super.getOwnerJSON();
-    }
-
-    @Override
     public Set<? extends Feature> getFeatures()
     {
         if (this.access.isOpenAccess()) {
@@ -131,9 +125,10 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public <T> PatientData<T> getData(String name)
     {
-        if (this.access.isOpenAccess()) {
+        if (this.access.isOpenAccess() || (this.access.isLimitedAccess() && "contact".equals(name))) {
             return this.match.getData(name);
         }
+
         return null;
     }
 
