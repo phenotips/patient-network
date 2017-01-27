@@ -437,6 +437,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         } catch (ComponentLookupException e) {
             return null;
         }
-        return patientRepository.getPatientById(patientId);
+        return patientRepository.get(patientId);
     }
 }

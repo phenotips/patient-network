@@ -135,7 +135,7 @@ public class PatientReferenceType implements UserType
         try {
             PatientRepository resolver =
                 ComponentManagerRegistry.getContextComponentManager().getInstance(PatientRepository.class);
-            return resolver.getPatientById(serializedReference);
+            return resolver.get(serializedReference);
         } catch (ComponentLookupException ex) {
             // This really shouldn't happen...
         }

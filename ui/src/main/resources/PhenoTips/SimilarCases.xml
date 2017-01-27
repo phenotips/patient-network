@@ -38,7 +38,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output=false}}
-  #set ($patient = $services.patients.getPatientById("$!{request.query}"))
+  #set ($patient = $services.patients.get("$!{request.query}"))
   #set ($matches = $services.similarPatients.findSimilarPatients($patient))
   #if ("$!matches" == '')
     #set ($matches = [])
@@ -1677,7 +1677,7 @@
   #end
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
-    #set ($patient = $services.patients.getPatientById($doc.name))
+    #set ($patient = $services.patients.get($doc.name))
     #set ($patientAccess = $services.permissions.getPatientAccess($patient))
     #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
       ## Can see similar cases for this patient

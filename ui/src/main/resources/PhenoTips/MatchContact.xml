@@ -51,7 +51,7 @@
     #end
   #end
 
-  #set ($patientURL = $xwiki.getDocument($services.patients.getPatientById("$!{request.patient}").getDocument()).getExternalURL())
+  #set ($patientURL = $xwiki.getDocument($services.patients.get("$!{request.patient}").getDocument()).getExternalURL())
   ## Circumvent rights check to get matching patient's URL
   #set ($matchURL = $patientURL.replace($request.patient, $request.matchId))
   #set ($config = {
@@ -87,7 +87,7 @@
 
 {{velocity}}
 #if ($request.patient &amp;&amp; $request.token)
-  #set ($patient = $services.patients.getPatientById("$!{request.patient}"))
+  #set ($patient = $services.patients.get("$!{request.patient}"))
   #set ($discard = $xwiki.ssx.use($doc.fullName))
   #set ($platformName = 'PhenomeCentral')## TODO: get this from a configuration
   #if ($request.send)
