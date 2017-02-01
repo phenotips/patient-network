@@ -31,27 +31,27 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.phenotips</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.phenotips</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-impl</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.phenotips</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>patient-network-access-rules</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.phenotips</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-search</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.phenotips</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>anonymous-communication</artifactId>
       <version>${project.version}</version>
     </dependency>
