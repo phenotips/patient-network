@@ -29,11 +29,13 @@ import org.xwiki.script.service.ScriptService;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -86,6 +88,7 @@ public class MatchingNotificationScriptService implements ScriptService
     public String getMatches(double score, boolean notified)
     {
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
+        filterPatientsFromMatches(matches);
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
@@ -168,5 +171,22 @@ public class MatchingNotificationScriptService implements ScriptService
         reply.put("results", results);
 
         return reply;
+    }
+
+    /**
+     * Filters out matches that contain non-existing local patients or self-matches.
+     */
+    private void filterPatientsFromMatches(List<PatientMatch> matches) {
+        ListIterator<PatientMatch> iterator = matches.listIterator();
+        while (iterator.hasNext()) {
+            PatientMatch match = iterator.next();
+            boolean hasNullPatient = (match.getReference().isLocal() && match.getReference().getPatient() == null)
+                    || (match.getMatched().isLocal() && match.getMatched().getPatient() == null);
+            boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
+                    match.getMatched().getEmails());
+            if (hasNullPatient || isSelfMatch) {
+                iterator.remove();
+            }
+        }
     }
 }
