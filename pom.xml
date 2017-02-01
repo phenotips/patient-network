@@ -102,6 +102,24 @@
               <method>org.json.JSONObject getOwnerJSON()</method>
               <justification>Removed for better patient contact acces via getData() method.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientGenotype</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getGenesStatus()</method>
+              <justification>Provide a status of genes stored in the class.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getHref()</method>
+              <justification>Provide a contact url for patient owner.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>org.phenotips.data.Patient getPatient()</method>
+              <justification>Provide a patient object of patient in match.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

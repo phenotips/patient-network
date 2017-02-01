@@ -18,7 +18,9 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientGenotype;
@@ -108,9 +110,10 @@ public class DefaultPatientInMatch implements PatientInMatch
      */
     public DefaultPatientInMatch(PatientMatch match, Patient patient, String serverId)
     {
+        this.patient = patient;
         this.patientId = patient.getId();
         this.serverId = serverId;
-        this.href = match.getHref();
+        this.href = populateHref(match.getHref());
 
         this.readDetails(patient);
     }
@@ -128,7 +131,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         this.patientId = patientId;
         this.serverId = serverId;
-        this.href = match.getHref();
+        this.patient = getLocalPatient();
+        this.href = populateHref(match.getHref());
 
         this.rebuildDetails(patientDetails);
     }
@@ -183,7 +187,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             // Note: The patient is not saved because sometimes (often?) this method is run not on an object that
             // was just created, but on one created from a column from the DB. In this case, we might not have
             // a Patient object when the patient is remote.
-            emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.getPatient()));
+            emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.patient));
         } else {
             if (StringUtils.isNotEmpty(this.href)) {
                 emails.add(this.href);
@@ -213,7 +217,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public String getExternalId()
     {
-        return isLocal() ? this.getPatient().getExternalId() : "";
+        return isLocal() ? this.patient.getExternalId() : "";
     }
 
     @Override
@@ -234,6 +238,17 @@ public class DefaultPatientInMatch implements PatientInMatch
         return this.modeOfInheritance;
     }
 
+    @Override
+    public Patient getPatient()
+    {
+        return this.patient;
+    }
+
+    @Override
+    public String getHref()
+    {
+        return this.href;
+    }
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
      * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
@@ -304,12 +319,27 @@ public class DefaultPatientInMatch implements PatientInMatch
         return "";
     }
 
-    private Patient getPatient()
+    private Patient getLocalPatient()
     {
         if (this.isLocal()) {
             return PATIENT_REPOSITORY.get(this.patientId);
         } else {
             return null;
         }
+    }
+
+    private String populateHref(String href) {
+        // if the patient is remote, we use whatever is passed by from DB
+        if (patient == null) {
+            return href;
+        }
+        PatientData<PatientContactsManager> data = this.patient.getData("contact");
+        if (data != null) {
+            ContactInfo contact = data.getValue().getFirst();
+            if (contact != null) {
+                return contact.getUrl();
+            }
+        }
+        return null;
     }
 }

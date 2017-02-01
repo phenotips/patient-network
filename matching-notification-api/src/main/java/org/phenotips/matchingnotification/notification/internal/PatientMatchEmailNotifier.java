@@ -93,11 +93,12 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Override
     public Collection<String> getNotificationEmailsForPatient(Patient patient)
     {
-        PatientData<PatientContactsManager> data = patient.getData("contact");
-        if (data != null) {
-            return data.getValue().getEmails();
+        if (patient != null) {
+            PatientData<PatientContactsManager> data = patient.getData("contact");
+            if (data != null) {
+                return data.getValue().getEmails();
+            }
         }
         return Collections.emptyList();
     }
-
 }

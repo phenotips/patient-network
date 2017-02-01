@@ -95,8 +95,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.debug("Finding matches for patient {}.", patient.getId());
 
             List<PatientMatch> matchesForPatient = this.matchFinderManager.findMatches(patient);
+            if (matchesForPatient.isEmpty()) {
+                continue;
+            }
             this.filterMatchesByScore(matchesForPatient, score);
             this.filterExistingMatches(matchesForPatient);
+            if (matchesForPatient.isEmpty()) {
+                continue;
+            }
             this.matchStorageManager.saveMatches(matchesForPatient);
 
             addedMatches.addAll(matchesForPatient);

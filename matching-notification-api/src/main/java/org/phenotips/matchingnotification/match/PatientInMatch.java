@@ -17,6 +17,8 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.phenotips.data.Patient;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -117,4 +119,14 @@ public interface PatientInMatch
      * @return age of onset
      */
     String getAgeOfOnset();
+
+    /**
+     * @return patient if patient is local and exists or null otherwise.
+     */
+    Patient getPatient();
+
+    /**
+     * @return patient href.
+     */
+    String getHref();
 }
