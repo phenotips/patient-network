@@ -29,6 +29,9 @@ import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -61,6 +64,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final PatientRepository PATIENT_REPOSITORY;
 
+    private static final VocabularyManager VOCABULARY_MANAGER;
+
     private static final String GENES = "genes";
 
     private static final String PHENOTYPES = "phenotypes";
@@ -83,21 +88,26 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private PhenotypesMap phenotypes;
 
+    private Patient patient;
+
     static {
         PatientMatchNotifier notifier = null;
         PatientGenotypeManager pgm = null;
         PatientRepository patientRepository = null;
+        VocabularyManager vm = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
+            vm = ccm.getInstance(VocabularyManager.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
         NOTIFIER = notifier;
         PATIENT_GENOTYPE_MANAGER = pgm;
         PATIENT_REPOSITORY = patientRepository;
+        VOCABULARY_MANAGER = vm;
     }
 
     /**
@@ -258,7 +268,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         JSONObject json = new JSONObject(patientDetails);
 
-        this.genes = jsonArrayToSet(json.getJSONArray(GENES));
+        this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)), null);
         this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
@@ -289,11 +299,25 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
         if (genotype != null && genotype.hasGenotypeData()) {
-            Set<String> set = genotype.getCandidateGenes();
+            Set<String> set = getGeneSymbols(genotype.getCandidateGenes(), genotype.getGenesStatus());
             return Collections.unmodifiableSet(set);
         } else {
             return Collections.emptySet();
         }
+    }
+
+    // convert gene Ensembl IDs to gene symbols with status appended, e.x. 'T (solved)'
+    private Set<String> getGeneSymbols(Set<String> set, String status) {
+        Set<String> result = new HashSet<>();
+        Vocabulary hgnc = VOCABULARY_MANAGER.getVocabulary("HGNC");
+        for (String geneEnsemblId : set) {
+            VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
+            String symbol = (term != null) ? (String) term.get("symbol") : null;
+            symbol = StringUtils.isBlank(symbol) ? geneEnsemblId : symbol;
+            symbol = StringUtils.isBlank(status) ? symbol : symbol + " (" + status + ")";
+            result.add(symbol);
+        }
+        return result;
     }
 
     private Set<String> getModeOfInheritance(PatientData<List<SolrVocabularyTerm>> globalControllers)

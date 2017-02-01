@@ -38,9 +38,9 @@ public interface PatientGenotype extends Exome
     boolean hasGenotypeData();
 
     /**
-     * Return a set of the names of candidate genes listed for the patient.
+     * Return a set of the names of either candidate or solved genes listed for the patient.
      *
-     * @return a (potentially-empty) set of the names of candidate genes
+     * @return a (potentially-empty) set of the names of either candidate or solved genes
      */
     Set<String> getCandidateGenes();
 
@@ -52,4 +52,11 @@ public interface PatientGenotype extends Exome
      */
     @Override
     Set<String> getGenes();
+
+    /**
+     * Return a status of genes (solved or candidate) stored in class.
+     *
+     * @return a status of genes
+     */
+    String getGenesStatus();
 }
