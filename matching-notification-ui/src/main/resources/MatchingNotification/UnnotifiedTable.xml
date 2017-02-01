@@ -250,8 +250,16 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
 &lt;div&gt;
-  &lt;input type="checkbox" id="filter_rejected" checked /&gt;
+  &lt;input type="checkbox" id="rejected" checked /&gt;
   Hide rejected
+&lt;/div&gt;
+&lt;div&gt;
+  &lt;input type="checkbox" id="saved" /&gt;
+  Hide saved
+&lt;/div&gt;
+&lt;div&gt;
+  &lt;input type="checkbox" id="uncategorized" /&gt;
+  Hide uncategorized
 &lt;/div&gt;
 &lt;div&gt;
   &lt;input type="checkbox" id="expand_all" checked/&gt;
