@@ -68,11 +68,11 @@ public interface PatientMatch
     void setNotified();
 
     /**
-     * Marks rejected property of match.
+     * Marks status property of match (saved, rejected or uncategorized).
      *
-     * @param rejected whether match is rejected or not
+     * @param status whether saved, rejected or uncategorized
      */
-    void setRejected(boolean rejected);
+    void setStatus(String status);
 
     /**
      * @return object in JSON format.
@@ -100,9 +100,9 @@ public interface PatientMatch
     String getHref();
 
     /**
-     * @return true only if match is rejected.
+     * @return status of match: saved, rejected or uncategorized.
      */
-    boolean isRejected();
+    String getStatus();
 
     /**
      * Checks if {@code other} is equivalent to this.

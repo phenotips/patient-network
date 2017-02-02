@@ -78,7 +78,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Timestamp notifiedTimestamp;
 
     @Basic
-    private Boolean rejected;
+    private String status;
 
     @Basic
     private Double score;
@@ -188,7 +188,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
         this.notified = false;
-        this.rejected = false;
+        this.status = "uncategorized";
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
@@ -216,15 +216,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setRejected(boolean rejected)
+    public void setStatus(String newStatus)
     {
-        this.rejected = rejected;
+        this.status = newStatus;
     }
 
     @Override
-    public boolean isRejected()
+    public String getStatus()
     {
-        return this.rejected;
+        return this.status;
     }
 
     @Override
@@ -317,7 +317,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
         json.put("notified", this.isNotified());
-        json.put("rejected", this.isRejected());
+        json.put("status", this.getStatus());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());

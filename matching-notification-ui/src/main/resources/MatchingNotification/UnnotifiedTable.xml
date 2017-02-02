@@ -242,35 +242,23 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
   &lt;button id="find-matches-button" type="button"&gt;Go&lt;/button&gt;
   &lt;div id="find-matches-messages"/&gt;
 &lt;/div&gt;
-&lt;div id="filter-div"&gt;
-&lt;div&gt;
+&lt;div id="score-filter-div"&gt;
   &lt;label&gt;Show matches with score over &lt;/label&gt;
   &lt;input id="show-matches-score"/&gt;
   &lt;button id="show-matches-button" type="button"&gt;Go&lt;/button&gt;
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
-&lt;div&gt;
-  &lt;input type="checkbox" id="rejected" checked /&gt;
-  Hide rejected
+&lt;div id="table-filter-div"&gt;
+  &lt;div&gt;&lt;input type="checkbox" id="rejected" checked /&gt;Hide rejected&lt;/div&gt;
+  &lt;div&gt;&lt;input type="checkbox" id="saved" /&gt;Hide saved&lt;/div&gt;
+  &lt;div&gt;&lt;input type="checkbox" id="uncategorized" /&gt;Hide uncategorized&lt;/div&gt;
+  &lt;div&gt;&lt;input type="checkbox" id="expand_all" checked/&gt;Expand all&lt;/div&gt;
 &lt;/div&gt;
-&lt;div&gt;
-  &lt;input type="checkbox" id="saved" /&gt;
-  Hide saved
-&lt;/div&gt;
-&lt;div&gt;
-  &lt;input type="checkbox" id="uncategorized" /&gt;
-  Hide uncategorized
-&lt;/div&gt;
-&lt;div&gt;
-  &lt;input type="checkbox" id="expand_all" checked/&gt;
-  Expand all
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;br/&gt;
+&lt;div id="filter-div"&gt;
 &lt;table id="matchesTable" class="matches-table"&gt;
   &lt;thead&gt;
     &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
-    &lt;th data-dynatable-column="rejection"&gt;&lt;span title="Rejected"/&gt;Reject&lt;/th&gt;
+    &lt;th data-dynatable-column="status"&gt;&lt;span title="Status"/&gt;Status&lt;/th&gt;
     &lt;th data-dynatable-column="referencePatient" title="Reference patient"&gt;Patient&lt;/th&gt;
     &lt;th data-dynatable-column="matchedPatient" title="Matched patient"&gt;Matched Patient&lt;/th&gt;
     &lt;th data-dynatable-column="score" title="Match score"&gt;Score&lt;/th&gt;

@@ -94,19 +94,19 @@ public class MatchingNotificationScriptService implements ScriptService
     }
 
     /**
-     * Marks matches, with ids given in parameter, as rejected.
+     * Marks matches, with ids given in parameter, as saved, rejected or uncategorized.
      * Example:
      *    Input: {'ids': ['1,'2','3']}
      *    Output:{'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
      *
-     * @param ids JSON with list of ids of matching that should be marked as rejected
-     * @param rejected whether the matches should be rejected or unrejected
+     * @param ids JSON with list of ids of matches to set status
+     * @param status whether the matches should be set as saved, rejected or uncategorized
      * @return result JSON
      */
-    public String rejectMatches(String ids, boolean rejected)
+    public String setStatus(String ids, String status)
     {
         List<Long> idsList = this.jsonToIdsList(ids);
-        this.matchingNotificationManager.markRejected(idsList, rejected);
+        this.matchingNotificationManager.setStatus(idsList, status);
         return this.successfulIdsToJSON(idsList, idsList).toString();
     }
 

@@ -147,10 +147,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean markRejected(Session session, List<PatientMatch> matches, boolean rejected)
+    public boolean setStatus(Session session, List<PatientMatch> matches, String status)
     {
         for (PatientMatch match : matches) {
-            match.setRejected(rejected);
+            match.setStatus(status);
             session.update(match);
         }
         return true;

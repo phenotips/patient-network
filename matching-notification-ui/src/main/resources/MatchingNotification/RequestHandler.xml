@@ -49,10 +49,10 @@
 #elseif ($request.action == 'send-notifications')
    #set ($ids = $!request.ids)
    $services.matchingNotification.sendNotifications($ids)
-#elseif ($request.action == 'reject-matches')
+#elseif ($request.action == 'set-status')
    #set ($ids = $!request.ids)
-   #set ($reject = $!request.reject)
-   $services.matchingNotification.rejectMatches($ids, $reject)
+   #set ($status = $!request.status)
+   $services.matchingNotification.setStatus($ids, $status)
 #end
 {{/velocity}}</content>
 </xwikidoc>

@@ -120,6 +120,60 @@
               <method>org.phenotips.data.Patient getPatient()</method>
               <justification>Provide a patient object of patient in match.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean markRejected(java.util.List, boolean)</method>
+              <justification>Removed in favour setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(java.util.List, java.lang.String)</method>
+              <justification>Added in place of markRejected().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getStatus()</method>
+              <justification>Provide a status of the match (rejected, saved or uncategorized).</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7002</differenceType>
+              <method>boolean isRejected()</method>
+              <justification>Removed in favour of getStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7002</differenceType>
+              <method>void setRejected(boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setStatus(java.lang.String)</method>
+              <justification>Added in place of setRejected().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>7002</differenceType>
+              <method>java.lang.String rejectMatches(java.lang.String, boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean markRejected(org.hibernate.Session, java.util.List, boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(org.hibernate.Session, java.util.List, java.lang.String)</method>
+              <justification>Added in place of markRejected().</justification>
+            </difference> 
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
