@@ -75,6 +75,7 @@
     <module>matching-notification-resources</module>
     <module>matching-notification-ui</module>
     <module>matching-notification-api</module>
+    <module>matching-notification-migrations</module>
   </modules>
 
   <build>

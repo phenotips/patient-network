@@ -29,7 +29,7 @@ import org.json.JSONObject;
  */
 public interface PatientMatch
 {
-    /** The space where family data is stored. */
+    /** The space where matches data is stored. */
     EntityReference DATA_SPACE = new EntityReference("MatchingNotification", EntityType.SPACE);
 
     /**
@@ -66,6 +66,13 @@ public interface PatientMatch
      * Marks that notifications regarding this match were sent.
      */
     void setNotified();
+
+    /**
+     * @return true only if match is rejected.
+     * @deprecated use {@link #getStatus()} instead
+     */
+    @Deprecated
+    boolean isRejected();
 
     /**
      * Marks status property of match (saved, rejected or uncategorized).

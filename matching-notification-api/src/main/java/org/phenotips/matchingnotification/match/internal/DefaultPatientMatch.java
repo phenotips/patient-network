@@ -77,6 +77,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Timestamp notifiedTimestamp;
 
+    /**
+     * @deprecated use {@link status} instead
+     */
+    @Basic
+    @Deprecated
+    private Boolean rejected;
+
     @Basic
     private String status;
 
@@ -213,6 +220,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public Long getId()
     {
         return this.id;
+    }
+
+    /**
+     * @deprecated use {@link status} instead
+     */
+    @Override
+    @Deprecated
+    public boolean isRejected()
+    {
+        return this.rejected;
     }
 
     @Override
