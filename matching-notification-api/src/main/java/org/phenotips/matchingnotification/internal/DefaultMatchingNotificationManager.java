@@ -126,7 +126,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         for (String patientId : potentialPatientIds) {
-            Patient patient = this.patientRepository.getPatientById(patientId);
+            Patient patient = this.patientRepository.get(patientId);
             if (patient == null) {
                 continue;
             }

@@ -307,7 +307,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     private Patient getPatient()
     {
         if (this.isLocal()) {
-            return PATIENT_REPOSITORY.getPatientById(this.patientId);
+            return PATIENT_REPOSITORY.get(this.patientId);
         } else {
             return null;
         }

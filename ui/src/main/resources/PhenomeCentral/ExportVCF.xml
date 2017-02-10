@@ -46,7 +46,7 @@ $!response.setContentType('text/plain')
 $!response.setStatus(400)
 {{html wiki="false" clean="false"}}
 #if ($request.id)
-  #set ($patient = $services.patients.getPatientById($request.id))
+  #set ($patient = $services.patients.get($request.id))
   #if ($patient)
     $!response.setStatus(200)
     #set ($vcfObj  = $!xwiki.getDocument($patient.getDocument()).getObject('PhenoTips.VCF'))

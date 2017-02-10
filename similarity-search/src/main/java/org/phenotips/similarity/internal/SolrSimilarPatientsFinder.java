@@ -139,7 +139,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
-            Patient matchPatient = this.patients.getPatientById(name);
+            Patient matchPatient = this.patients.get(name);
             if (matchPatient == null) {
                 // Leftover patient in the index, should be removed
                 continue;
