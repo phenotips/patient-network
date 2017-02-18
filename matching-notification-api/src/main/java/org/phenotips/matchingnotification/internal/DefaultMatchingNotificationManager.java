@@ -36,6 +36,7 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -147,14 +148,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds)
+    public List<PatientMatchNotificationResponse> sendNotifications(Map<Long, String> matchesIds)
     {
         if (matchesIds == null || matchesIds.size() == 0) {
             return Collections.emptyList();
         }
 
-        List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-        List<PatientMatchEmail> emails = this.notifier.createEmails(matches);
+        List<PatientMatch> matches =
+            this.matchStorageManager.loadMatchesByIds(new ArrayList<Long>(matchesIds.keySet()));
+        List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         for (PatientMatchEmail email : emails) {

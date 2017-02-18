@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Singleton;
 
@@ -52,16 +53,22 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     private Logger logger = LoggerFactory.getLogger(PatientMatchEmailNotifier.class);
 
     @Override
-    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches)
+    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, String> matchesIds)
     {
         MatchesByPatient mbp = new MatchesByPatient(matches);
         List<PatientMatchEmail> emails = new LinkedList<>();
 
-        List<String> patientIds = new ArrayList<>(mbp.getLocalPatientIds());
+        List<String> patientIds = new ArrayList<>(matchesIds.values());
         Collections.sort(patientIds);
 
         for (String subjectPatientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
+            // filter matchesForPatient by matchesIds to contain only matches with ids as a key for subjectPatientId
+            for (PatientMatch match : matchesForPatient) {
+                if (matchesIds.get(match.getId()) != subjectPatientId) {
+                    matchesForPatient.remove(match);
+                }
+            }
             PatientMatchEmail email = new DefaultPatientMatchEmail(subjectPatientId, matchesForPatient);
             emails.add(email);
         }
