@@ -20,7 +20,6 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -281,9 +280,9 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private JSONObject getOwnerJSON()
     {
-        PatientData<PatientContactsManager> data = this.match.getData("contact");
-        if (data != null) {
-            ContactInfo contact = data.getValue().getFirst();
+        PatientData<ContactInfo> data = this.match.getData("contact");
+        if (data != null && data.size() > 0) {
+            ContactInfo contact = data.get(0);
             if (contact != null) {
                 return contact.toJSON();
             }

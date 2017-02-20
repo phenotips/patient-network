@@ -17,8 +17,8 @@
  */
 package org.phenotips.matchingnotification.notification.internal;
 
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
 import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -93,12 +93,15 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     @Override
     public Collection<String> getNotificationEmailsForPatient(Patient patient)
     {
+        List<String> result = new ArrayList<>();
         if (patient != null) {
-            PatientData<PatientContactsManager> data = patient.getData("contact");
-            if (data != null) {
-                return data.getValue().getEmails();
+            PatientData<ContactInfo> data = patient.getData("contact");
+            if (data != null && data.size() > 0) {
+                for (ContactInfo contact : data) {
+                    result.addAll(contact.getEmails());
+                }
             }
         }
-        return Collections.emptyList();
+        return result;
     }
 }

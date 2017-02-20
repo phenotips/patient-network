@@ -18,16 +18,13 @@
 package org.phenotips.data.similarity.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
-import org.phenotips.data.SimpleValuePatientData;
-import org.phenotips.data.internal.DefaultContactInfo;
-import org.phenotips.data.internal.DefaultPatientContactsManager;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -54,7 +51,6 @@ import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,7 +89,7 @@ public class RestrictedPatientSimilarityViewTest
 
     /** The name of the owner of the matched patient. */
     private static final String OWNER_1_NAME = "First Last";
-    
+
     /** The name of the owner of the matched patient. */
     private static final String OWNER_1_ID = "ownerId";
 
@@ -175,13 +171,10 @@ public class RestrictedPatientSimilarityViewTest
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
 
-        DefaultContactInfo contactInfo = new DefaultContactInfo();
-        contactInfo.setUserId(OWNER_1_ID);
-        contactInfo.setName(OWNER_1_NAME);
-        PatientContactsManager contactInfos = new DefaultPatientContactsManager(mockPatient);
-        doReturn(contactInfo).when(contactInfos).getFirst();
-        doReturn(Arrays.asList(contactInfo)).when(contactInfos).getAll();
-        PatientData<PatientContactsManager> ownerPatientData = new SimpleValuePatientData<>("contact", contactInfos);
+        ContactInfo.Builder contactInfo = new ContactInfo.Builder();
+        contactInfo.withUserId(OWNER_1_ID).withName(OWNER_1_NAME);
+        PatientData<ContactInfo> ownerPatientData =
+            new IndexedPatientData<>("contact", Collections.singletonList(contactInfo.build()));
         doReturn(ownerPatientData).when(mockPatient).getData("contact");
         return mockPatient;
     }
@@ -240,12 +233,12 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Assert.assertNull(o.getReporter());
     }
-    
-    /** The referrer's name is used when there is no Owner controller. */		
-    @Test		
-    public void testGetOwnerWithNoOwnerController()		
+
+    /** The referrer's name is used when there is no Owner controller. */
+    @Test
+    public void testGetOwnerWithNoOwnerController()
     {
-	
+
     }
 
     /** The reporter is not disclosed for private patients. */

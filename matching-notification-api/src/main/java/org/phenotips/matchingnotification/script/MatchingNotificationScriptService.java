@@ -176,14 +176,15 @@ public class MatchingNotificationScriptService implements ScriptService
     /**
      * Filters out matches that contain non-existing local patients or self-matches.
      */
-    private void filterPatientsFromMatches(List<PatientMatch> matches) {
+    private void filterPatientsFromMatches(List<PatientMatch> matches)
+    {
         ListIterator<PatientMatch> iterator = matches.listIterator();
         while (iterator.hasNext()) {
             PatientMatch match = iterator.next();
             boolean hasNullPatient = (match.getReference().isLocal() && match.getReference().getPatient() == null)
-                    || (match.getMatched().isLocal() && match.getMatched().getPatient() == null);
+                || (match.getMatched().isLocal() && match.getMatched().getPatient() == null);
             boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
-                    match.getMatched().getEmails());
+                match.getMatched().getEmails());
             if (hasNullPatient || isSelfMatch) {
                 iterator.remove();
             }

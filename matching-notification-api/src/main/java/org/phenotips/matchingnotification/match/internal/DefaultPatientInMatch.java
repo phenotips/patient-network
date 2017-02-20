@@ -20,7 +20,6 @@ package org.phenotips.matchingnotification.match.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientContactsManager;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientGenotype;
@@ -259,6 +258,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         return this.href;
     }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
      * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
@@ -307,7 +307,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     // convert gene Ensembl IDs to gene symbols with status appended, e.x. 'T (solved)'
-    private Set<String> getGeneSymbols(Set<String> set, String status) {
+    private Set<String> getGeneSymbols(Set<String> set, String status)
+    {
         Set<String> result = new HashSet<>();
         Vocabulary hgnc = VOCABULARY_MANAGER.getVocabulary("HGNC");
         for (String geneEnsemblId : set) {
@@ -352,14 +353,15 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
     }
 
-    private String populateHref(String href) {
+    private String populateHref(String href)
+    {
         // if the patient is remote, we use whatever is passed by from DB
-        if (patient == null) {
+        if (this.patient == null) {
             return href;
         }
-        PatientData<PatientContactsManager> data = this.patient.getData("contact");
-        if (data != null) {
-            ContactInfo contact = data.getValue().getFirst();
+        PatientData<ContactInfo> data = this.patient.getData("contact");
+        if (data != null && data.size() > 0) {
+            ContactInfo contact = data.get(0);
             if (contact != null) {
                 return contact.getUrl();
             }
