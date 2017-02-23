@@ -129,7 +129,7 @@
     {{html clean=false}}
     &lt;form class="xform" action="$doc.getURL('get')" method="post"&gt;
       &lt;div&gt;
-        &lt;h2&gt;Send a message.&lt;/h2&gt;
+        &lt;h2&gt;Send a message&lt;/h2&gt;
         &lt;dt&gt;&lt;label&gt;To&lt;/label&gt;&lt;/dt&gt;
         &lt;dd&gt;&lt;input type="text" value="$!{toText}" disabled&gt;&lt;/input&gt;
         &lt;dt&gt;&lt;label&gt;From&lt;/label&gt;&lt;/dt&gt;
