@@ -106,7 +106,7 @@
       'groups'    : true
       })
     #if ($!{request.contact} != '')
-      #set ($recipientUserName = $xwiki.getUserName($!{request.contact}))
+      #set ($recipientUserName = $xwiki.getUserName($!{request.contact}, false))
       #set ($recipientUserDoc = $xwiki.getDocument("XWiki.$!{recipientUserName}"))
       #set ($recipientUserObj = $recipientUserDoc.getObject("XWiki.XWikiUsers"))
       #set ($recipientFirstName = $recipientUserObj.getProperty("first_name").getValue())
