@@ -22,9 +22,14 @@ import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
+import org.phenotips.security.authorization.AuthorizationService;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.Right;
+import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -63,6 +68,15 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private MatchStorageManager matchStorageManager;
 
+    @Inject
+    private AuthorizationService auth;
+
+    @Inject
+    private UserManager users;
+
+    @Inject
+    private EntityReferenceResolver<String> resolver;
+
     private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
     /**
@@ -73,6 +87,9 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String findAndSaveMatches(double score)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
@@ -87,6 +104,9 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String getMatches(double score, boolean notified)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
         filterPatientsFromMatches(matches);
         JSONObject json = this.patientMatchExport.toJSON(matches);
@@ -105,22 +125,26 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String setStatus(String ids, String status)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<Long> idsList = this.jsonToIdsList(ids);
         this.matchingNotificationManager.setStatus(idsList, status);
         return this.successfulIdsToJSON(idsList, idsList).toString();
     }
 
     /**
-     * Sends email notifications for each match.
-     * Example:
-     *    Input: {'ids': ['1,'2','3']}
-     *    Output: {'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * Sends email notifications for each match. Example: Input: {'ids': ['1,'2','3']} Output: {'results': [{id: '1',
+     * success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
      *
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
     public String sendNotifications(String ids)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<Long> idsList = this.jsonToIdsList(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
@@ -189,5 +213,11 @@ public class MatchingNotificationScriptService implements ScriptService
                 iterator.remove();
             }
         }
+    }
+
+    private boolean isAdmin()
+    {
+        return this.auth.hasAccess(this.users.getCurrentUser(), Right.ADMIN,
+            this.resolver.resolve("", EntityType.WIKI));
     }
 }
