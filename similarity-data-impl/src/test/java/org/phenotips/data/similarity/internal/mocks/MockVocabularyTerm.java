@@ -49,8 +49,8 @@ public class MockVocabularyTerm implements VocabularyTerm
     public MockVocabularyTerm(String id, Collection<VocabularyTerm> parents)
     {
         this.id = id;
-        this.parents = new HashSet<VocabularyTerm>();
-        this.ancestors = new HashSet<VocabularyTerm>();
+        this.parents = new HashSet<>();
+        this.ancestors = new HashSet<>();
 
         if (parents != null) {
             this.parents.addAll(parents);
@@ -72,8 +72,8 @@ public class MockVocabularyTerm implements VocabularyTerm
     public MockVocabularyTerm(String id, Collection<VocabularyTerm> parents, Collection<VocabularyTerm> ancestors)
     {
         this.id = id;
-        this.parents = new HashSet<VocabularyTerm>();
-        this.ancestors = new HashSet<VocabularyTerm>();
+        this.parents = new HashSet<>();
+        this.ancestors = new HashSet<>();
 
         if (parents != null) {
             this.parents.addAll(parents);
@@ -112,7 +112,7 @@ public class MockVocabularyTerm implements VocabularyTerm
     @Override
     public Set<VocabularyTerm> getAncestorsAndSelf()
     {
-        Set<VocabularyTerm> result = new LinkedHashSet<VocabularyTerm>();
+        Set<VocabularyTerm> result = new LinkedHashSet<>();
         result.add(this);
         result.addAll(this.ancestors);
         return result;
@@ -149,5 +149,23 @@ public class MockVocabularyTerm implements VocabularyTerm
     public JSONObject toJSON()
     {
         return new JSONObject();
+    }
+
+    @Override
+    public String getTranslatedName()
+    {
+        return getName();
+    }
+
+    @Override
+    public String getTranslatedDescription()
+    {
+        return getDescription();
+    }
+
+    @Override
+    public Collection<?> getTranslatedValues(String name)
+    {
+        return null;
     }
 }
