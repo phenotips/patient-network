@@ -256,7 +256,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.matchStorageManager.setStatus(session, matches, status);
             successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
         } catch (HibernateException e) {
-            this.logger.error("Error while marking matches {} as " + status, Joiner.on(",").join(matchesIds), e);
+            this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;
     }
