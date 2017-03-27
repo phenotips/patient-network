@@ -44,8 +44,8 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 import com.xpn.xwiki.store.migration.hibernate.HibernateDataMigration;
 
 /**
- * Migration for PatientNetwork issue PN-178: Create migrator for matches
- * database to migrate rejected fields to status fields.
+ * Migration for PatientNetwork issue PN-178: Create migrator for matches database to migrate rejected fields to status
+ * fields.
  *
  * @version $Id$
  * @since 1.1
@@ -89,6 +89,7 @@ public class R71502PatientNetwork178DataMigration extends AbstractHibernateDataM
         return new XWikiDBVersion(71502);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void hibernateMigrate() throws DataMigrationException, XWikiException
     {
@@ -104,9 +105,8 @@ public class R71502PatientNetwork178DataMigration extends AbstractHibernateDataM
             }
             t.commit();
         } catch (HibernateException ex) {
-            R71502PatientNetwork178DataMigration.this.logger.warn(
-                     "Failed to set status to match object [{}]: {}",
-                     ex.getMessage());
+            R71502PatientNetwork178DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
+                ex.getMessage());
             if (t != null) {
                 t.rollback();
             }
