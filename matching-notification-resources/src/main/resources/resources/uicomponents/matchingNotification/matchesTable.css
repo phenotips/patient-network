@@ -25,7 +25,7 @@
 }
 
 .matches-table .patient-href {
-   margin-left: 3px;
+  margin-left: 3px;
 }
 
 .matches-table .genes-div, .matches-table .age-of-onset-div  {
@@ -62,8 +62,8 @@
 }
 
 #score-filter-div {
-   margin-top: 15px;
-   margin-bottom: 25px;
+  margin-top: 15px;
+  margin-bottom: 25px;
 }
 #find-matches-messages, #show-matches-messages {
   display: inline-block;
