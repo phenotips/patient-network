@@ -32,6 +32,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -131,8 +132,8 @@ public class MatchingNotificationScriptService implements ScriptService
             return "";
         }
         List<Long> idsList = this.jsonToIdsList(ids);
-        this.matchingNotificationManager.setStatus(idsList, status);
-        return this.successfulIdsToJSON(idsList, idsList).toString();
+        boolean success = this.matchingNotificationManager.setStatus(idsList, status);
+        return this.successfulIdsToJSON(idsList, success ? idsList : Collections.<Long>emptyList()).toString();
     }
 
     /**
