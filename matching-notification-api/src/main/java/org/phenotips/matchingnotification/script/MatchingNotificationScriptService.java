@@ -114,10 +114,12 @@ public class MatchingNotificationScriptService implements ScriptService
     }
 
     /**
-     * Marks matches, with ids given in parameter, as saved, rejected or uncategorized.
-     * Example:
-     *    Input: {'ids': ['1,'2','3']}
-     *    Output:{'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:
+     *
+     * <pre>
+     * Input: ["1", "2", "3"], "saved"
+     * Output: {"results": [{"id": "1", "success": true}, {"id": "2", "success": false}, {"id": "3", "success": true}]}
+     * </pre>
      *
      * @param ids JSON with list of ids of matches to set status
      * @param status whether the matches should be set as saved, rejected or uncategorized
@@ -134,8 +136,12 @@ public class MatchingNotificationScriptService implements ScriptService
     }
 
     /**
-     * Sends email notifications for each match. Example: Input: {'ids': ['1,'2','3']} Output: {'results': [{id: '1',
-     * success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * Sends email notifications for each match. Example:
+     *
+     * <pre>
+     * Input: ["1", "2", "3"]
+     * Output: {"results": [{"id": "1", "success": true}, {"id": "2", "success": false}, {"id": "3", "success": true}]}
+     * </pre>
      *
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
