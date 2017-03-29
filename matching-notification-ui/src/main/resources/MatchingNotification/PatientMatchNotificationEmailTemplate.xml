@@ -98,7 +98,7 @@
 #set($space-between-matches = 'margin-top : 25px;')
 #set($disclaimer = 'font-size : 10px;')
 #set($patient-id = 'white-space : no-wrap;')
-#if ("$!subjectPatient.serverId" != "")
+#if ("$!subjectPatient.serverId" == "")
   #set($subjectPatientObj = $services.patients.get($!subjectPatient.patientId))
 #end
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.salutation', 'xhtml/1.0')&lt;/p&gt;
@@ -111,7 +111,7 @@
          &lt;th style="$grey-background $table"&gt;
             &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div style="$patient-id"&gt;
-               &lt;span&gt;#if($subjectPatientObj)[[$!{escapetool.xml($!subjectPatient.patientId)}&gt;&gt;$subjectPatientObj.document||rel="__blank"]]#else$!{escapetool.xml($!subjectPatient.patientId)}#end&lt;/span&gt;
+               &lt;span&gt;#if($subjectPatientObj)&lt;a href="$xwiki.getDocument($subjectPatientObj.document).getExternalURL()" target="_blank"&gt;$!{escapetool.xml($!subjectPatient.patientId)}&lt;/a&gt;#else$!{escapetool.xml($!subjectPatient.patientId)}#end&lt;/span&gt;
                &lt;span&gt;$!{escapetool.xml($!subjectPatient.externalId)}&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
