@@ -44,7 +44,6 @@ define(["jquery", "dynatable"], function($, dyna)
             return ids;
         },
 
-
         setState : function(matchIds, state)
         {
             var strMatchIds = String(matchIds).split(",");
@@ -59,9 +58,6 @@ define(["jquery", "dynatable"], function($, dyna)
                 }
                 if (state.hasOwnProperty('notify')) {
                     match.notify = state.notify;
-                }
-                if (state.hasOwnProperty('rejected')) {
-                    match.rejected = state.rejected;
                 }
                 if (state.hasOwnProperty('status')) {
                     match.status = state.status;
@@ -122,7 +118,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _rowWriter : function(rowIndex, record, columns, cellWriter)
         {
-            var trClass = record.rejected ? 'rejected' : '';
+            var trClass = record.status ? 'status' : '';
             switch(record.status) {
                 case 'success':
                     trClass += ' succeed';
@@ -139,8 +135,8 @@ define(["jquery", "dynatable"], function($, dyna)
                     case 'notification':
                         tr += this._getNotificationTd(record);
                         break;
-                    case 'rejection':
-                        tr += this._getRejectionTd(record);
+                    case 'status':
+                        tr += this._getStatusTd(record);
                         break;
                     case 'referencePatient':
                         tr += this._getPatientDetailsTd(record.reference, 'referencePatientTd', record.id);
@@ -170,9 +166,14 @@ define(["jquery", "dynatable"], function($, dyna)
             return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
         },
 
-        _getRejectionTd : function(record)
+        _getStatusTd : function(record)
         {
-            return '<td><input type="checkbox" class="reject" data-matchid="' + record.id + '" ' + (record.rejected ? 'checked ' : '') + '/></td>';
+            return '<td>'
+            + '<select class="status" data-matchid="' + record.id +'">'
+            + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+            + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>saved</option>'
+            + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>rejected</option>'
+            + '</select></td>';
         },
 
         _simpleCellWriter : function(value)
@@ -193,7 +194,7 @@ define(["jquery", "dynatable"], function($, dyna)
                     td += '<span> (' + patient.serverId + ')</span>';
                 }
             } else { // remote patient
-                td += '<label class="patient-href">' + patient.patientId + '(' + patient.serverId + ')</label>';
+                td += '<label class="patient-href">' + patient.patientId + ' (' + patient.serverId + ')</label>';
             }
             td += '</div>';
 
@@ -317,6 +318,9 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _buildTable : function()
         {
+            if (!this._matches) {
+                return;
+            }
             var matchesToUse = $.grep(this._matches, this._filter || function(match) {return match});
 
             if (this._tableBuilt) {

@@ -251,7 +251,6 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', tru
 &lt;table id="notifiedMatchesTable" class="matches-table"&gt;
   &lt;thead&gt;
     &lt;th data-dynatable-column="notification"&gt;&lt;span title="Notification sent" class="fa fa-envelope"/&gt;&lt;/th&gt;
-    &lt;th data-dynatable-column="id"&gt;&lt;span title="Match ID"&gt;ID&lt;/a&gt;&lt;/th&gt;
     &lt;th data-dynatable-column="referencePatient" title="Reference patient"&gt;Patient&lt;/th&gt;
     &lt;th data-dynatable-column="matchedPatient" title="Matched patient"&gt;Matched Patient&lt;/th&gt;
     &lt;th data-dynatable-column="score" title="Match score"&gt;Score&lt;/th&gt;
@@ -260,6 +259,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', tru
     &lt;th data-dynatable-column="referenceEmails" title="Emails for reference patient"&gt;Emails&lt;/th&gt;
     &lt;th data-dynatable-column="matchedEmails" title="Emails to matched patient"&gt;Matched Emails&lt;/th&gt;
     &lt;th data-dynatable-column="notifiedTimestamp" title="Time match was notified at"&gt;Notified&lt;/th&gt;
+    &lt;th data-dynatable-column="id"&gt;&lt;span title="Match ID"&gt;ID&lt;/a&gt;&lt;/th&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
   &lt;/tbody&gt;

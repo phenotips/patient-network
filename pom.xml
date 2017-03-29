@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>phenotips-components</artifactId>
-    <version>1.3-milestone-5</version>
+    <version>1.3-rc-3</version>
     <relativePath />
   </parent>
   <artifactId>patient-network</artifactId>
@@ -75,6 +75,7 @@
     <module>matching-notification-resources</module>
     <module>matching-notification-ui</module>
     <module>matching-notification-api</module>
+    <module>matching-notification-migrations</module>
   </modules>
 
   <build>
@@ -96,6 +97,84 @@
               <method>java.util.List getTopVariants(java.lang.String)</method>
               <justification>Allow to specify _how many_ top variants to return.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientSimilarityView</className>
+              <differenceType>7002</differenceType>
+              <method>org.json.JSONObject getOwnerJSON()</method>
+              <justification>Removed for better patient contact acces via getData() method.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientGenotype</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getGenesStatus()</method>
+              <justification>Provide a status of genes stored in the class.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getHref()</method>
+              <justification>Provide a contact url for patient owner.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>org.phenotips.data.Patient getPatient()</method>
+              <justification>Provide a patient object of patient in match.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean markRejected(java.util.List, boolean)</method>
+              <justification>Removed in favour setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(java.util.List, java.lang.String)</method>
+              <justification>Added in place of markRejected().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getStatus()</method>
+              <justification>Provide a status of the match (rejected, saved or uncategorized).</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7002</differenceType>
+              <method>boolean isRejected()</method>
+              <justification>Removed in favour of getStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7002</differenceType>
+              <method>void setRejected(boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setStatus(java.lang.String)</method>
+              <justification>Added in place of setRejected().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>7002</differenceType>
+              <method>java.lang.String rejectMatches(java.lang.String, boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean markRejected(org.hibernate.Session, java.util.List, boolean)</method>
+              <justification>Removed in favour of setStatus().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(org.hibernate.Session, java.util.List, java.lang.String)</method>
+              <justification>Added in place of markRejected().</justification>
+            </difference> 
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

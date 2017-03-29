@@ -64,7 +64,6 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      */
     private static final int MAX_VARIANTS_PER_GENE_REPORTED_IN_JSON = 10;
 
-
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
      * {@link #access patient access type}.

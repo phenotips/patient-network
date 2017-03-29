@@ -178,6 +178,9 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
             to.setAddress(emailAddress);
             this.mimeMessage.addRecipient(RecipientType.TO, to);
         }
+        InternetAddress bcc = new InternetAddress();
+        bcc.setAddress("qc@phenomecentral.org");
+        this.mimeMessage.addRecipient(RecipientType.BCC, bcc);
     }
 
     @Override

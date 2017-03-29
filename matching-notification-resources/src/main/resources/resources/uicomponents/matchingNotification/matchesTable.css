@@ -21,46 +21,58 @@
 }
 
 .matches-table .patient-div {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .matches-table .patient-href {
-   margin-left: 3px;
+  margin-left: 3px;
 }
 
 .matches-table .genes-div, .matches-table .age-of-onset-div  {
-    background: lightgrey;
+  background: lightgrey;
 }
 
 .matches-table .subtitle {
-    margin-bottom: 0px;
-    margin-top: 0px;
-    font-style: oblique;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-style: oblique;
 }
 
 .matches-table ul {
-    margin-top: 0px;
-    margin-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .matches-table .collapse-gp-div div {
-    padding-top: 5px;
-    padding-left: 5px;
-    padding-bottom: 5px;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-bottom: 5px;
 }
 
 .matches-table th {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .matches-table td {
-    vertical-align: text-top;
+  vertical-align: text-top;
 }
 
 .matches-table .collapse-gp-tool {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
-#filter-div {
-   margin-top: 40px;
+#score-filter-div {
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+#find-matches-messages, #show-matches-messages {
+  display: inline-block;
+  margin-left: 1em;
+  color: green;
+}
+#table-filter-div div {
+  display: inline-block;
+}
+#table-filter-div {
+  margin-bottom: 15px;
 }

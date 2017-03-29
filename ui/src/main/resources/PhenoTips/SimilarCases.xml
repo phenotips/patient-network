@@ -507,17 +507,17 @@
     },
 
     _displayRemoteContactInfo : function (r) {
-      if (!r.hasOwnProperty("contact") || !r.contact.hasOwnProperty("href") || !r.contact.href) {
+      if (!r.hasOwnProperty("owner") || !r.owner.hasOwnProperty("url") || !r.owner.url) {
         return "No contact info";
       }
-      var contactName = r.contact.name;
+      var contactName = r.owner.name;
       // Handle GeneMatcher returning "None" as name for organization contacts e.g. GeneDx
       if (contactName == "None") {
         contactName = "";
       }
 
       var hasName = (contactName &amp;&amp; contactName != "");
-      var hasInstitution = (r.contact.institution &amp;&amp; r.contact.institution != "");
+      var hasInstitution = (r.owner.institution &amp;&amp; r.owner.institution != "");
 
       var contactLabel = "";
       if (hasName) {
@@ -527,13 +527,13 @@
         }
       }
       if (hasInstitution) {
-        contactLabel += r.contact.institution;
+        contactLabel += r.owner.institution;
       }
       if (!hasName &amp;&amp; !hasInstitution) {
         contactLabel = "Anonymous";
       }
       var contactInfo = new Element("a", {
-        "href"  : r.contact.href,
+        "href"  : r.owner.url,
         "title" : "Contact owner for further information",
         "class" : "owner-info "
       }).update(contactLabel);

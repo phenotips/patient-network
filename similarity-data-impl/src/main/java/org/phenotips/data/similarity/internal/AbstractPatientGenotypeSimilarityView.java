@@ -112,4 +112,10 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
             return this.matchGenotype.getTopVariants(gene, k);
         }
     }
+
+    @Override
+    public String getGenesStatus()
+    {
+        return this.matchGenotype.getGenesStatus();
+    }
 }

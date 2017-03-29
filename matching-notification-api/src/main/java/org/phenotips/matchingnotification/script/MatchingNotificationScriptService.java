@@ -22,18 +22,26 @@ import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
+import org.phenotips.security.authorization.AuthorizationService;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.Right;
+import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,6 +69,15 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private MatchStorageManager matchStorageManager;
 
+    @Inject
+    private AuthorizationService auth;
+
+    @Inject
+    private UserManager users;
+
+    @Inject
+    private EntityReferenceResolver<String> resolver;
+
     private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
     /**
@@ -71,6 +88,9 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String findAndSaveMatches(double score)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
@@ -85,39 +105,53 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String getMatches(double score, boolean notified)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
+        filterPatientsFromMatches(matches);
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
 
     /**
-     * Marks matches, with ids given in parameter, as rejected.
-     * Example:
-     *    Input: {'ids': ['1,'2','3']}
-     *    Output:{'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:
      *
-     * @param ids JSON with list of ids of matching that should be marked as rejected
-     * @param rejected whether the matches should be rejected or unrejected
+     * <pre>
+     * Input: ["1", "2", "3"], "saved"
+     * Output: {"results": [{"id": "1", "success": true}, {"id": "2", "success": false}, {"id": "3", "success": true}]}
+     * </pre>
+     *
+     * @param ids JSON with list of ids of matches to set status
+     * @param status whether the matches should be set as saved, rejected or uncategorized
      * @return result JSON
      */
-    public String rejectMatches(String ids, boolean rejected)
+    public String setStatus(String ids, String status)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<Long> idsList = this.jsonToIdsList(ids);
-        this.matchingNotificationManager.markRejected(idsList, rejected);
-        return this.successfulIdsToJSON(idsList, idsList).toString();
+        boolean success = this.matchingNotificationManager.setStatus(idsList, status);
+        return this.successfulIdsToJSON(idsList, success ? idsList : Collections.<Long>emptyList()).toString();
     }
 
     /**
-     * Sends email notifications for each match.
-     * Example:
-     *    Input: {'ids': ['1,'2','3']}
-     *    Output: {'results': [{id: '1', success: 'true'}, {id: '2', success: 'false'}, {id: '3', success: 'true'}]}
+     * Sends email notifications for each match. Example:
+     *
+     * <pre>
+     * Input: ["1", "2", "3"]
+     * Output: {"results": [{"id": "1", "success": true}, {"id": "2", "success": false}, {"id": "3", "success": true}]}
+     * </pre>
      *
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
     public String sendNotifications(String ids)
     {
+        if (!isAdmin()) {
+            return "";
+        }
         List<Long> idsList = this.jsonToIdsList(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
@@ -168,5 +202,29 @@ public class MatchingNotificationScriptService implements ScriptService
         reply.put("results", results);
 
         return reply;
+    }
+
+    /**
+     * Filters out matches that contain non-existing local patients or self-matches.
+     */
+    private void filterPatientsFromMatches(List<PatientMatch> matches)
+    {
+        ListIterator<PatientMatch> iterator = matches.listIterator();
+        while (iterator.hasNext()) {
+            PatientMatch match = iterator.next();
+            boolean hasNullPatient = (match.getReference().isLocal() && match.getReference().getPatient() == null)
+                || (match.getMatched().isLocal() && match.getMatched().getPatient() == null);
+            boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
+                match.getMatched().getEmails());
+            if (hasNullPatient || isSelfMatch) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private boolean isAdmin()
+    {
+        return this.auth.hasAccess(this.users.getCurrentUser(), Right.ADMIN,
+            this.resolver.resolve("", EntityType.WIKI));
     }
 }

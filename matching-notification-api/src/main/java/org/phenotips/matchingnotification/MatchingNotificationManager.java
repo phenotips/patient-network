@@ -57,11 +57,11 @@ public interface MatchingNotificationManager
     boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId);
 
     /**
-     * Marks matches with ids in {@code matchesIds} as rejected.
+     * Sets status to all matches with ids in {@code matchesIds} to a passed status string.
      *
-     * @param matchesIds list of ids of matches to mark as rejected
-     * @param rejected whether matches should be set as rejected or unrejected
+     * @param matchesIds list of ids of matches to set status
+     * @param status whether matches should be set as saved, rejected or uncategorized
      * @return true if successful
      */
-    boolean markRejected(List<Long> matchesIds, boolean rejected);
+    boolean setStatus(List<Long> matchesIds, String status);
 }

@@ -95,8 +95,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.debug("Finding matches for patient {}.", patient.getId());
 
             List<PatientMatch> matchesForPatient = this.matchFinderManager.findMatches(patient);
+            if (matchesForPatient.isEmpty()) {
+                continue;
+            }
             this.filterMatchesByScore(matchesForPatient, score);
             this.filterExistingMatches(matchesForPatient);
+            if (matchesForPatient.isEmpty()) {
+                continue;
+            }
             this.matchStorageManager.saveMatches(matchesForPatient);
 
             addedMatches.addAll(matchesForPatient);
@@ -240,17 +246,17 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean markRejected(List<Long> matchesIds, boolean rejected)
+    public boolean setStatus(List<Long> matchesIds, String status)
     {
         boolean successful = false;
         try {
             List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
 
             Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-            this.matchStorageManager.markRejected(session, matches, rejected);
+            this.matchStorageManager.setStatus(session, matches, status);
             successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
         } catch (HibernateException e) {
-            this.logger.error("Error while marking matches {} as rejected.", Joiner.on(",").join(matchesIds), e);
+            this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;
     }

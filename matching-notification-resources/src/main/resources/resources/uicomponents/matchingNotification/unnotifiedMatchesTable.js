@@ -23,7 +23,8 @@ var PhenoTips = (function (PhenoTips) {
         this._tableElement = this._$('#matchesTable');
 
         this._utils = new utils();
-        this._matchesTable = new matchesTable(this._tableElement, this._afterProcessTableRegisterReject.bind(this));
+        this._showMatchTypes = {"notified" : false, "rejected" : false, "saved" : true, "uncategorized" : true};
+        this._matchesTable = new matchesTable(this._tableElement, this._afterProcessTableRegisterStatus.bind(this));
         this._notifier = new notifier({
             ajaxHandler  : this._ajaxURL,
             onSuccess    : this._onSuccessSendNotification.bind(this),
@@ -33,16 +34,18 @@ var PhenoTips = (function (PhenoTips) {
         $('#find-matches-button').on('click', this._findMatches.bind(this));
         $('#show-matches-button').on('click', this._showMatches.bind(this));
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
-        $('#filter_rejected').on('click', this._filterRejectedClicked.bind(this));
+        $('#rejected').on('click', this._setFilter.bind(this));
+        $('#saved').on('click', this._setFilter.bind(this));
+        $('#uncategorized').on('click', this._setFilter.bind(this));
 
-        this._filterRejectedClicked();
+        this._setFilter();
     },
 
     // callback for after matches table is drawn
-    _afterProcessTableRegisterReject : function()
+    _afterProcessTableRegisterStatus : function()
     {
-        this._$('#matchesTable').find('.reject').on('click', function(event) {
-            this._rejectMatch(event.target);
+        this._$('#matchesTable').find('.status').on('change', function(event) {
+            this._setMatchStatus(event.target);
         }.bind(this));
     },
 
@@ -97,19 +100,19 @@ var PhenoTips = (function (PhenoTips) {
         this._utils.showSent('show-matches-messages');
     },
 
-    _rejectMatch : function(target)
+    _setMatchStatus : function(target)
     {
         var matchId = String(this._$(target).data("matchid"));
-        var reject = this._$(target).is(':checked');
+        var status = this._$(target).val();
         var ids = JSON.stringify({ ids: matchId.split(",")});
 
         new Ajax.Request(this._ajaxURL, {
-            parameters : {action : 'reject-matches',
+            parameters : {action : 'set-status',
                           ids    : ids,
-                          reject : reject
+                          status : status
             },
             onSuccess : function (response) {
-                this._onSuccessRejectMatch(response.responseJSON.results, reject);
+                this._onSuccessSetMatchStatus(response.responseJSON.results, status);
             }.bind(this),
             onFailure : function (response) {
                 console.log(response);
@@ -165,13 +168,13 @@ var PhenoTips = (function (PhenoTips) {
         this._utils.showFailure('send-notifications-messages');
     },
 
-    // When reject is true, request was sent to reject. When false, request was sent to unreject.
-    _onSuccessRejectMatch : function(results, reject)
+    // When reject is true, request was sent to set new status. When false, request was sent to unreject.
+    _onSuccessSetMatchStatus : function(results, status)
     {
         var [successfulIds, failedIds] = this._utils.getResults(results);
 
         if (failedIds.length > 0) {
-            var operation = reject ? "Rejecting" : "Unrejecting";
+            var operation = reject ? "Setting status" : "Status setted";
             if (failedIds.length == 1) {
                 alert(operation + " match failed.");
             } else {
@@ -180,7 +183,7 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         // Update table state
-        this._matchesTable.setState(successfulIds, { 'rejected': reject });
+        this._matchesTable.setState(successfulIds, { 'status': status });
         this._matchesTable.setState(failedIds, { 'status': 'failure' });
         this._matchesTable.update();
     },
@@ -203,23 +206,14 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this);
     },
 
-    _filterRejectedClicked : function(event)
+    _setFilter : function(event)
     {
-        var checked;
-        if (event == undefined) {
-            checked = this._$('#filter_rejected').is(':checked');
-        } else {
-            checked = event.target.checked;
+        if (event && event.target && event.target.id) {
+            this._showMatchTypes[event.target.id] = !event.target.checked;
         }
-        this._matchesTable.setFilter(checked ? this._filterNotifiedAndRejected : this._filterNotified);
-    },
-
-    _filterNotified : function(match) {
-        return !match.notified;
-    },
-
-    _filterNotifiedAndRejected : function(match) {
-        return !match.notified && !match.rejected;
+        this._matchesTable.setFilter( function (match) {
+            return this._showMatchTypes[match.status];
+        }.bind(this) );
     }
     });
     return PhenoTips;

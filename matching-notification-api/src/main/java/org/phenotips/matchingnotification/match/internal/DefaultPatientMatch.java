@@ -77,8 +77,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Timestamp notifiedTimestamp;
 
+    /**
+     * @deprecated use {@link status} instead
+     */
     @Basic
+    @Deprecated
     private Boolean rejected;
+
+    @Basic
+    private String status;
 
     @Basic
     private Double score;
@@ -188,13 +195,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
         this.notified = false;
-        this.rejected = false;
+        this.status = "uncategorized";
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
 
-        // TODO
-        this.href = null;
+        if (this.matchedPatientInMatch.isLocal()) {
+            this.href = this.referencePatientInMatch.getHref();
+        } else {
+            this.href = this.matchedPatientInMatch.getHref();
+        }
 
         // Reorder phenotype
         DefaultPhenotypesMap.reorder(
@@ -212,16 +222,26 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         return this.id;
     }
 
+    /**
+     * @deprecated use {@link status} instead
+     */
     @Override
-    public void setRejected(boolean rejected)
-    {
-        this.rejected = rejected;
-    }
-
-    @Override
+    @Deprecated
     public boolean isRejected()
     {
         return this.rejected;
+    }
+
+    @Override
+    public void setStatus(String newStatus)
+    {
+        this.status = newStatus;
+    }
+
+    @Override
+    public String getStatus()
+    {
+        return this.status;
     }
 
     @Override
@@ -314,7 +334,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
         json.put("notified", this.isNotified());
-        json.put("rejected", this.isRejected());
+        json.put("status", this.getStatus());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());

@@ -51,14 +51,21 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
 
+    private static final String STATUS_CANDIDATE = "candidate";
+
+    private static final String STATUS_SOLVED = "solved";
+
     /** Logging helper object. */
-    private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotype.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientGenotype.class);
 
     /** The candidate genes for the patient. */
     protected Set<String> candidateGenes;
 
     /** The exome data for the patient. */
     protected Exome exome;
+
+    /** The status of genes in genotype information. */
+    protected String genesStatus;
 
     /**
      * Constructor for a {@link PatientGenotype} object, representing the candidate genes and exome sequence data for
@@ -74,13 +81,14 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
             try {
                 exomeManager = componentManager.getInstance(ExomeManager.class, "exomiser");
             } catch (ComponentLookupException e) {
-                logger.error("Unable to look up ExomeManager: " + e.toString());
+                LOGGER.error("Unable to look up ExomeManager: " + e.toString());
             }
         }
 
         if (exomeManager != null) {
             this.exome = exomeManager.getExome(patient);
         }
+        this.genesStatus = STATUS_SOLVED;
         this.candidateGenes = new HashSet<String>();
         this.candidateGenes.addAll(getManualGeneNames(patient));
 
@@ -96,7 +104,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
      * @param p the {@link Patient}
      * @return a (potentially-empty) unmodifiable set of the names of genes
      */
-    private static Set<String> getManualGeneNames(Patient patient)
+    private Set<String> getManualGeneNames(Patient patient)
     {
         PatientData<Map<String, String>> allGenes = patient.getData("genes");
         if (allGenes != null && allGenes.isIndexed()) {
@@ -110,15 +118,16 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
 
                 geneName = geneName.trim();
                 String status = gene.get("status");
-                if (StringUtils.isBlank(status) || "candidate".equals(status)) {
+                if (StringUtils.isBlank(status) || STATUS_CANDIDATE.equals(status)) {
                     geneCandidateNames.add(geneName);
-                } else if ("solved".equals(status)) {
+                } else if (STATUS_SOLVED.equals(status)) {
                     geneSolvedNames.add(geneName);
                 }
             }
             if (!geneSolvedNames.isEmpty()) {
                 return Collections.unmodifiableSet(geneSolvedNames);
             } else if (!geneCandidateNames.isEmpty()) {
+                this.genesStatus = STATUS_CANDIDATE;
                 return Collections.unmodifiableSet(geneCandidateNames);
             }
 
@@ -184,5 +193,11 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         }
 
         return score;
+    }
+
+    @Override
+    public String getGenesStatus()
+    {
+        return this.genesStatus;
     }
 }
