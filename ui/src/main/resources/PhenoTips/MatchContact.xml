@@ -233,6 +233,10 @@
 #set($sortedGenes = [])
 #foreach($gene in $xwiki.getDocument($patient.getDocument()).getObjects('PhenoTips.GeneClass'))
 #set ($symbol = $gene.getValue('gene'))
+#set ($term = $services.vocabularies.hgnc.getTerm("${symbol}"))
+#if ($term)
+  #set ($symbol = $term.symbol)
+#end
 #set ($status = $gene.getValue('status'))
 #if ($status != 'rejected')
 #set ($discard = $sortedGenes.add({'symbol' : $symbol, 'status' : $status}))
