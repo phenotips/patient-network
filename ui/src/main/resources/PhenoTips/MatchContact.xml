@@ -93,7 +93,9 @@
   #if ($request.send)
     #set ($options = {
       'subject'  : "$!{request.subject}",
-      'message'  : "$!{request.message}"
+      'message'  : "$!{request.message}",
+      'patientId': "$!{request.patient}",
+      'matchId'  : "$!{request.matchId}"
     })
     #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $options))
     #if ($result != 0)
@@ -138,6 +140,7 @@
           #_generateMessage($defaults)
         &lt;/div&gt;
         &lt;input type="hidden" name="patient" value="$!{request.patient}" /&gt;
+        &lt;input type="hidden" name="matchId" value="$!{request.matchId}" /&gt;
         &lt;input type="hidden" name="token" value="$!{request.token}" /&gt;
         &lt;div class="buttons"&gt;
           &lt;span class="buttonwrapper"&gt;&lt;input type="submit" name="send" value="Send" class="button" /&gt;&lt;/span&gt;

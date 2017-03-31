@@ -42,6 +42,8 @@
   #set ($matches = $services.similarPatients.findSimilarPatients($patient))
   #if ("$!matches" == '')
     #set ($matches = [])
+  #else
+    $services.matchingNotification.saveLocalMatches($matches)
   #end
 {{/velocity}}
 

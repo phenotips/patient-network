@@ -17,6 +17,8 @@
  */
 package org.phenotips.messaging.script;
 
+import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.messaging.ActionManager;
 import org.phenotips.messaging.Connection;
 import org.phenotips.messaging.ConnectionManager;
@@ -24,6 +26,8 @@ import org.phenotips.messaging.ConnectionManager;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -31,6 +35,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.hibernate.Session;
 
 /**
  * Stores a connection between the owners of two matched patients, anonymously, to be used for email communication. The
@@ -51,8 +56,12 @@ public class AnonymousCommunicationScriptService implements ScriptService
     @Inject
     private ActionManager actionManager;
 
+    @Inject
+    private MatchStorageManager matchStorageManager;
+
     /**
-     * Send the initial email to the owner of the matched patient.
+     * Send the initial email to the owner of the matched patient. Mark that match as 'notified' in the match table
+     * in the administration.
      *
      * @param connectionId the id of the anonymous communication linking the two patients and their owners that are
      *            involved in this connection
@@ -68,7 +77,11 @@ public class AnonymousCommunicationScriptService implements ScriptService
             c = this.connectionManager.getConnectionByToken(connectionId);
         }
         // FIXME! Add rights check: only the initiating user can do this
-        return this.actionManager.sendInitialMails(c, options);
+        int result =  this.actionManager.sendInitialMails(c, options);
+        if (result == 0) {
+            setNotified((String) options.get("patientId"), (String) options.get("matchId"));
+        }
+        return result;
     }
 
     /**
@@ -101,5 +114,28 @@ public class AnonymousCommunicationScriptService implements ScriptService
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    /**
+     * When a user contacts another user regarding a match using the Similar Patients UI,
+     * mark that match as 'notified' in the match table in the administration.
+     *
+     * @param patientId reference patientID
+     * @param matchId matched patient ID
+     */
+    private void setNotified(String patientId, String matchId)
+    {
+        List<PatientMatch> successfulMatches = new LinkedList<>();
+        List<PatientMatch> matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
+        for (PatientMatch match : matchesForPatient) {
+            if (match.getMatchedPatientId().equals(matchId)) {
+                successfulMatches.add(match);
+                break;
+            }
+        }
+
+        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
+        this.matchStorageManager.markNotified(session, successfulMatches);
+        this.matchStorageManager.endNotificationMarkingTransaction(session);
     }
 }
