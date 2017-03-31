@@ -26,11 +26,11 @@
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1459795227000</creationDate>
+  <parent>PhenoTips.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <date>1459898008000</date>
   <contentUpdateDate>1459897988000</contentUpdateDate>
-  <parent>PhenoTips.WebHome</parent>
   <version>1.1</version>
   <title/>
   <comment/>
