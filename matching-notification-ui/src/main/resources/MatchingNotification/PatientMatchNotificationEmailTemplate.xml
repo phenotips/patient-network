@@ -126,6 +126,24 @@
    &lt;/thead&gt;
    &lt;tbody&gt;
       &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($item in $!subjectPatient.modeOfInheritance)
+&lt;div&gt;$!{escapetool.xml($item)}&lt;div&gt;
+#end
+         &lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($item in $!match.matchedPatient.modeOfInheritance)
+&lt;div&gt;$!{escapetool.xml($!item)}&lt;div&gt;
+#end
+         &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
+         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;$!{escapetool.xml($!subjectPatient.ageOfOnset)}&lt;/td&gt;
+         &lt;td style="$table"&gt;$!{escapetool.xml($!match.matchedPatient.ageOfOnset)}&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.genes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($gene in $subjectPatient.candidateGenes)
@@ -182,24 +200,6 @@ $!{escapetool.xml($!phenotype.name)}
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
-         &lt;td style="$table"&gt;
-#foreach ($item in $!subjectPatient.modeOfInheritance)
-&lt;div&gt;$!{escapetool.xml($item)}&lt;div&gt;
-#end
-         &lt;/td&gt;
-         &lt;td style="$table"&gt;
-#foreach ($item in $!match.matchedPatient.modeOfInheritance)
-&lt;div&gt;$!{escapetool.xml($!item)}&lt;div&gt;
-#end
-         &lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
-         &lt;td style="$table"&gt;$!{escapetool.xml($!subjectPatient.ageOfOnset)}&lt;/td&gt;
-         &lt;td style="$table"&gt;$!{escapetool.xml($!match.matchedPatient.ageOfOnset)}&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr style="$table"&gt;
          &lt;td colspan="3"&gt;
             &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.label', 'xhtml/1.0')&lt;/div&gt;
 #foreach ($email in $match.matchedPatient.emails)
@@ -229,6 +229,11 @@ $!services.localization.render('phenotips.matchingNotifications.email.signature'
 $services.localization.render('phenotips.matchingNotifications.email.introduction', [$matches.size()])
 
 $services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label'): $!subjectPatient.patientId $!subjectPatient.externalId
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
+#foreach ($item in $!subjectPatient.modeOfInheritance)
+* $!item
+#end
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!subjectPatient.ageOfOnset
 $services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
 #foreach ($gene in $!subjectPatient.candidateGenes)
 * $!gene
@@ -248,14 +253,14 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 * $!phenotype.name
 #end
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
-#foreach ($item in $!subjectPatient.modeOfInheritance)
-* $!item
-#end
-$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!subjectPatient.ageOfOnset
 
 #foreach ($match in $matches)
 $services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $match.matchedPatient.patientId $!match.matchedPatient.serverId
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
+#foreach ($item in $match.matchedPatient.modeOfInheritance)
+* $!item
+#end
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.matchedPatient.ageOfOnset
 $services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
 #foreach ($gene in $match.matchedPatient.candidateGenes)
 * $!gene
@@ -275,11 +280,6 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 * $!phenotype.name
 #end
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
-#foreach ($item in $match.matchedPatient.modeOfInheritance)
-* $!item
-#end
-$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.matchedPatient.ageOfOnset
 $services.localization.render('phenotips.matchingNotifications.email.table.contact.label'):
 #foreach ($email in $match.matchedPatient.emails)
 * $!email
