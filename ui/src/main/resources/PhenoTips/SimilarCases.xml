@@ -54,7 +54,17 @@
   "resultsCount" : $matches.size(),
   "results" : [
 #foreach ($p in $matches)
-  $p.toJSON()#if ($foreach.hasNext()),
+   #set ($match = $p.toJSON())
+   #set ($g = $match.get('genes'))
+   #foreach ($gene in $g)
+      #set ($id = $gene.get('gene'))
+      #set ($term = $services.vocabularies.hgnc.getTerm("${id}"))
+      #if ($term)
+        #set ($gene.symbol = $term.symbol)
+      #end
+      #if ($foreach.hasNext()), #end
+   #end
+  $match#if ($foreach.hasNext()),
   #end
 
 #end
@@ -794,7 +804,7 @@
         r.genes.each(function (geneInfo) {
           var titleRow = _this._getEmptyTableRow(genotypeMatchTable, 'gene-row');
           titleRow.insert(new Element('th', {'class' : 'gene'})
-                               .insert(geneInfo.gene)
+                               .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
                                .insert(geneInfo.score &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.score) || '')
                                 /* The genename service should populate this with links if the input is present*/
