@@ -118,7 +118,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _rowWriter : function(rowIndex, record, columns, cellWriter)
         {
-            var trClass = record.status ? 'status' : '';
+            var trClass = record.status ? record.status : '';
             switch(record.status) {
                 case 'success':
                     trClass += ' succeed';
