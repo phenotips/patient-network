@@ -22,6 +22,9 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.Variant;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -51,6 +55,9 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     /** Manager to allow access to underlying genotype data. */
     protected static PatientGenotypeManager genotypeManager;
 
+    /** Manager to allow access to HGNC vocabulary gene data. */
+    protected static VocabularyManager vocabularyManager;
+
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotypeSimilarityView.class);
 
@@ -63,6 +70,20 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      * Maximum number of variants to report per gene in JSON (0 for all). TODO: pull out into configuration.
      */
     private static final int MAX_VARIANTS_PER_GENE_REPORTED_IN_JSON = 10;
+
+    static {
+        PatientGenotypeManager gm = null;
+        VocabularyManager vm = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            gm = ccm.getInstance(PatientGenotypeManager.class);
+            vm = ccm.getInstance(VocabularyManager.class);
+        } catch (ComponentLookupException e) {
+            logger.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        genotypeManager = gm;
+        vocabularyManager = vm;
+    }
 
     /**
      * Simple constructor passing the {@link #match matched patient}, the {@link #reference reference patient}, and the
@@ -78,10 +99,6 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     {
         super(match, reference, access);
 
-        if (genotypeManager == null) {
-            genotypeManager = getGenotypeManager();
-        }
-
         if (genotypeManager != null) {
             // Store genotype information
             this.matchGenotype = genotypeManager.getGenotype(this.match);
@@ -93,22 +110,6 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             && this.refGenotype.hasGenotypeData()) {
             matchGenes();
         }
-    }
-
-    /**
-     * Lookup component genotype manager.
-     *
-     * @return {@link PatientGenotypeManager} component
-     */
-    private PatientGenotypeManager getGenotypeManager()
-    {
-        ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
-        try {
-            return componentManager.getInstance(PatientGenotypeManager.class);
-        } catch (ComponentLookupException e) {
-            logger.error("Unable to look up PatientGenotypeManager: " + e.toString());
-        }
-        return null;
     }
 
     /**
@@ -249,10 +250,14 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         int numGenesReported = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
             String gene = geneEntry.getKey();
+            String symbol = getGeneSymbol(gene);
             Double score = geneEntry.getValue();
 
             JSONObject geneObject = new JSONObject();
             geneObject.put("gene", gene);
+            if (StringUtils.isNotBlank(symbol)) {
+                geneObject.put("symbol", symbol);
+            }
             geneObject.put("score", score);
             JSONObject geneJSON = getGeneJSON(gene);
             for (String key : geneJSON.keySet()) {
@@ -266,5 +271,16 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             }
         }
         return genesJSON;
+    }
+
+    private String getGeneSymbol(String geneEnsemblId)
+    {
+        String symbol = null;
+        if (vocabularyManager != null) {
+            Vocabulary hgnc = vocabularyManager.getVocabulary("HGNC");
+            VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
+            symbol = (term != null) ? (String) term.get("symbol") : null;
+        }
+        return symbol;
     }
 }
