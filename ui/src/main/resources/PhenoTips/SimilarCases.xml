@@ -54,17 +54,7 @@
   "resultsCount" : $matches.size(),
   "results" : [
 #foreach ($p in $matches)
-   #set ($match = $p.toJSON())
-   #set ($g = $match.get('genes'))
-   #foreach ($gene in $g)
-      #set ($id = $gene.get('gene'))
-      #set ($term = $services.vocabularies.hgnc.getTerm("${id}"))
-      #if ($term)
-        #set ($gene.symbol = $term.symbol)
-      #end
-      #if ($foreach.hasNext()), #end
-   #end
-  $match#if ($foreach.hasNext()),
+  $p.toJSON()#if ($foreach.hasNext()),
   #end
 
 #end
