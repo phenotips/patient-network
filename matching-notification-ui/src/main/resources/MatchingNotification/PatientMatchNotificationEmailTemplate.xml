@@ -159,7 +159,14 @@
       &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
+#set ($firstUncommonPhenotype = false)
 #foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+  #if (!$firstUncommonPhenotype &amp;&amp; $match.matchedPatient.phenotypes.predefined.size() &gt;= $foreach.index)
+    #if ($!match.matchedPatient.phenotypes.predefined[$foreach.index].name != $!phenotype.name)
+      #set ($firstUncommonPhenotype = $!match.matchedPatient.phenotypes.predefined[$foreach.index].name)
+      &lt;div style="border: 1px solid black;"&gt;&lt;/div&gt;
+    #end
+  #end
 &lt;div&gt;
 #if ($phenotype.observed == 'no')
 $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
@@ -180,6 +187,7 @@ $!{escapetool.xml($!phenotype.name)}
          &lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+#if ($firstUncommonPhenotype &amp;&amp; $!phenotype.name == $firstUncommonPhenotype)&lt;div style="border: 1px solid black;"&gt;&lt;/div&gt;#end
 &lt;div&gt;
 #if ($phenotype.observed == 'no')
 $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
