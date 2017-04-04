@@ -794,7 +794,7 @@
         r.genes.each(function (geneInfo) {
           var titleRow = _this._getEmptyTableRow(genotypeMatchTable, 'gene-row');
           titleRow.insert(new Element('th', {'class' : 'gene'})
-                               .insert(geneInfo.gene)
+                               .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
                                .insert(geneInfo.score &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.score) || '')
                                 /* The genename service should populate this with links if the input is present*/
