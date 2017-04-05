@@ -555,7 +555,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     @Override
-    protected JSONArray getFeatureMatchesJSON()
+    public JSONArray getFeatureMatchesJSON()
     {
         // Get list of clusters and convert to JSON
         JSONArray matchesJSON = new JSONArray();

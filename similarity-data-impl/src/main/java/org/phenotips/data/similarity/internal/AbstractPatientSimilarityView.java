@@ -112,13 +112,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     protected abstract JSONArray getDisordersJSON();
 
     /**
-     * Get JSON for many-to-many feature matches between the reference and the match.
-     *
-     * @return a JSON array of feature matches, empty if none to display
-     */
-    protected abstract JSONArray getFeatureMatchesJSON();
-
-    /**
      * Get JSON for gene matches between the reference and the match.
      *
      * @return a JSON array of gene, empty if none to display, or null if no data is available

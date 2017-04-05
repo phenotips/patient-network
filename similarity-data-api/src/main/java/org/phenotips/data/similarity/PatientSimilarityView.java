@@ -22,6 +22,8 @@ import org.phenotips.data.permissions.AccessLevel;
 
 import org.xwiki.stability.Unstable;
 
+import org.json.JSONArray;
+
 /**
  * View of a patient as related to another reference patient.
  *
@@ -74,4 +76,11 @@ public interface PatientSimilarityView extends Patient
      * @return the similarity score, between 0 (a poor match) and 1 (a good match)
      */
     double getGenotypeScore();
+
+    /**
+     * Get JSON for many-to-many feature matches between the reference and the match.
+     *
+     * @return a JSON array of feature matches, empty if none to display
+     */
+    JSONArray getFeatureMatchesJSON();
 }

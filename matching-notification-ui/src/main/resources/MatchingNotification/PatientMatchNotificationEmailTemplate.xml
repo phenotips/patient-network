@@ -159,7 +159,19 @@
       &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($phenotype in $subjectPatient.phenotypes.predefined)
+#macro (__findPhenotype $list $id)
+  #set ($phenotype = '')
+  #foreach ($p in $list)
+    #if ($p.id == $id)
+      #set ($phenotype = $p)
+    #end
+  #end
+#end
+#foreach ($phenotypeCategoryBlock in $match.featureMatches)
+&lt;div style=" background-color: #333; color: #fff; margin: 3px 0 3px 0;"&gt;* $phenotypeCategoryBlock.category.name&lt;/div&gt;##
+  #foreach ($item in $phenotypeCategoryBlock.match)
+    #__findPhenotype($subjectPatient.phenotypes.predefined, $item)
+    #if ($phenotype != '')
 &lt;div&gt;
 #if ($phenotype.observed == 'no')
 $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
@@ -167,6 +179,8 @@ $!services.localization.render('phenotips.matchingNotifications.email.table.phen
 $!{escapetool.xml($phenotype.name)}
 #end
 &lt;/div&gt;
+#end
+#end
 #end
 #foreach ($phenotype in $subjectPatient.phenotypes.freeText)
 &lt;div&gt;
@@ -179,7 +193,11 @@ $!{escapetool.xml($!phenotype.name)}
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($phenotype in $match.matchedPatient.phenotypes.predefined)
+#foreach ($phenotypeCategoryBlock in $match.featureMatches)
+&lt;div style=" background-color: #333; color: #fff; margin: 3px 0 3px 0;"&gt;* $phenotypeCategoryBlock.category.name&lt;/div&gt;##
+  #foreach ($item in $phenotypeCategoryBlock.reference)
+    #__findPhenotype($match.matchedPatient.phenotypes.predefined, $item)
+    #if ($phenotype != '')
 &lt;div&gt;
 #if ($phenotype.observed == 'no')
 $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
@@ -187,6 +205,8 @@ $!services.localization.render('phenotips.matchingNotifications.email.table.phen
 $!{escapetool.xml($!phenotype.name)}
 #end
 &lt;/div&gt;
+#end
+#end
 #end
 #foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
 &lt;div&gt;

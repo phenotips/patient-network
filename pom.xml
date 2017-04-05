@@ -174,7 +174,13 @@
               <differenceType>7012</differenceType>
               <method>boolean setStatus(org.hibernate.Session, java.util.List, java.lang.String)</method>
               <justification>Added in place of markRejected().</justification>
-            </difference> 
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientSimilarityView</className>
+              <differenceType>7012</differenceType>
+              <method>org.json.JSONArray getFeatureMatchesJSON()</method>
+              <justification>Added to have access to structured phenotypes similarity list brokedown by cateries for email notification UI.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
