@@ -1696,16 +1696,19 @@
       (% class="clear clinical-info similarity-info chapter"%)(((##
       == Similar cases ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
-(% class="similar-cases-category similar-cases-local" %)(((
-=== Matches with patient profiles deposited in this database ===
+      (% class="similar-cases-category similar-cases-local" %)(((
+      === Matches with patient profiles deposited in this database ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
-)))
-## Allow to plug in other data sources
-#foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
-(% class="similar-cases-category" %)(((
- {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
-)))
-#end
+      )))
+      ## Allow to plug in other data sources if current user is owner or manager of this patient record doc
+      #set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))
+      #if ($isManager)
+        #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
+          (% class="similar-cases-category" %)(((
+          {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
+          )))
+        #end
+      #end
     #end## can see similar patients
   #end## suggestions enabled
 #end## action == view
