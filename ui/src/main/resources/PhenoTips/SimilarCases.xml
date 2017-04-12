@@ -51,14 +51,16 @@
 #if ($xcontext.action == 'get')
   $response.setContentType('application/json')
 #end
+#set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))
 {
   "query": $patient.toJSON(),
+  "isManager" : $isManager,
   "resultsCount" : $matches.size(),
   "results" : [
 #foreach ($p in $matches)
-  $p.toJSON()#if ($foreach.hasNext()),
+  #set ($match = $p.toJSON())
+  #set ($match.owner.email = '')$match#if ($foreach.hasNext()),
   #end
-
 #end
   ]
 }
@@ -487,12 +489,14 @@
 
     _displayResultContactInfo : function (r) {
       var contactType = (r.myCase || r.myGroupsCase) ? "none" : (r.access == "public" ? "open" : "restricted");
-      var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "Contact owner for further information") : this.Utils.generateIcon('group');
+      var icon = (contactType == 'restricted' &amp;&amp; this._data.isManager) ? this.Utils.generateIcon('contact', "Contact owner for further information") : this.Utils.generateIcon('group');
       var contactInfo;
       if (contactType == "none") {
-        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case belongs to one of your consortia)"));
+        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case belongs to one of your consortia)"));
       } else if (contactType == "open") {
-        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
+        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
+      } else if (!this._data.isManager) {
+        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "");
       } else {
         contactInfo = new Element("a", {
           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
