@@ -276,16 +276,16 @@ public class RestrictedPatientGenotypeSimilarityViewTest
                     Assert.assertTrue(v.length() > 4);
 
                     Assert.assertTrue(v.getDouble("score") > 0);
-                    Assert.assertFalse(v.getString("chrom").isEmpty());
-                    Assert.assertTrue(v.getInt("position") > 0);
-                    Assert.assertFalse(v.getString("ref").isEmpty());
-                    Assert.assertFalse(v.getString("alt").isEmpty());
-                    Assert.assertFalse(v.getString("type").isEmpty());
+                    Assert.assertFalse(v.getString("referenceName").isEmpty());
+                    Assert.assertTrue(v.getInt("start") > 0);
+                    Assert.assertFalse(v.getString("referenceBases").isEmpty());
+                    Assert.assertFalse(v.getString("alternateBases").isEmpty());
+                    Assert.assertFalse(v.getString("effect").isEmpty());
                 } else if (detailLevel.equals(VariantDetailLevel.LIMITED)) {
                     // Ensure limited variant details displayed
-                    Assert.assertEquals(2, v.length());
+                    Assert.assertEquals(3, v.length());
                     Assert.assertTrue(v.getDouble("score") > 0);
-                    Assert.assertFalse(v.getString("type").isEmpty());
+                    Assert.assertFalse(v.getString("effect").isEmpty());
                 }
             }
         }
@@ -642,7 +642,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
         // Wire up mocked genetics
         exomeManager = mock(ExomeManager.class);
-        when(componentManager.getInstance(ExomeManager.class, "exomiser")).thenReturn(exomeManager);
+        when(componentManager.getInstance(ExomeManager.class)).thenReturn(exomeManager);
 
         // Use a real GenotypeManager
         PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
