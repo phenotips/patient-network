@@ -19,7 +19,9 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.similarity.Variant;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
@@ -53,7 +55,7 @@ public abstract class AbstractVariant implements Variant
     protected String gt;
 
     /** See {@link #getAnnotation(String)}. */
-    protected Map<String, String> annotations;
+    protected Map<String, String> annotations = new HashMap<String, String>();
 
     /**
      * Set the chromosome of the variant.
@@ -99,7 +101,7 @@ public abstract class AbstractVariant implements Variant
     }
 
     /**
-     * Set the genotype of the variant.
+     * Set the cDNA effect of the variant.
      *
      * @param effect the cDNA effect of the variant
      */
@@ -113,7 +115,7 @@ public abstract class AbstractVariant implements Variant
      *
      * @param score the score of the variant in [0.0, 1.0], where 1.0 is more harmful
      */
-    protected void setScore(double score)
+    protected void setScore(Double score)
     {
         this.score = score;
     }
@@ -167,6 +169,12 @@ public abstract class AbstractVariant implements Variant
     }
 
     @Override
+    public void setAnnotation(String key, String value)
+    {
+        this.annotations.put(key, value);
+    }
+
+    @Override
     public int compareTo(Variant o)
     {
         // negative so that largest score comes first
@@ -177,12 +185,25 @@ public abstract class AbstractVariant implements Variant
     public JSONObject toJSON()
     {
         JSONObject result = new JSONObject();
+        result.put("start", getPosition());
+        result.put("referenceBases", getRef());
+        result.put("alternateBases", getAlt());
+        result.put("referenceName", getChrom());
+        if (getRef() != null) {
+            result.put("end", getPosition() + getRef().length() - 1);
+        }
+        result.put("zygosity", isHomozygous() ? "homozygous" : "heterozygous");
         result.put("score", getScore());
-        result.put("chrom", getChrom());
-        result.put("position", getPosition());
-        result.put("ref", getRef());
-        result.put("alt", getAlt());
-        result.put("type", getEffect());
+        result.put("effect", getEffect());
+
+        if (this.annotations != null && this.annotations.size() > 0) {
+            JSONObject annotationJson = new JSONObject();
+            //"geneScore", "geneSymbol"
+            for (Entry<String, String> entry : this.annotations.entrySet()) {
+                annotationJson.put(entry.getKey(), entry.getValue());
+            }
+            result.put("annotations", annotationJson);
+        }
         return result;
     }
 }

@@ -298,6 +298,7 @@ def delete_exomiser(record_id, settings):
         os.remove(filename)
 
     if any_removed:
+        remove_from_variant_store(record_id, settings)
         clear_cache(record_id, settings)
 
 def enqueue_exomiser(record_id, record_data, settings):
@@ -330,9 +331,20 @@ def run_exomiser(record_id, new_data, settings, add_to_variant_store=False):
             push_to_variant_store(out_filename, record_id, settings)
 
 def push_to_variant_store(path, record_id, settings):
-    url = '{}{}?outputSyntax=plain&xpage=plain&path={}&individualId={}'.format(
-        settings['host'], settings['variantstore_upload_url'],
-        path, record_id)
+    logging.info('Uloading file to variant store: {0} for patient {1}'.format(path, record_id))
+    url = '{}{}?outputSyntax=plain&xpage=plain&action=upload&path={}&individualId={}'.format(
+        settings['host'], settings['variantstore_upload_url'], path, record_id)
+
+    command = ['curl', '-s', '-S', '-u', settings['credentials'], '-X', 'POST', url]
+    logging.info(' '.join(command))
+    retcode = subprocess.call(command, stdout=subprocess.PIPE)
+    if retcode != 0:
+        logging.error('Attempt to add {0} to Variant Store failed'.format(record_id))
+
+def remove_from_variant_store(record_id, settings):
+    logging.info('Removing individual {0} from variant store'.format(record_id))
+    url = '{}{}?outputSyntax=plain&xpage=plain&action=remove&individualId={}'.format(
+        settings['host'], settings['variantstore_upload_url'], record_id)
 
     command = ['curl', '-s', '-S', '-u', settings['credentials'], '-X', 'POST', url]
     logging.info(' '.join(command))

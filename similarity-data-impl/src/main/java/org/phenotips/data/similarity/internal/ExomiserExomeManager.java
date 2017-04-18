@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -50,7 +49,6 @@ import org.slf4j.Logger;
  * @since 1.0M6
  */
 @Component
-@Named("exomiser")
 @Singleton
 public class ExomiserExomeManager implements ExomeManager, Initializable
 {
@@ -158,29 +156,5 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
             }
         }
         return null;
-    }
-
-    /**
-     * Clear all cached patient exome data.
-     */
-    public void clearCache()
-    {
-        if (this.exomeCache != null) {
-            this.exomeCache.removeAll();
-            logger.info("Cleared cache.");
-        }
-    }
-
-    /**
-     * Clear all cached exome data associated with a particular patient.
-     *
-     * @param id the document ID of the patient to remove from the cache
-     */
-    public void clearPatientCache(String id)
-    {
-        if (this.exomeCache != null) {
-            this.exomeCache.remove(id);
-            logger.info("Cleared patient from cache: " + id);
-        }
     }
 }
