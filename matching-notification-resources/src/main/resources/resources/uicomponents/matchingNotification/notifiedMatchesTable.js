@@ -79,7 +79,7 @@ var PhenoTips = (function (PhenoTips) {
             var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
             if (failedIds.length > 0) {
-                alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+                alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + failedIds.join());
             }
 
             // Update table state

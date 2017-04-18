@@ -103,7 +103,7 @@ var PhenoTips = (function (PhenoTips) {
         if (score == undefined || score == "") {
             return 0;
         } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
-            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')", "invalid");
+            this._utils.showHint(messagesFieldName, "$escapetool.javascript(services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
             return undefined;
         }
         return score;
@@ -127,7 +127,7 @@ var PhenoTips = (function (PhenoTips) {
             var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
             if (failedIds.length > 0) {
-                alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+                alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + failedIds.join());
             }
 
             // Update table state
@@ -146,18 +146,12 @@ var PhenoTips = (function (PhenoTips) {
         this._utils.showFailure('send-notifications-messages');
     },
 
-    // When reject is true, request was sent to set new status. When false, request was sent to unreject.
     _onSuccessSetMatchStatus : function(results, status)
     {
         var [successfulIds, failedIds] = this._utils.getResults(results);
 
         if (failedIds.length > 0) {
-            var operation = reject ? "Setting status" : "Status setted";
-            if (failedIds.length == 1) {
-                alert(operation + " match failed.");
-            } else {
-                alert(operation + " matches with the following ids failed: " + failedIds.join());
-            }
+            alert("Setting " + status + " status for matches with the following ids failed: " + failedIds.join());
         }
 
         // Update table state
