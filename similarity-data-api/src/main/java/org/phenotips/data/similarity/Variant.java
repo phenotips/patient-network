@@ -76,6 +76,14 @@ public interface Variant extends Comparable<Variant>
     String getAnnotation(String key);
 
     /**
+     * Set the value associated with a particular annotation (such as the INFO field of a VCF file).
+     *
+     * @param key the annotation key
+     * @param value the value of a key to set
+     */
+    void setAnnotation(String key, String value);
+
+    /**
      * Get the harmfulness score of the variant.
      *
      * @return the harmfulness score of the variant, or {@code null} if not available
@@ -95,10 +103,10 @@ public interface Variant extends Comparable<Variant>
      *
      * <pre>
      *       {
-     *         "chrom": "1",
-     *         "position": 2014819,
-     *         "ref": "A",
-     *         "alt": "T",
+     *         "referenceName": "1",
+     *         "start": 2014819,
+     *         "referenceBases": "A",
+     *         "alternateBases": "T",
      *         ...
      *       }
      * </pre>

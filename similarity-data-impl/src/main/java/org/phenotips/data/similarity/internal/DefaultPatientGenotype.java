@@ -79,7 +79,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
         if (exomeManager == null) {
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
             try {
-                exomeManager = componentManager.getInstance(ExomeManager.class, "exomiser");
+                exomeManager = componentManager.getInstance(ExomeManager.class);
             } catch (ComponentLookupException e) {
                 LOGGER.error("Unable to look up ExomeManager: " + e.toString());
             }

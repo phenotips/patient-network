@@ -35,7 +35,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * Allows management of patient phenotype and genotype matching features.
@@ -62,7 +61,6 @@ public class ExomiserViewScriptService implements ScriptService
 
     /** Manager to allow access to patient exome data. */
     @Inject
-    @Named("exomiser")
     private ExomeManager exomeManager;
 
     /**
@@ -89,14 +87,15 @@ public class ExomiserViewScriptService implements ScriptService
      */
     public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
     {
-        JSONArray result = new JSONArray();
+        JSONArray variantsJSON = new JSONArray();
+
         if (patient == null || g <= 0) {
-            return result;
+            return variantsJSON;
         }
 
         Exome patientExome = this.exomeManager.getExome(patient);
         if (patientExome == null) {
-            return result;
+            return variantsJSON;
         }
 
         int maxGenes = g;
@@ -107,11 +106,6 @@ public class ExomiserViewScriptService implements ScriptService
         }
 
         for (String geneName : patientExome.getTopGenes(maxGenes)) {
-            JSONObject geneJSON = new JSONObject();
-            geneJSON.put("name", geneName);
-            geneJSON.put("score", patientExome.getGeneScore(geneName));
-
-            JSONArray variantsJSON = new JSONArray();
             List<Variant> topVariants = patientExome.getTopVariants(geneName, maxVars);
             for (int i = 0; i < Math.min(maxVars, topVariants.size()); i++) {
                 Variant variant = topVariants.get(i);
@@ -119,9 +113,8 @@ public class ExomiserViewScriptService implements ScriptService
                     variantsJSON.put(variant.toJSON());
                 }
             }
-            geneJSON.put("variants", variantsJSON);
-            result.put(geneJSON);
         }
-        return result;
+        return variantsJSON;
     }
+
 }
