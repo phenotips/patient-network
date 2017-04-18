@@ -42,10 +42,9 @@
   #set ($accessRequest = $services.anonymousCommunication.grantAccess($request.id))
   #set ($patient = $accessRequest.getTargetPatient().getDocument())
   #if ($accessRequest)
-    {{html}}You have granted user &lt;b&gt;$accessRequest.getInitiatingUser().getName()&lt;/b&gt; access to patient
-    &lt;a href="$xwiki.getURL($patient)"&gt;$patient.getName()&lt;/a&gt;{{/html}}
+    {{html}}$services.localization.render('data.grantMatchAccess.granted', ['&lt;b&gt;$accessRequest.getInitiatingUser().getName()&lt;/b&gt;', '&lt;a href="$xwiki.getURL($patient)"&gt;$patient.getName()&lt;/a&gt;']){{/html}}
   #else
-    {{error}}An error occurred.{{/error}}
+    {{error}}$services.localization.render('data.grantMatchAccess.error'){{/error}}
   #end
 #end
 {{/velocity}}</content>

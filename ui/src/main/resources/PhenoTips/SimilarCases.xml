@@ -219,7 +219,7 @@
       this.container.insert({before: this.buttonContainer});
       if (options) {
         if (options.enableRefresh) {
-          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
+          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert("$escapetool.javascript($services.localization.render('phenotips.similarCases._DEFAULT_REFRESH_BUTTON_TEXT'))");
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
           this.buttonContainer.insert({top: this.refreshButton});
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
@@ -244,7 +244,7 @@
       this.launchSearchExisting();
 
       this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
-      this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact case owner', 'verticalPosition': 'top', 'removeOnClose': false});
+      this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactDialogTitle'))", 'verticalPosition': 'top', 'removeOnClose': false});
     },
 
     launchSearchRefresh: function(event) {
@@ -307,35 +307,39 @@
 
       // Show result summary
       if (!data || data.nodata || data.error) {
-        this.refreshButton.down('.refresh-matches-button').innerHTML = 'Find Matches';
+        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.findMatchesText'))";
         this.refreshButton.down('span').removeClassName('fa-refresh');
         this.refreshButton.down('span').addClassName('fa-search');
         if (!data || data.nodata) {
-          this.displaySummary("Match request was never sent.");
+          this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noMatchRequest'))");
         } else {
-          this.displaySummary("Error sending request: " + data.error);
+          this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.errorSendingRequest'))" + data.error);
         }
         return;
       } else {
         this.refreshButton.down('span').removeClassName('fa-search');
         this.refreshButton.down('span').addClassName('fa-refresh');
-        this.refreshButton.down('.refresh-matches-button').innerHTML = this._DEFAULT_REFRESH_BUTTON_TEXT;
+        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases._DEFAULT_REFRESH_BUTTON_TEXT'))";
       }
 
       if (!data || data.resultsCount &lt;= 0) {
-        this.displaySummary("No similar cases found.");
+        this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noSimilarCases'))");
         return;
       }
       // Make sure the results are for this query
       if (!data.query || !data.query.id || data.query.id != this.query) {
-        this.displaySummary("Can't display results (no query reported).");
+        this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noqueryReported'))");
         return;
       }
       data.featuresCount = data.query.features ? data.query.features.size() : 0;
       data.resultsCount = Math.min(data.resultsCount, this._MAX_RESULTS_DISPLAYED);
       data.results = data.results.slice(0, data.resultsCount);
 
-      this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
+
+      this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.showing')) "
+                          + data.resultsCount + "$escapetool.javascript($services.localization.render('phenotips.similarCases.similarCase'))"
+                          + (data.resultsCount == 1 ? '' : 's')
+                          + (data.totalMatchesCount ? "$escapetool.javascript($services.localization.render('phenotips.similarCases.totalMatches')) " + data.totalMatchesCount + "." : ""));
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
@@ -353,31 +357,31 @@
            enabled : !this._mmeMode
         },
         "id"       : {
-           title   : this._mmeMode ? "Remote Case ID" : "Case ID",
+           title   : this._mmeMode ? "$escapetool.javascript($services.localization.render('phenotips.similarCases.remoteCaseID'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.caseID'))",
            display : _this._displayResultIdentifier.bind(_this),
            field   : "id",
            enabled : true
         },
         "diagnosis": {
-           title   : this._omimPrototypeMode ? "Diagnosis" : "Potential diagnosis",
+           title   : this._omimPrototypeMode ?  "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.potentialDiagnosis'))",
            display : _this._displayResultDiagnosis.bind(_this),
            field   : "disorders",
            enabled : true
         },
         "contact"  : {
-           title   : "Contact",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contact'))",
            display : this._mmeMode ? _this._displayRemoteContactInfo.bind(_this) : _this._displayResultContactInfo.bind(_this),
            field   : this._mmeMode ? "contact" : "owner",
            enabled : true
         },
         "score"    : {
-           title   : "Relevance",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.relevance'))",
            display : _this._displayResultRelevance.bind(_this),
            field   : (this._mmeMode ? "remoteScore" : "score"),
            enabled : true
         },
         "details"  : {
-           title   : "Details",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.details'))",
            display : _this._displayResultDetails.bind(_this),
            enabled : true
         }
@@ -458,13 +462,13 @@
       if (this._mmeMode) {
         return (r.id ? r.id : "");
       } else {
-        return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "Undisclosed identifier");
+        return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedIdentifier'))");
       }
     },
 
     _displayResultDiagnosis : function (r) {
       if (!r.disorders || !r.disorders.length) {
-        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
+        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))");
       } else {
         var dList = new Element('ul');
         var LINKS = this.DISEASE_DB_LINKS;
@@ -488,15 +492,21 @@
       var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "Contact owner for further information") : this.Utils.generateIcon('group');
       var contactInfo;
       if (contactType == "none") {
-        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case belongs to one of your consortia)"));
+        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/})
+                                 .insert(r.owner.name || r.owner.id || "")
+                                 .insert(new Element("span", {"class" : this._METADATA_MARKER})
+                                        .update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoText'))"));
       } else if (contactType == "open") {
-        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
+        contactInfo = new Element("span", {"class" : "owner-info "/* + contactType*/})
+                                 .insert(r.owner.name || r.owner.id || "")
+                                 .insert(new Element("span", {"class" : this._METADATA_MARKER})
+                                                    .update("$escapetool.javascript($services.localization.render('phenotips.similarCases.publicCase'))"));
       } else {
         contactInfo = new Element("a", {
           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
-          "title" : "Contact owner for further information",
+          "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoTitle'))",
           "class" : "owner-info "/* + contactType*/
-        }).update(r.owner.name || r.owner.id || "Undisclosed owner. Initiate anonymous contact");
+        }).update(r.owner.name || r.owner.id || "$escapetool.javascript($services.localization.render('phenotips.similarCases.anonymousContact'))");
         var _this = this;
         contactInfo.observe('click', function (event) {
           event.stop();
@@ -508,7 +518,7 @@
 
     _displayRemoteContactInfo : function (r) {
       if (!r.hasOwnProperty("owner") || !r.owner.hasOwnProperty("url") || !r.owner.url) {
-        return "No contact info";
+        return "$escapetool.javascript($services.localization.render('phenotips.similarCases.noContactInfo'))";
       }
       var contactName = r.owner.name;
       // Handle GeneMatcher returning "None" as name for organization contacts e.g. GeneDx
@@ -533,8 +543,7 @@
         contactLabel = "Anonymous";
       }
       var contactInfo = new Element("a", {
-        "href"  : r.owner.url,
-        "title" : "Contact owner for further information",
+        "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))",
         "class" : "owner-info "
       }).update(contactLabel);
       return contactInfo.insert({top: " "});
@@ -575,10 +584,10 @@
              new Ajax.Request(form.action, {
                parameters : form.serialize({'hash': true, 'submit': 'send'}),
                onSuccess : function (response) {
-                 _this._contactContainer.update('Your email has been successfully sent.');
+                 _this._contactContainer.update("$escapetool.javascript($services.localization.render('phenotips.similarCases.emailSent'))");
                },
                onFailure : function (response) {
-                 _this._contactContainer.update('There was an error processing your email. Please contact support at support@phenomecentral.org and try again later.');
+                 _this._contactContainer.update("$escapetool.javascript($services.localization.render('phenotips.similarCases.emailError'))");
                }
              });
            });
@@ -588,7 +597,7 @@
           if (response.statusText == '' /* No response */ || response.status == 12031 /* In IE */) {
              failureReason = 'Server not responding';
           }
-          _this._messages.update(new Element('div', {'class' : 'errormessage'}).update('Failed to retrieve contact dialog. ' + failureReason));
+          _this._messages.update(new Element('div', {'class' : 'errormessage'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.failedContactDialog'))" + failureReason));
         },
         on0 : function (response) {
           response.request.options.onFailure(response);
@@ -697,7 +706,7 @@
       var container = new Element('div', {'class' : 'match-type features'});
       container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))"));
       if (!r.featureMatches) {
-        container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'));
+        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
         return container;
       }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
@@ -713,7 +722,9 @@
       var resultFeatures = _this._createFeatureIndex(r.features);
       r.featureMatches.each(function (featureMatch) {
            var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category &amp;&amp; featureMatch.category.name || "Unknown pehnotype category"));
+           categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category
+                                                                                         &amp;&amp; featureMatch.category.name
+                                                                                         || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownCategory'))"));
            categoryRow.insert(new Element('th', {'class' : 'phenotype-category-score'}).update(featureMatch.score &amp;&amp; _this.Utils.generateSegmentedBar(5, featureMatch.score) || ''));
 
            var labelsRow = _this._getEmptyTableRow(phenotypeMatchTable);
@@ -740,7 +751,8 @@
                }
              });
              if (undisclosedCount &gt; 0) {
-               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER}).update(undisclosedCount + ' undisclosed feature' + (undisclosedCount &gt; 1 ? 's' : '')));
+               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER})
+                                                .update(undisclosedCount + " $escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedFeature'))"));
              }
            } else {
              otherPFeatures.insert("-");
@@ -784,10 +796,10 @@
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genetic information available'));
+        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
       } else if (r.genes.length == 0) {
         // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genotype matches found'));
+        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
       } else {
         // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
@@ -801,14 +813,22 @@
           ).insert(new Element('th', {'class' : 'variants-toggle'}));
           if (geneInfo.reference || geneInfo.match) {
             if (geneInfo.reference &amp;&amp; geneInfo.reference.variants || geneInfo.match &amp;&amp; geneInfo.match.variants) {
-              var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("Show variants...");
-              var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("Hide variants...");
+              var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.showVariants'))");
+              var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.hideVariants'))");
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
               titleRow.down('th.variants-toggle').insert(variantToggle);
               var variantsRow = _this._getEmptyTableRow(genotypeMatchTable, 'variants-row');
-              variantsRow.insert(new Element('td', {'class' : 'query'}).insert(geneInfo.reference &amp;&amp; geneInfo.reference.variants &amp;&amp; _this._displayVariants(geneInfo.reference.variants) || 'No variant information available'));
-              variantsRow.insert(new Element('td', {'class' : 'result'}).insert(geneInfo.match &amp;&amp; geneInfo.match.variants &amp;&amp; _this._displayVariants(geneInfo.match.variants) || 'No variant information available'));
+              variantsRow.insert(new Element('td', {'class' : 'query'})
+                                     .insert(geneInfo.reference
+                                             &amp;&amp; geneInfo.reference.variants
+                                             &amp;&amp; _this._displayVariants(geneInfo.reference.variants)
+                                             || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
+              variantsRow.insert(new Element('td', {'class' : 'result'})
+                                     .insert(geneInfo.match
+                                             &amp;&amp; geneInfo.match.variants
+                                             &amp;&amp; _this._displayVariants(geneInfo.match.variants)
+                                             || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
 
               // Add behavior for showing/hiding the variants
               variantsRow.hide();
@@ -835,16 +855,16 @@
 
    _displayVariants : function (variants) {
       if (!variants || variants.length == 0) {
-        return new Element('span', {'class' : 'hint'}).update('No variant information');
+        return new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))");
       }
       var result = new Element('table', {'class' : 'variants-data'});
       var _this = this;
       var hRow = _this._getEmptyTableRow(result);
-      hRow.insert(new Element('th').update('Variant'));
-      hRow.insert(new Element('th').update('Estimated harmfulness'));
+      hRow.insert(new Element('th').update(new Element('span', {'class' : 'left'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.variant'))"))
+                                   .insert(new Element('span', {'class' : 'right'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.exomiserScore'))")));
       variants.each(function (v) {
          var vRow = _this._getEmptyTableRow(result);
-         var position = new Element('span', {'class' : 'hint'}).update("Undisclosed position");
+         var position = new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedPosition'))");
          var change = "";
          if (v.chrom &amp;&amp; (v.position || (v.start_position &amp;&amp; v.end_position))) {
             var start = v.position || v.start_position;
@@ -856,7 +876,7 @@
                  'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
                  'class' : 'button secondary',
                  'target' : '__blank',
-                 'title' : 'Visualize in the UCSC Genome Browser'
+                 'title' : "$escapetool.javascript($services.localization.render('phenotips.similarCases.UCSCGenomeBrowser'))"
             }).update(position).wrap('span', {'class' : 'buttonwrapper'});
             if (v.ref &amp;&amp; v.alt) {
               var displayedRef = v.ref.length &lt;= 15 ? v.ref : (v.ref.substring(0, 9) + "..." + v.ref[v.ref.length - 1]);
@@ -864,7 +884,8 @@
               change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
             }
          }
-         vRow.insert(new Element('td').update(position)
+         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownHarmfulness'))")
+                                      .insert(position)
                                       .insert(new Element('div')
                                                      .insert(new Element('strong').update(change))
                                                      .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
@@ -1688,10 +1709,10 @@
       #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
-      == Similar cases ==
+      == $services.localization.render('phenotips.similarCases.title') ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
 (% class="similar-cases-category similar-cases-local" %)(((
-=== Matches with patient profiles deposited in this database ===
+=== $services.localization.render('phenotips.similarCases.subtitle') ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
 )))
 ## Allow to plug in other data sources
