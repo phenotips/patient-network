@@ -175,6 +175,7 @@
               <method>boolean setStatus(org.hibernate.Session, java.util.List, java.lang.String)</method>
               <justification>Added in place of markRejected().</justification>
             </difference>
+            <difference>
               <className>org/phenotips/data/similarity/Variant</className>
               <differenceType>7012</differenceType>
               <method>void setAnnotation(java.lang.String, java.lang.String)</method>
