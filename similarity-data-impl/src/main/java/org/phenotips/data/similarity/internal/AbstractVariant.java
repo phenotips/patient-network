@@ -113,7 +113,7 @@ public abstract class AbstractVariant implements Variant
      *
      * @param score the score of the variant in [0.0, 1.0], where 1.0 is more harmful
      */
-    protected void setScore(double score)
+    protected void setScore(Double score)
     {
         this.score = score;
     }
