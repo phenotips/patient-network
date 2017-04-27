@@ -18,6 +18,8 @@
 package org.phenotips.matchingnotification.notification.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
@@ -45,6 +47,7 @@ import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +71,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private static final DocumentReferenceResolver<String> REFERENCE_RESOLVER;
 
+    private static final PatientSimilarityViewFactory SIMILARITY_VIEW_FACTORY;
+
     private ScriptMimeMessage mimeMessage;
 
     private PatientInMatch subjectPatient;
@@ -82,17 +87,20 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         MailSenderScriptService mailService = null;
         Provider<XWikiContext> contextProvider = null;
         DocumentReferenceResolver<String> referenceResolver = null;
+        PatientSimilarityViewFactory patientSimilarityViewFactory = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             mailService = ccm.getInstance(ScriptService.class, "mailsender");
             contextProvider = ccm.getInstance(XWikiContext.TYPE_PROVIDER);
             referenceResolver = ccm.getInstance(DocumentReferenceResolver.TYPE_STRING, "current");
+            patientSimilarityViewFactory = ccm.getInstance(PatientSimilarityViewFactory.class, "restricted");
         } catch (ComponentLookupException e) {
             LOGGER.error("Error initializing mailService", e);
         }
         MAIL_SERVICE = mailService;
         CONTEXT_PROVIDER = contextProvider;
         REFERENCE_RESOLVER = referenceResolver;
+        SIMILARITY_VIEW_FACTORY = patientSimilarityViewFactory;
     }
 
     /**
@@ -144,6 +152,13 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         for (PatientMatch match : this.matches) {
             Map<String, Object> matchMap = new HashMap<>();
 
+            PatientSimilarityView similarityView = SIMILARITY_VIEW_FACTORY.makeSimilarPatient(
+                match.getMatched().getPatient(), match.getReference().getPatient());
+            // Feature matching
+            JSONArray featureMatchesJSON = similarityView.getFeatureMatchesJSON();
+            if (featureMatchesJSON.length() > 0) {
+                matchMap.put("featureMatches", featureMatchesJSON);
+            }
             PatientInMatch otherPatient;
             if (match.isReference(this.subjectPatient.getPatientId(), null)) {
                 otherPatient = match.getMatched();
