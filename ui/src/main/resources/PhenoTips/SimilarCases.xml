@@ -340,9 +340,9 @@
       data.results = data.results.slice(0, data.resultsCount);
 
 
-      this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.showing')) "
-                          + data.resultsCount + " $escapetool.javascript($services.localization.render('phenotips.similarCases.similarCase'))"
-                          + (data.totalMatchesCount ? ". $escapetool.javascript($services.localization.render('phenotips.similarCases.totalMatches')) " + data.totalMatchesCount : ""));
+      this.displaySummary(("$escapetool.javascript($services.localization.render('phenotips.similarCases.showingSimilar'))".replace("__numberOfCases__", data.resultsCount))
+                          + (data.totalMatchesCount ? ". $escapetool.javascript($services.localization.render('phenotips.similarCases.totalMatches')) "
+                          + data.totalMatchesCount : ""));
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
@@ -492,7 +492,7 @@
 
     _displayResultContactInfo : function (r) {
       var contactType = (r.myCase || r.myGroupsCase) ? "none" : (r.access == "public" ? "open" : "restricted");
-      var icon = (contactType == 'restricted' &amp;&amp; this._data.isManager) ? this.Utils.generateIcon('contact', "phenotips.similarCases.restrictedContactSuggestion") : this.Utils.generateIcon('group');
+      var icon = (contactType == 'restricted' &amp;&amp; this._data.isManager) ? this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.restrictedContactSuggestion'))") : this.Utils.generateIcon('group');
       var contactInfo;
       if (contactType == "none") {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoText'))"));
@@ -1710,10 +1710,10 @@
       #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
-      == $services.localization.render('phenotips.similarCases.title') ==
+      == $escapetool.xml($services.localization.render('phenotips.similarCases.title')) ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
       (% class="similar-cases-category similar-cases-local" %)(((
-      === Matches with patient profiles deposited in this database ===
+      === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
       )))
       ## Allow to plug in other data sources if current user is owner or manager of this patient record doc
