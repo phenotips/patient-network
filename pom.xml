@@ -27,7 +27,7 @@
     <relativePath />
   </parent>
   <artifactId>patient-network</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1-rc-1</version>
   <packaging>pom</packaging>
   <name>PhenoTips - Patient network</name>
 
@@ -191,4 +191,8 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <tag>patient-network-1.1-rc-1</tag>
+  </scm>
 </project>
