@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.script;
 
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -134,6 +135,16 @@ public class MatchingNotificationScriptService implements ScriptService
         List<Long> idsList = this.jsonToIdsList(ids);
         boolean success = this.matchingNotificationManager.setStatus(idsList, status);
         return this.successfulIdsToJSON(idsList, success ? idsList : Collections.<Long>emptyList()).toString();
+    }
+
+    /**
+     * Saves a list of matches that were found by a local Solr similarity search request.
+     *
+     * @param similarityViews list of similarity views
+     */
+    public void saveLocalMatches(List<PatientSimilarityView> similarityViews)
+    {
+        this.matchingNotificationManager.saveIncomingMatches(similarityViews, null);
     }
 
     /**

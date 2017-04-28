@@ -19,6 +19,8 @@ package org.phenotips.messaging.internal;
 
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.messaging.ActionManager;
 import org.phenotips.messaging.Connection;
 
@@ -28,6 +30,8 @@ import org.xwiki.model.reference.DocumentReference;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -35,6 +39,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.mail.MessagingException;
 
+import org.hibernate.Session;
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
@@ -93,11 +98,22 @@ public class DefaultActionManager implements ActionManager
     private DocumentAccessBridge bridge;
 
     @Inject
+    @Named("manage")
+    private AccessLevel manageAccessLevel;
+
+    @Inject
+    private MatchStorageManager matchStorageManager;
+
+    @Inject
     private Logger logger;
 
     @Override
     public int sendInitialMails(Connection connection, Map<String, Object> options)
     {
+        if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient())
+            .hasAccessLevel(this.manageAccessLevel)) {
+            return 403;
+        }
         try {
             XWikiContext context = Utils.getContext();
             XWiki xwiki = context.getWiki();
@@ -114,6 +130,7 @@ public class DefaultActionManager implements ActionManager
             mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
+            setNotified((String) options.get("patientId"), (String) options.get("matchId"));
             return 0;
         } catch (MessagingException e) {
             this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
@@ -187,5 +204,28 @@ public class DefaultActionManager implements ActionManager
         }
 
         return email;
+    }
+
+    /**
+     * When a user contacts another user regarding a match using the Similar Patients UI,
+     * mark that match as 'notified' in the match table in the administration.
+     *
+     * @param patientId reference patientID
+     * @param matchId matched patient ID
+     */
+    private void setNotified(String patientId, String matchId)
+    {
+        List<PatientMatch> successfulMatches = new LinkedList<>();
+        List<PatientMatch> matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
+        for (PatientMatch match : matchesForPatient) {
+            if (match.getMatchedPatientId().equals(matchId)) {
+                successfulMatches.add(match);
+                break;
+            }
+        }
+
+        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
+        this.matchStorageManager.markNotified(session, successfulMatches);
+        this.matchStorageManager.endNotificationMarkingTransaction(session);
     }
 }
