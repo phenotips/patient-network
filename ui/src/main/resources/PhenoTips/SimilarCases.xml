@@ -59,7 +59,7 @@
   "results" : [
 #foreach ($p in $matches)
   #set ($match = $p.toJSON())
-  #set ($match.owner.email = '')$match#if ($foreach.hasNext()),
+  #if (!$isManager)#set ($match.owner.email = '')#end$match#if ($foreach.hasNext()),
   #end
 #end
   ]

@@ -31,7 +31,8 @@ import java.util.Map;
 public interface ActionManager
 {
     /**
-     * Send the initial email to the owner of the matched patient.
+     * Send the initial email to the owner of the matched patient. Mark that match as 'notified' in the administration
+     * match table if email was successfully sent.
      *
      * @param connection the anonymous communication linking the two patients and their owners that are involved in this
      *            connection
