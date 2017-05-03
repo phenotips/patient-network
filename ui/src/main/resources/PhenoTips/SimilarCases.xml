@@ -473,8 +473,7 @@
         var dList = new Element('ul');
         var LINKS = this.DISEASE_DB_LINKS;
         r.disorders.each(function(d) {
-          // FIXME remove the substring after OMIM is properly indexed and the diseases have the real name
-          var dName = d.name.substring(d.name.indexOf(' ') + 1, (d.name.indexOf(";") &gt; 0) ? d.name.indexOf(";") : d.name.length);
+          var dName = d.name;
           var dLink = '';
           for (var prefix in LINKS) {
              if (d.id.startsWith(prefix)) {
