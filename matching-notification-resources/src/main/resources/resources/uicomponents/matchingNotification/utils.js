@@ -8,15 +8,24 @@ define(["jquery"], function($)
         },
 
         showSent : function(messagesFieldName) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.requestSent')");
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.requestSent')", 'hint-loading');
         },
 
         showSuccess : function(messagesFieldName, value) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.success')");
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.success')", 'success');
         },
 
         showFailure : function(messagesFieldName) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.failure')");
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.failure')", 'failure');
+        },
+
+        showLoading : function(messagesFieldName) {
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.loadingMatches')", 'hint-loading');
+        },
+
+        clearHint : function(messagesFieldName) {
+            var messages = $('#' + messagesFieldName);
+            messages.empty();
         },
 
         getResults : function(results)
@@ -26,11 +35,14 @@ define(["jquery"], function($)
             return [successfulIds, failedIds];
         },
 
-        showHint : function(messagesFieldName, message) 
+        showHint : function(messagesFieldName, message, messageClass) 
         {
             var messages = $('#' + messagesFieldName);
             messages.empty();
-            messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+            messages.append(new Element('div', {'class' : 'messages-hint ' + messageClass}).update(message));
+            if (messageClass == 'hint-loading') {
+                messages.append(new Element('span', {'class' : 'loading', 'style' : "padding-right: 25px;"}));
+            }
         }
 
     });

@@ -4,6 +4,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         // params:
         //    ajaxHandler
+        //    onCreate
         //    onSuccess
         //    onFailure
         //    matchesTable
@@ -21,6 +22,11 @@ define(["jquery", "dynatable"], function($, dyna)
                 parameters : {action : 'send-notifications',
                               ids    : idsToNotify
                 },
+                onCreate : function () {
+                    if (this._params.onCreate) {
+                        this._params.onCreate();
+                    }
+                }.bind(this),
                 onSuccess : function (response) {
                     if (this._params.onSuccess) {
                         this._params.onSuccess(response);

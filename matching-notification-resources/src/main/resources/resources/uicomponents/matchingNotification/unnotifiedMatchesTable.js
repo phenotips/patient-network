@@ -27,6 +27,7 @@ var PhenoTips = (function (PhenoTips) {
         this._matchesTable = new matchesTable(this._tableElement, this._afterProcessTableRegisterStatus.bind(this));
         this._notifier = new notifier({
             ajaxHandler  : this._ajaxURL,
+            onCreate     : this._onCreateSendNotification.bind(this),
             onSuccess    : this._onSuccessSendNotification.bind(this),
             onFailure    : this._onFailSendNotification.bind(this)
         });
@@ -37,6 +38,8 @@ var PhenoTips = (function (PhenoTips) {
         $('#rejected').on('click', this._setFilter.bind(this));
         $('#saved').on('click', this._setFilter.bind(this));
         $('#uncategorized').on('click', this._setFilter.bind(this));
+        $('#find-matches-score').on('change', function() {this._utils.clearHint('find-matches-messages');}.bind(this));
+        $('#show-matches-score').on('change', function() {this._utils.clearHint('show-matches-messages');}.bind(this));
 
         this._setFilter();
     },
@@ -51,6 +54,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _findMatches : function()
     {
+        this._utils.clearHint('send-notifications-messages');
         var score = this._checkScore('find-matches-score', 'find-matches-messages');
         if (score == undefined) {
             return;
@@ -59,19 +63,21 @@ var PhenoTips = (function (PhenoTips) {
             parameters : {action : 'find-matches',
                           score  : score
             },
+            onCreate : function() {
+                this._utils.showSent('find-matches-messages');
+            }.bind(this),
             onSuccess : function (response) {
                 this._utils.showSuccess('find-matches-messages');
-                console.log("find matches result, score = " + score);
-                console.log(response.responseJSON);
+                //console.log("find matches result, score = " + score);
+                //console.log(response.responseJSON);
 
                 this._$('#show-matches-score').val(score);
                 this._showMatches();
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('find-matches-messages');
-            }.bind(this)
+            }.bind(this),
         });
-        this._utils.showSent('find-matches-messages');
     },
 
     _showMatches : function()
@@ -85,10 +91,13 @@ var PhenoTips = (function (PhenoTips) {
                           score    : score,
                           notified : false
             },
+            onCreate : function() {
+                this._utils.showLoading('show-matches-messages');
+            }.bind(this),
             onSuccess : function (response) {
                 this._utils.showSuccess('show-matches-messages');
-                console.log("show matches result, score = " + score);
-                console.log(response.responseJSON);
+                //console.log("show matches result, score = " + score);
+                //console.log(response.responseJSON);
 
                 var matches = response.responseJSON.matches;
                 this._matchesTable.update(matches);
@@ -97,7 +106,6 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showFailure('show-matches-messages');
             }.bind(this)
         });
-        this._utils.showSent('show-matches-messages');
     },
 
     _setMatchStatus : function(target)
@@ -141,13 +149,16 @@ var PhenoTips = (function (PhenoTips) {
     {
         var idsToNotify = this._matchesTable.getMarkedToNotify();
         this._notifier.sendNotification(idsToNotify);
+    },
+
+    _onCreateSendNotification : function() {
         this._utils.showSent('send-notifications-messages');
     },
 
     _onSuccessSendNotification : function(ajaxResponse)
     {
-        console.log("onSuccess, received:");
-        console.log(ajaxResponse.responseText);
+        //console.log("onSuccess, received:");
+        //console.log(ajaxResponse.responseText);
         this._utils.showSuccess('send-notifications-messages');
 
         var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);

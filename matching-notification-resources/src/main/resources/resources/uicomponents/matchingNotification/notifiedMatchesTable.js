@@ -26,6 +26,7 @@ var PhenoTips = (function (PhenoTips) {
         this._matchesTable = new matchesTable(this._tableElement);
         this._notifier = new notifier({
             ajaxHandler  : this._ajaxURL,
+            onCreate     : this._onCreateSendNotification.bind(this),
             onSuccess    : this._onSuccessSendNotification.bind(this),
             onFailure    : this._onFailSendNotification.bind(this)
         });
@@ -38,16 +39,20 @@ var PhenoTips = (function (PhenoTips) {
 
     _showMatches : function()
     {
+        this._utils.clearHint('send-notifications-messages');
         var _this = this;
         new Ajax.Request(this._ajaxURL, {
             parameters : {action   : 'show-matches',
                           score    : 0,
                           notified : true
             },
+            onCreate : function() {
+                this._utils.showLoading('show-matches-messages');
+            }.bind(this),
             onSuccess : function (response) {
                 this._utils.showSuccess('show-matches-messages');
-                console.log("show matches result");
-                console.log(response.responseJSON);
+                //console.log("show matches result");
+                //console.log(response.responseJSON);
 
                 var matches = response.responseJSON.matches;
                 _this._matchesTable.update(matches);
@@ -59,17 +64,20 @@ var PhenoTips = (function (PhenoTips) {
         this._utils.showSent('show-matches-messages');
     },
 
+    _onCreateSendNotification : function() {
+        this._utils.showSent('send-notifications-messages');
+    },
+
     _sendNotification : function()
     {
         var idsToNotify = this._matchesTable.getMarkedToNotify();
         this._notifier.sendNotification(idsToNotify);
-        this._utils.showSent('send-notifications-messages');
     },
 
     _onSuccessSendNotification : function(ajaxResponse)
     {
-        console.log("onSuccess, received:");
-        console.log(ajaxResponse.responseText);
+        //console.log("onSuccess, received:");
+        //console.log(ajaxResponse.responseText);
         this._utils.showSuccess('send-notifications-messages');
 
         var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
