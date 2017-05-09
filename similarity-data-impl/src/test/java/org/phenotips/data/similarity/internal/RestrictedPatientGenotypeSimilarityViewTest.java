@@ -559,23 +559,35 @@ public class RestrictedPatientGenotypeSimilarityViewTest
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         // NOTCH2 (candidate vs. exome) should match
-        // SRCAP (exome vs. exome) should *not* match.
+        // SRCAP (exome vs. exome) should match.
         Set<String> genes = view.getMatchingGenes();
-        Assert.assertEquals(1, genes.size());
+        Assert.assertEquals(2, genes.size());
         Assert.assertTrue(genes.contains("NOTCH2"));
+        Assert.assertTrue(genes.contains("SRCAP"));
 
         JSONArray results = view.toJSON();
-        Assert.assertEquals(1, results.length());
+        Assert.assertEquals(2, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
         Assert.assertTrue(top.getDouble("score") > 0.5);
 
-        // Ensure match doesn't show underlying variant details
+        // Match has no underlying variant details
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("match"), 0);
 
         // Ensure reference shows underlying exome variant details
         assertVariantDetailLevel(VariantDetailLevel.FULL, top.getJSONObject("reference"), 2);
+
+        // SRCAP (exome vs. exome) should have lower score
+        JSONObject second = results.getJSONObject(1);
+        Assert.assertTrue(second.getString("gene").equals("SRCAP"));
+        Assert.assertTrue(second.getDouble("score") < top.getDouble("score"));
+
+        // Ensure open match shows underlying variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, second.getJSONObject("match"), 1);
+
+        // Ensure reference shows underlying exome variant details
+        assertVariantDetailLevel(VariantDetailLevel.FULL, second.getJSONObject("reference"), 1);
     }
 
     /** Only score shown for variant when matchable. */
