@@ -72,9 +72,6 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     /** The number of records to fully score. */
     private static final int SEED_QUERY_SIZE = 50;
 
-    /** The number of records to return after full scoring. */
-    private static final int MAX_RESPONSE_SIZE = 10;
-
     /** Logging helper object. */
     @Inject
     private Logger logger;
@@ -153,10 +150,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
 
-        return getTopResults(results, MAX_RESPONSE_SIZE);
+        return getTopResults(results);
     }
 
-    private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults, int k)
+    private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults)
     {
         if (allResults.isEmpty()) {
             return Collections.emptyList();
@@ -174,8 +171,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             });
         pq.addAll(allResults);
 
-        List<PatientSimilarityView> topResults = new ArrayList<PatientSimilarityView>(k);
-        for (int i = 0; i < k; i++) {
+        List<PatientSimilarityView> topResults = new ArrayList<PatientSimilarityView>();
+        int docSize = pq.size();
+        for (int i = 0; i < docSize; i++) {
             PatientSimilarityView item = pq.poll();
             if (item != null) {
                 topResults.add(item);

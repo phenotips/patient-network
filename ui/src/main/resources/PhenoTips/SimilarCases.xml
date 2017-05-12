@@ -244,11 +244,38 @@
           this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
+        if (options.enablePagination) {
+          this._PAGE_COUNT_TEMPLATE = "Showing similar cases __number_range__ out of ___total___ per page of ";
+          this.page = 1;
+          this.prevPage = $('pagination-prev');
+          this.nextPage = $('pagination-next');
+          this.paginationContent = $('pagination-content');
+          this.attachNavigationListeners();
+        }
       }
       this.launchSearchExisting();
 
       this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
       this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactDialogTitle'))", 'verticalPosition': 'top', 'removeOnClose': false});
+    },
+
+    attachNavigationListeners : function() {
+      var _this = this;
+      this.prevPage.observe('click', function(event) {
+        if (event) {event.stop();}
+        if (event.element().hasClassName('prevPagination')) {
+          _this.page--;
+          _this.renderResults();
+        }
+      });
+
+      this.nextPage.observe('click', function(event) {
+        if (event) {event.stop();}
+        if (event.element().hasClassName('nextPagination')) {
+          _this.page++;
+          _this.renderResults();
+        }
+      });
     },
 
     launchSearchRefresh: function(event) {
@@ -303,8 +330,34 @@
       );
     },
 
+    createPageSizeSelectControl: function() {
+      var select = new Element('select', {'class':'pagesizeselect'});
+      for (var i=10; i&lt;=100; i += 10) {
+        var attrs = {'value':i, 'text':i};
+        if (i == this._MAX_RESULTS_DISPLAYED) {
+          attrs.selected = true;
+        } else {
+          var prevStep = i - 10;
+          if (this._MAX_RESULTS_DISPLAYED &gt; prevStep &amp;&amp; this._MAX_RESULTS_DISPLAYED &lt; i) {
+            select.appendChild(new Element('option', {'value':this._MAX_RESULTS_DISPLAYED, 'text':this._MAX_RESULTS_DISPLAYED, selected:true}).update(this.currentValue));
+          }
+        }
+        select.appendChild(new Element('option', attrs).update(i));
+      }
+      select.observe("change", this.changePageSize.bind(this));
+      return select;
+    },
+
+    changePageSize: function(event) {
+      if (event) {event.stop();}
+      var newLimit =  parseInt($F(Event.element(event)));
+      this._MAX_RESULTS_DISPLAYED = newLimit;
+      this.renderResults();
+    },
+
     displayResults : function(data) {
       this._data = data;
+      this.totalResultsCount = data.resultsCount;
 
       // Empty the container to make room for the new results
       this.container.update('');
@@ -346,6 +399,65 @@
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
+
+      this.renderResults();
+    },
+
+    createPageLink : function(page, selected) {
+        var pageSpan = new Element("a", {'class':'pagenumber', 'href':'#'}).update(page);
+        if (selected) {
+           pageSpan.addClassName("selected");
+        }
+        var _this = this;
+        pageSpan.observe("click", function(ev){
+            ev.stop();
+            _this.page = ev.element().innerHTML;
+            _this.renderResults();
+        });
+        return pageSpan;
+    },
+
+    generatePaginationPageLinks : function() {
+      this.paginationContent.update('');
+      for (var i=1;i&lt;=this.totalPages;i++) {
+        var selected = (this.page == i);
+        this.paginationContent.insert(this.createPageLink(i, selected));
+      }
+    },
+
+    updateDataRanges : function() {
+      this.generatePaginationPageLinks();
+
+      if (this.page &gt; 1) {
+        this.prevPage.addClassName('prevPagination').removeClassName('noPrevPagination');
+      } else {
+        this.prevPage.addClassName('noPrevPagination').removeClassName('prevPagination');
+      }
+
+      if (this.page &lt; this.totalPages) {
+        this.nextPage.addClassName('nextPagination').removeClassName('noNextPagination');
+      } else {
+        this.nextPage.addClassName('noNextPagination').removeClassName('nextPagination');
+      }
+    },
+
+    renderResults : function() {
+      this.container.update('');
+      var begin = 0;
+      var end = Math.min(this.totalResultsCount, this._MAX_RESULTS_DISPLAYED);
+
+      if (this.page) {
+        this.totalPages = Math.ceil(this.totalResultsCount/this._MAX_RESULTS_DISPLAYED);
+        begin = (this.page - 1) * this._MAX_RESULTS_DISPLAYED;
+        end = (this.page &lt; this.totalPages) ? begin + this._MAX_RESULTS_DISPLAYED : this.totalResultsCount;
+        this.updateDataRanges();
+      }
+
+      var matchResults = this._data.results.slice(begin, end);
+
+      var firstItemRangeNo = begin + 1;
+      var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/__number_range__/g, firstItemRangeNo + "-" + end).replace(/___total___/g, this.totalResultsCount);
+      this.displaySummary(tableSummary, null, true);
 
       // Process results
       var _this = this;
@@ -391,16 +503,21 @@
       };
 
       this._displayTableHeader(columns, resultsTable);
-      data.results.each(function(r) {
+      matchResults.each(function(r) {
         _this._displayResultRow(r, columns, resultsTable);
       });
-      delete this._queryFeatures;
-      delete this._data;
     },
 
-    displaySummary : function (message, container) {
+    displaySummary : function (message, container, isHeader) {
       var c = container || this.container;
-      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message);
+      var summary = new Element("p", {class: this._SUMMARY_MARKER});
+      if (isHeader &amp;&amp; this.page) {
+        summary.update(message);
+        summary.insert(this.createPageSizeSelectControl());
+      } else {
+        summary.update(message.replace(" per page of", ""));
+      }
+
       c.insert(summary);
       return summary;
     },
@@ -1041,7 +1158,8 @@
         minScore: minScore &amp;&amp; minScore.value,
         mmeServer: mmeServer &amp;&amp; mmeServer.value,
         omimSection: omimSection &amp;&amp; omimSection.value,
-        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
+        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value,
+        enablePagination: true
       });
     });
   };
@@ -1433,6 +1551,12 @@
 .similarity-info .refresh-matches-button {
   margin-left: 5px;
   white-space: nowrap;
+}
+.similarity-info .pagesizeselect {
+  margin-left: 5px;
+}
+.similarity-info a.pagenumber {
+  margin-left: 5px;
 }</code>
     </property>
     <property>
@@ -1715,6 +1839,16 @@
       === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
       (% class="similarity-results-container" id="similar-patients-container" %)((()))##
       )))
+      ## Pagination
+      $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
+      {{html clean=false}}&lt;span class="xwiki-livetable-pagination"&gt;&lt;span class="controlPagination"&gt;
+          &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+          &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+        &lt;/span&gt;
+        &lt;span class="pagination"&gt;
+          &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+          &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+        &lt;/span&gt;&lt;/span&gt;{{/html}}
       ## Allow to plug in other data sources if current user is owner or manager of this patient record doc
       #set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))
       #if ($isManager)
