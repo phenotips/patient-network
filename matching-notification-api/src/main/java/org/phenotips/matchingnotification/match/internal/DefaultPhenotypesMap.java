@@ -219,15 +219,27 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
             if (StringUtils.equals(name1, name2)) {
                 common1.add(item1);
                 common2.add(item2);
+                item1 = null;
+                item2 = null;
                 next1 = true;
                 next2 = true;
             } else if (name1.compareTo(name2) < 0) {
                 unique1.add(item1);
+                item1 = null;
                 next1 = true;
             } else {
                 unique2.add(item2);
+                item2 = null;
                 next2 = true;
             }
+        }
+
+        if (item1 != null) {
+            unique1.add(item1);
+        }
+
+        if (item2 != null) {
+            unique2.add(item2);
         }
 
         while (iterator1.hasNext()) {

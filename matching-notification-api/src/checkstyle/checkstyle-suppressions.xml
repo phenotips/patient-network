@@ -24,4 +24,7 @@
 
 <suppressions>
   <suppress checks="ExecutableStatementCount" files="DefaultPhenotypesMap.java"/>
+  <suppress checks="CyclomaticComplexity" files="DefaultPhenotypesMap.java"/>
+  <suppress checks="JavaNCSS" files="DefaultPhenotypesMap.java"/>
+  <suppress checks="NPathComplexity" files="DefaultPhenotypesMap.java"/>
 </suppressions>
