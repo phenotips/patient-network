@@ -195,6 +195,84 @@
               <method>java.util.List createEmails(java.util.List)</method>
               <justification>Add option to send matching notification to one user only.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/Variant</className>
+              <differenceType>7012</differenceType>
+              <method>void setAnnotation(java.lang.String, java.lang.String)</method>
+              <justification>Allow setting annotation properties after Variant creation.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.sql.Timestamp getFoundTimestamp()</method>
+              <justification>Allow access to the timestamp of the match.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean deleteMatches(org.hibernate.Session, java.util.List)</method>
+              <justification>Allow bulk delete for matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getMatchedDetails()</method>
+              <justification>Added to have access to matched details.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getReferenceDetails()</method>
+              <justification>Added to have access to reference details.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setFoundTimestamp(java.sql.Timestamp)</method>
+              <justification>Added to set match found timestamp.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setGenotypeScore(java.lang.Double)</method>
+              <justification>Added to set genotype score.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setMatchedDetails(java.lang.String)</method>
+              <justification>Added to set reference details.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setMatchedPatientInMatch(org.phenotips.matchingnotification.match.PatientInMatch)</method>
+              <justification>Added to set matched patient in match.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setPhenotypeScore(java.lang.Double)</method>
+              <justification>Added set phenotype score.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setReferenceDetails(java.lang.String)</method>
+              <justification>Added to set reference details.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setReferencePatientInMatch(org.phenotips.matchingnotification.match.PatientInMatch)</method>
+              <justification>Added to set reference patient in match.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setScore(java.lang.Double)</method>
+              <justification>Added to set score.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
