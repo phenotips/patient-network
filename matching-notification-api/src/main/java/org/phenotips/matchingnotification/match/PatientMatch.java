@@ -20,6 +20,8 @@ package org.phenotips.matchingnotification.match;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
+import java.sql.Timestamp;
+
 import org.json.JSONObject;
 
 /**
@@ -176,4 +178,74 @@ public interface PatientMatch
      */
     boolean isOutgoing();
 
+    /**
+     * @return the timestamp when the match was found.
+     */
+    Timestamp getFoundTimestamp();
+
+    /**
+     * Set the timestamp when the match was found.
+     *
+     * @param timestamp timestamp
+     */
+    void setFoundTimestamp(Timestamp timestamp);
+
+    /**
+     * Set the match score.
+     *
+     * @param score score
+     */
+    void setScore(Double score);
+
+    /**
+     * Set genotype the score.
+     *
+     * @param score score
+     */
+    void setGenotypeScore(Double score);
+
+    /**
+     * Set the phenotype score.
+     *
+     * @param score score
+     */
+    void setPhenotypeScore(Double score);
+
+    /**
+     * Set the reference details.
+     *
+     * @param details details
+     */
+    void setReferenceDetails(String details);
+
+    /**
+     * Set the reference patient in match when the match was found.
+     *
+     * @param patient patient
+     */
+    void setReferencePatientInMatch(PatientInMatch patient);
+
+    /**
+     * Set matched details.
+     *
+     * @param details details
+     */
+    void setMatchedDetails(String details);
+
+    /**
+     * Set the matched patient in match.
+     *
+     * @param patient patient
+     */
+    void setMatchedPatientInMatch(PatientInMatch patient);
+
+    /**
+     * @return the reference details.
+     */
+    String getReferenceDetails();
+
+    /**
+     * @return the matched details.
+     */
+    String getMatchedDetails();
 }
