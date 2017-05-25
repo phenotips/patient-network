@@ -216,7 +216,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     /**
      * Performs a search in the Solr index, returning the matched documents.
      *
-     * @param query the query prepared with {@link #generateQuery(Patient)}
+     * @param query the query prepared with {@link #generateQuery(Patient, boolean)}
      * @return the documents matched by the query, if any
      */
     private SolrDocumentList search(SolrQuery query)
@@ -233,7 +233,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     /**
      * Performs a search in the Solr index, returning only the total number of matches found.
      *
-     * @param query the query prepared with {@link #generateQuery(Patient)}
+     * @param query the query prepared with {@link #generateQuery(Patient, boolean)}
      * @return the total number of document matched by the query, {@code 0} if none match
      */
     private long count(SolrQuery query)
