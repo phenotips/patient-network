@@ -34,13 +34,16 @@ define(["jquery", "dynatable"], function($, dyna)
         getMarkedToNotify : function()
         {
             var ids = [];
-            $.each(this._matches, function(index, match) {
-                if (match.notify) {
-                    $.each(String(match.id).split(","), function(idIndex, id) {
-                        ids.push(id);
+            var checkedElms = this._tableElement.find('input[data-matchid]:checked');
+
+            $.each(checkedElms, function(index, elm) {
+                if($(elm).data('matchid')) {
+                    $.each(String($(elm).data('matchid')).split(","), function(idIndex, id) {
+                        if (ids.indexOf(id) < 0) {ids.push(id);}
                     });
                 }
             }.bind(this));
+
             return ids;
         },
 
@@ -49,7 +52,11 @@ define(["jquery", "dynatable"], function($, dyna)
             var strMatchIds = String(matchIds).split(",");
             var matchesToSet = $.grep(this._matches, function(match) {
                 var curIds = String(match.id).split(",");
-                return this._listIsSubset(curIds, strMatchIds);
+                if (strMatchIds.length < curIds.length) {
+                    return this._listIsSubset(strMatchIds, curIds);
+                } else {
+                    return this._listIsSubset(curIds, strMatchIds);
+                }
             }.bind(this));
 
             $.each(matchesToSet, function(index, match) {
@@ -133,7 +140,7 @@ define(["jquery", "dynatable"], function($, dyna)
             columns.each(function( column, index) {
                 switch(column.id) {
                     case 'notification':
-                        tr += this._getNotificationTd(record);
+                        tr += this._getNotificationTd(record, 'notifyTd');
                         break;
                     case 'status':
                         tr += this._getStatusTd(record);
@@ -145,10 +152,10 @@ define(["jquery", "dynatable"], function($, dyna)
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                         break;
                     case 'referenceEmails':
-                        tr += this._getEmailsTd(record.reference.emails);
+                        tr += this._getEmailsTd(record.reference.emails, record.id[0]);
                         break;
                     case 'matchedEmails':
-                        tr += this._getEmailsTd(record.matched.emails);
+                        tr += this._getEmailsTd(record.matched.emails, record.id[1]);
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -161,9 +168,9 @@ define(["jquery", "dynatable"], function($, dyna)
             return tr;
         },
 
-        _getNotificationTd : function(record)
+        _getNotificationTd : function(record, tdId)
         {
-            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
+            return '<td><input  id="' + tdId + '" type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
         },
 
         _getStatusTd : function(record)
@@ -306,12 +313,13 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getEmailsTd : function(emails)
+        _getEmailsTd : function(emails, matchId)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
                 td += '<div>' + emails[i] + '</div>';
             }
+            td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '">' ;
             td += '</td>';
             return td;
         },
@@ -446,10 +454,9 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _markToNotify : function(elm)
         {
-            var matchIndex = $(elm).closest('tr').attr('id').split('-')[1];
-            this._matches[matchIndex].notify = $(elm).is(':checked');
-            console.log("To notify: " + this._matches[matchIndex].id);
-            this.update();
+            if ($(elm).attr('id') != 'notifyTd') {
+                $(elm).closest('tr').find('#notifyTd').prop("checked", false);
+            }
         }
     });
 });
