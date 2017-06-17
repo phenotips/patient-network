@@ -123,15 +123,15 @@ var PhenoTips = (function (PhenoTips) {
     _checkScore : function(scoreFieldName, messagesFieldName) {
         var score = this._$('#' + scoreFieldName).val();
         if (score == undefined || score == "") {
-            this._utils.showHint(messagesFieldName, "$escapetool.javascript(services.localization.render('phenotips.matchingNotifications.emptyScore'))");
+            this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.emptyScore'))");
             return;
         } else if (isNaN(score)) {
-            this._utils.showHint(messagesFieldName, "$escapetool.javascript(services.localization.render('phenotips.matchingNotifications.invalidScore'))");
+            this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))");
             return;
         };
         scoreNumber = Number(score);
         if (scoreNumber < 0 || scoreNumber > 1) {
-            this._utils.showHint(messagesFieldName, "$escapetool.javascript(services.localization.render('phenotips.matchingNotifications.invalidScore'))");
+            this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))");
             return;
         }
         return score;
