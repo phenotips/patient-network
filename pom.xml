@@ -297,6 +297,11 @@
               <method>org.phenotips.data.permissions.AccessLevel getAccess()</method>
               <justification>Added to determine what type of access does the user have to this patient profile.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/script/ExomiserViewScriptService</className>
+              <differenceType>8001</differenceType>
+              <justification>Relocating variant store script service from patient-network.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
