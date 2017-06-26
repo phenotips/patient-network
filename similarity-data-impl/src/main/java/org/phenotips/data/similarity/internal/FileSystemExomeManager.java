@@ -42,7 +42,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * This is an implementation of the {@link ExomeManager}, and allows accessing {@link ExomiserExome} objects for the
+ * This is an implementation of the {@link ExomeManager}, and allows accessing {@link FileSystemExome} objects for the
  * given {@link Patient}.
  *
  * @version $Id$
@@ -50,7 +50,7 @@ import org.slf4j.Logger;
  */
 @Component
 @Singleton
-public class ExomiserExomeManager implements ExomeManager, Initializable
+public class FileSystemExomeManager implements ExomeManager, Initializable
 {
     /** Logging helper object. */
     @Inject
@@ -134,10 +134,10 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     }
 
     /**
-     * Load a patient's {@link ExomiserExome}, based on the patient's id.
+     * Load a patient's {@link FileSystemExome}, based on the patient's id.
      *
      * @param id the patient record identifier
-     * @return the {@link ExomiserExome} for the corresponding patient
+     * @return the {@link FileSystemExome} for the corresponding patient
      */
     private Exome loadExomeById(String id)
     {
@@ -146,7 +146,7 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
         if (patientDirectory.isDirectory() && exomeFile.isFile()) {
             try {
                 Reader exomeReader = new FileReader(exomeFile);
-                Exome exome = new ExomiserExome(exomeReader);
+                Exome exome = new FileSystemExome(exomeReader);
                 logger.info("Loading genotype for " + id + " from: " + exomeFile);
                 return exome;
             } catch (FileNotFoundException e) {

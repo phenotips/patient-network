@@ -233,7 +233,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         // Mock exome data
         Exome exome = null;
         try {
-            exome = new ExomiserExome(new StringReader(exomeData));
+            exome = new FileSystemExome(new StringReader(exomeData));
         } catch (IOException e) {
             Assert.fail("Exomiser file parsing resulted in IOException");
         }
