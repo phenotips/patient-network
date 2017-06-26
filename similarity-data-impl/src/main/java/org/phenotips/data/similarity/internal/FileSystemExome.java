@@ -39,7 +39,7 @@ import org.json.JSONObject;
  * @version $Id$
  * @since 1.0M6
  */
-public class ExomiserExome extends AbstractExome implements Exome
+public class FileSystemExome extends AbstractExome implements Exome
 {
     /** Info field key for the variant's gene. */
     private static final String GENE_KEY = "EXOMISER_GENE";
@@ -53,7 +53,7 @@ public class ExomiserExome extends AbstractExome implements Exome
     /**
      * Constructor for empty {@link Exome} object.
      */
-    ExomiserExome()
+    FileSystemExome()
     {
     }
 
@@ -63,7 +63,7 @@ public class ExomiserExome extends AbstractExome implements Exome
      * @param exomiserOutput an exomiser-annotated VCF file
      * @throws IOException if the file does not follow the Exomiser format
      */
-    ExomiserExome(Reader exomiserOutput) throws IOException
+    FileSystemExome(Reader exomiserOutput) throws IOException
     {
         BufferedReader reader = new BufferedReader(exomiserOutput);
 
@@ -124,7 +124,7 @@ public class ExomiserExome extends AbstractExome implements Exome
     private Variant parseVariant(List<String> columns, String[] values) throws IOException
     {
         try {
-            return new ExomiserVariant(columns, values);
+            return new FileSystemExomeVariant(columns, values);
         } catch (IllegalArgumentException e) {
             throw new IOException("Error parsing variant line: " + Arrays.toString(values));
         }

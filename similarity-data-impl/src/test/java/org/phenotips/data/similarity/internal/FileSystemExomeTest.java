@@ -29,11 +29,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link ExomiserExome} implementation based on the latest Exomiser-3.0.2 output file format.
+ * Tests for the {@link FileSystemExome} implementation based on the latest Exomiser-3.0.2 output file format.
  *
  * @version $Id$
  */
-public class ExomiserExomeTest
+public class FileSystemExomeTest
 {
     // Lines intentionally shuffled
     private static final String TEST_FILE =
@@ -55,7 +55,7 @@ public class ExomiserExomeTest
     {
         Exome exome = null;
         try {
-            exome = new ExomiserExome(new StringReader(exomeString));
+            exome = new FileSystemExome(new StringReader(exomeString));
         } catch (IOException e) {
             Assert.fail("Exomiser file parsing resulted in IOException");
         }

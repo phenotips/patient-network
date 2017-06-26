@@ -26,7 +26,7 @@ import java.util.List;
  * @version $Id$
  * @since 1.0M2
  */
-public class ExomiserVariant extends AbstractVariant
+public class FileSystemExomeVariant extends AbstractVariant
 {
     /** Info field key for variant effect. */
     private static final String EFFECT_KEY = "FUNCTIONAL_CLASS";
@@ -41,7 +41,7 @@ public class ExomiserVariant extends AbstractVariant
      * @param values the value in each TSV column
      * @throws IllegalArgumentException if the variant cannot be parsed
      */
-    ExomiserVariant(List<String> columns, String[] values) throws IllegalArgumentException
+    FileSystemExomeVariant(List<String> columns, String[] values) throws IllegalArgumentException
     {
         setChrom(values[0]);
         setPosition(Integer.parseInt(values[1]));
