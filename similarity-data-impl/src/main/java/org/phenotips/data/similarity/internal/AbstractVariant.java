@@ -17,13 +17,22 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.similarity.Variant;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
+
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A base implementation of a {@link Variant}.
@@ -33,6 +42,12 @@ import org.json.JSONObject;
  */
 public abstract class AbstractVariant implements Variant
 {
+    /** Manager to allow access to HGNC vocabulary gene data. */
+    private static VocabularyManager vocabularyManager;
+
+    /** Logging helper object. */
+    private static Logger logger = LoggerFactory.getLogger(AbstractVariant.class);
+
     /** See {@link #getChrom()}. */
     protected String chrom;
 
@@ -56,6 +71,17 @@ public abstract class AbstractVariant implements Variant
 
     /** See {@link #getAnnotation(String)}. */
     protected Map<String, String> annotations = new HashMap<String, String>();
+
+    static {
+        VocabularyManager vm = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            vm = ccm.getInstance(VocabularyManager.class);
+        } catch (ComponentLookupException e) {
+            logger.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        vocabularyManager = vm;
+    }
 
     /**
      * Set the chromosome of the variant.
@@ -200,10 +226,25 @@ public abstract class AbstractVariant implements Variant
             JSONObject annotationJson = new JSONObject();
             //"geneScore", "geneSymbol"
             for (Entry<String, String> entry : this.annotations.entrySet()) {
-                annotationJson.put(entry.getKey(), entry.getValue());
+                if ("geneEnsemblId".equals(entry.getKey())) {
+                    annotationJson.put("geneSymbol", getGeneSymbol(entry.getValue()));
+                } else {
+                    annotationJson.put(entry.getKey(), entry.getValue());
+                }
             }
             result.put("annotations", annotationJson);
         }
         return result;
+    }
+
+    private String getGeneSymbol(String geneEnsemblId)
+    {
+        String symbol = null;
+        if (vocabularyManager != null) {
+            Vocabulary hgnc = vocabularyManager.getVocabulary("HGNC");
+            VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
+            symbol = (term != null) ? (String) term.get("symbol") : null;
+        }
+        return symbol;
     }
 }
