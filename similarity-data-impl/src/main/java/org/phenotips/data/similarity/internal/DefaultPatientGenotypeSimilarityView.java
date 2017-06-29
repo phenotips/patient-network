@@ -61,6 +61,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     /** Logging helper object. */
     private static Logger logger = LoggerFactory.getLogger(DefaultPatientGenotypeSimilarityView.class);
 
+    private static Double lowerGeneScoreThreshold = 0.0001;
+
     /**
      * Maximum number of genes to report in JSON (0 for all). TODO: pull out into configuration.
      */
@@ -152,7 +154,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
             Double matchScore = this.matchGenotype.getGeneScore(gene);
             double geneScore;
             // Average the scores as long as the gene is listed for both patients (candidate or exome)
-            if (refScore == null || matchScore == null) {
+            if (refScore == null || matchScore == null
+                || refScore < lowerGeneScoreThreshold || matchScore < lowerGeneScoreThreshold) {
                 geneScore = 0.0;
             } else {
                 geneScore = (refScore + matchScore) / 2.0;
