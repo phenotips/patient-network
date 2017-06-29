@@ -1819,11 +1819,15 @@
   display: inline-block;
   width: 100%;
 }
-.gene-matches .variants-data th .left{
+.gene-matches .variants-data th .left {
   float : left;
 }
-.gene-matches .variants-data th .right{
+.gene-matches .variants-data th .right {
   float : right;
+}
+.match-type .block {
+  display: inline-block;
+  width: 100%;
 }</code>
     </property>
     <property>
