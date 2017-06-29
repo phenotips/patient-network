@@ -745,7 +745,7 @@
       var container = new Element('div', {'class' : 'match-type features'});
       container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))"));
       if (!r.featureMatches) {
-        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
         return container;
       }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
@@ -829,10 +829,10 @@
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
-        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
       } else if (r.genes.length == 0) {
         // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
-        container.insert(new Element('p', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
       } else {
         // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
@@ -1800,6 +1800,10 @@
 }
 .similarity-info a.pagenumber {
   margin-left: 5px;
+}
+.match-type .block {
+  display: inline-block;
+  width: 100%;
 }</code>
     </property>
     <property>
