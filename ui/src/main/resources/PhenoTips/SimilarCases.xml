@@ -380,7 +380,7 @@
         "score"    : {
            title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.relevance'))",
            display : _this._displayResultRelevance.bind(_this),
-           field   : (this._mmeMode ? "remoteScore" : "score"),
+           field   : "score",
            enabled : true
         },
         "details"  : {
