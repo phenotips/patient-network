@@ -12,6 +12,7 @@ define(["jquery", "dynatable"], function($, dyna)
             this._tableBuilt = false;
 
             $('#expand_all').on('click', this._expandAllClicked.bind(this));
+            $('#gene_status_filter').on('change', this._filterByGeneStatus.bind(this));
         },
 
         update : function(matches)
@@ -105,7 +106,40 @@ define(["jquery", "dynatable"], function($, dyna)
                 // emails
                 match.reference.emails = this._formatEmails(match.reference.emails);
                 match.matched.emails = this._formatEmails(match.matched.emails);
+
+                // build array of types of genes matches for future faster filtering
+                // possible types:  ["solved_solved", "solved_candidate", "candidate_solved", "candidate_candidate"]
+                // FUTURE: more possible values, ex. "candidate_exome"
+                match.matchingGenesTypes = this._buildMatchingGenesTypes(match);
             }.bind(this));
+        },
+
+        _buildMatchingGenesTypes : function(match) {
+            var matchedGenesTypes = [];
+            if (match.genotypicScore > 0 && match.matched.genes.size() > 0 && match.reference.genes.size() > 0) {
+                var matchedGenes = {};
+                var referenceGenes = {};
+                match.matched.genes.each(function (elm) {
+                    // each elm is a string with gene symbol and status: "SRCAP (candidate)"
+                    var splitted = elm.split(/[()]/);
+                    matchedGenes[splitted[0]] = splitted[1];
+                });
+                match.reference.genes.each(function (elm) {
+                    var splitted = elm.split(/[()]/);
+                    referenceGenes[splitted[0]] = splitted[1];
+                });
+                var commonGenes = Object.keys(matchedGenes).intersect(Object.keys(referenceGenes));
+                if (commonGenes.size() > 0) {
+                    commonGenes.each(function (elm) {
+                        matchedGenesTypes.push(matchedGenes[elm] + '_' + referenceGenes[elm]);
+                        if (matchedGenes[elm] != referenceGenes[elm]) {
+                           matchedGenesTypes.push(referenceGenes[elm] + '_' + matchedGenes[elm]);
+                        }
+                    });
+                }
+            }
+            // remove possible repetitions
+            return matchedGenesTypes.uniq();
         },
 
         _formatEmails : function(emails) {
@@ -189,17 +223,17 @@ define(["jquery", "dynatable"], function($, dyna)
         _getPatientDetailsTd : function(patient, tdId, matchId)
         {
             var td = '<td id="' + tdId + '">';
-
+            var externalId = (!this._isBlank(patient.externalId)) ? " : " + patient.externalId : '';
             // Patient id and collapsible icon
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
             if (!patient.serverId) { // local patient
                 var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
-                td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + '</a>';
+                td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
                 if (patient.serverId) {
                     td += '<span> (' + patient.serverId + ')</span>';
                 }
             } else { // remote patient
-                td += '<label class="patient-href">' + patient.patientId + ' (' + patient.serverId + ')</label>';
+                td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
             }
             td += '</div>';
 
@@ -208,7 +242,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
             td += this._getAgeOfOnset(patient.age_of_onset);
             td += this._getModeOfInheritance(patient.mode_of_inheritance);
-            td += this._getGenesDiv(patient.genes);
+            td += this._getGenesDiv(patient.genes, patient.hasExomeData);
             td += this._getPhenotypesDiv(patient.phenotypes);
 
             // End collapsible div
@@ -218,10 +252,10 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getGenesDiv : function(genes)
+        _getGenesDiv : function(genes, hasExomeData)
         {
             var td = '<div class="genes-div">';
-            var genesTitle = 'Genes';
+            var genesTitle = 'Genes  ' + ((hasExomeData) ? '<span class="fa fa-gg-circle" title="patient has exome data"></span>' : '');
             if (genes.size() == 0) {
                 genesTitle += ': -';
             }
@@ -282,7 +316,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
             var aooTitle = 'Age of onset: ';
             if (age_of_onset == '' || age_of_onset == undefined) {
-                aooTitle += ': -';
+                aooTitle += ' -';
             }
             td += '<p class="subtitle">' + aooTitle + '</p>';
             if (age_of_onset) {
@@ -297,7 +331,7 @@ define(["jquery", "dynatable"], function($, dyna)
             var td = '<div class="mode-of-inheritance-div">';
             var moiTitle = 'Mode of inheritance: ';
             if (mode_of_inheritance.size() == 0) {
-                moiTitle += ': -';
+                moiTitle += ' -';
             }
             td += '<p class="subtitle">' + moiTitle + '</p>';
             if (mode_of_inheritance.size() != 0) {
@@ -350,6 +384,11 @@ define(["jquery", "dynatable"], function($, dyna)
 
                 // first time needs to be run manually
                 this._afterProcessTable();
+                $('#search-matchesTable-input').on('input', this._filterBySearchInput.bind(this));
+                $('#dynatable-search-matchesTable').hide();
+                $('#dynatable-search-notifiedMatchesTable').hide();
+                // make Show: label translatable
+                $$('.dynatable-per-page-label')[0].innerText = $('#hidden-show-label')[0].value;
             }
 
             this._tableBuilt = true;
@@ -452,15 +491,65 @@ define(["jquery", "dynatable"], function($, dyna)
             }.bind(this));
         },
 
+        _filterByGeneStatus : function(event)
+        {
+            if (event && event.target) {
+                this._geneFilterValue = event.target.selectedOptions[0].value;
+                if (this._geneFilterValue == "all") {
+                    this.setFilter(null);
+                    this._buildTable();
+                    return;
+                }
+                if (this._geneFilterValue == "has_exome") {
+                    this.setFilter( function (match) {
+                        return match.matched.hasExomeData || match.reference.hasExomeData;
+                    }.bind(this) );
+                    return;
+                }
+                this.setFilter( function (match) {
+                    return match.matchingGenesTypes.indexOf(this._geneFilterValue) > -1;
+                }.bind(this) );
+            }
+        },
+
+        // searches by substring in patient ID, external ID and emails
+        _filterBySearchInput : function(event)
+        {
+            event.stopPropagation();
+            if (event && event.target) {
+                this._searchFilter = event.target.value;
+                if (this._isBlank(this._searchFilter)) {
+                    this.setFilter(null);
+                    this._buildTable();
+                    return;
+                }
+                this._searchFilter = this._searchFilter.trim();
+                this.setFilter( function (match) {
+                    return match.matched.patientId.includes(this._searchFilter)
+                        || match.reference.patientId.includes(this._searchFilter)
+                        || match.matched.externalId.includes(this._searchFilter)
+                        || match.reference.externalId.includes(this._searchFilter)
+                        || match.matched.emails.toString().includes(this._searchFilter)
+                        || match.reference.emails.toString().includes(this._searchFilter);
+                }.bind(this) );
+            }
+        },
+
         _markToNotify : function(elm)
         {
             if ($(elm).attr('id') != 'notifyTd') {
-            	// unselect first column checkbox if any of emails checkboxes selected
+                // unselect first column checkbox if any of emails checkboxes selected
                 $(elm).closest('tr').find('#notifyTd').prop("checked", false);
             } else {
-            	// select both emails checkboxes if first column checkbox is selected
-            	$(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
+                // select both emails checkboxes if first column checkbox is selected
+                $(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
             }
+        },
+
+        // checking if a string is blank or contains only white-space
+        _isBlank : function(str)
+        {
+            return (!str || !str.trim());
         }
     });
 });

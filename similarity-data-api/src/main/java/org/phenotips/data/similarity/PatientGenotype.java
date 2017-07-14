@@ -59,4 +59,9 @@ public interface PatientGenotype extends Exome
      * @return a status of genes
      */
     String getGenesStatus();
+
+    /**
+     * @return true if patient has exome data.
+     */
+    boolean hasExomeData();
 }

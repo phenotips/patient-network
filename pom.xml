@@ -272,6 +272,24 @@
               <method>void setScore(java.lang.Double)</method>
               <justification>Added to set score.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientGenotype</className>
+              <differenceType>7012</differenceType>
+              <method>boolean hasExomeData()</method>
+              <justification>Added to determine whether patient has any exome data.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientGenotypeSimilarityView</className>
+              <differenceType>7012</differenceType>
+              <method>boolean hasExomeData()</method>
+              <justification>Added to determine whether patient has any exome data.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>boolean hasExomeData()</method>
+              <justification>Added to determine whether patient has any exome data.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

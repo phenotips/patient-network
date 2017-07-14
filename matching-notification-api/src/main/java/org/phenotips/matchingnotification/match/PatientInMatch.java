@@ -129,4 +129,9 @@ public interface PatientInMatch
      * @return patient href.
      */
     String getHref();
+
+    /**
+     * @return true if patient has exome data.
+     */
+    boolean hasExomeData();
 }
