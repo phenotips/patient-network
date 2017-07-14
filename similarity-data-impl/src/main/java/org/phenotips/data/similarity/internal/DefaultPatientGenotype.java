@@ -200,4 +200,10 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     {
         return this.genesStatus;
     }
+
+    @Override
+    public boolean hasExomeData()
+    {
+        return this.exome != null;
+    }
 }

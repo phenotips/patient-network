@@ -48,6 +48,12 @@ public interface PatientGenotypeSimilarityView extends PatientGenotype
     boolean hasGenotypeData();
 
     /**
+     * @return true if patient has exome data.
+     */
+    @Override
+    boolean hasExomeData();
+
+    /**
      * Return a set of the names of candidate genes listed for the matching patient.
      *
      * @return a (potentially-empty) set of the names of candidate genes
