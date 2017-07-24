@@ -150,10 +150,10 @@ define(["jquery", "dynatable"], function($, dyna)
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                         break;
                     case 'referenceEmails':
-                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id);
+                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.hasOwnProperty('serverId'));
                         break;
                     case 'matchedEmails':
-                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id);
+                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.hasOwnProperty('serverId'));
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -311,13 +311,15 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getEmailsTd : function(emails, patientId, matchId)
+        _getEmailsTd : function(emails, patientId, matchId, isRemote)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
                 td += '<div>' + emails[i] + '</div>';
             }
-            td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
+            if (!isRemote) {
+                td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
+            }
             td += '</td>';
             return td;
         },
