@@ -110,10 +110,6 @@ public class DefaultActionManager implements ActionManager
     @Override
     public int sendInitialMails(Connection connection, Map<String, Object> options)
     {
-        if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient())
-            .hasAccessLevel(this.manageAccessLevel)) {
-            return 403;
-        }
         try {
             XWikiContext context = Utils.getContext();
             XWiki xwiki = context.getWiki();
