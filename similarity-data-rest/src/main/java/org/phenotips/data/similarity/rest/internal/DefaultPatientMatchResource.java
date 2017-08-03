@@ -19,8 +19,6 @@ package org.phenotips.data.similarity.rest.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.permissions.internal.SecurePatientAccess;
 import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.DefaultMatchedPatientClusterView;
@@ -61,8 +59,6 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
 {
     private static final String REQ_NO = "reqNo";
 
-    private static final String MANAGE = "manage";
-
     private static final String OFFSET = "offset";
 
     private static final String LIMIT = "maxResults";
@@ -75,10 +71,6 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     @Inject
     @Named("secure")
     private PatientRepository repository;
-
-    @Inject
-    @Named("secure")
-    private PermissionsManager manager;
 
     /** The similar patients finder. */
     @Inject
@@ -154,8 +146,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
-        final boolean isManager = ((SecurePatientAccess) this.manager.getPatientAccess(patient)).hasAccessLevel(MANAGE);
-        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, isManager, matches);
+        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
         final JSONObject matchesJson = !matches.isEmpty()
             ? cluster.toJSON(offset - 1, getLastIndex(cluster, offset, limit))
             : cluster.toJSON();

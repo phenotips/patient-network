@@ -29,7 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,8 +42,6 @@ import org.json.JSONObject;
 public class DefaultMatchedPatientClusterView implements MatchedPatientClusterView
 {
     private static final String QUERY_LABEL = "query";
-
-    private static final String IS_MANAGER_LABEL = "isManager";
 
     private static final String TOTAL_SIZE_LABEL = "resultsCount";
 
@@ -64,25 +61,19 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
     /** @see #getMatches(). */
     private final List<PatientSimilarityView> matches;
 
-    /** True iff the user is the manager for {@link #getReference()}. */
-    private final boolean isManager;
-
     /**
      * Default constructor that takes in a reference {@code patient}, and its {@code matches}.
      *
      * @param patient the reference {@link Patient} object
-     * @param isManager true iff the current user is the manager for {@code patient} document
      * @param matches a list of {@link PatientSimilarityView} objects representing patients matching {@code patient}
      */
     public DefaultMatchedPatientClusterView(
         @Nonnull final Patient patient,
-        final boolean isManager,
         @Nullable final List<PatientSimilarityView> matches)
     {
         Validate.notNull(patient, "The reference patient should not be null.");
         this.reference = patient;
         this.matches = CollectionUtils.isNotEmpty(matches) ? matches : Collections.<PatientSimilarityView>emptyList();
-        this.isManager = isManager;
     }
 
     @Override
@@ -123,7 +114,6 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
             : buildMatchesJSONArray(fromIndex, toIndex);
         return new JSONObject()
             .put(QUERY_LABEL, referenceJson)
-            .put(IS_MANAGER_LABEL, this.isManager)
             .put(TOTAL_SIZE_LABEL, size())
             .put(RESULTS_LABEL, matchesJson)
             .put(OFFSET_LABEL, fromIndex + 1)
@@ -155,23 +145,9 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
 
         for (int i = fromIndex; i <= toIndex; i++) {
             final JSONObject matchJson = this.matches.get(i).toJSON();
-            processEmail(matchJson);
             matchesJson.put(matchJson);
         }
         return matchesJson;
-    }
-
-    /**
-     * Sets the email as blank for {@code matchJson} if the current user does not manage {@link #getReference() the
-     * reference patient}.
-     *
-     * @param matchJson the JSON for a patient matching {@link #getReference()}
-     */
-    private void processEmail(@Nonnull final JSONObject matchJson)
-    {
-        if (!this.isManager && matchJson.has(OWNER_LABEL)) {
-            matchJson.optJSONObject(OWNER_LABEL).put(EMAIL_LABEL, StringUtils.EMPTY);
-        }
     }
 
     @Override
@@ -184,14 +160,13 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
             return false;
         }
         final DefaultMatchedPatientClusterView that = (DefaultMatchedPatientClusterView) o;
-        return this.isManager == that.isManager
-            && Objects.equals(this.reference, that.reference)
+        return Objects.equals(this.reference, that.reference)
             && Objects.equals(this.matches, that.matches);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.reference, this.matches, this.isManager);
+        return Objects.hash(this.reference, this.matches);
     }
 }
