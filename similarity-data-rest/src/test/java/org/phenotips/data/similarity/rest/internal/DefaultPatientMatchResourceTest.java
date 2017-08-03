@@ -19,8 +19,6 @@ package org.phenotips.data.similarity.rest.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.permissions.internal.SecurePatientAccess;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
 import org.phenotips.similarity.SimilarPatientsFinder;
@@ -71,8 +69,6 @@ public class DefaultPatientMatchResourceTest
 
     private static final String MATCH_3 = "match3";
 
-    private static final String MANAGE = "manage";
-
     private static final String SECURE = "secure";
 
     private static final String ID = "id";
@@ -86,8 +82,6 @@ public class DefaultPatientMatchResourceTest
     private static final String TOTAL_SIZE = "resultsCount";
 
     private static final String RETURNED_SIZE = "returnedCount";
-
-    private static final String IS_MANAGER = "isManager";
 
     private static final String RESULTS = "results";
 
@@ -128,8 +122,6 @@ public class DefaultPatientMatchResourceTest
 
     private SimilarPatientsFinder similarPatientsFinder;
 
-    private Container container;
-
     private JSONObject expectedAll;
 
     @Before
@@ -150,24 +142,18 @@ public class DefaultPatientMatchResourceTest
         this.logger = this.mocker.getMockedLogger();
         this.repository = this.mocker.getInstance(PatientRepository.class, SECURE);
         this.similarPatientsFinder = this.mocker.getInstance(SimilarPatientsFinder.class);
-        this.container = this.mocker.getInstance(Container.class);
 
         // Mock the reference patient.
         when(this.repository.get(REFERENCE)).thenReturn(this.reference);
         when(this.reference.toJSON()).thenReturn(new JSONObject().put(ID, REFERENCE));
-
-        // Mock the access interactions.
-        final SecurePatientAccess access = mock(SecurePatientAccess.class);
-        final PermissionsManager manager = this.mocker.getInstance(PermissionsManager.class, SECURE);
-        when(manager.getPatientAccess(this.reference)).thenReturn(access);
-        when(access.hasAccessLevel(MANAGE)).thenReturn(true);
 
         // Mock similar patient search.
         final List<PatientSimilarityView> matches = Arrays.asList(this.match1, this.match2, this.match3);
         when(this.similarPatientsFinder.findSimilarPatients(this.reference)).thenReturn(matches);
 
         // Mock container interactions.
-        when(this.container.getRequest()).thenReturn(this.request);
+        final Container container = this.mocker.getInstance(Container.class);
+        when(container.getRequest()).thenReturn(this.request);
 
         // Mock individual match data.
         when(this.match1.toJSON()).thenReturn(new JSONObject().put(ID, MATCH_1)
@@ -259,7 +245,6 @@ public class DefaultPatientMatchResourceTest
             .put(QUERY, new JSONObject()
                 .put(ID, REFERENCE))
             .put(TOTAL_SIZE, 0)
-            .put(IS_MANAGER, true)
             .put(RETURNED_SIZE, 0)
             .put(REQ_NO, 1)
             .put(OFFSET, 1)
@@ -348,7 +333,6 @@ public class DefaultPatientMatchResourceTest
             .put(QUERY, new JSONObject()
                 .put(ID, REFERENCE))
             .put(TOTAL_SIZE, 3)
-            .put(IS_MANAGER, true)
             .put(RETURNED_SIZE, 2)
             .put(REQ_NO, 1)
             .put(OFFSET, 2)
@@ -371,7 +355,6 @@ public class DefaultPatientMatchResourceTest
             .put(QUERY, new JSONObject()
                 .put(ID, REFERENCE))
             .put(TOTAL_SIZE, 3)
-            .put(IS_MANAGER, true)
             .put(RETURNED_SIZE, 1)
             .put(REQ_NO, 1)
             .put(OFFSET, 2)
@@ -401,7 +384,6 @@ public class DefaultPatientMatchResourceTest
             .put(QUERY, new JSONObject()
                 .put(ID, REFERENCE))
             .put(TOTAL_SIZE, 3)
-            .put(IS_MANAGER, true)
             .put(RETURNED_SIZE, 3)
             .put(REQ_NO, 1)
             .put(OFFSET, 1)
