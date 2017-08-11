@@ -27,13 +27,13 @@ import java.util.Collection;
 import org.json.JSONObject;
 
 /**
- * View of the relationship between a collection of features in each of two patients.
+ * View of the relationship between a collection of features in each of two patients within one cluster of features.
  *
  * @version $Id$
  * @since 1.0M1
  */
 @Unstable
-public interface FeatureClusterView extends Feature
+public interface FeatureClusterView
 {
     /**
      * Returns the reference features, if any.
@@ -58,13 +58,18 @@ public interface FeatureClusterView extends Feature
     VocabularyTerm getRoot();
 
     /**
-     * How similar are the match and reference features.
+     * Returns the root/ancestor id of the cluster.
      *
-     * @return a similarity score, between {@code -1} for opposite features and {@code 1} for an exact match, with
-     *         {@code 0} for features with no similarities, and {@code NaN} if one of the collections of features is
-     *         empty
+     * @return the root feature for the reference and match features
      */
-    double getScore();
+    String getId();
+
+    /**
+     * Returns the root/ancestor name of the cluster.
+     *
+     * @return the root feature for the reference and match features
+     */
+    String getName();
 
     /**
      * Retrieve all information about the cluster of features. For example:
@@ -86,6 +91,5 @@ public interface FeatureClusterView extends Feature
      *
      * @return the feature data, using the org.json classes
      */
-    @Override
     JSONObject toJSON();
 }

@@ -19,6 +19,7 @@ package org.phenotips.matchingnotification.match;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 
 import java.util.Collection;
 import java.util.Set;

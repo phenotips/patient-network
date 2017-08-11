@@ -27,6 +27,8 @@ import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
+import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;

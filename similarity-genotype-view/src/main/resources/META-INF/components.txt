@@ -1,0 +1,2 @@
+org.phenotips.data.similarity.genotype.FileSystemExomeManager
+org.phenotips.data.similarity.genotype.DefaultPatientGenotypeManager
