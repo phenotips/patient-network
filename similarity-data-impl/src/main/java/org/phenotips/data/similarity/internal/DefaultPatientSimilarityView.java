@@ -23,20 +23,19 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
+import org.phenotips.data.similarity.genotype.RestrictedPatientGenotypeSimilarityView;
+import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarityView;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.model.reference.EntityReference;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -53,17 +52,8 @@ import org.json.JSONArray;
  */
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {
-    /** The overall root of the HPO. */
-    private static final String HP_ROOT = "HP:0000001";
-
-    /** The root of the phenotypic abnormality portion of HPO. */
-    private static final String PHENOTYPE_ROOT = "HP:0000118";
-
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
     private static Map<VocabularyTerm, Double> termICs;
-
-    /** The largest IC found, for normalizing. */
-    private static Double maxIC;
 
     /** Provides access to the term vocabulary. */
     private static VocabularyManager vocabularyManager;
@@ -74,8 +64,11 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     /** Links disorder values from this patient to the reference. */
     private Set<DisorderSimilarityView> matchedDisorders;
 
-    /** Memoized genotype match, retrieved through getGenotypeSimilarity. */
+    /** Memoized genotype match, retrieved through getMatchedGenes. */
     private PatientGenotypeSimilarityView matchedGenes;
+
+    /** Memoized phenotype match, retrieved through getMatchedFeatures. */
+    private PatientPhenotypeSimilarityView matchedFeatures;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -93,7 +86,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         super(match, reference, access);
         if (!isInitialized()) {
             String error =
-                "Static data of MutualInformationPatientSimilarityView was not initilized before instantiation";
+                "Static data of DefaultPatientSimilarityView was not initilized before instantiation";
             throw new NullPointerException(error);
         }
     }
@@ -118,22 +111,37 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     {
         DefaultPatientSimilarityView.termICs = termICs;
         DefaultPatientSimilarityView.vocabularyManager = vocabularyManager;
-        DefaultPatientSimilarityView.maxIC = Collections.max(termICs.values());
     }
 
     /**
-     * Create an instance of the FeatureClusterView for this PatientSimilarityView.
+     * Create an instance of the PatientPhenotypeSimilarityView for this PatientSimilarityView.
      *
      * @param match the features in the matched patient
      * @param reference the features in the reference patient
      * @param access the access level of the match
-     * @param root the root/shared ancestor for the cluster
-     * @param score the score of the feature matching
+     * @return the PatientPhenotypeSimilarityView for the pair of patients
      */
-    protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access, VocabularyTerm root, double score)
+    protected PatientPhenotypeSimilarityView createPhenotypeSimilarityView(Set<? extends Feature> match,
+        Set<? extends Feature> reference, AccessType access)
     {
-        return new DefaultFeatureClusterView(match, reference, access, root, score);
+        if (!DefaultPatientPhenotypeSimilarityView.isInitialized()) {
+            DefaultPatientPhenotypeSimilarityView.initializeStaticData(vocabularyManager);
+        }
+        return new DefaultPatientPhenotypeSimilarityView(match, reference, access);
+    }
+
+    /**
+     * Create an instance of the PatientGenotypeSimilarityView for this PatientSimilarityView.
+     *
+     * @param match  match patient
+     * @param reference the  reference patient
+     * @param access the access level
+     * @return the PatientGenotypeSimilarityView for the pair of patients
+     */
+    protected PatientGenotypeSimilarityView createGenotypeSimilarityView(Patient match, Patient reference,
+        AccessType access)
+    {
+        return new RestrictedPatientGenotypeSimilarityView(match, reference, this.access);
     }
 
     /**
@@ -221,9 +229,69 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     /**
+     * Get the genotype similarity view for this pair of patients, lazily evaluated and memoized.
+     *
+     * @return the genotype similarity view for this pair of patients
+     */
+    private PatientGenotypeSimilarityView getMatchedGenes()
+    {
+        if (this.matchedGenes == null) {
+            this.matchedGenes = createGenotypeSimilarityView(this.match, this.reference, this.access);
+        }
+        return this.matchedGenes;
+    }
+
+    /**
+     * Get the phenotype similarity view for this pair of patients, lazily evaluated and memoized.
+     *
+     * @return the phenotype similarity view for this pair of patients
+     */
+    private PatientPhenotypeSimilarityView getMatchedFeatures()
+    {
+        if (this.matchedFeatures == null) {
+            this.matchedFeatures = createPhenotypeSimilarityView(this.match.getFeatures(), this.reference.getFeatures(),
+                this.access);
+        }
+        return this.matchedFeatures;
+    }
+
+    @Override
+    public double getGenotypeScore()
+    {
+        return getMatchedGenes().getScore();
+    }
+
+    @Override
+    public double getPhenotypeScore()
+    {
+        if (this.match == null || this.reference == null) {
+            return 0.0;
+        } else {
+            // Get ancestors for both patients
+            Set<VocabularyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
+            Set<VocabularyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
+
+            if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
+                return 0.0;
+            } else {
+                // Score overlapping ancestors
+                Set<VocabularyTerm> commonAncestors = new HashSet<>();
+                commonAncestors.addAll(refAncestors);
+                commonAncestors.retainAll(matchAncestors);
+
+                Set<VocabularyTerm> allAncestors = new HashSet<>();
+                allAncestors.addAll(refAncestors);
+                allAncestors.addAll(matchAncestors);
+
+                return getTermICs(commonAncestors) / getTermICs(allAncestors);
+            }
+        }
+    }
+
+    /**
      * Return a (potentially empty) collection of terms present in the patient.
      *
-     * @param patient the patient to process
+     * @param features the patient features to process
      * @return a collection of terms present in the patient
      */
     private Collection<VocabularyTerm> getPresentPatientTerms(Patient patient)
@@ -241,25 +309,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
         }
         return terms;
-    }
-
-    /**
-     * Return a (potentially empty) mapping from VocabularyTerm IDs back to features in the patient. Un-mappable
-     * features are not included.
-     *
-     * @param patient the patient to process
-     * @return a mapping from term IDs to features in the patient
-     */
-    private Map<String, Feature> getTermLookup(Patient patient)
-    {
-        Map<String, Feature> lookup = new HashMap<>();
-        for (Feature feature : patient.getFeatures()) {
-            String id = feature.getId();
-            if (!id.isEmpty()) {
-                lookup.put(id, feature);
-            }
-        }
-        return lookup;
     }
 
     /**
@@ -295,41 +344,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             cost += ic;
         }
         return cost;
-    }
-
-    @Override
-    public double getGenotypeScore()
-    {
-        PatientGenotypeSimilarityView genotypeSimilarity = getGenotypeSimilarity();
-        double genotypeScore = genotypeSimilarity.getScore();
-        return genotypeScore;
-    }
-
-    @Override
-    public double getPhenotypeScore()
-    {
-        if (this.match == null || this.reference == null) {
-            return 0.0;
-        } else {
-            // Get ancestors for both patients
-            Set<VocabularyTerm> refAncestors = getAncestors(getPresentPatientTerms(this.reference));
-            Set<VocabularyTerm> matchAncestors = getAncestors(getPresentPatientTerms(this.match));
-
-            if (refAncestors.isEmpty() || matchAncestors.isEmpty()) {
-                return 0.0;
-            } else {
-                // Score overlapping ancestors
-                Set<VocabularyTerm> commonAncestors = new HashSet<>();
-                commonAncestors.addAll(refAncestors);
-                commonAncestors.retainAll(matchAncestors);
-
-                Set<VocabularyTerm> allAncestors = new HashSet<>();
-                allAncestors.addAll(refAncestors);
-                allAncestors.addAll(matchAncestors);
-
-                return getTermICs(commonAncestors) / getTermICs(allAncestors);
-            }
-        }
     }
 
     /**
@@ -393,23 +407,10 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         return "";
     }
 
-    /**
-     * Get the genotype similarity view for this pair of patients, lazily evaluated and memoized.
-     *
-     * @return the genotype similarity view for this pair of patients
-     */
-    private PatientGenotypeSimilarityView getGenotypeSimilarity()
-    {
-        if (this.matchedGenes == null) {
-            this.matchedGenes = new RestrictedPatientGenotypeSimilarityView(this.match, this.reference, this.access);
-        }
-        return this.matchedGenes;
-    }
-
     @Override
     public JSONArray getGenesJSON()
     {
-        return getGenotypeSimilarity().toJSON();
+        return getMatchedGenes().toJSON();
     }
 
     /**
@@ -447,137 +448,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         return disordersJSON;
     }
 
-    /**
-     * Find, remove, and return all terms with given ancestor.
-     *
-     * @param terms the terms, modified by removing terms with given ancestor
-     * @param ancestor the ancestor to search for
-     * @return the terms with the given ancestor (removed from given terms)
-     */
-    private Collection<VocabularyTerm> popTermsWithAncestor(Collection<VocabularyTerm> terms, VocabularyTerm ancestor)
-    {
-        Collection<VocabularyTerm> matched = new HashSet<>();
-        for (VocabularyTerm term : terms) {
-            if (term.getAncestorsAndSelf().contains(ancestor)) {
-                matched.add(term);
-            }
-        }
-        terms.removeAll(matched);
-        return matched;
-    }
 
-    /**
-     * Finds the best term match, removes these terms, and return the JSON for that match.
-     *
-     * @param refTerms the terms in the reference
-     * @param matchTerms the terms in the match
-     * @param matchFeatureLookup a mapping from VocabularyTerm IDs back to the original Features in the match patient
-     * @param refFeatureLookup a mapping from VocabularyTerm IDs back to the original Features in the reference patient
-     * @return the FeatureClusterView of the best-matching features from refTerms and matchTerms (removes the matched
-     *         terms from the passed lists) or null if the terms are not a good match (the term collections are then
-     *         unchanged)
-     */
-    private FeatureClusterView popBestFeatureCluster(Collection<VocabularyTerm> matchTerms,
-        Collection<VocabularyTerm> refTerms, Map<String, Feature> matchFeatureLookup,
-        Map<String, Feature> refFeatureLookup)
-    {
-        Collection<VocabularyTerm> sharedAncestors = getAncestors(refTerms);
-        sharedAncestors.retainAll(getAncestors(matchTerms));
-
-        // Find ancestor with highest (normalized) information content
-        VocabularyTerm ancestor = null;
-        double ancestorScore = Double.NEGATIVE_INFINITY;
-        for (VocabularyTerm term : sharedAncestors) {
-            Double termIC = termICs.get(term);
-            if (termIC == null) {
-                termIC = 0.0;
-            }
-
-            double termScore = termIC / maxIC;
-            if (termScore > ancestorScore) {
-                ancestorScore = termScore;
-                ancestor = term;
-            }
-        }
-
-        // If the top-scoring ancestor is the root (or phenotype root), report everything remaining as unmatched
-        if (ancestor == null || HP_ROOT.equals(ancestor.getId()) || PHENOTYPE_ROOT.equals(ancestor.getId())) {
-            return null;
-        }
-
-        // Find, remove, and return all ref and match terms under the selected ancestor
-        Collection<VocabularyTerm> matchMatched = popTermsWithAncestor(matchTerms, ancestor);
-        Collection<VocabularyTerm> refMatched = popTermsWithAncestor(refTerms, ancestor);
-
-        // Return match json from matched terms
-        FeatureClusterView cluster = createFeatureClusterView(termsToFeatures(matchMatched, matchFeatureLookup),
-            termsToFeatures(refMatched, refFeatureLookup), this.access, ancestor, ancestorScore);
-        return cluster;
-    }
-
-    private Collection<FeatureClusterView> getMatchedFeatures()
-    {
-        Collection<FeatureClusterView> clusters = new LinkedList<>();
-
-        // Get term -> feature lookups for creating cluster views
-        Map<String, Feature> matchFeatureLookup = getTermLookup(this.match);
-        Map<String, Feature> refFeatureLookup = getTermLookup(this.reference);
-
-        // Get the present vocabulary terms
-        Collection<VocabularyTerm> matchTerms = getPresentPatientTerms(this.match);
-        Collection<VocabularyTerm> refTerms = getPresentPatientTerms(this.reference);
-
-        // Keep removing most-related sets of terms until none match lower than HP roots
-        while (!refTerms.isEmpty() && !matchTerms.isEmpty()) {
-            FeatureClusterView cluster =
-                popBestFeatureCluster(matchTerms, refTerms, matchFeatureLookup, refFeatureLookup);
-            if (cluster == null) {
-                break;
-            }
-            clusters.add(cluster);
-        }
-
-        // Add any unmatched terms
-        if (!refTerms.isEmpty() || !matchTerms.isEmpty()) {
-            FeatureClusterView cluster = createFeatureClusterView(termsToFeatures(matchTerms, matchFeatureLookup),
-                termsToFeatures(refTerms, refFeatureLookup), this.access, null, 0.0);
-            clusters.add(cluster);
-        }
-        return clusters;
-    }
-
-    /**
-     * Return the original patient features for a set of VocabularyTerms.
-     *
-     * @param terms the terms to look up features for
-     * @param termLookup a mapping from term IDs to features in the patient
-     * @return a Collection of features in the patients corresponding to the given terms
-     */
-    private Collection<Feature> termsToFeatures(Collection<VocabularyTerm> terms, Map<String, Feature> termLookup)
-    {
-        Collection<Feature> features = new ArrayList<>();
-        for (VocabularyTerm term : terms) {
-            String id = term.getId();
-            if (id != null) {
-                Feature feature = termLookup.get(id);
-                if (feature != null) {
-                    features.add(feature);
-                }
-            }
-        }
-        return features;
-    }
 
     @Override
     public JSONArray getFeatureMatchesJSON()
     {
-        // Get list of clusters and convert to JSON
-        JSONArray matchesJSON = new JSONArray();
-        Collection<FeatureClusterView> clusters = getMatchedFeatures();
-        for (FeatureClusterView cluster : clusters) {
-            matchesJSON.put(cluster.toJSON());
-        }
-        return matchesJSON;
+        return getMatchedFeatures().toJSON();
     }
 
     Set<Disorder> getClinicalDisorders(Patient patient)

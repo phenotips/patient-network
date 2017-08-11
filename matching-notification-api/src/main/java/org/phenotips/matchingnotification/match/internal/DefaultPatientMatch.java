@@ -21,9 +21,10 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
+import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
