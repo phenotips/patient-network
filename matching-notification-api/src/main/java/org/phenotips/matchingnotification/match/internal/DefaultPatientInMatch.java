@@ -113,16 +113,15 @@ public class DefaultPatientInMatch implements PatientInMatch
      * Builds an object from PatientMatch and Patient objects. This is used when a PatientMatch object is built the
      * first time.
      *
-     * @param match the match that contains the patient this object represents
      * @param patient the patient that this object represents
      * @param serverId id of server where patient is found
      */
-    public DefaultPatientInMatch(PatientMatch match, Patient patient, String serverId)
+    public DefaultPatientInMatch(Patient patient, String serverId)
     {
         this.patient = patient;
         this.patientId = patient.getId();
         this.serverId = serverId;
-        this.href = populateHref(match.getHref());
+        this.href = populateHref(null);
 
         this.readDetails(patient);
     }
@@ -131,17 +130,17 @@ public class DefaultPatientInMatch implements PatientInMatch
      * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumn. This is used
      * when a PatientMatch is retrieved from the DB.
      *
-     * @param match the match that contains the patient this object represents
+     * @param href the href to remote patient that was stored in db in match object, null if match is local
      * @param patientId the id of the patient that this object represents
      * @param serverId id of server where patient is found
      * @param patientDetails the result of a previous call to getDetailsColumn.
      */
-    public DefaultPatientInMatch(PatientMatch match, String patientId, String serverId, String patientDetails)
+    public DefaultPatientInMatch(String href, String patientId, String serverId, String patientDetails)
     {
         this.patientId = patientId;
         this.serverId = serverId;
         this.patient = getLocalPatient();
-        this.href = populateHref(match.getHref());
+        this.href = populateHref(href);
 
         this.rebuildDetails(patientDetails);
     }

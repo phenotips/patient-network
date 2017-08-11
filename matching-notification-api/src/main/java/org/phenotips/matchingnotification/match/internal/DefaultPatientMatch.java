@@ -174,7 +174,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         Patient referencePatient = similarityView.getReference();
         this.referencePatientId = referencePatient.getId();
         this.referenceServerId = referenceServerId;
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
+        this.referencePatientInMatch = new DefaultPatientInMatch(referencePatient, this.referenceServerId);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
@@ -189,7 +189,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             matchedPatient = similarityView;
         }
         this.matchedPatientId = matchedPatient.getId();
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId);
+        this.matchedPatientInMatch = new DefaultPatientInMatch(matchedPatient, this.matchedServerId);
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
@@ -392,9 +392,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void onLoad(Session arg0, Serializable arg1)
     {
         this.referencePatientInMatch = new DefaultPatientInMatch(
-            this, this.referencePatientId, this.referenceServerId, this.referenceDetails);
+            this.href, this.referencePatientId, this.referenceServerId, this.referenceDetails);
         this.matchedPatientInMatch = new DefaultPatientInMatch(
-            this, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
+            this.href, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
     }
 
     @Override
