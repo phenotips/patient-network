@@ -19,8 +19,8 @@ package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.data.similarity.genotype.ExomiserExomeManager;
 import org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory;
-import org.phenotips.data.similarity.internal.ExomiserExomeManager;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;

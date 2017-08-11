@@ -34,9 +34,9 @@
   <name>PhenoTips - Patient network - Java REST APIs for finding similar patients</name>
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>phenotips-rest-commons</artifactId>
-      <version>${phenotips.version}</version>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-container-api</artifactId>
+      <version>${xwiki.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -46,6 +46,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-data-rest</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>phenotips-rest-commons</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -75,11 +80,6 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-store-api</artifactId>
-      <version>${xwiki.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-rest-server</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
@@ -90,7 +90,7 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-container-api</artifactId>
+      <artifactId>xwiki-platform-store-api</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
