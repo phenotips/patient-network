@@ -40,21 +40,21 @@ public interface AccessType
     /**
      * Indicates full access to the patient's data.
      *
-     * @return {@code true} if the patient has full access to the patient data, {@code false} otherwise
+     * @return {@code true} if the user has full access to the patient data, {@code false} otherwise
      */
     boolean isOpenAccess();
 
     /**
      * Indicates limited, obfuscated access to the patient's data.
      *
-     * @return {@code true} if the patient has only limited access to the patient data, {@code false} otherwise
+     * @return {@code true} if the user has only limited access to the patient data, {@code false} otherwise
      */
     boolean isLimitedAccess();
 
     /**
      * Indicates no access to the patient's data.
      *
-     * @return {@code true} if the patient has no access to the patient data, {@code false} otherwise
+     * @return {@code true} if the user has no access to the patient data, {@code false} otherwise
      */
     boolean isPrivateAccess();
 }
