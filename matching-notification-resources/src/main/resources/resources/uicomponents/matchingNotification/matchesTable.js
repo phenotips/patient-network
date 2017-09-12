@@ -11,8 +11,12 @@ define(["jquery", "dynatable"], function($, dyna)
 
             this._tableBuilt = false;
 
+            this._showMatchAccessTypes = {"owner" : true, "shared" : true};
+
             $('#expand_all').on('click', this._expandAllClicked.bind(this));
             $('#gene_status_filter').on('change', this._filterByGeneStatus.bind(this));
+            $('#owner').on('click', this._filterByAccess.bind(this));
+            $('#view').on('click', this._filterByAccess.bind(this));
         },
 
         update : function(matches)
@@ -544,6 +548,15 @@ define(["jquery", "dynatable"], function($, dyna)
                 // select both emails checkboxes if first column checkbox is selected
                 $(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
             }
+        },
+
+        _filterByAccess : function(event) {
+            if (event && event.target && event.target.id) {
+                this._showMatchAccessTypes[event.target.id] = !event.target.checked;
+            }
+            this._matchesTable.setFilter( function (match) {
+                return this._showMatchAccessTypes[match.matched.access] || this._showMatchAccessTypes[match.reference.access];
+            }.bind(this) );
         },
 
         // checking if a string is blank or contains only white-space
