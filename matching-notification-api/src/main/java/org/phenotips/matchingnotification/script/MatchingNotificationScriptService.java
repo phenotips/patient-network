@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.script;
 
+import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
@@ -81,6 +82,11 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private EntityReferenceResolver<String> resolver;
 
+    /** Needed for checking if a given access level provides read access to patients. */
+    @Inject
+    @Named("view")
+    private AccessLevel viewAccess;
+
     private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
     /**
@@ -91,10 +97,10 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String findAndSaveMatches(double score)
     {
-        if (!isAdmin()) {
-            return "";
-        }
         List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
+        if (!isAdmin()) {
+            filterNonUsersMatches(matches);
+        }
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
@@ -108,11 +114,11 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String getMatches(double score, boolean notified)
     {
-        if (!isAdmin()) {
-            return "";
-        }
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
         filterPatientsFromMatches(matches);
+        if (!isAdmin()) {
+            filterNonUsersMatches(matches);
+        }
         JSONObject json = this.patientMatchExport.toJSON(matches);
         return json.toString();
     }
@@ -131,9 +137,6 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String setStatus(String ids, String status)
     {
-        if (!isAdmin()) {
-            return "";
-        }
         List<Long> idsList = this.jsonToIdsList(ids);
         boolean success = this.matchingNotificationManager.setStatus(idsList, status);
         return this.successfulIdsToJSON(idsList, success ? idsList : Collections.<Long>emptyList()).toString();
@@ -163,9 +166,6 @@ public class MatchingNotificationScriptService implements ScriptService
     @SuppressWarnings("unchecked")
     public String sendNotifications(String ids)
     {
-        if (!isAdmin()) {
-            return "";
-        }
         Map<Long, String> idsList = this.jsonToIdsMap(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
@@ -261,5 +261,21 @@ public class MatchingNotificationScriptService implements ScriptService
     {
         return this.auth.hasAccess(this.users.getCurrentUser(), Right.ADMIN,
             this.resolver.resolve("", EntityType.WIKI));
+    }
+
+    /**
+     * Filters out matches that user does not own or has access to.
+     */
+    private void filterNonUsersMatches(List<PatientMatch> matches)
+    {
+        ListIterator<PatientMatch> iterator = matches.listIterator();
+        while (iterator.hasNext()) {
+            PatientMatch match = iterator.next();
+            boolean hasViewAccess = this.viewAccess.compareTo(match.getReference().getAccess()) <= 0
+                && this.viewAccess.compareTo(match.getMatched().getAccess()) <= 0;
+            if (!hasViewAccess) {
+                iterator.remove();
+            }
+        }
     }
 }

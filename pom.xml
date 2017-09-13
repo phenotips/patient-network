@@ -291,6 +291,12 @@
               <method>boolean hasExomeData()</method>
               <justification>Added to determine whether patient has any exome data.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>org.phenotips.data.permissions.AccessLevel getAccess()</method>
+              <justification>Added to determine what type of access does the user have to this patient profile.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
