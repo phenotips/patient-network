@@ -65,14 +65,28 @@
   margin-top: 15px;
   margin-bottom: 25px;
 }
-#find-matches-messages, #show-matches-messages {
+
+#find-matches-messages, #show-matches-messages, #send-notifications-messages {
   display: inline-block;
   margin-left: 1em;
-  color: green;
 }
+
 #table-filter-div div {
   display: inline-block;
 }
+
 #table-filter-div {
   margin-bottom: 15px;
+}
+
+.success {
+  color: green;
+}
+
+.failure {
+  color: red;
+}
+
+.hint-loading {
+  color: blue;
 }
