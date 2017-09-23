@@ -62,7 +62,7 @@
   </repositories>
 
   <properties>
-    <project.version.previous>1.0</project.version.previous>
+    <project.version.previous>1.1</project.version.previous>
   </properties>
 
   <modules>
