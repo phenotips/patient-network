@@ -69,7 +69,7 @@ public interface MatchedPatientClusterView
      * Returns the JSON representation of the {@link #getReference() reference patient} and its {@link #getMatches()
      * matches}, starting from {@code fromIndex}, inclusive, and up to {@code toIndex}, inclusive. Will throw an
      * {@link IndexOutOfBoundsException} if one or both indices are out of bounds, and {@link IllegalArgumentException}
-     * if fromIndex > toIndex.
+     * if {@code fromIndex > toIndex}.
      *
      * @param fromIndex the starting position
      * @param toIndex the end position (inclusive)
