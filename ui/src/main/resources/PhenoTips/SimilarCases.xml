@@ -37,34 +37,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output=false}}
-  #set ($patient = $services.patients.get("$!{request.query}"))
-  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
-  #if ("$!matches" == '')
-    #set ($matches = [])
-  #else
-    $services.matchingNotification.saveLocalMatches($matches)
-  #end
-{{/velocity}}
-
-{{velocity}}
-#if ($xcontext.action == 'get')
-  $response.setContentType('application/json')
-#end
-#set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))
-{
-  "query": $patient.toJSON(),
-  "isManager" : $isManager,
-  "resultsCount" : $matches.size(),
-  "results" : [
-#foreach ($p in $matches)
-  #set ($match = $p.toJSON())
-  #if (!$isManager)#set ($match.owner.email = '')#end$match#if ($foreach.hasNext()),
-  #end
-#end
-  ]
-}
-{{/velocity}}</content>
+  <content/>
   <class>
     <name>PhenoTips.SimilarCases</name>
     <customClass/>
@@ -198,7 +171,7 @@
       <code>var PhenoTips = (function (PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.Matcher = Class.create({
-    matchServiceURL : "${xwiki.getURL('PhenoTips.SimilarCases', 'get')}",
+    matchServiceURL : XWiki.contextPath + "/rest/patients/___patient_id___/similar-cases",
     matchContactURL : "${xwiki.getURL('PhenoTips.MatchContact', 'get')}",
     _UNKNOWN_INFO_MARKER : "unknown",
     _UNKNOWN_INFO_TEXT : "Undisclosed information",
@@ -217,6 +190,7 @@
     initialize : function(query, resultsContainer, options) {
       if (!query || !resultsContainer) {return;}
       this.query = query;
+      this.matchServiceURL = this.matchServiceURL.replace(/___patient_id___/i, this.query);
       this.container = resultsContainer;
 
       this.buttonContainer = new Element('div',{'class':'similarity-results-button-container'});
@@ -230,7 +204,7 @@
           this.refreshButton.observe('click', this.launchSearchRefresh);
         }
         this.matchServiceURL = options.serviceURL || this.matchServiceURL;
-        this._maxResults = options.maxResults || '';
+        this._maxResults = options.maxResults || this._MAX_RESULTS_DISPLAYED;
         this._minScore = options.minScore || '';
         this._mmeServer = options.mmeServer || "";
         this._mmeMode = (this._mmeServer != "");
@@ -244,6 +218,13 @@
           this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
+        if (options.enablePagination) {
+          this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), 10);
+          var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
+          this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
+          this.page = 1;
+          this.pagination = $('pagination-similar-cases' + serverSuffix);
+        }
       }
       this.launchSearchExisting();
 
@@ -276,12 +257,14 @@
             'server' : this._mmeServer,
             'maxResults' : this._maxResults,
             'minScore' : this._minScore,
-            'sendNewRequest' : refresh ? "true" : "false"
+            'sendNewRequest' : refresh ? "true" : "false",
+            'offset' : (_this.page - 1) * _this._maxResults + 1
           } : {
             'query' : this.query,
             'outputSyntax' : "plain",
             'maxResults' : this._maxResults,
-            'minScore' : this._minScore
+            'minScore' : this._minScore,
+            'offset' : (_this.page - 1) * _this._maxResults + 1
           };
       this.activeSearch = new Ajax.Request(
         this.matchServiceURL,
@@ -290,10 +273,19 @@
           method: "post",
           onCreate : function() {
             _this.container.addClassName('loading');
-            _this.container.update('');
           },
-          onSuccess: function(response) {
+          on204 : function(response) {
+            data = {};
+            data.nodata = true;
+            _this.displayResults(data);
+          },
+          onSuccess : function(response) {
             _this.displayResults(response.responseJSON);
+          },
+          onFailure : function(response) {
+            var data = {};
+            data.error = _this._generateFailureReason(response.status);
+            _this.displayResults(data);
           },
           onComplete : function() {
             _this.container.removeClassName('loading');
@@ -301,6 +293,32 @@
           }
         }
       );
+    },
+
+    _generateFailureReason: function(status) {
+    	var response;
+
+    	switch(status) {
+    	  case 401:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
+    	    break;
+    	  case 400:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
+    	    break;
+    	  case 500:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+    	    break;
+    	  default:
+          response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+    	}
+    	return response;
+    },
+
+    changePageSize: function(newLimit) {
+      this._MAX_RESULTS_DISPLAYED = newLimit;
+      this._maxResults = this._MAX_RESULTS_DISPLAYED;
+      this.page = 1;
+      this.launchSearchExisting();
     },
 
     displayResults : function(data) {
@@ -311,6 +329,7 @@
 
       // Show result summary
       if (!data || data.nodata || data.error) {
+        this.pagination.addClassName('hidden');
         this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.findMatchesText'))";
         this.refreshButton.down('span').removeClassName('fa-refresh');
         this.refreshButton.down('span').addClassName('fa-search');
@@ -321,31 +340,50 @@
         }
         return;
       } else {
+        this.pagination.removeClassName('hidden');
         this.refreshButton.down('span').removeClassName('fa-search');
         this.refreshButton.down('span').addClassName('fa-refresh');
         this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases._DEFAULT_REFRESH_BUTTON_TEXT'))";
       }
-
       if (!data || data.resultsCount &lt;= 0) {
+        this.pagination.addClassName('hidden');
         this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noSimilarCases'))");
         return;
       }
+      this.totalResultsCount = data.resultsCount;
       // Make sure the results are for this query
       if (!data.query || !data.query.id || data.query.id != this.query) {
+        this.pagination.addClassName('hidden');
         this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noqueryReported'))");
         return;
       }
       data.featuresCount = data.query.features ? data.query.features.size() : 0;
-      data.resultsCount = Math.min(data.resultsCount, this._MAX_RESULTS_DISPLAYED);
-      data.results = data.results.slice(0, data.resultsCount);
-
-
-      this.displaySummary(("$escapetool.javascript($services.localization.render('phenotips.similarCases.showingSimilar'))".replace("__numberOfCases__", data.resultsCount))
+      var resultsCount = this._data.returnedCount || Math.min(this.totalResultsCount, this._MAX_RESULTS_DISPLAYED);
+      this.displaySummary(("$escapetool.javascript($services.localization.render('phenotips.similarCases.showingSimilar'))".replace("__numberOfCases__", resultsCount))
                           + (data.totalMatchesCount ? ". $escapetool.javascript($services.localization.render('phenotips.similarCases.totalMatches')) "
                           + data.totalMatchesCount : ""));
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
+
+      this.renderResults();
+    },
+
+    renderResults : function() {
+      this.container.update('');
+      var begin = 0;
+      var end = Math.min(this.totalResultsCount, this._MAX_RESULTS_DISPLAYED);
+
+      if (this.page) {
+        this.totalPages = Math.ceil(this.totalResultsCount/this._MAX_RESULTS_DISPLAYED);
+        begin = this._data.offset - 1;
+        end = begin + this._data.returnedCount;
+        this.paginator.refreshPagination();
+      }
+
+      var firstItemRangeNo = begin + 1;
+      var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + end).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
+      this.displaySummary(tableSummary, null, true);
 
       // Process results
       var _this = this;
@@ -391,16 +429,21 @@
       };
 
       this._displayTableHeader(columns, resultsTable);
-      data.results.each(function(r) {
+      this._data.results.each(function(r) {
         _this._displayResultRow(r, columns, resultsTable);
       });
-      delete this._queryFeatures;
-      delete this._data;
     },
 
-    displaySummary : function (message, container) {
+    displaySummary : function (message, container, isHeader) {
       var c = container || this.container;
-      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message);
+      var summary = new Element("p", {class: this._SUMMARY_MARKER});
+      if (isHeader &amp;&amp; this.page) {
+        summary.update(message);
+        new PhenoTips.widgets.MatcherPageSizer(this, summary, null, this._maxResults)
+      } else {
+        summary.update(message);
+      }
+
       c.insert(summary);
       return summary;
     },
@@ -1041,7 +1084,8 @@
         minScore: minScore &amp;&amp; minScore.value,
         mmeServer: mmeServer &amp;&amp; mmeServer.value,
         omimSection: omimSection &amp;&amp; omimSection.value,
-        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
+        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value,
+        enablePagination: true
       });
     });
   };
@@ -1172,6 +1216,337 @@
     </property>
     <property>
       <name>FontAwesome icon utils</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>3</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>6245ccba-6efe-4b3a-8f64-3de27980546f</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function(PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.MatcherPaginator = Class.create({
+    initialize: function(table, domNode, max) {
+      var _this = this;
+      this.table = table;
+      this.max = max;
+      this.pagesNode = domNode.down(".xwiki-livetable-pagination-content");
+      var prevPagination = domNode.down(".prevPagination");
+      var nextPagination = domNode.down(".nextPagination");
+      prevPagination &amp;&amp; prevPagination.observe("click", function(ev) {
+        _this.gotoPrevPage(ev);
+      });
+      nextPagination &amp;&amp; nextPagination.observe("click", function(ev) {
+        _this.gotoNextPage(ev);
+      });
+    },
+    refreshPagination: function() {
+      var _this = this;
+      this.pagesNode.innerHTML = "";
+      var pages = this.table.totalPages;
+      var currentMax = (!this.max) ? pages : this.max;
+      var currentPage = this.table.page;
+      var startPage = Math.floor(currentPage / currentMax) * currentMax - 1;
+      
+      // always display the first page
+      if (startPage&gt;1) {
+         this.pagesNode.insert(_this.createPageLink(1, false));
+         if (startPage&gt;2) {
+            this.pagesNode.insert(" ... ");
+         }
+      }
+      // display pages
+      for (var i=(startPage&lt;=0) ? 1 : startPage;i&lt;=Math.min(startPage + currentMax + 1, pages);i++) {
+         var selected = (currentPage == i);
+         this.pagesNode.insert(_this.createPageLink(i, selected));
+         this.pagesNode.insert(" ");
+      }
+      // always display the last page.
+      if (i&lt;pages) {
+        if (i+1 &lt;= pages) {
+          this.pagesNode.insert(" ... ");
+        }
+        this.pagesNode.insert(_this.createPageLink(pages, false));
+      }
+
+      this._updateArrowsState(currentPage, pages);
+    },
+    createPageLink: function(page, selected) {
+        var pageSpan = new Element("a", {'class':'pagenumber', 'href':'#'}).update(page);
+        if (selected) {
+           pageSpan.addClassName("selected");
+        }
+        var _this = this;
+        pageSpan.observe("click", function(ev){
+            ev.stop();
+            _this.gotoPage(ev.element().innerHTML);
+        });
+        return pageSpan;
+    },
+    gotoPage: function(page)
+    {
+      this.table.page = parseInt(page);
+      this.table.launchSearchExisting();
+    },
+    gotoPrevPage: function(ev) {
+      ev.stop();
+      var prevPage = this.table.page - 1;
+      if (prevPage &gt; 0) {
+        this.table.page--;
+        this.table.launchSearchExisting();
+      }
+    },
+    gotoNextPage: function(ev) {
+      ev.stop();
+      var pages = this.table.totalPages;
+      var nextPage = this.table.page + 1;
+      if (nextPage &lt;= pages) {
+        this.table.page++;
+        this.table.launchSearchExisting();
+      }
+    },
+    _updateArrowsState: function(currentPage, pages) {
+      if (currentPage &lt;= 1) {
+        this._switchClassName('noPrevPagination', 'prevPagination');
+      } else {
+        this._switchClassName('prevPagination', 'noPrevPagination');
+      }
+      if (currentPage &gt;= pages) {
+        this._switchClassName('noNextPagination', 'nextPagination');
+      } else {
+        this._switchClassName('nextPagination', 'noNextPagination');
+      }
+    },
+    _switchClassName: function(addName, removeName) {
+      if (!this.pagesNode.up().previous('.controlPagination')) {
+        return;
+      }
+      var page = this.pagesNode.up().previous('.controlPagination').down('.' + removeName);
+      page &amp;&amp; page.addClassName(addName).removeClassName(removeName);
+    }
+  });
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>Similar cases pagination code</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>4</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>4c92006b-b9ff-4c94-a49d-121de24ba212</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function(PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.MatcherPageSizer = Class.create({
+    initialize: function(table, domNode, pageSizeBounds, currentPageSize) {
+      this.table = table;
+      this.currentValue = currentPageSize;
+      var bounds = pageSizeBounds || [10, 100, 10];
+      this.startValue = bounds[0];
+      this.step = bounds[2];
+      this.maxValue = bounds[1];
+      domNode.insert(this.createPageSizeSelectControl());
+    },
+    /**
+     * Create the page size control using a select node and returns it
+     * @return an Element containing the select
+     **/
+    createPageSizeSelectControl: function() {
+      var select = new Element('select', {'class':'pagesizeselect'});
+      for (var i=this.startValue; i&lt;=this.maxValue; i += this.step) {
+        var attrs = {'value':i, 'text':i};
+        if (i == this.currentValue) {
+          attrs.selected = true;
+        } else {
+          var prevStep = i - this.step;
+          if (this.currentValue > prevStep &amp;&amp; this.currentValue &lt; i) {
+            select.appendChild(new Element('option', {'value':this.currentValue, 'text':this.currentValue, selected:true}).update(this.currentValue));
+          }
+        }
+        select.appendChild(new Element('option', attrs).update(i));
+      }
+      select.observe("change", this.changePageSize.bind(this));
+      return select;
+    },
+
+    /**
+     * Change the page size of the table
+     **/
+    changePageSize: function(event) {
+      event.stop();
+      var newLimit =  parseInt($F(Event.element(event)));
+      this.table.changePageSize(newLimit);
+    }
+  });
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>Similar cases page sizer code</name>
     </property>
     <property>
       <parse>0</parse>
@@ -1433,6 +1808,12 @@
 .similarity-info .refresh-matches-button {
   margin-left: 5px;
   white-space: nowrap;
+}
+.similarity-info .pagesizeselect {
+  margin-left: 5px;
+}
+.similarity-info a.pagenumber {
+  margin-left: 5px;
 }</code>
     </property>
     <property>
@@ -1713,7 +2094,19 @@
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
       (% class="similar-cases-category similar-cases-local" %)(((
       === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
-      (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+      (% class="similarity-results-container-local" %)(((
+        (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+        ## Pagination
+        $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
+        {{html clean=false}}&lt;span class="xwiki-livetable-pagination" id="pagination-similar-cases"&gt;&lt;span class="controlPagination"&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+          &lt;/span&gt;
+          &lt;span class="pagination"&gt;
+            &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+            &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+          &lt;/span&gt;&lt;/span&gt;
+        {{/html}})))##
       )))
       ## Allow to plug in other data sources if current user is owner or manager of this patient record doc
       #set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))

@@ -27,30 +27,15 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.67</coverage.instructionRatio>
+    <coverage.instructionRatio>1.00</coverage.instructionRatio>
   </properties>
 
-  <artifactId>patient-similarity-data-impl</artifactId>
-  <name>PhenoTips - Patient network - Default implementation for the similar patients APIs</name>
+  <artifactId>patient-similarity-data-rest</artifactId>
+  <name>PhenoTips - Patient network - Java REST APIs for finding similar patients</name>
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-similarity-data-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>anonymous-communication</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>component-registry</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>vocabularies-api</artifactId>
+      <artifactId>phenotips-rest-commons</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -60,17 +45,22 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>patient-data-rest</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>patient-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-contacts</artifactId>
-      <version>${phenotips.version}</version>
+      <artifactId>patient-similarity-search</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-network-access-rules</artifactId>
+      <artifactId>patient-similarity-data-impl</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -80,17 +70,18 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
-      <artifactId>xwiki-commons-environment-api</artifactId>
+      <artifactId>xwiki-commons-context</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.commons</groupId>
-      <artifactId>xwiki-commons-script</artifactId>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rest-api</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rest-server</artifactId>
+      <version>${xwiki.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -99,16 +90,20 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-cache-api</artifactId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>jsr311-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
@@ -117,30 +112,10 @@
       <version>${xwiki.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <!-- Apply the Checkstyle configurations defined in the top level pom.xml file -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <suppressionsLocation>${basedir}/src/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <!-- Some test classes are using an instance mock which is reused by individual methods. -->
-          <parallel>classes</parallel>
-          <threadCount>1</threadCount>
-          <reuseForks>false</reuseForks>
-          <forkCount>1</forkCount>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

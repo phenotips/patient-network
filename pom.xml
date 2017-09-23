@@ -69,6 +69,7 @@
     <module>access-rules</module>
     <module>similarity-data-api</module>
     <module>similarity-data-impl</module>
+    <module>similarity-data-rest</module>
     <module>similarity-search</module>
     <module>communication</module>
     <module>ui</module>
