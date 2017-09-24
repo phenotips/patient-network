@@ -88,6 +88,8 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
     @Named("restricted")
     private PatientSimilarityViewFactory factory;
 
+    private DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
+
     @Override
     public String getDescription()
     {
@@ -179,15 +181,13 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
      */
     private boolean wasModifiedAfterMatch(PatientMatch match)
     {
-        DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
-
         PatientData<String> patientData = match.getReference().getPatient().<String>getData("metadata");
         String date = patientData.get("date");
-        DateTime referenceLastModifiedDate = dateFormatter.parseDateTime(date);
+        DateTime referenceLastModifiedDate = this.dateFormatter.parseDateTime(date);
 
         patientData = match.getMatched().getPatient().<String>getData("metadata");
         date = patientData.get("date");
-        DateTime matchedLastModifiedDate = dateFormatter.parseDateTime(date);
+        DateTime matchedLastModifiedDate = this.dateFormatter.parseDateTime(date);
 
         Timestamp matchTimestamp = match.getFoundTimestamp();
         DateTime matchTimestampFormatted = new DateTime(matchTimestamp.getTime());
