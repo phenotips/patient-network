@@ -109,7 +109,7 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
         List<PatientMatch> matches = q.list();
 
         // store patient IDs of local patients that were deleted to delete all matches for them
-        List<String> deletedPatients = new ArrayList<String>();
+        List<String> deletedPatients = new ArrayList<>();
 
         Transaction t = session.beginTransaction();
         try {
@@ -128,7 +128,7 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
                 if (match.isLocal() && wasModifiedAfterMatch(match)) {
                     // re-compute the match with just fetched two local patients
                     PatientSimilarityView similarityView = this.factory.makeSimilarPatient(matchedPatient.getPatient(),
-                            referencePatient.getPatient());
+                        referencePatient.getPatient());
                     PatientMatch newMatch = new DefaultPatientMatch(similarityView, null, null);
                     updateMatch(match, newMatch);
                     session.update(match);
@@ -150,7 +150,7 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
      * Check if match has a local patient that was deleted.
      */
     private boolean matchHasDeletedPatient(PatientInMatch matchedPatient, PatientInMatch referencePatient,
-            List<String> deletedPatients)
+        List<String> deletedPatients)
     {
         String referencePatientId = referencePatient.getPatientId();
         String matchedPatientId = matchedPatient.getPatientId();
@@ -196,7 +196,8 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
             || matchTimestampFormatted.isBefore(matchedLastModifiedDate));
     }
 
-    private void updateMatch(PatientMatch match, PatientMatch newMatch) {
+    private void updateMatch(PatientMatch match, PatientMatch newMatch)
+    {
         // update the existing match with new properties of just re-computed match
         match.setFoundTimestamp(newMatch.getFoundTimestamp());
         match.setScore(newMatch.getScore());
