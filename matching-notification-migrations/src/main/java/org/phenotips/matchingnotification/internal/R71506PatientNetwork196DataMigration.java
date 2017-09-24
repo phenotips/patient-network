@@ -55,16 +55,16 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 import com.xpn.xwiki.store.migration.hibernate.HibernateDataMigration;
 
 /**
- * Migration for PatientNetwork issue PN-196: Create migrator to delete matches
- * with deleted local patients and update local matches with modified patients.
+ * Migration for PatientNetwork issue PN-196: Create migrator to delete matches with deleted local patients and update
+ * local matches with modified patients.
  *
  * @version $Id$
  * @since 1.2
  */
 @Component(roles = { HibernateDataMigration.class })
-@Named("R71503PatientNetwork196")
+@Named("R71506PatientNetwork196")
 @Singleton
-public class R71503PatientNetwork196DataMigration extends AbstractHibernateDataMigration
+public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataMigration
 {
     /** Logging helper object. */
     @Inject
@@ -97,7 +97,7 @@ public class R71503PatientNetwork196DataMigration extends AbstractHibernateDataM
     @Override
     public XWikiDBVersion getVersion()
     {
-        return new XWikiDBVersion(71502);
+        return new XWikiDBVersion(71506);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class R71503PatientNetwork196DataMigration extends AbstractHibernateDataM
             }
             t.commit();
         } catch (HibernateException ex) {
-            R71503PatientNetwork196DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
+            R71506PatientNetwork196DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
                 ex.getMessage());
             if (t != null) {
                 t.rollback();
