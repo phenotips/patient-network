@@ -154,9 +154,9 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     /**
-     * Reorders predefined phenotypes lists in both maps, for display. After reordering, all common phenotypes appear in
-     * the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed or not.
-     * Order remains by `name` fields as before. Free text list remains the same. Example:
+     * Reorders predefined phenotypes lists in both lists, for display. After reordering, all common phenotypes appear
+     * in the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed or
+     * not. Order remains by `name` fields as before. Free text list remains the same. Example:
      *
      * <pre>
      * {@code
