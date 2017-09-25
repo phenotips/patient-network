@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -221,7 +222,7 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
 
     // Construct the map where keys are phenotype names and objects are phenotypes themself
     private static Map<String, Map<String, String>> constructMap(List<Map<String, String>> list) {
-        Map<String, Map<String, String>> map = new HashMap<String, Map<String, String>>();
+        Map<String, Map<String, String>> map = new LinkedHashMap<String, Map<String, String>>();
         for (Map<String, String> item : list) {
             map.put(item.get(NAME_FIELD), item);
         }
