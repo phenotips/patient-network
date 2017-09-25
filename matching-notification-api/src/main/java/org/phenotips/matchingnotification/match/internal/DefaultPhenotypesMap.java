@@ -189,40 +189,39 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
      */
     public static void reorder(List<Map<String, String>> predefined1, List<Map<String, String>> predefined2)
     {
-        List<Map<String, String>> predefined1Copy = new ArrayList<Map<String, String>>(predefined1);
-        List<Map<String, String>> predefined2Copy = new ArrayList<Map<String, String>>(predefined2);
+        List<Map<String, String>> predefined1Copy = new ArrayList<>(predefined1);
+        List<Map<String, String>> predefined2Copy = new ArrayList<>(predefined2);
 
         Map<String, Map<String, String>> predefined1Map = constructMap(predefined1Copy);
         Map<String, Map<String, String>> predefined2Map = constructMap(predefined2Copy);
 
-        Set<String> names1 = new HashSet<String>(predefined1Map.keySet());
-        Set<String> names2 = new HashSet<String>(predefined2Map.keySet());
-
-        // get all common phenotypes names in names1 list
-        names1.retainAll(names2);
+        // get all common phenotypes names
+        Set<String> commonNames = new HashSet<>(predefined1Map.keySet());
+        commonNames.retainAll(predefined2Map.keySet());
 
         predefined1.clear();
         predefined2.clear();
 
         // first copy the common phenotypes
-        for (String key : names1) {
+        for (String key : commonNames) {
             predefined1.add(predefined1Map.remove(key));
             predefined2.add(predefined2Map.remove(key));
         }
 
         // copy the left over unique phenotypes
-        for (String key : predefined1Map.keySet()) {
-            predefined1.add(predefined1Map.get(key));
+        for (Map<String, String> item : predefined1Map.values()) {
+            predefined1.add(item);
         }
 
-        for (String key : predefined2Map.keySet()) {
-            predefined2.add(predefined2Map.get(key));
+        for (Map<String, String> item : predefined2Map.values()) {
+            predefined2.add(item);
         }
     }
 
-    // Construct the map where keys are phenotype names and objects are phenotypes themself
-    private static Map<String, Map<String, String>> constructMap(List<Map<String, String>> list) {
-        Map<String, Map<String, String>> map = new LinkedHashMap<String, Map<String, String>>();
+    // Construct the map where keys are phenotype names and objects are phenotypes themselves
+    private static Map<String, Map<String, String>> constructMap(List<Map<String, String>> list)
+    {
+        Map<String, Map<String, String>> map = new LinkedHashMap<>();
         for (Map<String, String> item : list) {
             map.put(item.get(NAME_FIELD), item);
         }
