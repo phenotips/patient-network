@@ -22,10 +22,12 @@ import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -152,9 +154,9 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     /**
-     * Reorders predefined phenotypes lists in both maps, for display. After reordering, all common phenotypes appear in
-     * the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed or not.
-     * Order remains by `name` fields as before. Free text list remains the same. Example:
+     * Reorders predefined phenotypes lists in both lists, for display. After reordering, all common phenotypes appear
+     * in the beginning of the list and in the same order. The reordering ignores whether the phenotype is observed or
+     * not. Order remains by `name` fields as before. Free text list remains the same. Example:
      *
      * <pre>
      * {@code
@@ -187,63 +189,42 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
      */
     public static void reorder(List<Map<String, String>> predefined1, List<Map<String, String>> predefined2)
     {
-        // Break lists to common predefined phenotypes, and those unique to each list. There are two common lists
-        // because the same phenotype can have different properties in each patient (for example, observed in one
-        // but not in the other).
-        List<Map<String, String>> common1 = new LinkedList<>();
-        List<Map<String, String>> common2 = new LinkedList<>();
-        List<Map<String, String>> unique1 = new LinkedList<>();
-        List<Map<String, String>> unique2 = new LinkedList<>();
+        List<Map<String, String>> predefined1Copy = new ArrayList<>(predefined1);
+        List<Map<String, String>> predefined2Copy = new ArrayList<>(predefined2);
 
-        Iterator<Map<String, String>> iterator1 = predefined1.iterator();
-        Iterator<Map<String, String>> iterator2 = predefined2.iterator();
-        Map<String, String> item1 = null;
-        Map<String, String> item2 = null;
-        String name1 = null;
-        String name2 = null;
-        boolean next1 = true;
-        boolean next2 = true;
+        Map<String, Map<String, String>> predefined1Map = constructMap(predefined1Copy);
+        Map<String, Map<String, String>> predefined2Map = constructMap(predefined2Copy);
 
-        while (iterator1.hasNext() && iterator2.hasNext()) {
-            if (next1) {
-                item1 = iterator1.next();
-                name1 = item1.get(NAME_FIELD);
-                next1 = false;
-            }
-            if (next2) {
-                item2 = iterator2.next();
-                name2 = item2.get(NAME_FIELD);
-                next2 = false;
-            }
+        // get all common phenotypes names
+        Set<String> commonNames = new HashSet<>(predefined1Map.keySet());
+        commonNames.retainAll(predefined2Map.keySet());
 
-            if (StringUtils.equals(name1, name2)) {
-                common1.add(item1);
-                common2.add(item2);
-                next1 = true;
-                next2 = true;
-            } else if (name1.compareTo(name2) < 0) {
-                unique1.add(item1);
-                next1 = true;
-            } else {
-                unique2.add(item2);
-                next2 = true;
-            }
-        }
-
-        while (iterator1.hasNext()) {
-            unique1.add(iterator1.next());
-        }
-        while (iterator2.hasNext()) {
-            unique2.add(iterator2.next());
-        }
-
-        // Rebuild predefined
         predefined1.clear();
-        predefined1.addAll(common1);
-        predefined1.addAll(unique1);
-
         predefined2.clear();
-        predefined2.addAll(common2);
-        predefined2.addAll(unique2);
+
+        // first copy the common phenotypes
+        for (String key : commonNames) {
+            predefined1.add(predefined1Map.remove(key));
+            predefined2.add(predefined2Map.remove(key));
+        }
+
+        // copy the left over unique phenotypes
+        for (Map<String, String> item : predefined1Map.values()) {
+            predefined1.add(item);
+        }
+
+        for (Map<String, String> item : predefined2Map.values()) {
+            predefined2.add(item);
+        }
+    }
+
+    // Construct the map where keys are phenotype names and objects are phenotypes themselves
+    private static Map<String, Map<String, String>> constructMap(List<Map<String, String>> list)
+    {
+        Map<String, Map<String, String>> map = new LinkedHashMap<>();
+        for (Map<String, String> item : list) {
+            map.put(item.get(NAME_FIELD), item);
+        }
+        return map;
     }
 }
