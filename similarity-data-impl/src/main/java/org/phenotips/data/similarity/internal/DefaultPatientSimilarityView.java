@@ -20,6 +20,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
@@ -34,9 +35,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -198,6 +201,17 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
             for (Disorder disorder : this.reference.getDisorders()) {
                 if (this.match == null || findMatchingDisorder(disorder, this.match.getDisorders()) == null) {
+                    result.add(createDisorderSimilarityView(null, disorder, this.access));
+                }
+            }
+            Set<Disorder> clinicalMatchDisorders = getClinicalDisorders(this.match);
+            Set<Disorder> clinicalRefDisorders = getClinicalDisorders(this.reference);
+            for (Disorder disorder : clinicalMatchDisorders) {
+                result.add(createDisorderSimilarityView(disorder,
+                    findMatchingDisorder(disorder, clinicalRefDisorders), this.access));
+            }
+            for (Disorder disorder : clinicalRefDisorders) {
+                if (this.match == null || findMatchingDisorder(disorder, clinicalMatchDisorders) == null) {
                     result.add(createDisorderSimilarityView(null, disorder, this.access));
                 }
             }
@@ -564,5 +578,19 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             matchesJSON.put(cluster.toJSON());
         }
         return matchesJSON;
+    }
+
+    Set<Disorder> getClinicalDisorders(Patient patient)
+    {
+        PatientData<Disorder> data = patient.getData("clinical-diagnosis");
+        Set<Disorder> disorders = new TreeSet<>();
+        if (data != null) {
+            Iterator<Disorder> iterator = data.iterator();
+            while (iterator.hasNext()) {
+                Disorder disorder = iterator.next();
+                disorders.add(disorder);
+            }
+        }
+        return Collections.unmodifiableSet(disorders);
     }
 }
