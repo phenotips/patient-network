@@ -184,7 +184,8 @@
     _DEFAULT_REFRESH_BUTTON_TEXT : "Refresh Matches",
     _MAX_RESULTS_DISPLAYED : 10,
     DISEASE_DB_LINKS : {
-      "MIM:" : "http://www.omim.org/entry/"
+      "MIM:" : "http://www.omim.org/entry/",
+      "ORDO:" : "http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&amp;Expert="
     },
 
     initialize : function(query, resultsContainer, options) {
