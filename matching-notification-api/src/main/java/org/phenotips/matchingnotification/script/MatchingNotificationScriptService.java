@@ -34,9 +34,11 @@ import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -158,12 +160,13 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
+    @SuppressWarnings("unchecked")
     public String sendNotifications(String ids)
     {
         if (!isAdmin()) {
             return "";
         }
-        List<Long> idsList = this.jsonToIdsList(ids);
+        Map<Long, String> idsList = this.jsonToIdsMap(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
 
@@ -176,7 +179,7 @@ public class MatchingNotificationScriptService implements ScriptService
             }
         }
 
-        return this.successfulIdsToJSON(idsList, successfullyNotified).toString();
+        return this.successfulIdsToJSON(new ArrayList<Long>(idsList.keySet()), successfullyNotified).toString();
     }
 
     private List<Long> jsonToIdsList(String idsJson)
@@ -190,6 +193,27 @@ public class MatchingNotificationScriptService implements ScriptService
                     int idsNum = idsJSONArray.length();
                     for (int i = 0; i < idsNum; i++) {
                         ids.add(idsJSONArray.getLong(i));
+                    }
+                }
+            }
+        } catch (JSONException ex) {
+            this.logger.error("Error on converting input {} to JSON: {}", idsJson, ex);
+        }
+
+        return ids;
+    }
+
+    private Map<Long, String> jsonToIdsMap(String idsJson)
+    {
+        Map<Long, String> ids = new HashMap<>();
+        try {
+            if (StringUtils.isNotEmpty(idsJson)) {
+                JSONObject idsObject = new JSONObject(idsJson);
+                if (idsObject.has(IDS_STRING)) {
+                    JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
+                    for (Object item : idsJSONArray) {
+                        JSONObject obj = (JSONObject) item;
+                        ids.put(obj.optLong("matchId"), obj.optString("patientId"));
                     }
                 }
             }

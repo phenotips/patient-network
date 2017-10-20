@@ -239,7 +239,7 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
     /**
      * Creates a collection with all given matches.
      *
-     * @param matches a collection of PatientMatch-es
+     * @param matches a collection of PatientMatches
      */
     public MatchesByPatient(Collection<PatientMatch> matches)
     {

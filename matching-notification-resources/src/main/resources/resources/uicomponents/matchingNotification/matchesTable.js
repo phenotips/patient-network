@@ -34,13 +34,14 @@ define(["jquery", "dynatable"], function($, dyna)
         getMarkedToNotify : function()
         {
             var ids = [];
-            $.each(this._matches, function(index, match) {
-                if (match.notify) {
-                    $.each(String(match.id).split(","), function(idIndex, id) {
-                        ids.push(id);
-                    });
+            var checkedElms = this._tableElement.find('input[data-patientid]:checked');
+            
+            $.each(checkedElms, function(index, elm) {
+                if($(elm).data('matchid') && $(elm).data('patientid')) {
+                    ids.push({'matchId' : $(elm).data('matchid'), 'patientId' : $(elm).data('patientid')});
                 }
             }.bind(this));
+            
             return ids;
         },
 
@@ -49,7 +50,11 @@ define(["jquery", "dynatable"], function($, dyna)
             var strMatchIds = String(matchIds).split(",");
             var matchesToSet = $.grep(this._matches, function(match) {
                 var curIds = String(match.id).split(",");
-                return this._listIsSubset(curIds, strMatchIds);
+                if (strMatchIds.length < curIds.length) {
+                    return this._listIsSubset(strMatchIds, curIds);
+                } else {
+                    return this._listIsSubset(curIds, strMatchIds);
+                }
             }.bind(this));
 
             $.each(matchesToSet, function(index, match) {
@@ -133,7 +138,7 @@ define(["jquery", "dynatable"], function($, dyna)
             columns.each(function( column, index) {
                 switch(column.id) {
                     case 'notification':
-                        tr += this._getNotificationTd(record);
+                        tr += this._getNotificationTd(record, 'notifyTd');
                         break;
                     case 'status':
                         tr += this._getStatusTd(record);
@@ -145,10 +150,10 @@ define(["jquery", "dynatable"], function($, dyna)
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                         break;
                     case 'referenceEmails':
-                        tr += this._getEmailsTd(record.reference.emails);
+                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.hasOwnProperty('serverId'));
                         break;
                     case 'matchedEmails':
-                        tr += this._getEmailsTd(record.matched.emails);
+                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.hasOwnProperty('serverId'));
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -161,9 +166,9 @@ define(["jquery", "dynatable"], function($, dyna)
             return tr;
         },
 
-        _getNotificationTd : function(record)
+        _getNotificationTd : function(record, tdId)
         {
-            return '<td><input type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
+            return '<td><input  id="' + tdId + '" type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
         },
 
         _getStatusTd : function(record)
@@ -306,11 +311,14 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getEmailsTd : function(emails)
+        _getEmailsTd : function(emails, patientId, matchId, isRemote)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
                 td += '<div>' + emails[i] + '</div>';
+            }
+            if (!isRemote) {
+                td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
             }
             td += '</td>';
             return td;
@@ -446,10 +454,13 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _markToNotify : function(elm)
         {
-            var matchIndex = $(elm).closest('tr').attr('id').split('-')[1];
-            this._matches[matchIndex].notify = $(elm).is(':checked');
-            console.log("To notify: " + this._matches[matchIndex].id);
-            this.update();
+            if ($(elm).attr('id') != 'notifyTd') {
+            	// unselect first column checkbox if any of emails checkboxes selected
+                $(elm).closest('tr').find('#notifyTd').prop("checked", false);
+            } else {
+            	// select both emails checkboxes if first column checkbox is selected
+            	$(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
+            }
         }
     });
 });

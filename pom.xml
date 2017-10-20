@@ -182,6 +182,19 @@
               <method>org.json.JSONArray getFeatureMatchesJSON()</method>
               <justification>Added to have access to structured phenotypes similarity list brokedown by cateries for email notification UI.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7005</differenceType>
+              <method>java.util.List sendNotifications(java.util.List)</method>
+              <to>java.util.List sendNotifications(java.util.Map)</to>
+              <justification>Add option to send matching notification to one user only.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/notification/PatientMatchNotifier</className>
+              <differenceType>7004</differenceType>
+              <method>java.util.List createEmails(java.util.List)</method>
+              <justification>Add option to send matching notification to one user only.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

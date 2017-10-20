@@ -24,6 +24,7 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotificationR
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @version $Id$
@@ -42,10 +43,10 @@ public interface MatchingNotificationManager
     /**
      * Sends notification to the owner of every match with id in {@code matchesId}, then marks match as notified.
      *
-     * @param matchesIds list of ids of matches to be notified
+     * @param idsList map of ids of matches to patients Ids to be notified
      * @return a list of PatientmatchNotificationResponse
      */
-    List<PatientMatchNotificationResponse> sendNotifications(List<Long> matchesIds);
+    List<PatientMatchNotificationResponse> sendNotifications(Map<Long, String> idsList);
 
     /**
      * Saves a list of matches that were found by a remote incoming request.

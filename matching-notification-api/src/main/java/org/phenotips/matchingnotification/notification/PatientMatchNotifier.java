@@ -24,6 +24,7 @@ import org.xwiki.component.annotation.Role;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Send a notification per patient.
@@ -38,9 +39,10 @@ public interface PatientMatchNotifier
      * patient.
      *
      * @param matches list of matches to build emails from
+     * @param matchesIds map of ids of matches to patients Ids to be notified
      * @return list of emails
      */
-    List<PatientMatchEmail> createEmails(List<PatientMatch> matches);
+    List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, String> matchesIds);
 
     /**
      * Sends notification for an email.
