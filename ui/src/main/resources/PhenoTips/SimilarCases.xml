@@ -535,14 +535,12 @@
 
     _displayResultContactInfo : function (r) {
       var contactType = (r.myCase || r.myGroupsCase) ? "none" : (r.access == "public" ? "open" : "restricted");
-      var icon = (contactType == 'restricted' &amp;&amp; this._data.isManager) ? this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.restrictedContactSuggestion'))") : this.Utils.generateIcon('group');
+      var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.restrictedContactSuggestion'))") : this.Utils.generateIcon('group');
       var contactInfo;
       if (contactType == "none") {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoText'))"));
       } else if (contactType == "open") {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.publicCase'))"));
-      } else if (!this._data.isManager) {
-        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "");
       } else {
         contactInfo = new Element("a", {
           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
@@ -2109,14 +2107,11 @@
           &lt;/span&gt;&lt;/span&gt;
         {{/html}})))##
       )))
-      ## Allow to plug in other data sources if current user is owner or manager of this patient record doc
-      #set ($isManager = $services.permissions.getPatientAccess($patient).hasAccessLevel('manage'))
-      #if ($isManager)
-        #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
-          (% class="similar-cases-category" %)(((
-          {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
-          )))
-        #end
+      ## Allow to plug in other data sources
+      #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
+        (% class="similar-cases-category" %)(((
+        {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
+        )))
       #end
     #end## can see similar patients
   #end## suggestions enabled
