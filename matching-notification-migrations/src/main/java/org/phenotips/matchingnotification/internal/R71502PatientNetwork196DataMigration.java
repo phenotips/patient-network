@@ -62,9 +62,9 @@ import com.xpn.xwiki.store.migration.hibernate.HibernateDataMigration;
  * @since 1.2
  */
 @Component(roles = { HibernateDataMigration.class })
-@Named("R71506PatientNetwork196")
+@Named("R71502PatientNetwork196")
 @Singleton
-public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataMigration
+public class R71502PatientNetwork196DataMigration extends AbstractHibernateDataMigration
 {
     /** Logging helper object. */
     @Inject
@@ -99,7 +99,11 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
     @Override
     public XWikiDBVersion getVersion()
     {
-        return new XWikiDBVersion(71506);
+        // This has the same version as R71502PatientNetwork178DataMigration because version 71503 already exists in 1.4
+        // and using something bigger than that would cause migrating to PT 1.4+ would fail.
+        // To ensure that this runs, we must add this in xwiki.cfg:
+        // xwiki.store.migration.force=R71502PatientNetwork196
+        return new XWikiDBVersion(71502);
     }
 
     @Override
@@ -138,7 +142,7 @@ public class R71506PatientNetwork196DataMigration extends AbstractHibernateDataM
             }
             t.commit();
         } catch (HibernateException ex) {
-            R71506PatientNetwork196DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
+            R71502PatientNetwork196DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
                 ex.getMessage());
             if (t != null) {
                 t.rollback();
