@@ -7,3 +7,4 @@ org.phenotips.matchingnotification.storage.internal.ORMRegistrationHandler
 org.phenotips.matchingnotification.export.PatientMatchExport
 org.phenotips.matchingnotification.notification.internal.PatientMatchEmailNotifier
 org.phenotips.matchingnotification.internal.DefaultMatchingNotificationManager
+org.phenotips.matchingnotification.events.PatientMatchesRemover

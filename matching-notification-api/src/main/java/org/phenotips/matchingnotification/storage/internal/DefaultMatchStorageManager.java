@@ -174,4 +174,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
         return true;
     }
+
+    @Override
+    public boolean deleteMatches(Session session, List<PatientMatch> matches) {
+        for (PatientMatch match : matches) {
+            session.delete(match);
+        }
+        return true;
+    }
 }

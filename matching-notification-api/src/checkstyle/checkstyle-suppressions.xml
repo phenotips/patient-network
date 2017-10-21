@@ -24,4 +24,5 @@
 
 <suppressions>
   <suppress checks="ExecutableStatementCount" files="DefaultPhenotypesMap.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultMatchingNotificationManager.java"/>
 </suppressions>

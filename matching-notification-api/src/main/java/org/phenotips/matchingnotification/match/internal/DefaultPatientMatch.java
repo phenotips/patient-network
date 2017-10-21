@@ -300,6 +300,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public Timestamp getFoundTimestamp() {
+        return this.foundTimestamp;
+    }
+
+    @Override
     public String getHref()
     {
         return this.href;
@@ -458,5 +463,55 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             return null;
         }
         return patientRepository.get(patientId);
+    }
+
+    @Override
+    public void setFoundTimestamp(Timestamp timestamp) {
+        this.foundTimestamp = timestamp;
+    }
+
+    @Override
+    public void setScore(Double score) {
+        this.score = score;
+    }
+
+    @Override
+    public void setGenotypeScore(Double score) {
+        this.genotypeScore = score;
+    }
+
+    @Override
+    public void setPhenotypeScore(Double score) {
+        this.phenotypeScore = score;
+    }
+
+    @Override
+    public void setReferenceDetails(String details) {
+        this.referenceDetails = details;
+    }
+
+    @Override
+    public void setReferencePatientInMatch(PatientInMatch patient) {
+        this.referencePatientInMatch = patient;
+    }
+
+    @Override
+    public void setMatchedDetails(String details) {
+        this.matchedDetails = details;
+    }
+
+    @Override
+    public void setMatchedPatientInMatch(PatientInMatch patient) {
+        this.matchedPatientInMatch = patient;
+    }
+
+    @Override
+    public String getReferenceDetails() {
+        return this.referenceDetails;
+    }
+
+    @Override
+    public String getMatchedDetails() {
+        return this.matchedDetails;
     }
 }
