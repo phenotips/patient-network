@@ -174,14 +174,11 @@
     matchServiceURL : XWiki.contextPath + "/rest/patients/___patient_id___/similar-cases",
     matchContactURL : "${xwiki.getURL('PhenoTips.MatchContact', 'get')}",
     _UNKNOWN_INFO_MARKER : "unknown",
-    _UNKNOWN_INFO_TEXT : "Undisclosed information",
     _RESULTS_TABLE_MARKER : "similarity-results",
     _SUMMARY_MARKER : "summary",
     _METADATA_MARKER : "metadata",
     _NEGATIVE_MARKER : "negative",
     _NOMATCH_MARKER : "no-match",
-    _NOMATCH_TEXT : "No match",
-    _DEFAULT_REFRESH_BUTTON_TEXT : "Refresh Matches",
     _MAX_RESULTS_DISPLAYED : 10,
     DISEASE_DB_LINKS : {
       "MIM:" : "http://www.omim.org/entry/",
@@ -198,7 +195,7 @@
       this.container.insert({before: this.buttonContainer});
       if (options) {
         if (options.enableRefresh) {
-          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert("$escapetool.javascript($services.localization.render('phenotips.similarCases._DEFAULT_REFRESH_BUTTON_TEXT'))");
+          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert("$escapetool.javascript($services.localization.render('phenotips.similarCases.refreshMatches'))");
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
           this.buttonContainer.insert({top: this.refreshButton});
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
@@ -344,7 +341,7 @@
         this.pagination.removeClassName('hidden');
         this.refreshButton.down('span').removeClassName('fa-search');
         this.refreshButton.down('span').addClassName('fa-refresh');
-        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases._DEFAULT_REFRESH_BUTTON_TEXT'))";
+        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.refreshMatches'))";
       }
       if (!data || data.resultsCount &lt;= 0) {
         this.pagination.addClassName('hidden');
@@ -703,7 +700,7 @@
     _displayAgeOfOnset : function(r) {
       var container = new Element('div', {'class' : 'match-type age-of-onset'});
       container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))"));
-      var formatAgeOfOnset = function(age) {return age ? age : 'Unknown';};
+      var formatAgeOfOnset = function(age) {return age ? age : "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknown'))";};
       var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
       container.insert(ageOfOnsetTable);
 
@@ -726,7 +723,7 @@
 
       var row = this._getEmptyTableRow(modeOfInheritanceTable);
 
-      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ['-'];};
+      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["$escapetool.javascript($services.localization.render('phenotips.similarCases.unknown'))"];};
 
       var referenceElement = new Element('td', {'class' : 'table-data query'});
       row.insert(referenceElement);
@@ -752,25 +749,18 @@
       }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
       var _this = this;
-      var columns = {
-        query : {
-          title : this._getDisplayedQueryId()
-        },
-        result : {
-          title : this._getDisplayedResultId(r)
-        }
-      };
+
+      var titlesTable = new Element('table', {'class' : 'phenotype-matches-titles'});
+      container.insert(titlesTable);
+      this._createTableSectionTitle(titlesTable, r);
+
       var resultFeatures = _this._createFeatureIndex(r.features);
       r.featureMatches.each(function (featureMatch) {
            var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
            categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category
                                                                                          &amp;&amp; featureMatch.category.name
                                                                                          || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownCategory'))"));
-           categoryRow.insert(new Element('th', {'class' : 'phenotype-category-score'}).update(featureMatch.score &amp;&amp; _this.Utils.generateSegmentedBar(5, featureMatch.score) || ''));
-
-           var labelsRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           labelsRow.insert(new Element('th', {'class' : 'hint query'}).update(columns.query.title));
-           labelsRow.insert(new Element('th', {'class' : 'hint result'}).update(columns.result.title));
+           categoryRow.insert(new Element('th'));
            var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
            var crtPFeatures = new Element('td', {'class' : 'table-data query'});
            var otherPFeatures = new Element('td', {'class' : 'table-data result'});
@@ -816,7 +806,7 @@
       var name = new Element("span", {
          "title" : (f.id || "") + " " + (f.label || ""),
          "class" : cssModifier
-      }).insert(f.label &amp;&amp; prefix + f.label || this._UNKNOWN_INFO_TEXT);
+      }).insert(f.label &amp;&amp; prefix + f.label || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
         //.insert(f.type &amp;&amp; new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
       container.insert(name);
       if (f.metadata) {
@@ -824,7 +814,7 @@
         container.insert(metadata);
         f.metadata.each(function(m) {
           if (m.label) {
-            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || this._UNKNOWN_INFO_TEXT);
+            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
             metadata.insert(entry);
           }
         });
@@ -850,7 +840,6 @@
           titleRow.insert(new Element('th', {'class' : 'gene'})
                                .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
-                               .insert(geneInfo.score &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.score) || '')
                                 /* The genename service should populate this with links if the input is present*/
           ).insert(new Element('th', {'class' : 'variants-toggle'}));
           if (geneInfo.reference || geneInfo.match) {
@@ -902,8 +891,6 @@
       var result = new Element('table', {'class' : 'variants-data'});
       var _this = this;
       var hRow = _this._getEmptyTableRow(result);
-      hRow.insert(new Element('th').update(new Element('span', {'class' : 'left'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.variant'))"))
-                                   .insert(new Element('span', {'class' : 'right'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.exomiserScore'))")));
       variants.each(function (v) {
          var vRow = _this._getEmptyTableRow(result);
          var position = new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedPosition'))");
@@ -926,8 +913,7 @@
               change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
             }
          }
-         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownHarmfulness'))")
-                                      .insert(position)
+         vRow.insert(new Element('td').insert(position)
                                       .insert(new Element('div')
                                                      .insert(new Element('strong').update(change))
                                                      .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
@@ -1908,23 +1894,20 @@
       <code>#template("colorThemeInit.vm")
 
 .match-details table.gene-matches&gt;tr.gene-row,
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+1) {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n+1) {
   background-color: $theme.menuLinkColor;
   background-color: $theme.menuBackgroundColor;
   color: $theme.menuLinkColor;
   text-shadow: none;
 }
 .match-details table.gene-matches&gt;tr.variants-row,
-.match-details table.phenotype-matches&gt;tr:nth-child(3n){
+.match-details table.phenotype-matches&gt;tr:nth-child(2n){
   background-color: transparent;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+2) {
-  background-color: transparent;
-}
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+2)&gt;td {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
   padding-bottom: 0;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(3n)&gt;td {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
   padding-top: 0;
 }
 
@@ -1988,7 +1971,7 @@
   text-align: left;
 }
 .match-details table .table-data {
-  padding-left: 2em !important;
+  padding-left: 1em !important;
 }</code>
     </property>
     <property>
