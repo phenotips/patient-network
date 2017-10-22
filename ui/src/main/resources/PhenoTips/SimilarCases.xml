@@ -402,7 +402,7 @@
            enabled : true
         },
         "diagnosis": {
-           title   : this._omimPrototypeMode ?  "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.potentialDiagnosis'))",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))",
            display : _this._displayResultDiagnosis.bind(_this),
            field   : "disorders",
            enabled : true
@@ -651,9 +651,10 @@
       var details = new Element("div");
 
       // Provide access to the actual matching details
-
-      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.show'))");
-      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.hide'))");
+      var showIcon = '&lt;span class="fa fa-plus-square-o fa-lg"&gt;&lt;/span&gt;';
+      var hideIcon = '&lt;span class="fa fa-minus-square-o fa-lg"&gt;&lt;/span&gt;';
+      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update(showIcon+" $escapetool.javascript($services.localization.render('phenotips.similarCases.details.show'))");
+      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update(hideIcon+" $escapetool.javascript($services.localization.render('phenotips.similarCases.details.hide'))");
       var matchSummary = this.displaySummary("", details).insert(new Element('span', {"class" : "buttonwrapper"}).insert(showDetails).insert(hideDetails));
 
       // Generate the feature/variant comparison table
