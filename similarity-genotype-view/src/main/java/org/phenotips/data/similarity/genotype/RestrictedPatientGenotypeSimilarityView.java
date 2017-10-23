@@ -61,7 +61,7 @@ public class RestrictedPatientGenotypeSimilarityView extends DefaultPatientGenot
         if (this.access.isOpenAccess()) {
             return super.getTopVariants(gene, k);
         } else if (this.access.isLimitedAccess()) {
-            List<Variant> restrictedVariants = new ArrayList<Variant>();
+            List<Variant> restrictedVariants = new ArrayList<>();
             for (Variant v : super.getTopVariants(gene, k)) {
                 restrictedVariants.add(new RestrictedVariant(v));
             }

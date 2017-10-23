@@ -50,6 +50,7 @@ public interface Exome
 
     /**
      * Get {@link Variant}s for a gene, limit to k variants.
+     *
      * @param gene the gene to get {@link Variant}s for.
      * @param k the number of variants to return.
      * @return an unmodifiable (potentially-empty) list of top {@link Variant}s for the gene, by decreasing score

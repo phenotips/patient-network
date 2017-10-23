@@ -77,7 +77,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         List<PatientMatch> matches =
-            this.matchStorageManager.loadMatchesByIds(new ArrayList<Long>(matchesIds.keySet()));
+            this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
 
         filterNonUsersMatches(matches);
 

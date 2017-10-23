@@ -32,8 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Base class for implementing exome-related classes, specifically those that
- * include scored genes with variants.
+ * Base class for implementing exome-related classes, specifically those that include scored genes with variants.
  *
  * @version $Id$
  * @since 1.0M6
@@ -83,7 +82,7 @@ public abstract class AbstractExome implements Exome
         // Basic implementation that just sorts all genes and returns the top n
         // TODO: store in a data structure where this is efficient
         final Map<String, Double> scoredGenes = this.geneScores;
-        List<String> geneNames = new ArrayList<String>(scoredGenes.keySet());
+        List<String> geneNames = new ArrayList<>(scoredGenes.keySet());
         Collections.sort(geneNames, new Comparator<String>()
         {
             @Override

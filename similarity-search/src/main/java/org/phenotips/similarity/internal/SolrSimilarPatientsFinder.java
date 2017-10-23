@@ -59,7 +59,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 
-
 /**
  * Implementation for {@link SimilarPatientsFinder} based on Solr indexing of existing patients.
  *
@@ -143,7 +142,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return Collections.emptyList();
         }
         SolrDocumentList docs = search(query);
-        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
+        List<PatientSimilarityView> results = new ArrayList<>(docs.size());
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.get(name);
@@ -175,7 +174,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
         // Select top k via PriorityQueue
         PriorityQueue<PatientSimilarityView> pq =
-            new PriorityQueue<PatientSimilarityView>(allResults.size(), new Comparator<PatientSimilarityView>()
+            new PriorityQueue<>(allResults.size(), new Comparator<PatientSimilarityView>()
             {
                 @Override
                 public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
@@ -185,7 +184,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             });
         pq.addAll(allResults);
 
-        List<PatientSimilarityView> topResults = new ArrayList<PatientSimilarityView>();
+        List<PatientSimilarityView> topResults = new ArrayList<>();
         int docSize = pq.size();
         for (int i = 0; i < docSize; i++) {
             PatientSimilarityView item = pq.poll();
@@ -281,7 +280,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
     {
-        Collection<String> genesToSearch = new ArrayList<String>();
+        Collection<String> genesToSearch = new ArrayList<>();
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
             for (Map<String, String> gene : allGenes) {
                 String geneName = gene.get("gene");
