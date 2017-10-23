@@ -25,7 +25,6 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.matchingnotification.match.PatientInMatch;
-import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.vocabulary.Vocabulary;

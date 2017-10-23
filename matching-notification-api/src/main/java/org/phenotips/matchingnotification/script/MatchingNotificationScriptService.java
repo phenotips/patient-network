@@ -179,7 +179,7 @@ public class MatchingNotificationScriptService implements ScriptService
             }
         }
 
-        return this.successfulIdsToJSON(new ArrayList<Long>(idsList.keySet()), successfullyNotified).toString();
+        return this.successfulIdsToJSON(new ArrayList<>(idsList.keySet()), successfullyNotified).toString();
     }
 
     private List<Long> jsonToIdsList(String idsJson)

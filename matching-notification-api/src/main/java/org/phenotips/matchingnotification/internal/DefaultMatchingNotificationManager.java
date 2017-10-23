@@ -161,7 +161,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         List<PatientMatch> matches =
-            this.matchStorageManager.loadMatchesByIds(new ArrayList<Long>(matchesIds.keySet()));
+            this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
         List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 

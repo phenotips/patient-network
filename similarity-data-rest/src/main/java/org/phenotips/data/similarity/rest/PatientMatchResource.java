@@ -45,7 +45,6 @@ public interface PatientMatchResource
     /**
      * Finds matching patients for a provided {@code reference patient}. The following additional parameters may be
      * specified:
-     *
      * <dl>
      * <dt>offset</dt>
      * <dd>the offset for the returned match data (one-based), must be an int; default value is set to 1</dd>

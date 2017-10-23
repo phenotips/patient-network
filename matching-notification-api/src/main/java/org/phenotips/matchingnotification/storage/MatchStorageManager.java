@@ -102,8 +102,7 @@ public interface MatchStorageManager
     boolean endNotificationMarkingTransaction(Session session);
 
     /**
-     * Delete matches. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
+     * Delete matches. The method required a session created by {@code startNotificationMarkingTransaction}.
      *
      * @param session the transaction session created for marking.
      * @param matches list of matches to delete.

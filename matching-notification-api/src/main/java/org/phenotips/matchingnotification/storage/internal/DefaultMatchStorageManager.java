@@ -176,7 +176,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean deleteMatches(Session session, List<PatientMatch> matches) {
+    public boolean deleteMatches(Session session, List<PatientMatch> matches)
+    {
         for (PatientMatch match : matches) {
             session.delete(match);
         }

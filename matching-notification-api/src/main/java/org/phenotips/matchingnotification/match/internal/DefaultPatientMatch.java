@@ -300,7 +300,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public Timestamp getFoundTimestamp() {
+    public Timestamp getFoundTimestamp()
+    {
         return this.foundTimestamp;
     }
 
@@ -466,52 +467,62 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setFoundTimestamp(Timestamp timestamp) {
+    public void setFoundTimestamp(Timestamp timestamp)
+    {
         this.foundTimestamp = timestamp;
     }
 
     @Override
-    public void setScore(Double score) {
+    public void setScore(Double score)
+    {
         this.score = score;
     }
 
     @Override
-    public void setGenotypeScore(Double score) {
+    public void setGenotypeScore(Double score)
+    {
         this.genotypeScore = score;
     }
 
     @Override
-    public void setPhenotypeScore(Double score) {
+    public void setPhenotypeScore(Double score)
+    {
         this.phenotypeScore = score;
     }
 
     @Override
-    public void setReferenceDetails(String details) {
+    public void setReferenceDetails(String details)
+    {
         this.referenceDetails = details;
     }
 
     @Override
-    public void setReferencePatientInMatch(PatientInMatch patient) {
+    public void setReferencePatientInMatch(PatientInMatch patient)
+    {
         this.referencePatientInMatch = patient;
     }
 
     @Override
-    public void setMatchedDetails(String details) {
+    public void setMatchedDetails(String details)
+    {
         this.matchedDetails = details;
     }
 
     @Override
-    public void setMatchedPatientInMatch(PatientInMatch patient) {
+    public void setMatchedPatientInMatch(PatientInMatch patient)
+    {
         this.matchedPatientInMatch = patient;
     }
 
     @Override
-    public String getReferenceDetails() {
+    public String getReferenceDetails()
+    {
         return this.referenceDetails;
     }
 
     @Override
-    public String getMatchedDetails() {
+    public String getMatchedDetails()
+    {
         return this.matchedDetails;
     }
 }

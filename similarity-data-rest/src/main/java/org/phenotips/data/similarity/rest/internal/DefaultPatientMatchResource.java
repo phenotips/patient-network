@@ -84,7 +84,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     public Response findMatchingPatients(@Nullable final String reference)
     {
         final Request request = this.container.getRequest();
-        final int offset =  NumberUtils.toInt((String) request.getProperty(OFFSET), 1);
+        final int offset = NumberUtils.toInt((String) request.getProperty(OFFSET), 1);
         final int limit = NumberUtils.toInt((String) request.getProperty(LIMIT), -1);
         final int reqNo = NumberUtils.toInt((String) request.getProperty(REQ_NO), 1);
         try {

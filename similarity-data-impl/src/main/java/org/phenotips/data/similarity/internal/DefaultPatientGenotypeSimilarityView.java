@@ -119,7 +119,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      */
     private Set<String> getCandidateGeneUnion()
     {
-        Set<String> sharedGenes = new HashSet<String>();
+        Set<String> sharedGenes = new HashSet<>();
         if (this.matchGenotype != null && this.refGenotype != null) {
             Set<String> matchGenes = this.matchGenotype.getCandidateGenes();
             Set<String> refGenes = this.refGenotype.getCandidateGenes();
@@ -237,7 +237,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
 
         JSONArray genesJSON = new JSONArray();
         // Gene genes, in order of decreasing score
-        List<Map.Entry<String, Double>> genes = new ArrayList<Map.Entry<String, Double>>(this.geneScores.entrySet());
+        List<Map.Entry<String, Double>> genes = new ArrayList<>(this.geneScores.entrySet());
         Collections.sort(genes, new Comparator<Map.Entry<String, Double>>()
         {
             @Override

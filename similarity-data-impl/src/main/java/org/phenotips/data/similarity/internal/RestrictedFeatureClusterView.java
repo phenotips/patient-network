@@ -114,7 +114,7 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
         } else if (this.access.isOpenAccess()) {
             return super.getMatch();
         } else {
-            List<Feature> hiddenFeatures = new ArrayList<Feature>(this.match.size());
+            List<Feature> hiddenFeatures = new ArrayList<>(this.match.size());
             for (int i = 0; i < this.match.size(); i++) {
                 hiddenFeatures.add(null);
             }

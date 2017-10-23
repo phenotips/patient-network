@@ -68,7 +68,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
             c = this.connectionManager.getConnectionByToken(connectionId);
         }
         // FIXME! Add rights check: only the initiating user can do this
-        return  this.actionManager.sendInitialMails(c, options);
+        return this.actionManager.sendInitialMails(c, options);
     }
 
     /**

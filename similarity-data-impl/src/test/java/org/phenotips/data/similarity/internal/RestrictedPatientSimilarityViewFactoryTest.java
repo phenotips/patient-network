@@ -131,11 +131,11 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(pa.getAccessLevel()).thenReturn(match);
         when(match.compareTo(view)).thenReturn(-5);
 
-        Map<String, FeatureMetadatum> matchMeta = new HashMap<String, FeatureMetadatum>();
+        Map<String, FeatureMetadatum> matchMeta = new HashMap<>();
         matchMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
         matchMeta.put("speed_of_onset", new MockFeatureMetadatum("HP:0011010", "Chronic", "speed_of_onset"));
         matchMeta.put("pace", new MockFeatureMetadatum("HP:0003677", "Slow", "pace"));
-        Map<String, FeatureMetadatum> referenceMeta = new HashMap<String, FeatureMetadatum>();
+        Map<String, FeatureMetadatum> referenceMeta = new HashMap<>();
         referenceMeta.put("age_of_onset", new MockFeatureMetadatum("HP:0003577", "Congenital onset", "age_of_onset"));
         referenceMeta.put("speed_of_onset", new MockFeatureMetadatum("HP:0011009", "Acute", "speed_of_onset"));
         referenceMeta.put("death", new MockFeatureMetadatum("HP:0003826", "Stillbirth", "death"));
@@ -146,8 +146,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Feature id = new MockFeature("HP:0001249", "Intellectual disability", "phenotype", matchMeta, false);
         Feature mid =
             new MockFeature("HP:0001256", "Mild intellectual disability", "phenotype", referenceMeta, true);
-        Set<Feature> matchPhenotypes = new HashSet<Feature>();
-        Set<Feature> referencePhenotypes = new HashSet<Feature>();
+        Set<Feature> matchPhenotypes = new HashSet<>();
+        Set<Feature> referencePhenotypes = new HashSet<>();
         matchPhenotypes.add(jhm);
         matchPhenotypes.add(cat);
         matchPhenotypes.add(od);
@@ -161,10 +161,10 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Disorder d1 = new MockDisorder("MIM:123", "Some disease");
         Disorder d2 = new MockDisorder("MIM:234", "Some other disease");
         Disorder d3 = new MockDisorder("MIM:345", "Yet another disease");
-        Set<Disorder> matchDiseases = new HashSet<Disorder>();
+        Set<Disorder> matchDiseases = new HashSet<>();
         matchDiseases.add(d1);
         matchDiseases.add(d2);
-        Set<Disorder> referenceDiseases = new HashSet<Disorder>();
+        Set<Disorder> referenceDiseases = new HashSet<>();
         referenceDiseases.add(d1);
         referenceDiseases.add(d3);
         Mockito.<Set<? extends Disorder>>when(mockMatch.getDisorders()).thenReturn(matchDiseases);
@@ -219,43 +219,43 @@ public class RestrictedPatientSimilarityViewFactoryTest
 
         // Setup the vocabulary manager
         VocabularyManager vocabularyManager = mock(VocabularyManager.class);
-        Map<VocabularyTerm, Double> termICs = new HashMap<VocabularyTerm, Double>();
-        Set<VocabularyTerm> ancestors = new HashSet<VocabularyTerm>();
+        Map<VocabularyTerm, Double> termICs = new HashMap<>();
+        Set<VocabularyTerm> ancestors = new HashSet<>();
 
         VocabularyTerm all = new MockVocabularyTerm("HP:0000001", Collections.<VocabularyTerm>emptySet(),
             Collections.<VocabularyTerm>emptySet());
         ancestors.add(all);
         VocabularyTerm phenotypes =
-            new MockVocabularyTerm("HP:0000118", Collections.singleton(all), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0000118", Collections.singleton(all), new HashSet<>(ancestors));
         ancestors.add(phenotypes);
         termICs.put(phenotypes, 0.000001);
         VocabularyTerm abnormalNS =
             new MockVocabularyTerm("HP:0000707", Collections.singleton(phenotypes),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(abnormalNS);
         termICs.put(abnormalNS, 0.00001);
         VocabularyTerm abnormalCNS =
             new MockVocabularyTerm("HP:0002011", Collections.singleton(abnormalNS),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(abnormalCNS);
         termICs.put(abnormalCNS, 0.0001);
         VocabularyTerm abnormalHMF =
             new MockVocabularyTerm("HP:0011446", Collections.singleton(abnormalCNS),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(abnormalHMF);
         termICs.put(abnormalHMF, 0.001);
         VocabularyTerm cognImp =
             new MockVocabularyTerm("HP:0100543", Collections.singleton(abnormalHMF),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(cognImp);
         termICs.put(cognImp, 0.005);
         VocabularyTerm intDis =
             new MockVocabularyTerm("HP:0001249", Collections.singleton(cognImp),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(intDis);
         termICs.put(intDis, 0.005);
         VocabularyTerm mildIntDis =
-            new MockVocabularyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<VocabularyTerm>(ancestors));
+            new MockVocabularyTerm("HP:0001256", Collections.singleton(intDis), new HashSet<>(ancestors));
         ancestors.add(mildIntDis);
         termICs.put(intDis, 0.01);
         for (VocabularyTerm term : ancestors) {
@@ -267,26 +267,26 @@ public class RestrictedPatientSimilarityViewFactoryTest
         ancestors.add(phenotypes);
         VocabularyTerm abnormalSkelS =
             new MockVocabularyTerm("HP:0000924", Collections.singleton(phenotypes),
-                new HashSet<VocabularyTerm>(ancestors));
+                new HashSet<>(ancestors));
         ancestors.add(abnormalSkelS);
         termICs.put(abnormalSkelS, 0.00001);
         VocabularyTerm abnormalSkelM =
-            new MockVocabularyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0011842", Collections.singleton(abnormalSkelS), new HashSet<>(
                 ancestors));
         ancestors.add(abnormalSkelM);
         termICs.put(abnormalSkelM, 0.0001);
         VocabularyTerm abnormalJointMorph =
-            new MockVocabularyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0001367", Collections.singleton(abnormalSkelM), new HashSet<>(
                 ancestors));
         ancestors.add(abnormalJointMorph);
         termICs.put(abnormalJointMorph, 0.001);
         VocabularyTerm abnormalJointMob =
-            new MockVocabularyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0011729", Collections.singleton(abnormalJointMorph), new HashSet<>(
                 ancestors));
         ancestors.add(abnormalJointMob);
         termICs.put(abnormalJointMob, 0.005);
         VocabularyTerm jointHyperm =
-            new MockVocabularyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<VocabularyTerm>(
+            new MockVocabularyTerm("HP:0001382", Collections.singleton(abnormalJointMob), new HashSet<>(
                 ancestors));
         ancestors.add(jointHyperm);
         termICs.put(jointHyperm, 0.005);
