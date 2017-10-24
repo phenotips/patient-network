@@ -36,7 +36,6 @@ import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import java.util.Collection;
@@ -110,7 +109,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
             pm = ccm.getInstance(PermissionsManager.class);
-        } catch (ComponentLookupException e) {
+        } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
         NOTIFIER = notifier;
@@ -153,7 +152,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.serverId = serverId;
         this.patient = getLocalPatient();
         setAccess();
-        populateContactInfo(href);
+        populateContactInfo(this.href);
         this.rebuildDetails(patientDetails);
     }
 
@@ -283,7 +282,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.patient == null) {
             return false;
         }
-        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
+        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         return genotype != null && genotype.hasExomeData();
     }
 
