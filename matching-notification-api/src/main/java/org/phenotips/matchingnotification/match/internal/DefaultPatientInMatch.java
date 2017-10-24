@@ -149,6 +149,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         JSONObject json = new JSONObject();
         json.put("patientId", this.getPatientId());
+        json.put("externalId", this.getExternalId());
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
 
@@ -157,6 +158,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         for (String key : detailsColumn.keySet()) {
             json.put(key, detailsColumn.get(key));
         }
+
+        json.put("hasExomeData", this.hasExomeData());
 
         return json;
     }
@@ -255,6 +258,17 @@ public class DefaultPatientInMatch implements PatientInMatch
     public String getHref()
     {
         return this.href;
+    }
+
+    @Override
+    public boolean hasExomeData()
+    {
+        // if the patient is remote, we return false for now
+        if (this.patient == null) {
+            return false;
+        }
+        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
+        return genotype != null && genotype.hasExomeData();
     }
 
     /*

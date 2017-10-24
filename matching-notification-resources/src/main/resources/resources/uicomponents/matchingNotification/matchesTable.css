@@ -90,3 +90,20 @@
 .hint-loading {
   color: blue;
 }
+
+#gene_status_filter {
+  margin: 0 5px 0 15px;
+}
+
+#matchesTable-search {
+  float: right;
+  margin-bottom: 10px;
+}
+
+#search-matchesTable-input {
+    width: 70%;
+}
+
+#dynatable-per-page-matchesTable {
+  margin-left: 5px;
+}
