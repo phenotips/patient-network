@@ -20,6 +20,7 @@ package org.phenotips.matchingnotification.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -43,6 +44,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -77,6 +79,11 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
     @Inject
     private PermissionsManager permissionsManager;
+
+    /** Needed for checking if a given access level provides read access to patients. */
+    @Inject
+    @Named("view")
+    private AccessLevel viewAccess;
 
     @Inject
     @Named("matchable")
@@ -162,6 +169,9 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         List<PatientMatch> matches =
             this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
+
+        filterNonUsersMatches(matches);
+
         List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
@@ -306,6 +316,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         try {
             List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
 
+            filterNonUsersMatches(matches);
+
             Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
             this.matchStorageManager.setStatus(session, matches, status);
             successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
@@ -313,5 +325,21 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;
+    }
+
+    /**
+     * Filters out matches that user does not own or has access to.
+     */
+    private void filterNonUsersMatches(List<PatientMatch> matches)
+    {
+        ListIterator<PatientMatch> iterator = matches.listIterator();
+        while (iterator.hasNext()) {
+            PatientMatch match = iterator.next();
+            boolean hasViewAccess = this.viewAccess.compareTo(match.getReference().getAccess()) <= 0
+                && this.viewAccess.compareTo(match.getMatched().getAccess()) <= 0;
+            if (!hasViewAccess) {
+                iterator.remove();
+            }
+        }
     }
 }

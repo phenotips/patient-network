@@ -71,7 +71,7 @@
   margin-left: 1em;
 }
 
-#table-filter-div div {
+#table-filter-div div, #access-filter-div div {
   display: inline-block;
 }
 

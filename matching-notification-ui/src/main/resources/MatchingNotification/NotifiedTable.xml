@@ -37,7 +37,54 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content/>
+  <content>{{velocity}}
+$xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
+$xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
+$xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', true)##
+{{html}}
+&lt;div&gt;
+  &lt;button id="show-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.refresh.label'))&lt;/button&gt;
+  &lt;div id="show-matches-messages"/&gt;
+&lt;/div&gt;
+&lt;br/&gt;
+&lt;div id="table-filter-div"&gt;
+&lt;div&gt;
+  &lt;input type="checkbox" id="expand_all" checked/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))
+&lt;/div&gt;
+&lt;div&gt;&lt;select id="gene_status_filter"&gt;
+  &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
+  &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
+  &lt;option value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
+  &lt;option value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
+  &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
+  &lt;/select&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterByGeneStatus'))
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="matchesTable-search"&gt;&lt;span&gt;$services.localization.render('phenotips.matchingNotifications.table.search.label') &lt;input type="text" id="search-matchesTable-input"&gt;&lt;/span>&lt;/div&gt;
+&lt;input id="hidden-show-label" type="hidden" value="$services.localization.render('phenotips.matchingNotifications.table.show.label')"&gt;
+&lt;table id="notifiedMatchesTable" class="matches-table"&gt;
+  &lt;thead&gt;
+    &lt;th data-dynatable-column="notification"&gt;&lt;span title="$services.localization.render('phenotips.matchingNotifications.table.titles.notification')" class="fa fa-envelope"/&gt;&lt;/th&gt;
+    &lt;th data-dynatable-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referencePatient'))"&lt;/th&gt;
+    &lt;th data-dynatable-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedPatient'))&lt;/th&gt;
+    &lt;th data-dynatable-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
+    &lt;th data-dynatable-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))&lt;/th&gt;
+    &lt;th data-dynatable-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))&lt;/th&gt;
+    &lt;th data-dynatable-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referenceEmails'))&lt;/th&gt;
+    &lt;th data-dynatable-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedEmails'))&lt;/th&gt;
+    &lt;th data-dynatable-column="notifiedTimestamp" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notifiedTimestamp'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notifiedTimestamp'))&lt;/th&gt;
+    &lt;th data-dynatable-column="id" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.id'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.id'))&lt;/th&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div&gt;
+  &lt;button id="send-notifications-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/button&gt;
+  &lt;div id="send-notifications-messages"/&gt;
+&lt;/div&gt;
+{{/html}}
+{{/velocity}}</content>
   <object>
     <name>MatchingNotification.NotifiedTable</name>
     <number>0</number>
@@ -228,54 +275,7 @@
       <categoryPriority>0</categoryPriority>
     </property>
     <property>
-      <codeToExecute>{{velocity}}
-$xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
-$xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
-$xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
-$xwiki.jsfx.use('uicomponents/matchingNotification/notifiedMatchesTable.js', true)##
-{{/velocity}}
-
-{{html}}
-&lt;div&gt;
-  &lt;button id="show-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.refresh.label'))&lt;/button&gt;
-  &lt;div id="show-matches-messages"/&gt;
-&lt;/div&gt;
-&lt;br/&gt;
-&lt;div&gt;
-  &lt;input type="checkbox" id="expand_all" checked/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))
-&lt;/div&gt;
-&lt;div&gt;&lt;select id="gene_status_filter"&gt;
-  &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
-  &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
-  &lt;option value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
-  &lt;option value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
-  &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
-  &lt;/select&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterByGeneStatus'))
-&lt;/div&gt;
-&lt;div id="matchesTable-search"&gt;&lt;span&gt;$services.localization.render('phenotips.matchingNotifications.table.search.label') &lt;input type="text" id="search-matchesTable-input"&gt;&lt;/span>&lt;/div&gt;
-&lt;input id="hidden-show-label" type="hidden" value="$services.localization.render('phenotips.matchingNotifications.table.show.label')"&gt;
-&lt;table id="notifiedMatchesTable" class="matches-table"&gt;
-  &lt;thead&gt;
-    &lt;th data-dynatable-column="notification"&gt;&lt;span title="$services.localization.render('phenotips.matchingNotifications.table.titles.notification')" class="fa fa-envelope"/&gt;&lt;/th&gt;
-    &lt;th data-dynatable-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referencePatient'))"&lt;/th&gt;
-    &lt;th data-dynatable-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedPatient'))&lt;/th&gt;
-    &lt;th data-dynatable-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
-    &lt;th data-dynatable-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))&lt;/th&gt;
-    &lt;th data-dynatable-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))&lt;/th&gt;
-    &lt;th data-dynatable-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referenceEmails'))&lt;/th&gt;
-    &lt;th data-dynatable-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedEmails'))&lt;/th&gt;
-    &lt;th data-dynatable-column="notifiedTimestamp" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notifiedTimestamp'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notifiedTimestamp'))&lt;/th&gt;
-    &lt;th data-dynatable-column="id" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.id'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.id'))&lt;/th&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-&lt;div&gt;
-  &lt;button id="send-notifications-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/button&gt;
-  &lt;div id="send-notifications-messages"/&gt;
-&lt;/div&gt;
-
-{{/html}}</codeToExecute>
+      <codeToExecute>{{include reference="MatchingNotification.NotifiedTable" /}}</codeToExecute>
     </property>
     <property>
       <configurationClass/>
