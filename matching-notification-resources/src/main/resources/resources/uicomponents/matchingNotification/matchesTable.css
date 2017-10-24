@@ -70,7 +70,8 @@
   margin-left: 1em;
   color: green;
 }
-#table-filter-div div {
+
+#table-filter-div div, #access-filter-div div {
   display: inline-block;
 }
 #table-filter-div {

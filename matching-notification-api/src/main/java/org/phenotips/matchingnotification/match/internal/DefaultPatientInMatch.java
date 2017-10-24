@@ -22,8 +22,11 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.PhenotypesMap;
@@ -65,6 +68,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final VocabularyManager VOCABULARY_MANAGER;
 
+    private static final PermissionsManager PERMISSIONS_MANAGER;
+
     private static final String GENES = "genes";
 
     private static final String PHENOTYPES = "phenotypes";
@@ -89,17 +94,22 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private Patient patient;
 
+    /** The access level the user has to this patient. */
+    private AccessLevel access;
+
     static {
         PatientMatchNotifier notifier = null;
         PatientGenotypeManager pgm = null;
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
+        PermissionsManager pm = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
+            pm = ccm.getInstance(PermissionsManager.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -107,6 +117,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         PATIENT_GENOTYPE_MANAGER = pgm;
         PATIENT_REPOSITORY = patientRepository;
         VOCABULARY_MANAGER = vm;
+        PERMISSIONS_MANAGER = pm;
     }
 
     /**
@@ -122,8 +133,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patient = patient;
         this.patientId = patient.getId();
         this.serverId = serverId;
-        this.href = populateHref(match.getHref());
-
+        setAccess();
+        this.populateContactInfo(null);
         this.readDetails(patient);
     }
 
@@ -141,8 +152,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patientId = patientId;
         this.serverId = serverId;
         this.patient = getLocalPatient();
-        this.href = populateHref(match.getHref());
-
+        setAccess();
+        populateContactInfo(href);
         this.rebuildDetails(patientDetails);
     }
 
@@ -154,6 +165,9 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("externalId", this.getExternalId());
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
+        if (this.access != null) {
+            json.put("access", this.access.getName());
+        }
 
         // Merge in all items from details column
         JSONObject detailsColumn = this.getDetailsColumnJSON();
@@ -273,6 +287,12 @@ public class DefaultPatientInMatch implements PatientInMatch
         return genotype != null && genotype.hasExomeData();
     }
 
+    @Override
+    public AccessLevel getAccess()
+    {
+        return this.access;
+    }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
      * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
@@ -367,19 +387,28 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
     }
 
-    private String populateHref(String href)
+    private void populateContactInfo(String href)
     {
+        this.href = null;
         // if the patient is remote, we use whatever is passed by from DB
         if (this.patient == null) {
-            return href;
+            this.href = href;
         }
         PatientData<ContactInfo> data = this.patient.getData("contact");
         if (data != null && data.size() > 0) {
             ContactInfo contact = data.get(0);
             if (contact != null) {
-                return contact.getUrl();
+                this.href = contact.getUrl();
             }
         }
-        return null;
+    }
+
+    private void setAccess()
+    {
+        if (this.patient instanceof PatientSimilarityView) {
+            this.access = ((PatientSimilarityView) this.patient).getAccess();
+        } else {
+            this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
+        }
     }
 }

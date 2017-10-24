@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.match;
 
 import org.phenotips.data.Patient;
+import org.phenotips.data.permissions.AccessLevel;
 
 import java.util.Collection;
 import java.util.Set;
@@ -134,4 +135,9 @@ public interface PatientInMatch
      * @return true if patient has exome data.
      */
     boolean hasExomeData();
+
+    /**
+     * @return What type of access does the user have to this patient profile.
+     */
+    AccessLevel getAccess();
 }
