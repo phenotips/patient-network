@@ -31,6 +31,12 @@
   <packaging>pom</packaging>
   <name>PhenoTips - Patient network</name>
 
+  <scm>
+    <connection>scm:git:git://github.com/phenotips/patient-network.git</connection>
+    <developerConnection>scm:git:git@github.com:phenotips/patient-network.git</developerConnection>
+    <url>https://github.com/phenotips/remote-matching.git/tree/stable-1.1.x/</url>
+  </scm>
+
   <!-- We need to list repositories for finding the parent. Other settings will be correctly inherited from the parent. -->
   <repositories>
     <repository>
@@ -306,8 +312,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <scm>
-    <tag>stable-1.1.x</tag>
-  </scm>
 </project>
