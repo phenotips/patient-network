@@ -391,6 +391,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         // if the patient is remote, we use whatever is passed by from DB
         if (this.patient == null) {
             this.href = href;
+            return;
         }
         PatientData<ContactInfo> data = this.patient.getData("contact");
         if (data != null && data.size() > 0) {
@@ -403,7 +404,10 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private void setAccess()
     {
-        if (this.patient instanceof PatientSimilarityView) {
+        if (this.patient == null) {
+            // Remote patient, assume we have access
+            this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
+        } else if (this.patient instanceof PatientSimilarityView) {
             this.access = ((PatientSimilarityView) this.patient).getAccess();
         } else {
             this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
