@@ -131,9 +131,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
+    public DocumentReference getDocumentReference()
+    {
+        return this.match.getDocumentReference();
+    }
+
+    @Override
     public DocumentReference getDocument()
     {
-        return this.match.getDocument();
+        return this.match.getDocumentReference();
     }
 
     @Override

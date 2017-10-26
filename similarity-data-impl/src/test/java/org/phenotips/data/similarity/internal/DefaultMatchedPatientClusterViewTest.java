@@ -107,7 +107,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Mock
     private DocumentReference doc5;
 
-    private DefaultMatchedPatientClusterView matches;
+    private DefaultMatchedPatientClusterView matchesCV;
 
     private List<PatientSimilarityView> matchList;
 
@@ -117,35 +117,35 @@ public class DefaultMatchedPatientClusterViewTest
         MockitoAnnotations.initMocks(this);
 
         when(this.reference.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, REFERENCE));
-        when(this.reference.getDocument()).thenReturn(this.docRef);
+        when(this.reference.getDocumentReference()).thenReturn(this.docRef);
 
         when(this.patient1.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_1)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_1)));
-        when(this.patient1.getDocument()).thenReturn(this.doc1);
+        when(this.patient1.getDocumentReference()).thenReturn(this.doc1);
 
         when(this.patient2.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_2)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_2)));
-        when(this.patient2.getDocument()).thenReturn(this.doc2);
+        when(this.patient2.getDocumentReference()).thenReturn(this.doc2);
 
         when(this.patient3.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_3)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_3)));
-        when(this.patient3.getDocument()).thenReturn(this.doc3);
+        when(this.patient3.getDocumentReference()).thenReturn(this.doc3);
 
         when(this.patient4.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_4)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_4)));
-        when(this.patient4.getDocument()).thenReturn(this.doc4);
+        when(this.patient4.getDocumentReference()).thenReturn(this.doc4);
 
         when(this.patient5.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_5)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_5)));
-        when(this.patient5.getDocument()).thenReturn(this.doc5);
+        when(this.patient5.getDocumentReference()).thenReturn(this.doc5);
 
         this.matchList = Arrays.asList(this.patient1, this.patient2, this.patient3, this.patient4, this.patient5);
-        this.matches = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
+        this.matchesCV = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
     }
 
     @Test(expected = NullPointerException.class)
@@ -157,7 +157,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void getReferenceReturnsTheReferenceThatWasSet()
     {
-        Assert.assertEquals(this.reference, this.matches.getReference());
+        Assert.assertEquals(this.reference, this.matchesCV.getReference());
     }
 
     @Test
@@ -170,13 +170,13 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void getMatchesReturnsTheMatchesThatWereProvided()
     {
-        Assert.assertEquals(this.matchList, this.matches.getMatches());
+        Assert.assertEquals(this.matchList, this.matchesCV.getMatches());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void getMatchesReturnedMatchesCannotBeModified()
     {
-        this.matches.getMatches().add(mock(PatientSimilarityView.class));
+        this.matchesCV.getMatches().add(mock(PatientSimilarityView.class));
     }
 
     @Test
@@ -197,31 +197,31 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void sizeReturnsCorrectNumberOfMatches()
     {
-        Assert.assertEquals(5, this.matches.size());
+        Assert.assertEquals(5, this.matchesCV.size());
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void toJSONThrowsExceptionIfFromIndexInvalid()
     {
-        this.matches.toJSON(-1, 3);
+        this.matchesCV.toJSON(-1, 3);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toJSONThrowsExceptionIfToIndexIsGreaterThanFromIndex()
     {
-        this.matches.toJSON(3, 0);
+        this.matchesCV.toJSON(3, 0);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void toJSONThrowsExceptionIfToIndexInvalid()
     {
-        this.matches.toJSON(1, 20);
+        this.matchesCV.toJSON(1, 20);
     }
 
     @Test
     public void toJSONGetsCorrectDataForProvidedIndices()
     {
-        final JSONObject result = this.matches.toJSON(1, 3);
+        final JSONObject result = this.matchesCV.toJSON(1, 3);
         final JSONObject expected = new JSONObject()
             .put(QUERY_LABEL, new JSONObject()
                 .put(ID_LABEL, REFERENCE))
@@ -247,7 +247,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void toJSONGetsAllDataIfNoIndicesProvided()
     {
-        final JSONObject result = this.matches.toJSON();
+        final JSONObject result = this.matchesCV.toJSON();
         final JSONObject expected = new JSONObject()
             .put(QUERY_LABEL, new JSONObject()
                 .put(ID_LABEL, REFERENCE))
@@ -282,20 +282,20 @@ public class DefaultMatchedPatientClusterViewTest
     public void equalsReturnsTrueForTwoDifferentObjectsWithSameData()
     {
         final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
-        Assert.assertTrue(v2.equals(this.matches));
+        Assert.assertTrue(v2.equals(this.matchesCV));
     }
 
     @Test
     public void equalsReturnsTrueForTwoIdenticalObjects()
     {
-        Assert.assertTrue(this.matches.equals(this.matches));
+        Assert.assertTrue(this.matchesCV.equals(this.matchesCV));
     }
 
     @Test
     public void equalsReturnsFalseForTwoDifferentObjectsWithDifferentReference()
     {
         final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(mock(Patient.class), this.matchList);
-        Assert.assertFalse(v2.equals(this.matches));
+        Assert.assertFalse(v2.equals(this.matchesCV));
     }
 
     @Test
@@ -303,13 +303,13 @@ public class DefaultMatchedPatientClusterViewTest
     {
         final List<PatientSimilarityView> m2 = Arrays.asList(this.patient1, this.patient2, this.patient3);
         final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, m2);
-        Assert.assertFalse(v2.equals(this.matches));
+        Assert.assertFalse(v2.equals(this.matchesCV));
     }
 
     @Test
     public void hashCodeIsTheSameForTwoObjectsWithSameData()
     {
         final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
-        Assert.assertEquals(v2.hashCode(), this.matches.hashCode());
+        Assert.assertEquals(v2.hashCode(), this.matchesCV.hashCode());
     }
 }

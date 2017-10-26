@@ -167,7 +167,7 @@ public class RestrictedPatientSimilarityViewTest
     private Patient getEmptyMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
 

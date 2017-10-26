@@ -23,7 +23,7 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -67,7 +67,7 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final VocabularyManager VOCABULARY_MANAGER;
 
-    private static final PermissionsManager PERMISSIONS_MANAGER;
+    private static final EntityPermissionsManager PERMISSIONS_MANAGER;
 
     private static final String GENES = "genes";
 
@@ -101,14 +101,14 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientGenotypeManager pgm = null;
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
-        PermissionsManager pm = null;
+        EntityPermissionsManager pm = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
-            pm = ccm.getInstance(PermissionsManager.class);
+            pm = ccm.getInstance(EntityPermissionsManager.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -281,7 +281,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.patient == null) {
             return false;
         }
-        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
+        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         return genotype != null && genotype.hasExomeData();
     }
 
@@ -410,7 +410,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         } else if (this.patient instanceof PatientSimilarityView) {
             this.access = ((PatientSimilarityView) this.patient).getAccess();
         } else {
-            this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
+            this.access = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getAccessLevel();
         }
     }
 }

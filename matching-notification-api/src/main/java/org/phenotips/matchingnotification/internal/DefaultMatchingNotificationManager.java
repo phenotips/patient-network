@@ -21,7 +21,7 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
@@ -78,7 +78,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     private PatientRepository patientRepository;
 
     @Inject
-    private PermissionsManager permissionsManager;
+    private EntityPermissionsManager permissionsManager;
 
     /** Needed for checking if a given access level provides read access to patients. */
     @Inject
@@ -151,7 +151,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 continue;
             }
 
-            Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
+            Visibility patientVisibility = this.permissionsManager.getEntityAccess(patient).getVisibility();
             if (patientVisibility.compareTo(this.matchableVisibility) >= 0) {
                 patients.add(patient);
             }
