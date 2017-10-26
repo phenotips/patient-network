@@ -281,7 +281,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.patient == null) {
             return false;
         }
-        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
+        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         return genotype != null && genotype.hasExomeData();
     }
 

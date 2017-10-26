@@ -21,6 +21,7 @@ import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.PatientWritePolicy;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.FeatureClusterView;
@@ -28,6 +29,7 @@ import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import java.util.ArrayList;
@@ -43,6 +45,10 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
@@ -592,5 +598,29 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
         }
         return Collections.unmodifiableSet(disorders);
+    }
+
+    @Override
+    public void updateFromJSON(JSONObject arg0, PatientWritePolicy arg1)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public DocumentReference getDocumentReference()
+    {
+        return null;
+    }
+
+    @Override
+    public Document getSecureDocument()
+    {
+        return null;
+    }
+
+    @Override
+    public XWikiDocument getXDocument()
+    {
+        return null;
     }
 }

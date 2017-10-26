@@ -77,6 +77,8 @@ public class DefaultActionManager implements ActionManager
 
     private static final String FAILED_MAIL_MSG = "Failed to send email: [{}]";
 
+    private static final String FAILED_GET_MAIL_MSG = "Failed to get email: [{}]";
+
     private static final String EXTERNAL_LINK_MODE = "view";
 
     private static final String PLATFORM = "PhenomeCentral";
@@ -195,6 +197,7 @@ public class DefaultActionManager implements ActionManager
                 email = doc.getStringValue(EMAIL);
             }
         } catch (Exception e) {
+            this.logger.error(FAILED_GET_MAIL_MSG, e.getMessage(), e);
         }
 
         return email;
