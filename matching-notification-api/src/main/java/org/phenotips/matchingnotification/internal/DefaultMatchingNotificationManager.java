@@ -237,7 +237,12 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             List<PatientMatch> matchesForPatient = matchesByPatientId.get(patientId);
             if (matchesForPatient == null) {
                 // TODO use loadMatchesByIds instead.
-                matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
+                try {
+                    matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
+                } catch (Exception ex) {
+                    this.logger.error("Failed to load existing matches for patient {}: {}", patientId, ex.getMessage(),
+                        ex);
+                }
                 matchesByPatientId.put(patientId, matchesForPatient);
             }
 
