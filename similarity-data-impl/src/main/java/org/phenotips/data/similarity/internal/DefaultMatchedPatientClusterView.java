@@ -49,10 +49,6 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
 
     private static final String RETURNED_SIZE_LABEL = "returnedCount";
 
-    private static final String OWNER_LABEL = "owner";
-
-    private static final String EMAIL_LABEL = "email";
-
     private static final String OFFSET_LABEL = "offset";
 
     /** @see #getReference(). */

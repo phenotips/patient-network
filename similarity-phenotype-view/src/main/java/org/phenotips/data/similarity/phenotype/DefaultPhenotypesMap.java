@@ -230,14 +230,15 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     // Construct the map where keys are phenotype names and objects are phenotypes themself
-    private static Map<String, Feature> constructMap2(List<Feature> list) {
+    private static Map<String, Feature> constructMap2(List<Feature> list)
+    {
         Map<String, Feature> map = new HashMap<String, Feature>();
         for (Feature item : list) {
             map.put(item.getName(), item);
         }
         return map;
     }
-    
+
     /**
      * Reorders predefined phenotypes lists in both maps, for display. See {@reorder}
      *

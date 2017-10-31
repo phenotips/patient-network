@@ -19,7 +19,6 @@ package org.phenotips.data.similarity.genotype;
 
 import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.Variant;
-import org.phenotips.data.similarity.genotype.FileSystemExome;
 
 import java.io.IOException;
 import java.io.StringReader;

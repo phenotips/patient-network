@@ -88,7 +88,7 @@ public class PatientReferenceType implements UserType
     public void nullSafeSet(PreparedStatement st, Object value, int index) throws HibernateException, SQLException
     {
         if (Patient.class.isInstance(value)) {
-            st.setString(index, ((Patient) value).getDocument().toString());
+            st.setString(index, ((Patient) value).getDocumentReference().toString());
         } else {
             st.setNull(index, Types.VARCHAR);
         }
@@ -110,7 +110,7 @@ public class PatientReferenceType implements UserType
     public Serializable disassemble(Object value) throws HibernateException
     {
         if (Patient.class.isInstance(value)) {
-            return ((Patient) value).getDocument().toString();
+            return ((Patient) value).getDocumentReference().toString();
         }
         return null;
     }

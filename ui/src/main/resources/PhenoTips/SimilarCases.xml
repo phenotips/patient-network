@@ -2090,7 +2090,7 @@
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
     #set ($patient = $services.patients.get($doc.name))
-    #set ($patientAccess = $services.permissions.getPatientAccess($patient))
+    #set ($patientAccess = $services.permissions.getEntityAccess($patient.id))
     #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
       ## Can see similar cases for this patient
       $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##

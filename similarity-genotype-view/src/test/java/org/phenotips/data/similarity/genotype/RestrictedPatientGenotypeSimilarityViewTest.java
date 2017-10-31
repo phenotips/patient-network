@@ -158,7 +158,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     private Patient getBasicMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_2);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_2);
         when(mockPatient.getId()).thenReturn(PATIENT_2.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
         return mockPatient;
@@ -168,7 +168,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     private Patient getBasicMockReference()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(null);
         return mockPatient;

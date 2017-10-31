@@ -26,6 +26,10 @@
     <version>1.2-SNAPSHOT</version>
   </parent>
 
+  <properties>
+    <coverage.instructionRatio>0.16</coverage.instructionRatio>
+  </properties>
+
   <artifactId>similarity-phenotype-view</artifactId>
   <name>PhenoTips - Patient network - Default implementation for the phenotype similarity view.</name>
   <dependencies>
@@ -70,6 +74,7 @@
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${xwiki.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -31,14 +31,12 @@ import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarity
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -481,12 +479,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     public void updateFromJSON(JSONObject arg0, PatientWritePolicy arg1)
     {
         // TODO Auto-generated method stub
-    }
-
-    @Override
-    public DocumentReference getDocumentReference()
-    {
-        return null;
     }
 
     @Override

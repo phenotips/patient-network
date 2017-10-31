@@ -70,7 +70,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -84,11 +84,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>entity-access-rules-api</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-component-api</artifactId>
       <version>${xwiki.version}</version>
@@ -97,14 +92,6 @@
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-script</artifactId>
       <version>${xwiki.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>

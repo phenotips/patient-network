@@ -26,6 +26,10 @@
     <version>1.2-SNAPSHOT</version>
   </parent>
 
+  <properties>
+    <coverage.instructionRatio>0.00</coverage.instructionRatio>
+  </properties>
+
   <artifactId>similarity-genotype-view</artifactId>
   <name>PhenoTips - Patient network - Default implementation for the genotype similarity view.</name>
   <dependencies>
@@ -51,7 +55,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -95,6 +99,7 @@
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${xwiki.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

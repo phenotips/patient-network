@@ -18,7 +18,7 @@
 package org.phenotips.messaging.internal;
 
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.messaging.ActionManager;
@@ -90,7 +90,7 @@ public class DefaultActionManager implements ActionManager
     private static final String OPTIONS_MESSAGE_FIELD = "message";
 
     @Inject
-    private PermissionsManager permissionsManager;
+    private EntityPermissionsManager permissionsManager;
 
     @Inject
     @Named("view")
@@ -142,11 +142,11 @@ public class DefaultActionManager implements ActionManager
     @Override
     public int grantAccess(Connection connection)
     {
-        if (!this.permissionsManager.getPatientAccess(connection.getTargetPatient()).addCollaborator(
+        if (!this.permissionsManager.getEntityAccess(connection.getTargetPatient()).addCollaborator(
             connection.getInitiatingUser(), this.defaultAccess)) {
             return 1;
         }
-        if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient()).addCollaborator(
+        if (!this.permissionsManager.getEntityAccess(connection.getReferencePatient()).addCollaborator(
             connection.getContactedUser(), this.defaultAccess)) {
             return 2;
         }
@@ -168,13 +168,12 @@ public class DefaultActionManager implements ActionManager
                 xwiki.getUserName(connection.getInitiatingUser().toString(), null, false, context));
             options.put(CONTACTED_USER_NAME,
                 xwiki.getUserName(connection.getContactedUser().toString(), null, false, context));
-            options.put(MATCH_CASE_ID, connection.getTargetPatient().getDocument().getName());
-            options.put("matchCaseReferenceId", connection.getReferencePatient().getDocument().getName());
-            options.put(MATCH_CASE_LINK, xwiki.getDocument(connection.getTargetPatient().getDocument(), context)
-                .getExternalURL(EXTERNAL_LINK_MODE, context));
-            options.put("matchCaseReferenceLink",
-                xwiki.getDocument(connection.getReferencePatient().getDocument(), context)
-                    .getExternalURL(EXTERNAL_LINK_MODE, context));
+            DocumentReference ref = connection.getReferencePatient().getDocumentReference();
+            options.put(MATCH_CASE_ID, ref.getName());
+            options.put("matchCaseReferenceId", ref.getName());
+            String url = xwiki.getDocument(ref, context).getExternalURL(EXTERNAL_LINK_MODE, context);
+            options.put(MATCH_CASE_LINK, url);
+            options.put("matchCaseReferenceLink", url);
             mailsender.sendMailFromTemplate("PhenoTips.MatchSuccessContact", PHENOMECENTRAL_EMAIL,
                 to, null, null, "", options, context);
             return 0;

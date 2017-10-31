@@ -64,7 +64,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -85,11 +85,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>xwiki-platform-users-api</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>

@@ -117,32 +117,32 @@ public class DefaultMatchedPatientClusterViewTest
         MockitoAnnotations.initMocks(this);
 
         when(this.reference.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, REFERENCE));
-        when(this.reference.getDocument()).thenReturn(this.docRef);
+        when(this.reference.getDocumentReference()).thenReturn(this.docRef);
 
         when(this.patient1.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_1)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_1)));
-        when(this.patient1.getDocument()).thenReturn(this.doc1);
+        when(this.patient1.getDocumentReference()).thenReturn(this.doc1);
 
         when(this.patient2.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_2)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_2)));
-        when(this.patient2.getDocument()).thenReturn(this.doc2);
+        when(this.patient2.getDocumentReference()).thenReturn(this.doc2);
 
         when(this.patient3.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_3)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_3)));
-        when(this.patient3.getDocument()).thenReturn(this.doc3);
+        when(this.patient3.getDocumentReference()).thenReturn(this.doc3);
 
         when(this.patient4.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_4)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_4)));
-        when(this.patient4.getDocument()).thenReturn(this.doc4);
+        when(this.patient4.getDocumentReference()).thenReturn(this.doc4);
 
         when(this.patient5.toJSON()).thenReturn(new JSONObject().put(ID_LABEL, PATIENT_5)
             .put(OWNER_LABEL, new JSONObject()
                 .put(EMAIL_LABEL, PATIENT_5)));
-        when(this.patient5.getDocument()).thenReturn(this.doc5);
+        when(this.patient5.getDocumentReference()).thenReturn(this.doc5);
 
         this.matchList = Arrays.asList(this.patient1, this.patient2, this.patient3, this.patient4, this.patient5);
         this.matchesCV = new DefaultMatchedPatientClusterView(this.reference, this.matchList);

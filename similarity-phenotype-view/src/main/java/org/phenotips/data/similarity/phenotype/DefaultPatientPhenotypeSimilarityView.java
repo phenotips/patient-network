@@ -358,7 +358,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
     @Override
     public JSONArray toJSON()
     {
-     // Get list of clusters and convert to JSON
+        // Get list of clusters and convert to JSON
         JSONArray matchesJSON = new JSONArray();
         for (FeatureClusterView cluster : this.featureClusters) {
             matchesJSON.put(cluster.toJSON());
