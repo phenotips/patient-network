@@ -30,8 +30,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.math.NumberUtils;
-
 /**
  * Stores a connection between the owners of two matched patients, anonymously, to be used for email communication. The
  * identities of the two parties are kept private, since mails are sent behind the scenes, while the users only see the
@@ -62,11 +60,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
     public int sendInitialMail(String connectionId, Map<String, Object> options)
     {
         Connection c;
-        if (NumberUtils.isDigits(connectionId)) {
-            c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
-        } else {
-            c = this.connectionManager.getConnectionByToken(connectionId);
-        }
+        c = this.connectionManager.getConnectionByToken(connectionId);
         // FIXME! Add rights check: only the initiating user can do this
         return this.actionManager.sendInitialMails(c, options);
     }
@@ -82,11 +76,7 @@ public class AnonymousCommunicationScriptService implements ScriptService
     {
         try {
             Connection c;
-            if (NumberUtils.isDigits(connectionId)) {
-                c = this.connectionManager.getConnectionById(Long.valueOf(connectionId));
-            } else {
-                c = this.connectionManager.getConnectionByToken(connectionId);
-            }
+            c = this.connectionManager.getConnectionByToken(connectionId);
             // FIXME! Add rights check: only the contacted user can do this
             if (this.actionManager.grantAccess(c) == 0) {
                 try {

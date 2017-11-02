@@ -163,7 +163,6 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
-    @SuppressWarnings("unchecked")
     public String sendNotifications(String ids)
     {
         Map<Long, String> idsList = this.jsonToIdsMap(ids);

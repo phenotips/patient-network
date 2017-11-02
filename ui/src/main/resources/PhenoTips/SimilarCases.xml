@@ -768,7 +768,12 @@
            phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
            if (featureMatch.reference) {
              featureMatch.reference.each(function (fId) {
-               crtPFeatures.insert(_this._displayFeature(_this._queryFeatures['phenotype'] &amp;&amp; _this._queryFeatures['phenotype'][fId] || _this._queryFeatures['prenatal_phenotype'] &amp;&amp; _this._queryFeatures['prenatal_phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
+               crtPFeatures.insert(_this._displayFeature(_this._queryFeatures['phenotype']
+                                                         &amp;&amp; _this._queryFeatures['phenotype'][fId]
+                                                         || _this._queryFeatures['prenatal_phenotype']
+                                                         &amp;&amp; _this._queryFeatures['prenatal_phenotype'][fId])
+                                                         || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;"))
+                                                         || '');
              });
            } else {
              crtPFeatures.insert("-");
@@ -777,7 +782,12 @@
              var undisclosedCount = 0;
              featureMatch.match.each(function (fId) {
                if (fId) {
-                 otherPFeatures.insert(_this._displayFeature(resultFeatures['phenotype'] &amp;&amp; resultFeatures['phenotype'][fId] || resultFeatures['prenatal_phenotype'] &amp;&amp; resultFeatures['prenatal_phenotype'][fId]) || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;")) || '');
+                 otherPFeatures.insert(_this._displayFeature(resultFeatures['phenotype']
+                                                             &amp;&amp; resultFeatures['phenotype'][fId]
+                                                             || resultFeatures['prenatal_phenotype']
+                                                             &amp;&amp; resultFeatures['prenatal_phenotype'][fId])
+                                                             || (fId &amp;&amp; ("&lt;div&gt;"+fId+"&lt;/div&gt;"))
+                                                             || '');
                } else {
                  undisclosedCount++;
                }
@@ -896,11 +906,15 @@
          var vRow = _this._getEmptyTableRow(result);
          var position = new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedPosition'))");
          var change = "";
-         if (v.chrom &amp;&amp; (v.position || (v.start_position &amp;&amp; v.end_position))) {
-            var start = v.position || v.start_position;
-            var end = v.position &amp;&amp; (v.position + (v.ref &amp;&amp; (v.ref.length - 1) || 0)) || v.end_position;
-            position = "chr" + v.chrom.toUpperCase() + ": " + start + " - " + end;
-            var positionURLFragment = "chr" + v.chrom.toUpperCase() + ":" + start + "-" + end;
+         if (v.referenceName &amp;&amp; (v.start || (v.start_position &amp;&amp; v.end_position))) {
+            var start = v.start || v.start_position;
+            var end = v.start &amp;&amp; (v.start + (v.referenceBases &amp;&amp; (v.referenceBases.length - 1) || 0)) || v.end_position;
+            if (start != end) {
+              position = "chr" + v.referenceName.toUpperCase() + ": " + start + " - " + end;
+            } else {
+              position = "chr" + v.referenceName.toUpperCase() + ": " + start;
+            }
+            var positionURLFragment = "chr" + v.referenceName.toUpperCase() + ":" + start + "-" + end;
             var assembly = v.assembly || "hg19";
             position = new Element('a', {
                  'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
@@ -908,19 +922,19 @@
                  'target' : '__blank',
                  'title' : "$escapetool.javascript($services.localization.render('phenotips.similarCases.UCSCGenomeBrowser'))"
             }).update(position).wrap('span', {'class' : 'buttonwrapper'});
-            if (v.ref &amp;&amp; v.alt) {
-              var displayedRef = v.ref.length &lt;= 15 ? v.ref : (v.ref.substring(0, 9) + "..." + v.ref[v.ref.length - 1]);
-              var displayedAlt = v.alt.length &lt;= 15 ? v.alt : (v.alt.substring(0, 9) + "..." + v.alt[v.alt.length - 1]);
+            if (v.referenceBases &amp;&amp; v.alternateBases) {
+              var displayedRef = v.referenceBases.length &lt;= 15 ? v.referenceBases : (v.referenceBases.substring(0, 9) + "..." + v.referenceBases[v.referenceBases.length - 1]);
+              var displayedAlt = v.alternateBases.length &lt;= 15 ? v.alternateBases : (v.alternateBases.substring(0, 9) + "..." + v.alternateBases[v.alternateBases.length - 1]);
               change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
             }
          }
          vRow.insert(new Element('td').insert(position)
                                       .insert(new Element('div')
                                                      .insert(new Element('strong').update(change))
-                                                     .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
+                                                     .insert(v.effect &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.effect + ')') || '')
+                                                     .insert(v.zygosity &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.zygosity + ')') || '')
                                        )
          );
-         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || 'Unknown harmfulness'));
       });
       return result;
    },
@@ -1804,6 +1818,16 @@
 .match-type .block {
   display: inline-block;
   width: 100%;
+}
+.gene-matches .variants-data th .left {
+  float : left;
+}
+.gene-matches .variants-data th .right {
+  float : right;
+}
+.match-type .block {
+  display: inline-block;
+  width: 100%;
 }</code>
     </property>
     <property>
@@ -1943,33 +1967,32 @@
   width: 50%;
 }
 .match-details .gene-matches .variants-data .button.secondary {
-    margin: 0;
-    text-align: center;
-    text-transform: none;
-    width: 99%;
+  margin: 0;
+  text-align: center;
+  text-transform: none;
 }
 .match-details .variants-data .segmented-bar .segmented-unit-fill {
-    background-color: $theme.notificationErrorColor;
+  background-color: $theme.notificationErrorColor;
 }
 .match-details .gene-matches .gene .segmented-bar .segmented-unit-fill,
 .match-details .phenotype-matches .segmented-bar .segmented-unit-fill {
-    background-color: $theme.menuLinkColor;
+  background-color: $theme.menuLinkColor;
 }
 
 .match-details .segmented-bar {
-    color: white;
+  color: white;
 }
 .match-details .gene-matches .gene .segmented-bar {
-    float: left;
-    padding-right: 1em;
+  float: left;
+  padding-right: 1em;
 }
 .match-details .variants-data .segmented-bar,
 .match-details .phenotype-matches .segmented-bar {
-    float: right;
+  float: right;
 }
 .match-details .variants-data .segmented-bar {
-    color: $theme.notificationErrorColor;
-    font-size: .87em;
+  color: $theme.notificationErrorColor;
+  font-size: .87em;
 }
 .match-details table.phenotype-matches .query,
 .match-details table.phenotype-matches .result {
@@ -2067,7 +2090,7 @@
   #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
   #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
     #set ($patient = $services.patients.get($doc.name))
-    #set ($patientAccess = $services.permissions.getPatientAccess($patient))
+    #set ($patientAccess = $services.permissions.getEntityAccess($patient.id))
     #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
       ## Can see similar cases for this patient
       $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
