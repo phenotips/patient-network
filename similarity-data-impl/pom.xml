@@ -60,7 +60,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -89,10 +89,6 @@
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-model</artifactId>
       <version>${xwiki.version}</version>
@@ -101,6 +97,23 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-cache-api</artifactId>
       <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

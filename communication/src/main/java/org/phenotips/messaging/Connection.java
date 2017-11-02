@@ -19,8 +19,8 @@ package org.phenotips.messaging;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
-import org.phenotips.data.permissions.PatientAccess;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityAccess;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
 import org.xwiki.component.manager.ComponentLookupException;
@@ -89,7 +89,7 @@ public class Connection
     {
         this.targetPatient = patientPair;
         this.referencePatient = patientPair.getReference();
-        PatientAccess pa = getAccess(patientPair.getReference());
+        EntityAccess pa = getAccess(patientPair.getReference());
         this.initiatingUser = this.getUserManager().getCurrentUser().getProfileDocument();
         pa = getAccess(patientPair);
         this.contactedUser = new DocumentReference(pa.getOwner().getUser());
@@ -211,10 +211,10 @@ public class Connection
      * @param p the patient on which the access level is checked
      * @return the access type the current user has on the target patient
      */
-    private PatientAccess getAccess(Patient p)
+    private EntityAccess getAccess(Patient p)
     {
-        PermissionsManager pm = getComponent(PermissionsManager.class);
-        return pm.getPatientAccess(p);
+        EntityPermissionsManager pm = getComponent(EntityPermissionsManager.class);
+        return pm.getEntityAccess(p);
     }
 
     /**

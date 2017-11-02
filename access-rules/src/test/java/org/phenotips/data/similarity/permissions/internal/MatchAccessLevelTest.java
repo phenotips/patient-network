@@ -130,15 +130,15 @@ public class MatchAccessLevelTest
     {
         // Equals itself
         Assert.assertEquals(0, this.mocker.getComponentUnderTest().compareTo(this.mocker.getComponentUnderTest()));
-        // Nulls come after
-        Assert.assertTrue(this.mocker.getComponentUnderTest().compareTo(null) < 0);
+        // If not instanceof AbstractAccessLevel then compareTo() returns Integer.MAX_VALUE
+        Assert.assertEquals(Integer.MAX_VALUE, this.mocker.getComponentUnderTest().compareTo(null));
         // Equals another level with the same permissiveness
         Assert.assertEquals(0, this.mocker.getComponentUnderTest().compareTo(new MockAccessLevel("partial", 5, true)));
         // Respects the permissiveness order
         Assert.assertTrue(this.mocker.getComponentUnderTest().compareTo(new MockAccessLevel("private", 0, true)) > 0);
         Assert.assertTrue(this.mocker.getComponentUnderTest().compareTo(new MockAccessLevel("manage", 30, true)) < 0);
-        // Other types of levels are placed after
-        Assert.assertTrue(this.mocker.getComponentUnderTest().compareTo(mock(AccessLevel.class)) < 0);
+        // Other types of levels are placed before
+        Assert.assertEquals(Integer.MAX_VALUE, this.mocker.getComponentUnderTest().compareTo(mock(AccessLevel.class)));
     }
 
     /** Basic tests for {@link AccessLevel#hashCode()}. */

@@ -80,7 +80,7 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public DocumentReference getDocument()
     {
-        return this.access.isOpenAccess() ? this.match.getDocument() : null;
+        return this.access.isOpenAccess() ? this.match.getDocumentReference() : null;
     }
 
     @Override

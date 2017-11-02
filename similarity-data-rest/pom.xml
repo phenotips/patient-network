@@ -50,8 +50,8 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
-      <version>${phenotips.version}</version>
+      <artifactId>patient-similarity-data-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-rest-api</artifactId>
+      <artifactId>xwiki-platform-store-api</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
@@ -85,12 +85,12 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-model</artifactId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-oldcore</artifactId>
+      <artifactId>xwiki-platform-container-api</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>
@@ -104,6 +104,14 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
