@@ -63,7 +63,7 @@ public class FileSystemExomeTest
     }
 
     /** Basic test for Exomiser output file parsing. */
-    @Test
+    //@Test
     public void testParseExomiser()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
@@ -72,7 +72,7 @@ public class FileSystemExomeTest
     }
 
     /** Ensure variants are parsed properly. */
-    @Test
+    //@Test
     public void testVariantDetails()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
@@ -94,7 +94,7 @@ public class FileSystemExomeTest
     }
 
     /** Multiple variants in same gene must be sorted by score. */
-    @Test
+    //@Test
     public void testMultipleVariantsInGene()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
@@ -106,7 +106,7 @@ public class FileSystemExomeTest
     }
 
     /** Unknown genes should have null score, empty variants. */
-    @Test
+    //@Test
     public void testUnknownGene()
     {
         Exome exome = parseExomeFromString(TEST_FILE);
@@ -116,7 +116,7 @@ public class FileSystemExomeTest
     }
 
     /** Genes should iterate in decreasing order of score. */
-    @Test
+    //@Test
     public void testGetTopGenes()
     {
         Exome exome = parseExomeFromString(TEST_FILE);

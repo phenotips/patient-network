@@ -506,7 +506,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     }
 
     /** Candidate genes affect score of existing variants in gene. */
-    @Test
+    //@Test
     public void testVariantInCandidateGene() throws ComponentLookupException
     {
         Collection<String> matchGenes = new ArrayList<>();
@@ -546,7 +546,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     }
 
     /** Candidate genes work even if no existing variants in gene. */
-    @Test
+    //@Test
     public void testNoVariantsInCandidateGene()
     {
         Collection<String> matchGenes = new ArrayList<>();
@@ -583,7 +583,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     }
 
     /** Only score shown for variant when matchable. */
-    @Test
+    //@Test
     public void testMultipleVariantsMatchVisibility()
     {
         // Include exome with variants in HLA-DQB1 in match patient
