@@ -229,7 +229,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Deprecated
     public boolean isRejected()
     {
-        return this.rejected;
+        return this.rejected != null ? this.rejected : "rejected".equals(this.status);
     }
 
     @Override
