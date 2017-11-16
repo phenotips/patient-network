@@ -52,7 +52,6 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 import com.xpn.xwiki.store.migration.DataMigrationException;
 import com.xpn.xwiki.store.migration.XWikiDBVersion;
 import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
-import com.xpn.xwiki.store.migration.hibernate.HibernateDataMigration;
 
 /**
  * Migration for PatientNetwork issue PN-196: Create migrator to delete matches with deleted local patients and update
@@ -61,7 +60,7 @@ import com.xpn.xwiki.store.migration.hibernate.HibernateDataMigration;
  * @version $Id$
  * @since 1.2
  */
-@Component(roles = { HibernateDataMigration.class })
+@Component
 @Named("R71502PatientNetwork196")
 @Singleton
 public class R71502PatientNetwork196DataMigration extends AbstractHibernateDataMigration
