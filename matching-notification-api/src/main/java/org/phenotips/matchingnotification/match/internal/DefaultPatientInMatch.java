@@ -93,6 +93,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private Patient patient;
 
+    private PatientGenotype genotype;
+
     /** The access level the user has to this patient. */
     private AccessLevel access;
 
@@ -131,6 +133,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patient = patient;
         this.patientId = patient.getId();
         this.serverId = serverId;
+        this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         setAccess();
         this.populateContactInfo(null);
         this.readDetails(patient);
@@ -150,6 +153,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patientId = patientId;
         this.serverId = serverId;
         this.patient = getLocalPatient();
+        this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         setAccess();
         populateContactInfo(href);
         this.rebuildDetails(patientDetails);
@@ -174,6 +178,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
 
         json.put("hasExomeData", this.hasExomeData());
+        json.put("genesStatus", this.genotype.getGenesStatus());
 
         return json;
     }
@@ -281,8 +286,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.patient == null) {
             return false;
         }
-        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
-        return genotype != null && genotype.hasExomeData();
+        return this.genotype != null && this.genotype.hasExomeData();
     }
 
     @Override
@@ -300,7 +304,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         JSONObject json = new JSONObject(patientDetails);
 
-        this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)), null);
+        this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
         this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
@@ -329,17 +333,16 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private Set<String> getGenes(Patient patient)
     {
-        PatientGenotype genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(patient);
-        if (genotype != null && genotype.hasGenotypeData()) {
-            Set<String> set = getGeneSymbols(genotype.getCandidateGenes(), genotype.getGenesStatus());
+        if (this.genotype != null && this.genotype.hasGenotypeData()) {
+            Set<String> set = getGeneSymbols(this.genotype.getCandidateGenes());
             return Collections.unmodifiableSet(set);
         } else {
             return Collections.emptySet();
         }
     }
 
-    // convert gene Ensembl IDs to gene symbols with status appended, e.x. 'T (solved)'
-    private Set<String> getGeneSymbols(Set<String> set, String status)
+    // convert gene Ensembl IDs to gene symbols
+    private Set<String> getGeneSymbols(Set<String> set)
     {
         Set<String> result = new HashSet<>();
         Vocabulary hgnc = VOCABULARY_MANAGER.getVocabulary("HGNC");
@@ -347,7 +350,6 @@ public class DefaultPatientInMatch implements PatientInMatch
             VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
             String symbol = (term != null) ? (String) term.get("symbol") : null;
             symbol = StringUtils.isBlank(symbol) ? geneEnsemblId : symbol;
-            symbol = StringUtils.isBlank(status) ? symbol : symbol + " (" + status + ")";
             result.add(symbol);
         }
         return result;

@@ -246,7 +246,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
             td += this._getAgeOfOnset(patient.age_of_onset);
             td += this._getModeOfInheritance(patient.mode_of_inheritance);
-            td += this._getGenesDiv(patient.genes, patient.hasExomeData);
+            td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
             td += this._getPhenotypesDiv(patient.phenotypes);
 
             // End collapsible div
@@ -256,10 +256,12 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getGenesDiv : function(genes, hasExomeData)
+        _getGenesDiv : function(genes, hasExomeData, genesStatus)
         {
             var td = '<div class="genes-div">';
-            var genesTitle = 'Genes  ' + ((hasExomeData) ? '<span class="fa fa-gg-circle" title="patient has exome data"></span>' : '');
+            var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
+            var exomeIcon = ((hasExomeData) ? '<span class="fa fa-gg-circle" title="patient has exome data"></span>' : '');
+            var genesTitle = this._GENES + '  ' + statusStr + ' ' + exomeIcon;
             if (genes.size() == 0) {
                 genesTitle += ': -';
             }
@@ -267,7 +269,8 @@ define(["jquery", "dynatable"], function($, dyna)
             if (genes.size() != 0) {
                 td += '<ul>';
                 for (var i = 0 ; i < genes.size() ; i++) {
-                    td += '<li>' + genes[i] + '</li>';
+                    var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
+                    td += '<li>' + gene + '</li>';
                 }
                 td += '</ul>';
             }
