@@ -23,14 +23,19 @@ import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.DefaultMatchedPatientClusterView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
+import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
 import org.xwiki.container.Request;
+import org.xwiki.context.Execution;
+import org.xwiki.context.ExecutionContext;
 import org.xwiki.rest.XWikiResource;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +50,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default implementation of the {@link PatientMatchResource}.
@@ -79,6 +86,12 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     /** The XWiki container. */
     @Inject
     private Container container;
+
+    @Inject
+    private MatchingNotificationManager matchingNotificationManager;
+
+    @Inject
+    private Execution execution;
 
     @Override
     public Response findMatchingPatients(@Nullable final String reference)
@@ -146,6 +159,16 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
+
+        // run separate thread to save found matches
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        ExecutionContext context = this.execution.getContext();
+        executor.submit(() -> {
+            this.execution.setContext(context);
+            XWikiContext xcontext = (XWikiContext) context.getProperty("xwikicontext");
+            this.matchingNotificationManager.saveIncomingMatches(matches, null);
+        });
+
         final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
         final JSONObject matchesJson = !matches.isEmpty()
             ? cluster.toJSON(offset - 1, getLastIndex(cluster, offset, limit))
