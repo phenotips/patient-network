@@ -147,13 +147,13 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      */
     private void matchGenes()
     {
-        // Only consider genes listed as a candidate in at least one of the two patients
+        // Only consider genes listed as a solved/candidate in at least one of the two patients
         for (String gene : getCandidateGeneUnion()) {
             // Compute gene score based on the genotype scores for the two patients
             Double refScore = this.refGenotype.getGeneScore(gene);
             Double matchScore = this.matchGenotype.getGeneScore(gene);
             double geneScore;
-            // Average the scores as long as the gene is listed for both patients (candidate or exome)
+            // Average the scores as long as the gene is listed for both patients (solved/candidate or exome)
             if (refScore == null || matchScore == null
                 || refScore < lowerGeneScoreThreshold || matchScore < lowerGeneScoreThreshold) {
                 geneScore = 0.0;
