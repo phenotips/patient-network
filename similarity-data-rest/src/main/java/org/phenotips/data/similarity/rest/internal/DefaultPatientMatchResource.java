@@ -29,9 +29,13 @@ import org.phenotips.similarity.SimilarPatientsFinder;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
 import org.xwiki.container.Request;
+import org.xwiki.context.Execution;
+import org.xwiki.context.ExecutionContext;
 import org.xwiki.rest.XWikiResource;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,6 +48,8 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default implementation of the {@link PatientMatchResource}.
@@ -77,6 +83,9 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     /** The XWiki container. */
     @Inject
     private Container container;
+
+    @Inject
+    private Execution execution;
 
     @Override
     public Response findMatchesForPatient(@Nullable final String reference)
@@ -133,8 +142,15 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     {
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
 
-        this.matchStorageManager.saveLocalMatches(
-            this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+        // run separate thread to save found matches
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        ExecutionContext context = this.execution.getContext();
+        executor.submit(() -> {
+            this.execution.setContext(context);
+            XWikiContext xcontext = (XWikiContext) context.getProperty("xwikicontext");
+            this.matchStorageManager.saveLocalMatches(
+                this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+        });
 
         final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
         try {
