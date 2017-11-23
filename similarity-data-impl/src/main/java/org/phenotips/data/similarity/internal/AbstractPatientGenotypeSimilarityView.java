@@ -81,7 +81,7 @@ public abstract class AbstractPatientGenotypeSimilarityView extends AbstractExom
     public boolean hasExomeData()
     {
         return this.matchGenotype != null && this.matchGenotype.hasExomeData()
-            || this.refGenotype != null && this.refGenotype.hasGenotypeData();
+            || this.refGenotype != null && this.refGenotype.hasExomeData();
     }
 
     @Override
