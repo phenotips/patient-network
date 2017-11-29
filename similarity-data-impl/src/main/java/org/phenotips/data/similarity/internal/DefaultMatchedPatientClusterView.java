@@ -22,6 +22,7 @@ import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -70,6 +71,18 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
         Validate.notNull(patient, "The reference patient should not be null.");
         this.reference = patient;
         this.matches = CollectionUtils.isNotEmpty(matches) ? matches : Collections.<PatientSimilarityView>emptyList();
+
+        // Sort by score
+        Collections.sort(this.matches, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+            {
+                double score1 = o1.getScore();
+                double score2 = o2.getScore();
+                return (int) Math.signum(score2 - score1);
+            }
+        });
     }
 
     @Override
