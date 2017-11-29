@@ -570,7 +570,7 @@ public class RestrictedPatientSimilarityViewTest
         JSONObject result = o.toJSON();
         Assert.assertEquals(o.getContactToken(), result.getString("token"));
         JSONArray clusters = result.getJSONArray("featureMatches");
-        //Assert.assertTrue(clusters.length() >= 2);
+        Assert.assertTrue(clusters.length() == 1);
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             if (cluster.has("match")) {
@@ -602,7 +602,7 @@ public class RestrictedPatientSimilarityViewTest
         JSONObject result = o.toJSON();
         Assert.assertEquals(o.getContactToken(), result.getString("token"));
         JSONArray clusters = result.getJSONArray("featureMatches");
-        //Assert.assertTrue(clusters.length() >= 2);
+        Assert.assertTrue(clusters.length() == 1);
         for (int i = 0; i < clusters.length(); i++) {
             JSONObject cluster = clusters.getJSONObject(i);
             if (cluster.has("match")) {
