@@ -30,7 +30,6 @@ import org.xwiki.model.reference.DocumentReference;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -211,14 +210,7 @@ public class DefaultActionManager implements ActionManager
      */
     private void setNotified(String patientId, String matchId)
     {
-        List<PatientMatch> successfulMatches = new LinkedList<>();
-        List<PatientMatch> matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
-        for (PatientMatch match : matchesForPatient) {
-            if (match.getMatchedPatientId().equals(matchId)) {
-                successfulMatches.add(match);
-                break;
-            }
-        }
+        List<PatientMatch> successfulMatches = this.matchStorageManager.loadMatchesBetweenPatients(patientId, matchId);
 
         Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
         this.matchStorageManager.markNotified(session, successfulMatches);

@@ -19,20 +19,16 @@ package org.phenotips.matchingnotification.events;
 
 import org.phenotips.data.events.PatientDeletingEvent;
 import org.phenotips.matchingnotification.internal.DefaultMatchingNotificationManager;
-import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,12 +59,8 @@ public class PatientMatchesRemover extends AbstractEventListener
     public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument doc = (XWikiDocument) source;
-
         String patientId = doc.getDocumentReference().getName();
-        List<PatientMatch> matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
-        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-        this.matchStorageManager.deleteMatches(session, matchesForPatient);
-        boolean successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
+        boolean successful = this.matchStorageManager.deleteMatches(patientId);
 
         if (!successful) {
             this.logger.error("Error while deleting matches for patient ID ", patientId);

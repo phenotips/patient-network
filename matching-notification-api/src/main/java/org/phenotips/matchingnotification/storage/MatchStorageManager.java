@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.storage;
 
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
@@ -31,13 +32,6 @@ import org.hibernate.Session;
 @Role
 public interface MatchStorageManager
 {
-    /**
-     * Stores matches.
-     *
-     * @param matches to store
-     */
-    void saveMatches(List<PatientMatch> matches);
-
     /**
      * Loads matches filtered by the parameters.
      *
@@ -56,12 +50,13 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
 
     /**
-     * Load all matches where reference patient is same as parameter.
+     * Load all matches where reference/matched patient ID is same as one of parameters.
      *
-     * @param patientId id of reference patient to load matches for
+     * @param patientId1 id of reference/matched patient to load matches for
+     * @param patientId2 id of reference/matched patient to load matches for
      * @return list of matches
      */
-    List<PatientMatch> loadMatchesByReferencePatientId(String patientId);
+    List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String patientId2);
 
     /**
      * Initialize the notification marking transaction. See also {@code markNotified} and
@@ -102,12 +97,37 @@ public interface MatchStorageManager
     boolean endNotificationMarkingTransaction(Session session);
 
     /**
-     * Delete matches. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
+     * Delete matches for local patient with ID passed as parameter.
      *
-     * @param session the transaction session created for marking.
-     * @param matches list of matches to delete.
+     * @param patientId local patient ID for whom to delete matches.
      * @return true if successful
      */
-    boolean deleteMatches(Session session, List<PatientMatch> matches);
+    boolean deleteMatches(String patientId);
+
+    /**
+     * Saves a list of local matches.
+     *
+     * @param matches list of similarity views
+     * @return true if successful
+     */
+    boolean saveLocalMatches(List<PatientMatch> matches);
+
+    /**
+     * Saves a list of local matches.
+     *
+     * @param similarityViews list of similarity views
+     * @return true if successful
+     */
+    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews);
+
+    /**
+     * Saves a list of matches that were found by a remote outgoing/incoming request.
+     *
+     * @param similarityViews list of similarity views
+     * @param serverId id of remote server
+     * @param isIncoming whether we are saving results of incoming (then true) or outgoing request
+     * @return true if successful
+     */
+    boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String serverId,
+        boolean isIncoming);
 }

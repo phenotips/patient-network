@@ -17,14 +17,19 @@
  */
 package org.phenotips.matchingnotification.storage.internal;
 
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
+import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -56,24 +61,60 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
 
     @Override
-    public void saveMatches(List<PatientMatch> matches)
+    public boolean saveLocalMatches(List<PatientMatch> matches)
     {
-        Session session = this.sessionFactory.getSessionFactory().openSession();
-        Transaction t = session.beginTransaction();
-        try {
-            for (PatientMatch match : matches) {
-                session.save(match);
-            }
-            t.commit();
-        } catch (HibernateException ex) {
-            this.logger.error("ERROR storing matches: [{}]", ex);
-            if (t != null) {
-                t.rollback();
-            }
-            throw ex;
-        } finally {
-            session.close();
+        Set<String> refPatients = new HashSet<>();
+
+        for (PatientMatch match : matches) {
+            refPatients.add(match.getReferencePatientId());
         }
+
+        Session session = this.beginNotificationMarkingTransaction();
+        for (String patientId : refPatients) {
+            this.deleteMatches(session, this.loadLocalMatchesByPatientId(patientId));
+        }
+        this.saveMatches(session, matches);
+        return this.endNotificationMarkingTransaction(session);
+    }
+
+    @Override
+    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarPatients)
+    {
+        List<PatientMatch> matches = new LinkedList<>();
+        for (PatientSimilarityView similarityView : similarPatients) {
+            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+            matches.add(match);
+        }
+
+        return this.saveLocalMatches(matches);
+    }
+
+    @Override
+    public boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String serverId,
+        boolean isIncoming)
+    {
+        Set<String> refPatients = new HashSet<>();
+
+        List<PatientMatch> matchesToSave = new LinkedList<>();
+        for (PatientSimilarityView similarityView : similarityViews) {
+            refPatients.add(similarityView.getReference().getId());
+            PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, null)
+                            : new DefaultPatientMatch(similarityView, null, serverId);
+            matchesToSave.add(match);
+        }
+
+        List<PatientMatch> matchesToDelete = new LinkedList<>();
+        for (String patientId : refPatients) {
+            if (isIncoming) {
+                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(patientId, serverId));
+            } else {
+                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(patientId, serverId));
+            }
+        }
+        Session session = this.beginNotificationMarkingTransaction();
+        this.deleteMatches(session, matchesToDelete);
+        this.saveMatches(session, matchesToSave);
+        return this.endNotificationMarkingTransaction(session);
     }
 
     @Override
@@ -95,12 +136,49 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
     }
 
-    @Override
-    public List<PatientMatch> loadMatchesByReferencePatientId(String referencePatientId)
+    private List<PatientMatch> loadLocalMatchesByPatientId(String patientId)
     {
-        if (StringUtils.isNotEmpty(referencePatientId)) {
+        if (StringUtils.isNotEmpty(patientId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.eq("referencePatientId", referencePatientId) });
+                new Criterion[] { Restrictions.or(Restrictions.and(Restrictions.eq("referencePatientId", patientId),
+                                                                   Restrictions.eq("referenceServerId", null)),
+                                                    Restrictions.and(Restrictions.eq("matchedPatientId", patientId),
+                                                                     Restrictions.eq("matchedServerId", null)))});
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private List<PatientMatch> loadOutgoingMatchesByPatientId(String patientId, String serverId)
+    {
+        if (StringUtils.isNotEmpty(patientId) && StringUtils.isNotEmpty(serverId)) {
+            return this.loadMatchesByCriteria(
+                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", patientId),
+                                                   Restrictions.eq("matchedServerId", serverId))});
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private List<PatientMatch> loadIncomingMatchesByPatientId(String patientId, String serverId)
+    {
+        if (StringUtils.isNotEmpty(patientId) && StringUtils.isNotEmpty(serverId)) {
+            return this.loadMatchesByCriteria(
+                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", patientId),
+                                                   Restrictions.eq("referenceServerId", serverId))});
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String patientId2)
+    {
+        if (StringUtils.isNotEmpty(patientId1) && StringUtils.isNotEmpty(patientId2)) {
+            String[] ids = new String[] {patientId1, patientId2};
+            return this.loadMatchesByCriteria(
+                new Criterion[] { Restrictions.and(Restrictions.in("referencePatientId", ids),
+                                                   Restrictions.in("matchedPatientId", ids)) });
         } else {
             return Collections.emptyList();
         }
@@ -176,10 +254,25 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean deleteMatches(Session session, List<PatientMatch> matches) {
+    public boolean deleteMatches(String patientId)
+    {
+        List<PatientMatch> matches = this.loadLocalMatchesByPatientId(patientId);
+        Session session = this.beginNotificationMarkingTransaction();
+        this.deleteMatches(session, matches);
+        return this.endNotificationMarkingTransaction(session);
+    }
+
+    private void deleteMatches(Session session, List<PatientMatch> matches)
+    {
         for (PatientMatch match : matches) {
             session.delete(match);
         }
-        return true;
+    }
+
+    private void saveMatches(Session session, List<PatientMatch> matches)
+    {
+        for (PatientMatch match : matches) {
+            session.save(match);
+        }
     }
 }

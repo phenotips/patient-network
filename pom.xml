@@ -346,6 +346,66 @@
               <to>org.phenotips.data.similarity.phenotype.PhenotypesMap</to>
               <justification>Relocating PhenotypesMap to new phenotype-view component.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveOutgoingMatches(java.util.List, java.lang.String)</method>
+              <justification>Added to save outgoing remote matches ffom remore server.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatchesViews(java.util.List)</method>
+              <justification>Added to save local remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List loadMatchesByReferencePatientId(java.lang.String)</method>
+              <justification>Renamed to loadMatchesByPatientId().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>void saveMatches(java.util.List)</method>
+              <justification>Removed, substituted by saveLocalMatchesViews() and saveLocalMatches().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean deleteMatches(java.lang.String)</method>
+              <justification>Added to delete all matches by this local patient ID.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List loadMatchesBetweenPatients(java.lang.String, java.lang.String)</method>
+              <justification>Added to save outgoing remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List loadMatchesByPatientIds(java.lang.String, java.lang.String)</method>
+              <justification>Added to search matches with provided paient IDs of matched patients.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatches(java.util.List)</method>
+              <justification>Added to save local matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatchesViews(java.util.List)</method>
+              <justification>Added to save local matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveRemoteMatches(java.util.List, java.lang.String, boolean)</method>
+              <justification>Added to save outgoing or incoming remote matches.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

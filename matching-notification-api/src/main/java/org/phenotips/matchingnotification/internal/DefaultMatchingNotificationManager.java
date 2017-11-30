@@ -18,7 +18,6 @@
 package org.phenotips.matchingnotification.internal;
 
 import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
@@ -27,7 +26,6 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
@@ -38,10 +36,8 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -53,10 +49,6 @@ import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,12 +104,11 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             if (matchesForPatient.isEmpty()) {
                 continue;
             }
+
             this.filterMatchesByScore(matchesForPatient, score);
-            this.filterExistingUnchangedMatches(matchesForPatient);
             if (matchesForPatient.isEmpty()) {
                 continue;
             }
-            this.matchStorageManager.saveMatches(matchesForPatient);
 
             addedMatches.addAll(matchesForPatient);
         }
@@ -221,97 +212,22 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         matches.removeAll(toRemove);
     }
 
-    /*
-     * Gets a list of matches and removes matches that already exist in the database. When this is more mature, it might
-     * belong in a separate component.
-     */
-    private void filterExistingUnchangedMatches(List<PatientMatch> matches)
+    @Override
+    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews)
     {
-        Map<String, List<PatientMatch>> matchesByPatientId = new HashMap<>();
-        List<PatientMatch> toRemove = new LinkedList<>();
-        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-        for (PatientMatch match : matches) {
-
-            // Read existing matches for same patient id, from db or cache
-            String patientId = match.getReferencePatientId();
-            List<PatientMatch> matchesForPatient = matchesByPatientId.get(patientId);
-            if (matchesForPatient == null) {
-                // TODO use loadMatchesByIds instead.
-                try {
-                    matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
-                } catch (Exception ex) {
-                    this.logger.error("Failed to load existing matches for patient {}: {}", patientId, ex.getMessage(),
-                        ex);
-                }
-                matchesByPatientId.put(patientId, matchesForPatient);
-            }
-
-            // Filter out existing matches:
-            if (matchesForPatient != null && matchesForPatient.contains(match)) {
-                PatientMatch savedMatch = matchesForPatient.get(matchesForPatient.indexOf(match));
-                if (wasModifiedAfterMatch(savedMatch)) {
-                    // update the existing match in db with new properties of just recomputed match
-                    // if any of it's patients were modified after that match was found
-                    savedMatch.setFoundTimestamp(match.getFoundTimestamp());
-                    savedMatch.setScore(match.getScore());
-                    savedMatch.setGenotypeScore(match.getGenotypeScore());
-                    savedMatch.setPhenotypeScore(match.getPhenotypeScore());
-                    savedMatch.setReferenceDetails(match.getReferenceDetails());
-                    savedMatch.setReferencePatientInMatch(match.getReference());
-                    savedMatch.setMatchedDetails(match.getMatchedDetails());
-                    savedMatch.setMatchedPatientInMatch(match.getMatched());
-
-                    session.update(savedMatch);
-                }
-                toRemove.add(match);
-            }
-        }
-        this.matchStorageManager.endNotificationMarkingTransaction(session);
-        matches.removeAll(toRemove);
-    }
-
-    /*
-     * Check if reference or matched patients have been changed since the match was found.
-     */
-    private boolean wasModifiedAfterMatch(PatientMatch match)
-    {
-        Patient referencePatient = match.getReference().getPatient();
-        Patient matchedPatient = match.getMatched().getPatient();
-
-        if (referencePatient != null && matchedPatient != null) {
-            DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
-
-            PatientData<String> patientData = referencePatient.<String>getData("metadata");
-            String date = patientData.get("date");
-            DateTime referenceLastModifiedDate = dateFormatter.parseDateTime(date);
-
-            patientData = matchedPatient.<String>getData("metadata");
-            date = patientData.get("date");
-            DateTime matchedLastModifiedDate = dateFormatter.parseDateTime(date);
-
-            Timestamp matchTimestamp = match.getFoundTimestamp();
-            DateTime matchTimestampFormatted = new DateTime(matchTimestamp.getTime());
-
-            return (matchTimestampFormatted.isBefore(referenceLastModifiedDate)
-                || matchTimestampFormatted.isBefore(matchedLastModifiedDate));
-        }
-
-        return false;
+        return this.matchStorageManager.saveLocalMatchesViews(similarityViews);
     }
 
     @Override
-    public boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId)
+    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
     {
-        List<PatientMatch> matches = new LinkedList<>();
-        for (PatientSimilarityView view : similarityViews) {
-            PatientMatch match = new DefaultPatientMatch(view, remoteId, null);
-            matches.add(match);
-        }
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, remoteId, true);
+    }
 
-        this.filterExistingUnchangedMatches(matches);
-        this.matchStorageManager.saveMatches(matches);
-
-        return true;
+    @Override
+    public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
+    {
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, remoteId, false);
     }
 
     @Override

@@ -146,10 +146,11 @@ public class MatchingNotificationScriptService implements ScriptService
      * Saves a list of matches that were found by a local Solr similarity search request.
      *
      * @param similarityViews list of similarity views
+     * @return true if successful
      */
-    public void saveLocalMatches(List<PatientSimilarityView> similarityViews)
+    public boolean saveLocalMatches(List<PatientSimilarityView> similarityViews)
     {
-        this.matchingNotificationManager.saveIncomingMatches(similarityViews, null);
+        return this.matchingNotificationManager.saveLocalMatchesViews(similarityViews);
     }
 
     /**
@@ -163,7 +164,6 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
-    @SuppressWarnings("unchecked")
     public String sendNotifications(String ids)
     {
         Map<Long, String> idsList = this.jsonToIdsMap(ids);

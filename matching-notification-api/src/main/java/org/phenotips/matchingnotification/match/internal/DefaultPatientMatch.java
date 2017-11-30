@@ -336,8 +336,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
-        json.put("notifiedTimestamp",
-            this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
+        json.put("notifiedTimestamp", this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
         json.put("notified", this.isNotified());
         json.put("status", this.getStatus());
