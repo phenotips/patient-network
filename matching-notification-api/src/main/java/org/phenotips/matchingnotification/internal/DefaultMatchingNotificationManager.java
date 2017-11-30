@@ -300,18 +300,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId)
+    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
     {
-        List<PatientMatch> matches = new LinkedList<>();
-        for (PatientSimilarityView view : similarityViews) {
-            PatientMatch match = new DefaultPatientMatch(view, remoteId, null);
-            matches.add(match);
-        }
+        return saveRemoteMatches(similarityViews, remoteId, true);
+    }
 
-        this.filterExistingUnchangedMatches(matches);
-        this.matchStorageManager.saveMatches(matches);
-
-        return true;
+    @Override
+    public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
+    {
+        return saveRemoteMatches(similarityViews, remoteId, false);
     }
 
     @Override
@@ -330,6 +327,22 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;
+    }
+
+    private boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId,
+        boolean isIncoming)
+    {
+        List<PatientMatch> matches = new LinkedList<>();
+        for (PatientSimilarityView view : similarityViews) {
+            PatientMatch match = isIncoming ? new DefaultPatientMatch(view, remoteId, null)
+                : new DefaultPatientMatch(view, null, remoteId);
+            matches.add(match);
+        }
+
+        this.filterExistingUnchangedMatches(matches);
+        this.matchStorageManager.saveMatches(matches);
+
+        return true;
     }
 
     /**
