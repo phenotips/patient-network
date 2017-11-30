@@ -300,7 +300,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId)
+    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
     {
         List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView view : similarityViews) {
