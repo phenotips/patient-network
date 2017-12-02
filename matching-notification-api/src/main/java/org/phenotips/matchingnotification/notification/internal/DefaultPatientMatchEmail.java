@@ -21,7 +21,7 @@ import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
-import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityViewFactory;
 import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -77,6 +77,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private static final DocumentReferenceResolver<String> REFERENCE_RESOLVER;
 
+    private static final PatientPhenotypeSimilarityViewFactory PHENOTYPE_SIMILARITY_VIEW_FACTORY;
+
     private ScriptMimeMessage mimeMessage;
 
     private PatientInMatch subjectPatient;
@@ -91,17 +93,21 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         MailSenderScriptService mailService = null;
         Provider<XWikiContext> contextProvider = null;
         DocumentReferenceResolver<String> referenceResolver = null;
+        PatientPhenotypeSimilarityViewFactory patientPhenotypeSimilarityViewFactory = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             mailService = ccm.getInstance(ScriptService.class, "mailsender");
             contextProvider = ccm.getInstance(XWikiContext.TYPE_PROVIDER);
             referenceResolver = ccm.getInstance(DocumentReferenceResolver.TYPE_STRING, "current");
+            patientPhenotypeSimilarityViewFactory = ccm.getInstance(PatientPhenotypeSimilarityViewFactory.class,
+                "restricted");
         } catch (ComponentLookupException e) {
             LOGGER.error("Error initializing mailService", e);
         }
         MAIL_SERVICE = mailService;
         CONTEXT_PROVIDER = contextProvider;
         REFERENCE_RESOLVER = referenceResolver;
+        PHENOTYPE_SIMILARITY_VIEW_FACTORY = patientPhenotypeSimilarityViewFactory;
     }
 
     /**
@@ -253,7 +259,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         // passing null in place of access because the user is admin,
         // access not used in DefaultPatientPhenotypeSimilarityView
         PatientPhenotypeSimilarityView featuresView =
-            new DefaultPatientPhenotypeSimilarityView(matchFeatures, refFeatures, null);
+            PHENOTYPE_SIMILARITY_VIEW_FACTORY.createPatientPhenotypeSimilarityView(matchFeatures, refFeatures, null);
 
         return featuresView.toJSON();
     }
