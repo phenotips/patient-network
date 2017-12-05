@@ -55,11 +55,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>entity-access-rules-api</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>patient-network-access-rules</artifactId>
       <version>${project.version}</version>
     </dependency>

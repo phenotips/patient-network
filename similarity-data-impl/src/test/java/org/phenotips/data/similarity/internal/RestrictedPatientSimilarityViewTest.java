@@ -189,7 +189,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertSame(PATIENT_1, o.getDocumentReference());
+        Assert.assertSame(PATIENT_1, o.getDocument());
     }
 
     /** The document is not disclosed for matchable patients. */
@@ -200,7 +200,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertSame(PATIENT_1, o.getDocumentReference());
+        Assert.assertNull(o.getDocument());
     }
 
     /** The document is not disclosed for private patients. */
@@ -211,7 +211,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertSame(PATIENT_1, o.getDocumentReference());
+        Assert.assertNull(o.getDocument());
     }
 
     /** The reporter is disclosed for public patients. */
@@ -629,7 +629,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        when(mockMatch.getDocumentReference()).thenReturn(PATIENT_1);
+        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
 
