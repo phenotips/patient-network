@@ -200,7 +200,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertSame(PATIENT_1, o.getDocumentReference());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The document is not disclosed for private patients. */
@@ -211,7 +211,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertSame(PATIENT_1, o.getDocumentReference());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The reporter is disclosed for public patients. */
