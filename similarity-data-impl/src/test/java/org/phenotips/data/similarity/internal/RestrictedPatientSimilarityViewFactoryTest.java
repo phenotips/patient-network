@@ -173,7 +173,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
         Assert.assertSame(mockReference, result.getReference());
-        Assert.assertEquals(PATIENT_1, result.getDocumentReference());
+        Assert.assertNull(result.getDocumentReference());
         Assert.assertEquals(0, result.getFeatures().size());
         Assert.assertEquals(2, result.getDisorders().size());
     }

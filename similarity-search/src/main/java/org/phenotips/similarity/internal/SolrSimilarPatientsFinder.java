@@ -41,7 +41,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -149,36 +148,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
 
-        return getTopResults(results);
-    }
-
-    private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults)
-    {
-        if (allResults.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Select top k via PriorityQueue
-        PriorityQueue<PatientSimilarityView> pq =
-            new PriorityQueue<>(allResults.size(), new Comparator<PatientSimilarityView>()
+        // Sort by score
+        Collections.sort(results, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
             {
-                @Override
-                public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
-                {
-                    return (int) Math.signum(o2.getScore() - o1.getScore());
-                }
-            });
-        pq.addAll(allResults);
-
-        List<PatientSimilarityView> topResults = new ArrayList<>();
-        int docSize = pq.size();
-        for (int i = 0; i < docSize; i++) {
-            PatientSimilarityView item = pq.poll();
-            if (item != null) {
-                topResults.add(item);
+                double score1 = o1.getScore();
+                double score2 = o2.getScore();
+                return (int) Math.signum(score2 - score1);
             }
-        }
-        return topResults;
+        });
+
+        return results;
     }
 
     /**

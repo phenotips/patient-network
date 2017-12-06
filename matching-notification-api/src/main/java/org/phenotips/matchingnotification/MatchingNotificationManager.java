@@ -55,7 +55,7 @@ public interface MatchingNotificationManager
      * @param remoteId id of remote server
      * @return true if successful
      */
-    boolean saveIncomingMatches(List<PatientSimilarityView> similarityViews, String remoteId);
+    boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId);
 
     /**
      * Sets status to all matches with ids in {@code matchesIds} to a passed status string.
