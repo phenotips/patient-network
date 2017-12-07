@@ -136,7 +136,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patientId = patient.getId();
         this.serverId = serverId;
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
-        setAccess();
+        this.setAccess();
         this.populateContactInfo(null);
         this.readDetails(patient);
     }
@@ -156,8 +156,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.serverId = serverId;
         this.patient = getLocalPatient();
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
-        setAccess();
-        populateContactInfo(this.href);
+        this.setAccess();
+        this.populateContactInfo(this.href);
         this.rebuildDetails(patientDetails);
     }
 
@@ -180,8 +180,9 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
 
         json.put("hasExomeData", this.hasExomeData());
-        json.put("genesStatus", this.genotype.getGenesStatus());
-
+        if (this.genotype != null) {
+            json.put("genesStatus", this.genotype.getGenesStatus());
+        }
         return json;
     }
 
@@ -408,7 +409,7 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private void setAccess()
     {
-        if (this.patient == null) {
+        if (!this.isLocal() || this.patient == null) {
             // Remote patient, assume we have access
             this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
         } else if (this.patient instanceof PatientSimilarityView) {

@@ -247,7 +247,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
 
             // Filter out existing matches:
-            if (matchesForPatient.contains(match)) {
+            if (matchesForPatient != null && matchesForPatient.contains(match)) {
                 PatientMatch savedMatch = matchesForPatient.get(matchesForPatient.indexOf(match));
                 if (wasModifiedAfterMatch(savedMatch)) {
                     // update the existing match in db with new properties of just recomputed match

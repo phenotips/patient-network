@@ -54,6 +54,9 @@ public class DefaultPatientGenotypeManager implements PatientGenotypeManager, In
     @Override
     public PatientGenotype getGenotype(Patient patient)
     {
+        if (patient == null) {
+            return null;
+        }
         return new DefaultPatientGenotype(patient);
     }
 }
