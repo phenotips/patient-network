@@ -297,6 +297,12 @@
               <method>org.phenotips.data.permissions.AccessLevel getAccess()</method>
               <justification>Added to determine what type of access does the user have to this patient profile.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveOutgoingMatches(java.util.List, java.lang.String)</method>
+              <justification>Added to save outgoing remote matches.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
