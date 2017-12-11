@@ -261,7 +261,7 @@ define(["jquery", "dynatable"], function($, dyna)
             var td = '<div class="genes-div">';
             var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
             var exomeIcon = ((hasExomeData) ? '<span class="fa fa-gg-circle" title="patient has exome data"></span>' : '');
-            var genesTitle = this._GENES + '  ' + statusStr + ' ' + exomeIcon;
+            var genesTitle = 'Genes ' + '  ' + statusStr + ' ' + exomeIcon;
             if (genes.size() == 0) {
                 genesTitle += ': -';
             }
