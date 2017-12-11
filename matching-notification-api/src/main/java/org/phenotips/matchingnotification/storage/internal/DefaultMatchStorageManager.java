@@ -61,24 +61,30 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
 
     @Override
-    public boolean saveLocalMatches(List<PatientMatch> matches)
+    public boolean saveLocalMatches(List<PatientMatch> matches, String patientId)
     {
         Set<String> refPatients = new HashSet<>();
+        refPatients.add(patientId);
 
         for (PatientMatch match : matches) {
-            refPatients.add(match.getReferencePatientId());
+            String refPatientID = match.getReferencePatientId();
+            refPatients.add(refPatientID);
+            if (!patientId.equals(refPatientID)) {
+                this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
+                                  patientId, refPatientID);
+            }
         }
 
         Session session = this.beginNotificationMarkingTransaction();
-        for (String patientId : refPatients) {
-            this.deleteMatches(session, this.loadLocalMatchesByPatientId(patientId));
+        for (String ptId : refPatients) {
+            this.deleteMatches(session, this.loadLocalMatchesByPatientId(ptId));
         }
         this.saveMatches(session, matches);
         return this.endNotificationMarkingTransaction(session);
     }
 
     @Override
-    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarPatients)
+    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarPatients, String patientId)
     {
         List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarPatients) {
@@ -86,29 +92,41 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             matches.add(match);
         }
 
-        return this.saveLocalMatches(matches);
+        return this.saveLocalMatches(matches, patientId);
     }
 
     @Override
-    public boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String serverId,
-        boolean isIncoming)
+    public boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+        String serverId, boolean isIncoming)
     {
         Set<String> refPatients = new HashSet<>();
 
         List<PatientMatch> matchesToSave = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarityViews) {
-            refPatients.add(similarityView.getReference().getId());
+            String refPatientID = similarityView.getReference().getId();
+            refPatients.add(refPatientID);
+            if (!patientId.equals(refPatientID)) {
+                if (isIncoming) {
+                    this.logger.error(
+                        "A list of incoming matches for remote patient {} also constains matches for patient {}",
+                        patientId, refPatientID);
+                } else {
+                    this.logger.error(
+                        "A list of outgoing matches for local patient {} also constains matches for patient {}",
+                        patientId, refPatientID);
+                }
+            }
             PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, null)
                             : new DefaultPatientMatch(similarityView, null, serverId);
             matchesToSave.add(match);
         }
 
         List<PatientMatch> matchesToDelete = new LinkedList<>();
-        for (String patientId : refPatients) {
+        for (String ptId : refPatients) {
             if (isIncoming) {
-                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(patientId, serverId));
+                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(ptId, serverId));
             } else {
-                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(patientId, serverId));
+                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(ptId, serverId));
             }
         }
         Session session = this.beginNotificationMarkingTransaction();

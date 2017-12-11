@@ -72,7 +72,7 @@ public class LocalMatchFinder implements MatchFinder
             matches.add(match);
         }
 
-        this.matchStorageManager.saveLocalMatches(matches);
+        this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
         return matches;
     }

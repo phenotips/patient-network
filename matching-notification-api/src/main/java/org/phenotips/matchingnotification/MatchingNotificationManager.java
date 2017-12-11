@@ -52,27 +52,35 @@ public interface MatchingNotificationManager
      * Saves a list of local matches for a patient.
      *
      * @param similarityViews list of similarity views
+     * @param patientId local patient ID for whom the matches were foun
+     *        (needed only to know which existing matches to remove/replace)
      * @return true if successful
      */
-    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews);
+    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote incoming request.
      *
      * @param similarityViews list of similarity views
-     * @param remoteId id of remote server
+     * @param patientId remote patient ID for whom to save matches
+     *        (needed only to know which existing matches to remove/replace)
+     * @param remoteId id of remote server which sent the incoming request and houses the given patient
      * @return true if successful
      */
-    boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId);
+    boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+        String remoteId);
 
     /**
      * Saves a list of matches that were found by a remote outgoing request.
      *
      * @param similarityViews list of similarity views
-     * @param remoteId id of remote server
+     * @param patientId local patient ID for whom to save matches
+     *        (needed only to know which existing matches to remove/replace)
+     * @param remoteId id of remote server contacted to find matches for the given local patient
      * @return true if successful
      */
-    boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId);
+    boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+        String remoteId);
 
     /**
      * Sets status to all matches with ids in {@code matchesIds} to a passed status string.

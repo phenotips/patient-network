@@ -213,21 +213,23 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews)
+    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId)
     {
-        return this.matchStorageManager.saveLocalMatchesViews(similarityViews);
+        return this.matchStorageManager.saveLocalMatchesViews(similarityViews, patientId);
     }
 
     @Override
-    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
+    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+        String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, remoteId, true);
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, true);
     }
 
     @Override
-    public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String remoteId)
+    public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+        String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, remoteId, false);
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, false);
     }
 
     @Override

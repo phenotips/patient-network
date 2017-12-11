@@ -108,26 +108,29 @@ public interface MatchStorageManager
      * Saves a list of local matches.
      *
      * @param matches list of similarity views
+     * @param patientId local patient ID for whom to save matches
      * @return true if successful
      */
-    boolean saveLocalMatches(List<PatientMatch> matches);
+    boolean saveLocalMatches(List<PatientMatch> matches, String patientId);
 
     /**
      * Saves a list of local matches.
      *
      * @param similarityViews list of similarity views
+     * @param patientId local patient ID for whom to save matches
      * @return true if successful
      */
-    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews);
+    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote outgoing/incoming request.
      *
      * @param similarityViews list of similarity views
+     * @param patientId remote patient ID for whom to save matches
      * @param serverId id of remote server
      * @param isIncoming whether we are saving results of incoming (then true) or outgoing request
      * @return true if successful
      */
-    boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String serverId,
+    boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId, String serverId,
         boolean isIncoming);
 }

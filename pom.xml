@@ -349,13 +349,13 @@
             <difference>
               <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
               <differenceType>7012</differenceType>
-              <method>boolean saveOutgoingMatches(java.util.List, java.lang.String)</method>
+              <method>boolean saveOutgoingMatches(java.util.List, java.lang.String, java.lang.String)</method>
               <justification>Added to save outgoing remote matches ffom remore server.</justification>
             </difference>
             <difference>
               <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
               <differenceType>7012</differenceType>
-              <method>boolean saveLocalMatchesViews(java.util.List)</method>
+              <method>boolean saveLocalMatchesViews(java.util.List, java.lang.String)</method>
               <justification>Added to save local remote matches.</justification>
             </difference>
             <difference>
@@ -391,20 +391,26 @@
             <difference>
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
               <differenceType>7012</differenceType>
-              <method>boolean saveLocalMatches(java.util.List)</method>
+              <method>boolean saveLocalMatches(java.util.List, java.lang.String)</method>
               <justification>Added to save local matches.</justification>
             </difference>
             <difference>
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
               <differenceType>7012</differenceType>
-              <method>boolean saveLocalMatchesViews(java.util.List)</method>
+              <method>boolean saveLocalMatchesViews(java.util.List, java.lang.String)</method>
               <justification>Added to save local matches.</justification>
             </difference>
             <difference>
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
               <differenceType>7012</differenceType>
-              <method>boolean saveRemoteMatches(java.util.List, java.lang.String, boolean)</method>
+              <method>boolean saveRemoteMatches(java.util.List, java.lang.String, java.lang.String, boolean)</method>
               <justification>Added to save outgoing or incoming remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7004</differenceType>
+              <method>boolean saveIncomingMatches(java.util.List, java.lang.String)</method>
+              <justification>Added patient ID parameter to save incoming remote matches.</justification>
             </difference>
           </ignored>
           <excludes>
