@@ -157,7 +157,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patient = getLocalPatient();
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         this.setAccess();
-        this.populateContactInfo(this.href);
+        this.populateContactInfo(match.getHref());
         this.rebuildDetails(patientDetails);
     }
 
