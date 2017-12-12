@@ -163,8 +163,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     {
         if (StringUtils.isNotEmpty(patientId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.eq("referenceServerId", null),
-                                    Restrictions.and(Restrictions.eq("matchedServerId", null),
+                new Criterion[] { Restrictions.and(Restrictions.isNull("referenceServerId"),
+                                    Restrictions.and(Restrictions.isNull("matchedServerId"),
                                                      Restrictions.or(Restrictions.eq("referencePatientId", patientId),
                                                                      Restrictions.eq("matchedPatientId", patientId))))
                 });
@@ -178,7 +178,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
                 new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", localPatientId),
-                                    Restrictions.and(Restrictions.eq("referenceServerId", null),
+                                    Restrictions.and(Restrictions.isNull("referenceServerId"),
                                                      Restrictions.eq("matchedServerId", remoteServerId)))});
         } else {
             return Collections.emptyList();
