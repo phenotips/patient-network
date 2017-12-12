@@ -121,26 +121,10 @@ define(["jquery", "dynatable"], function($, dyna)
         _buildMatchingGenesTypes : function(match) {
             var matchedGenesTypes = [];
             if (match.genotypicScore > 0 && match.matched.genes.size() > 0 && match.reference.genes.size() > 0) {
-                var matchedGenes = {};
-                var referenceGenes = {};
-                match.matched.genes.each(function (elm) {
-                    // each elm is a string with gene symbol and status: "SRCAP (candidate)"
-                    var splitted = elm.split(/[()]/);
-                    matchedGenes[splitted[0]] = splitted[1];
-                });
-                match.reference.genes.each(function (elm) {
-                    var splitted = elm.split(/[()]/);
-                    referenceGenes[splitted[0]] = splitted[1];
-                });
-                var commonGenes = Object.keys(matchedGenes).intersect(Object.keys(referenceGenes));
-                if (commonGenes.size() > 0) {
-                    commonGenes.each(function (elm) {
-                        matchedGenesTypes.push(matchedGenes[elm] + '_' + referenceGenes[elm]);
-                        if (matchedGenes[elm] != referenceGenes[elm]) {
-                           matchedGenesTypes.push(referenceGenes[elm] + '_' + matchedGenes[elm]);
-                        }
-                    });
-                }
+                var status1 = match.matched.genesStatus ? match.matched.genesStatus : "candidate";
+                var status2 = match.reference.genesStatus ? match.reference.genesStatus : "candidate";
+                matchedGenesTypes.push(status1 + '_' + status2);
+                matchedGenesTypes.push(status2 + '_' + status1);
             }
             // remove possible repetitions
             return matchedGenesTypes.uniq();
