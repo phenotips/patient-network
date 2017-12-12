@@ -163,32 +163,34 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     {
         if (StringUtils.isNotEmpty(patientId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.or(Restrictions.and(Restrictions.eq("referencePatientId", patientId),
-                                                                   Restrictions.eq("referenceServerId", null)),
-                                                    Restrictions.and(Restrictions.eq("matchedPatientId", patientId),
-                                                                     Restrictions.eq("matchedServerId", null)))});
+                new Criterion[] { Restrictions.and(Restrictions.eq("referenceServerId", null),
+                                    Restrictions.and(Restrictions.eq("matchedServerId", null),
+                                                     Restrictions.or(Restrictions.eq("referencePatientId", patientId),
+                                                                     Restrictions.eq("matchedPatientId", patientId))))
+                });
         } else {
             return Collections.emptyList();
         }
     }
 
-    private List<PatientMatch> loadOutgoingMatchesByPatientId(String patientId, String serverId)
+    private List<PatientMatch> loadOutgoingMatchesByPatientId(String localPatientId, String remoteServerId)
     {
-        if (StringUtils.isNotEmpty(patientId) && StringUtils.isNotEmpty(serverId)) {
+        if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", patientId),
-                                                   Restrictions.eq("matchedServerId", serverId))});
+                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", localPatientId),
+                                    Restrictions.and(Restrictions.eq("referenceServerId", null),
+                                                     Restrictions.eq("matchedServerId", remoteServerId)))});
         } else {
             return Collections.emptyList();
         }
     }
 
-    private List<PatientMatch> loadIncomingMatchesByPatientId(String patientId, String serverId)
+    private List<PatientMatch> loadIncomingMatchesByPatientId(String remotePatientId, String remoteServerId)
     {
-        if (StringUtils.isNotEmpty(patientId) && StringUtils.isNotEmpty(serverId)) {
+        if (StringUtils.isNotEmpty(remotePatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", patientId),
-                                                   Restrictions.eq("referenceServerId", serverId))});
+                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", remotePatientId),
+                                                   Restrictions.eq("referenceServerId", remoteServerId))});
         } else {
             return Collections.emptyList();
         }
