@@ -68,8 +68,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         for (PatientMatch match : matches) {
             String refPatientID = match.getReferencePatientId();
-            refPatients.add(refPatientID);
             if (!patientId.equals(refPatientID)) {
+                refPatients.add(refPatientID);
                 this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
                                   patientId, refPatientID);
             }
@@ -91,7 +91,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);
         }
-
         return this.saveLocalMatches(matches, patientId);
     }
 
@@ -100,12 +99,13 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         String serverId, boolean isIncoming)
     {
         Set<String> refPatients = new HashSet<>();
+        refPatients.add(patientId);
 
         List<PatientMatch> matchesToSave = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarityViews) {
             String refPatientID = similarityView.getReference().getId();
-            refPatients.add(refPatientID);
             if (!patientId.equals(refPatientID)) {
+                refPatients.add(refPatientID);
                 if (isIncoming) {
                     this.logger.error(
                         "A list of incoming matches for remote patient {} also constains matches for patient {}",
@@ -129,6 +129,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                 matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(ptId, serverId));
             }
         }
+
+        this.logger.debug("Deleting {} existing matches which are being replaced by {} new matches"
+                          + " (server: [{}], incoming: [{}])",
+                          matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
+
         Session session = this.beginNotificationMarkingTransaction();
         this.deleteMatches(session, matchesToDelete);
         this.saveMatches(session, matchesToSave);
