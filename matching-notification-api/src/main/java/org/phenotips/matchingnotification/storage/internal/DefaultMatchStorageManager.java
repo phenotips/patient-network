@@ -189,23 +189,47 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     {
         if (StringUtils.isNotEmpty(remotePatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", remotePatientId),
-                                                   Restrictions.eq("referenceServerId", remoteServerId))});
+                new Criterion[] { this.patientIsReference(remotePatientId, remoteServerId) });
         } else {
             return Collections.emptyList();
         }
     }
 
     @Override
-    public List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String patientId2)
+    public List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
+            String patientId2, String serverId2)
     {
         if (StringUtils.isNotEmpty(patientId1) && StringUtils.isNotEmpty(patientId2)) {
-            String[] ids = new String[] {patientId1, patientId2};
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.in("referencePatientId", ids),
-                                                   Restrictions.in("matchedPatientId", ids)) });
+                // either patientId1 is reference and patientId2 is a match, or the other way around
+                new Criterion[] { Restrictions.or(
+                        Restrictions.and(this.patientIsReference(patientId1, serverId1),
+                                         this.patientIsMatch(patientId2, serverId2)),
+                        Restrictions.and(this.patientIsReference(patientId2, serverId2),
+                                         this.patientIsMatch(patientId1, serverId1)))});
         } else {
             return Collections.emptyList();
+        }
+    }
+
+    private Criterion patientIsReference(String patientId, String serverId)
+    {
+        return Restrictions.and(Restrictions.eq("referencePatientId", patientId),
+                                this.compareServerId("referenceServerId", serverId));
+    }
+
+    private Criterion patientIsMatch(String patientId, String serverId)
+    {
+        return Restrictions.and(Restrictions.eq("matchedPatientId", patientId),
+                                this.compareServerId("matchedServerId", serverId));
+    }
+
+    private Criterion compareServerId(String serverField, String serverId)
+    {
+        if (serverId == null) {
+            return Restrictions.isNull(serverField);
+        } else {
+            return Restrictions.eq(serverField, serverId);
         }
     }
 

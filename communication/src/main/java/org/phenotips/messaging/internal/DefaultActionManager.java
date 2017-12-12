@@ -125,7 +125,9 @@ public class DefaultActionManager implements ActionManager
             mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
-            setNotified((String) options.get("patientId"), (String) options.get("matchId"));
+            // FIXME: need to get serverIDs instead of nulls
+            //setNotified((String) options.get("patientId"), (String) options.get("matchId"));
+            setNotified((String) options.get("patientId"), null, (String) options.get("matchId"), null);
             return 0;
         } catch (MessagingException e) {
             this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
@@ -206,11 +208,14 @@ public class DefaultActionManager implements ActionManager
      * mark that match as 'notified' in the match table in the administration.
      *
      * @param patientId reference patientID
+     * @param serverId id of the server that hosts patientId
      * @param matchId matched patient ID
+     * @param matchServerId id of the server that hosts matchedPatientId
      */
-    private void setNotified(String patientId, String matchId)
+    private void setNotified(String patientId, String serverId, String matchedPatientId, String matchServerId)
     {
-        List<PatientMatch> successfulMatches = this.matchStorageManager.loadMatchesBetweenPatients(patientId, matchId);
+        List<PatientMatch> successfulMatches = this.matchStorageManager.loadMatchesBetweenPatients(
+                patientId, serverId, matchedPatientId, matchServerId);
 
         Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
         this.matchStorageManager.markNotified(session, successfulMatches);

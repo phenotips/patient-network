@@ -53,10 +53,13 @@ public interface MatchStorageManager
      * Load all matches where reference/matched patient ID is same as one of parameters.
      *
      * @param patientId1 id of reference/matched patient to load matches for
+     * @param serverId1 id of the server that hosts patientId1
      * @param patientId2 id of reference/matched patient to load matches for
+     * @param serverId2 id of the server that hosts patientId2
      * @return list of matches
      */
-    List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String patientId2);
+    List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
+            String patientId2, String serverId2);
 
     /**
      * Initialize the notification marking transaction. See also {@code markNotified} and

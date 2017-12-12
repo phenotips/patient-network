@@ -379,7 +379,7 @@
             <difference>
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
               <differenceType>7012</differenceType>
-              <method>java.util.List loadMatchesBetweenPatients(java.lang.String, java.lang.String)</method>
+              <method>java.util.List loadMatchesBetweenPatients(java.lang.String, java.lang.String, java.lang.String, java.lang.String)</method>
               <justification>Added to save outgoing remote matches.</justification>
             </difference>
             <difference>
