@@ -37,6 +37,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
@@ -77,7 +78,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.beginTransaction();
         for (String ptId : refPatients) {
-            this.deleteMatches(session, this.loadLocalMatchesByPatientId(ptId));
+            this.deleteMatchesForLocalPatient(session, ptId);
         }
         this.saveMatches(session, matches);
         return this.endTransaction(session);
@@ -130,7 +131,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
         }
 
-        this.logger.debug("Deleting {} existing matches which are being replaced by {} new matches"
+        this.logger.debug("Deleting {} existing MME matches which are being replaced by {} new matches"
                           + " (server: [{}], incoming: [{}])",
                           matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
 
@@ -154,20 +155,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         if (matchesIds != null && matchesIds.size() > 0) {
             return this.loadMatchesByCriteria(
                 new Criterion[] { Restrictions.in("id", matchesIds.toArray()) });
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    private List<PatientMatch> loadLocalMatchesByPatientId(String patientId)
-    {
-        if (StringUtils.isNotEmpty(patientId)) {
-            return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.isNull("referenceServerId"),
-                                    Restrictions.and(Restrictions.isNull("matchedServerId"),
-                                                     Restrictions.or(Restrictions.eq("referencePatientId", patientId),
-                                                                     Restrictions.eq("matchedPatientId", patientId))))
-                });
         } else {
             return Collections.emptyList();
         }
@@ -302,6 +289,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         try {
             t = session.getTransaction();
             t.commit();
+            session.flush();
         } catch (HibernateException ex) {
             this.logger.error("ERROR committing changes to the matching notification database", ex);
             if (t != null) {
@@ -317,10 +305,21 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     public boolean deleteMatchesForLocalPatient(String patientId)
     {
-        List<PatientMatch> matches = this.loadLocalMatchesByPatientId(patientId);
         Session session = this.beginTransaction();
-        this.deleteMatches(session, matches);
+        this.deleteMatchesForLocalPatient(session, patientId);
         return this.endTransaction(session);
+    }
+
+    private void deleteMatchesForLocalPatient(Session session, String patientId)
+    {
+        Query query = session.createQuery("delete DefaultPatientMatch where referenceServerId is null"
+                + " and matchedServerId is null"
+                + " and (referencePatientId = :localId or matchedPatientId = :localId)");
+        query.setParameter("localId", patientId);
+
+        int numDeleted = query.executeUpdate();
+
+        this.logger.debug("Removed [{}] stored local matches for patient [{}]", numDeleted, patientId);
     }
 
     private void deleteMatches(Session session, List<PatientMatch> matches)
