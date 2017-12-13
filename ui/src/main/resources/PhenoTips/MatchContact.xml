@@ -95,7 +95,9 @@
       'subject'  : "$!{request.subject}",
       'message'  : "$!{request.message}",
       'patientId': "$!{request.patient}",
-      'matchId'  : "$!{request.matchId}"
+      'matchId'  : "$!{request.matchId}",
+      'serverId' : "$!{request.serverId}",
+      'matchServerId' : "$!{request.matchServerId}"
     })
     #set ($result = $services.anonymousCommunication.sendInitialMail($request.token, $options))
     #if ($result != 0)
