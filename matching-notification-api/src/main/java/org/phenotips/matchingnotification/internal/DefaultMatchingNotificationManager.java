@@ -47,8 +47,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,14 +166,12 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         for (PatientMatchEmail email : emails) {
 
-            Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
             List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
-            this.markSuccessfulNotification(session, notificationResults);
-            boolean successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
 
-            if (!successful) {
-                this.logger.error("Error on committing transaction for matching notification for patient {}.",
-                    email.getSubjectPatientId());
+            List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
+
+            if (!this.matchStorageManager.markNotified(successfulMatches)) {
+                this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
             }
 
             responses.addAll(notificationResults);
@@ -183,7 +179,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return responses;
     }
 
-    private void markSuccessfulNotification(Session session, List<PatientMatchNotificationResponse> notificationResults)
+    private List<PatientMatch> getSuccessfulNotifications(List<PatientMatchNotificationResponse> notificationResults)
     {
         List<PatientMatch> successfulMatches = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
@@ -194,8 +190,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 this.logger.error("Error on sending email for match {}: {}.", match, response.getErrorMessage());
             }
         }
-
-        this.matchStorageManager.markNotified(session, successfulMatches);
+        return successfulMatches;
     }
 
     /*
@@ -241,10 +236,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             filterNonUsersMatches(matches);
 
-            Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-            this.matchStorageManager.setStatus(session, matches, status);
-            successful = this.matchStorageManager.endNotificationMarkingTransaction(session);
-        } catch (HibernateException e) {
+            successful = this.matchStorageManager.setStatus(matches, status);
+        } catch (Exception e) {
             this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;

@@ -75,12 +75,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
         }
 
-        Session session = this.beginNotificationMarkingTransaction();
+        Session session = this.beginTransaction();
         for (String ptId : refPatients) {
             this.deleteMatches(session, this.loadLocalMatchesByPatientId(ptId));
         }
         this.saveMatches(session, matches);
-        return this.endNotificationMarkingTransaction(session);
+        return this.endTransaction(session);
     }
 
     @Override
@@ -134,10 +134,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                           + " (server: [{}], incoming: [{}])",
                           matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
 
-        Session session = this.beginNotificationMarkingTransaction();
+        Session session = this.beginTransaction();
         this.deleteMatches(session, matchesToDelete);
         this.saveMatches(session, matchesToSave);
-        return this.endNotificationMarkingTransaction(session);
+        return this.endTransaction(session);
     }
 
     @Override
@@ -256,42 +256,54 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public Session beginNotificationMarkingTransaction()
+    public boolean markNotified(List<PatientMatch> matches)
+    {
+        Session session = this.beginTransaction();
+        for (PatientMatch match : matches) {
+            match.setNotified();
+            session.update(match);
+        }
+        return this.endTransaction(session);
+    }
+
+    @Override
+    public boolean setStatus(List<PatientMatch> matches, String status)
+    {
+        Session session = this.beginTransaction();
+        for (PatientMatch match : matches) {
+            match.setStatus(status);
+            session.update(match);
+        }
+        return this.endTransaction(session);
+    }
+
+    /**
+     * Initializes a transaction. See also {@code endTransaction}.
+     *
+     * @return the session. Null if initialization failed.
+     */
+    private Session beginTransaction()
     {
         Session session = this.sessionFactory.getSessionFactory().openSession();
         session.beginTransaction();
         return session;
     }
 
-    @Override
-    public boolean markNotified(Session session, List<PatientMatch> matches)
-    {
-        for (PatientMatch match : matches) {
-            match.setNotified();
-            session.update(match);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean setStatus(Session session, List<PatientMatch> matches, String status)
-    {
-        for (PatientMatch match : matches) {
-            match.setStatus(status);
-            session.update(match);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean endNotificationMarkingTransaction(Session session)
+    /**
+     * Commits the transaction. See also {@code startTransaction} and
+     * {@code markNotified}.
+     *
+     * @param session the transaction session created for marking.
+     * @return true if successful
+     */
+    private boolean endTransaction(Session session)
     {
         Transaction t = null;
         try {
             t = session.getTransaction();
             t.commit();
         } catch (HibernateException ex) {
-            this.logger.error("ERROR marking matches as notified", ex);
+            this.logger.error("ERROR committing changes to the matching notification database", ex);
             if (t != null) {
                 t.rollback();
             }
@@ -303,12 +315,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean deleteMatches(String patientId)
+    public boolean deleteMatchesForLocalPatient(String patientId)
     {
         List<PatientMatch> matches = this.loadLocalMatchesByPatientId(patientId);
-        Session session = this.beginNotificationMarkingTransaction();
+        Session session = this.beginTransaction();
         this.deleteMatches(session, matches);
-        return this.endNotificationMarkingTransaction(session);
+        return this.endTransaction(session);
     }
 
     private void deleteMatches(Session session, List<PatientMatch> matches)

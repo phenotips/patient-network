@@ -24,8 +24,6 @@ import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 
-import org.hibernate.Session;
-
 /**
  * @version $Id$
  */
@@ -62,42 +60,21 @@ public interface MatchStorageManager
             String patientId2, String serverId2);
 
     /**
-     * Initialize the notification marking transaction. See also {@code markNotified} and
-     * {@code endNotificationMarkingTransaction}.
+     * Marks all matches in {@code matches} as notified.
      *
-     * @return the session. Null if initialization failed.
-     */
-    Session beginNotificationMarkingTransaction();
-
-    /**
-     * Marks all matches in {@code matches} as notified. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
-     *
-     * @param session the transaction session created for marking.
      * @param matches list of matches to mark as notified.
      * @return true if successful
      */
-    boolean markNotified(Session session, List<PatientMatch> matches);
+    boolean markNotified(List<PatientMatch> matches);
 
     /**
-     * Sets status to all matches in {@code matches} to a passed status string. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
+     * Sets status to all matches in {@code matches} to a passed status string.
      *
-     * @param session the transaction session created for marking.
      * @param matches list of matches to mark as notified.
      * @param status whether the matches should be marked as saved, rejected or uncategorized
      * @return true if successful
      */
-    boolean setStatus(Session session, List<PatientMatch> matches, String status);
-
-    /**
-     * Commits the notification marking transaction. See also {@code startNotificationMarkingTransaction} and
-     * {@code markNotified}.
-     *
-     * @param session the transaction session created for marking.
-     * @return true if successful
-     */
-    boolean endNotificationMarkingTransaction(Session session);
+    boolean setStatus(List<PatientMatch> matches, String status);
 
     /**
      * Delete matches for local patient with ID passed as parameter.
@@ -105,7 +82,7 @@ public interface MatchStorageManager
      * @param patientId local patient ID for whom to delete matches.
      * @return true if successful
      */
-    boolean deleteMatches(String patientId);
+    boolean deleteMatchesForLocalPatient(String patientId);
 
     /**
      * Saves a list of local matches.

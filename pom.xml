@@ -380,7 +380,7 @@
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
               <differenceType>7012</differenceType>
               <method>java.util.List loadMatchesBetweenPatients(java.lang.String, java.lang.String, java.lang.String, java.lang.String)</method>
-              <justification>Added to save outgoing remote matches.</justification>
+              <justification>Used to collect matches for notifications.</justification>
             </difference>
             <difference>
               <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
@@ -411,6 +411,36 @@
               <differenceType>7004</differenceType>
               <method>boolean saveIncomingMatches(java.util.List, java.lang.String)</method>
               <justification>Added patient ID parameter to save incoming remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>org.hibernate.Session beginNotificationMarkingTransaction()</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean endNotificationMarkingTransaction(org.hibernate.Session)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean deleteMatchesForLocalPatient(java.lang.String)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(java.util.List, java.lang.String)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7004</differenceType>
+              <method>boolean markNotified(org.hibernate.Session, java.util.List)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
             </difference>
           </ignored>
           <excludes>

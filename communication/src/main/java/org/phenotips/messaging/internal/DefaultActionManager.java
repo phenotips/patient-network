@@ -39,7 +39,6 @@ import javax.inject.Singleton;
 import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
@@ -228,8 +227,6 @@ public class DefaultActionManager implements ActionManager
         List<PatientMatch> successfulMatches = this.matchStorageManager.loadMatchesBetweenPatients(
                 patientId, serverId, matchedPatientId, matchServerId);
 
-        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-        this.matchStorageManager.markNotified(session, successfulMatches);
-        this.matchStorageManager.endNotificationMarkingTransaction(session);
+        this.matchStorageManager.markNotified(successfulMatches);
     }
 }

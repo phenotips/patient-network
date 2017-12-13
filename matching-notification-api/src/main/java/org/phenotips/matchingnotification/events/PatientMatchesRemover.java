@@ -60,10 +60,10 @@ public class PatientMatchesRemover extends AbstractEventListener
     {
         XWikiDocument doc = (XWikiDocument) source;
         String patientId = doc.getDocumentReference().getName();
-        boolean successful = this.matchStorageManager.deleteMatches(patientId);
+        boolean successful = this.matchStorageManager.deleteMatchesForLocalPatient(patientId);
 
         if (!successful) {
-            this.logger.error("Error while deleting matches for patient ID ", patientId);
+            this.logger.error("Error while deleting matches for patient ID [{}]", patientId);
         }
     }
 }
