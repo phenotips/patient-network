@@ -77,7 +77,7 @@ public interface MatchStorageManager
     boolean setStatus(List<PatientMatch> matches, String status);
 
     /**
-     * Delete matches for local patient with ID passed as parameter.
+     * Deletes all matches (including those that users have been notified about) for the given local patient.
      *
      * @param patientId local patient ID for whom to delete matches.
      * @return true if successful

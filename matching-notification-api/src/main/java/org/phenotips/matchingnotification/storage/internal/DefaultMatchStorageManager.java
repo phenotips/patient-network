@@ -54,6 +54,25 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 @Singleton
 public class DefaultMatchStorageManager implements MatchStorageManager
 {
+    /** A query used to delete all matcheds for the given local patient (ID == localId). */
+    private static final String HQL_DELETE_MATCHES_FOR_LOCAL_PATIENT =
+            "delete DefaultPatientMatch where referenceServerId is null"
+            + " and matchedServerId is null"
+            + " and (referencePatientId = :localId or matchedPatientId = :localId)";
+
+    /** A sub-query for the query below, to find matches similar to the given match, but that has been notified. */
+    private static final String HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED =
+            "from DefaultPatientMatch as m2 where m2.notified = true"
+            + " and m.referencePatientId = m2.referencePatientId"
+            + " and m.referenceServerId = m2.referenceServerId"
+            + " and m.matchedPatientId = m2.matchedPatientId"
+            + " and m.matchedServerId = m2.matchedServerId";
+
+    /** A query to find all un-notified matches with a score greater than given (score == minScore). */
+    private static final String HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE =
+            "from DefaultPatientMatch as m where m.notified = false"
+            + " and score > :minScore and not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")";
+
     /** Handles persistence. */
     @Inject
     private HibernateSessionFactory sessionFactory;
@@ -78,7 +97,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.beginTransaction();
         for (String ptId : refPatients) {
-            this.deleteMatchesForLocalPatient(session, ptId);
+            this.deleteMatchesForLocalPatient(session, ptId, false);
         }
         this.saveMatches(session, matches);
         return this.endTransaction(session);
@@ -124,14 +143,15 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         List<PatientMatch> matchesToDelete = new LinkedList<>();
         for (String ptId : refPatients) {
+            // load all un-notified matches of the same kind for the given reference patient
             if (isIncoming) {
-                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(ptId, serverId));
+                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(ptId, serverId, false));
             } else {
-                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(ptId, serverId));
+                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(ptId, serverId, false));
             }
         }
 
-        this.logger.debug("Deleting {} existing MME matches which are being replaced by {} new matches"
+        this.logger.error("Deleting {} existing MME matches which are being replaced by {} new matches"
                           + " (server: [{}], incoming: [{}])",
                           matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
 
@@ -142,11 +162,38 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PatientMatch> loadMatches(double score, boolean notified)
     {
-        return this.loadMatchesByCriteria(
-            new Criterion[] { Restrictions.ge("score", score),
-            Restrictions.eq("notified", notified) });
+        if (notified) {
+            // this is simple, just return all matches with the given score which have been notified
+            return this.loadMatchesByCriteria(
+                    new Criterion[] { Restrictions.ge("score", score), this.notifiedRestriction(notified) });
+        }
+
+        // ...else it is more complicated: need to return all matches that haven't been notified, but
+        // also exclude matches that have a similar match that have been notified
+        //
+        // This is because if owners of a match were notified, the notified version of the match
+        // will be stored as-is in the database, but new verisons of the match will still keep being
+        // placed in the DB, resulting in two similar matche sin the DB:
+        //  first:   patientA - patientB - notified     - <data at the moment of notification>
+        //  second:  patientA - patientB - NOT notified - <data as of last match check>
+
+        Session session = this.beginTransaction();
+
+        Query query = session.createQuery(HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE);
+        query.setParameter("minScore", score);
+
+        List<PatientMatch> result = query.list();
+
+        this.logger.error("Retrieved [{}] un-notified matches with score > [{}]", result.size(), score);
+
+        if (!this.endTransaction(session)) {
+            return Collections.emptyList();
+        }
+
+        return result;
     }
 
     @Override
@@ -160,23 +207,26 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
     }
 
-    private List<PatientMatch> loadOutgoingMatchesByPatientId(String localPatientId, String remoteServerId)
+    private List<PatientMatch> loadOutgoingMatchesByPatientId(String localPatientId, String remoteServerId,
+            boolean notifiedStatus)
     {
         if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.and(Restrictions.eq("referencePatientId", localPatientId),
-                                    Restrictions.and(Restrictions.isNull("referenceServerId"),
-                                                     Restrictions.eq("matchedServerId", remoteServerId)))});
+                new Criterion[] { this.notifiedRestriction(notifiedStatus),
+                                  this.patientIsReference(localPatientId, null),
+                                  Restrictions.eq("matchedServerId", remoteServerId)});
         } else {
             return Collections.emptyList();
         }
     }
 
-    private List<PatientMatch> loadIncomingMatchesByPatientId(String remotePatientId, String remoteServerId)
+    private List<PatientMatch> loadIncomingMatchesByPatientId(String remotePatientId, String remoteServerId,
+            boolean notifiedStatus)
     {
         if (StringUtils.isNotEmpty(remotePatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
-                new Criterion[] { this.patientIsReference(remotePatientId, remoteServerId) });
+                new Criterion[] { this.notifiedRestriction(notifiedStatus),
+                                  this.patientIsReference(remotePatientId, remoteServerId) });
         } else {
             return Collections.emptyList();
         }
@@ -197,6 +247,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         } else {
             return Collections.emptyList();
         }
+    }
+
+    private Criterion notifiedRestriction(boolean notified)
+    {
+        return Restrictions.eq("notified", notified);
     }
 
     private Criterion patientIsReference(String patientId, String serverId)
@@ -306,15 +361,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public boolean deleteMatchesForLocalPatient(String patientId)
     {
         Session session = this.beginTransaction();
-        this.deleteMatchesForLocalPatient(session, patientId);
+        this.deleteMatchesForLocalPatient(session, patientId, true);
         return this.endTransaction(session);
     }
 
-    private void deleteMatchesForLocalPatient(Session session, String patientId)
+    private void deleteMatchesForLocalPatient(Session session, String patientId, boolean deleteNotified)
     {
-        Query query = session.createQuery("delete DefaultPatientMatch where referenceServerId is null"
-                + " and matchedServerId is null"
-                + " and (referencePatientId = :localId or matchedPatientId = :localId)");
+        Query query = session.createQuery(HQL_DELETE_MATCHES_FOR_LOCAL_PATIENT
+                + (deleteNotified ? "" : " and notified = false"));
         query.setParameter("localId", patientId);
 
         int numDeleted = query.executeUpdate();
