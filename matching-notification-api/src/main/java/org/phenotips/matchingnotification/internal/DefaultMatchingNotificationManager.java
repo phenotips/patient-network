@@ -150,7 +150,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public List<PatientMatchNotificationResponse> sendNotifications(Map<Long, String> matchesIds)
+    public List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> matchesIds)
     {
         if (matchesIds == null || matchesIds.size() == 0) {
             return Collections.emptyList();

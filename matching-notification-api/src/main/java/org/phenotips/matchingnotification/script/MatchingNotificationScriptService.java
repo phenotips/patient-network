@@ -167,7 +167,7 @@ public class MatchingNotificationScriptService implements ScriptService
      */
     public String sendNotifications(String ids)
     {
-        Map<Long, String> idsList = this.jsonToIdsMap(ids);
+        Map<Long, List<String>> idsList = this.jsonToIdsMap(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
 
@@ -204,9 +204,9 @@ public class MatchingNotificationScriptService implements ScriptService
         return ids;
     }
 
-    private Map<Long, String> jsonToIdsMap(String idsJson)
+    private Map<Long, List<String>> jsonToIdsMap(String idsJson)
     {
-        Map<Long, String> ids = new HashMap<>();
+        Map<Long, List<String>> ids = new HashMap<>();
         try {
             if (StringUtils.isNotEmpty(idsJson)) {
                 JSONObject idsObject = new JSONObject(idsJson);
@@ -214,7 +214,12 @@ public class MatchingNotificationScriptService implements ScriptService
                     JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
                     for (Object item : idsJSONArray) {
                         JSONObject obj = (JSONObject) item;
-                        ids.put(obj.optLong("matchId"), obj.optString("patientId"));
+                        List<String> patientIds = ids.get(obj.optLong("matchId"));
+                        if (patientIds == null) {
+                            patientIds = new LinkedList<String>();
+                        }
+                        patientIds.add(obj.optString("patientId"));
+                        ids.put(obj.optLong("matchId"), patientIds);
                     }
                 }
             }

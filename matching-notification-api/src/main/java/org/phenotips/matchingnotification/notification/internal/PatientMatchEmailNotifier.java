@@ -53,19 +53,23 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     private Logger logger = LoggerFactory.getLogger(PatientMatchEmailNotifier.class);
 
     @Override
-    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, String> matchesIds)
+    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, List<String>> matchesIds)
     {
         MatchesByPatient mbp = new MatchesByPatient(matches);
         List<PatientMatchEmail> emails = new LinkedList<>();
 
-        List<String> patientIds = new ArrayList<>(matchesIds.values());
+        List<String> patientIds = new LinkedList<>();
+        for (List<String> ids : matchesIds.values()) {
+            patientIds.addAll(ids);
+        }
+
         Collections.sort(patientIds);
 
         for (String subjectPatientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
             // filter matchesForPatient by matchesIds to contain only matches with ids as a key for subjectPatientId
             for (PatientMatch match : matchesForPatient) {
-                if (matchesIds.get(match.getId()) != subjectPatientId) {
+                if (!matchesIds.get(match.getId()).contains(subjectPatientId)) {
                     matchesForPatient.remove(match);
                 }
             }

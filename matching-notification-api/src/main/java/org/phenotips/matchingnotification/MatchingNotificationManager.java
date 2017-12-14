@@ -46,7 +46,7 @@ public interface MatchingNotificationManager
      * @param idsList map of ids of matches to patients Ids to be notified
      * @return a list of PatientmatchNotificationResponse
      */
-    List<PatientMatchNotificationResponse> sendNotifications(Map<Long, String> idsList);
+    List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> idsList);
 
     /**
      * Saves a list of local matches for a patient.
