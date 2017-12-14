@@ -106,9 +106,12 @@
 #if ("$!subjectPatient.serverId" == "")
   #set($subjectPatientObj = $services.patients.get($!subjectPatient.patientId))
 #end
+#set ($preferenceDoc = $xwiki.getDocumentAsAuthor("XWiki.XWikiPreferences"))
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.salutation', 'xhtml/1.0')&lt;/p&gt;
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.introduction', 'xhtml/1.0', [$matches.size()])&lt;/p&gt;
 #foreach ($match in $matches)
+#set($config = $preferenceDoc.getObject("PhenomeCentral.RemoteMatchingServiceConfiguration", 'serverId', $!match.subjectMatchedPatient.serverId, false))
+#set($matchedPatientServerName = $config.getValue('humanReadableName'))
 &lt;table style="$table"&gt;
    &lt;thead&gt;
       &lt;tr&gt;
@@ -124,7 +127,7 @@
             &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div&gt;
                &lt;span&gt;$!{escapetool.xml($!match.subjectMatchedPatient.patientId)}&lt;/span&gt;
-               &lt;span&gt;$!{escapetool.xml($!match.subjectMatchedPatient.serverId)}&lt;/span&gt;
+               &lt;span&gt;#if("$!{matchedPatientServerName}" != "")$!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0'): $!{escapetool.xml($matchedPatientServerName)}#end&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
       &lt;/tr&gt;
@@ -306,6 +309,7 @@ $!services.localization.render('phenotips.matchingNotifications.email.signature'
 $services.localization.render('phenotips.matchingNotifications.email.introduction', [$matches.size()])
 
 $services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label'): $!subjectPatient.patientId $!subjectPatient.externalId
+
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
 #foreach ($item in $!subjectPatient.modeOfInheritance)
 * $!item
@@ -331,8 +335,15 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 #end
 #end
 
+-----------
+#set ($preferenceDoc = $xwiki.getDocumentAsAuthor("XWiki.XWikiPreferences"))
+
 #foreach ($match in $matches)
-$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $match.subjectMatchedPatient.patientId $!match.subjectMatchedPatient.serverId
+#set($config = $preferenceDoc.getObject("PhenomeCentral.RemoteMatchingServiceConfiguration", 'serverId', $!match.subjectMatchedPatient.serverId, false))
+#set($matchedPatientServerName = $config.getValue('humanReadableName'))
+$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $!match.subjectMatchedPatient.patientId#if("$!{matchedPatientServerName}" != "") $!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0') $!{escapetool.xml($matchedPatientServerName)}#end
+
+
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
 #foreach ($item in $match.subjectMatchedPatient.modeOfInheritance)
 * $!item
