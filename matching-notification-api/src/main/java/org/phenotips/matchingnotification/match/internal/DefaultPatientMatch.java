@@ -40,11 +40,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.CallbackException;
 import org.hibernate.Session;
+import org.hibernate.annotations.Index;
 import org.hibernate.classic.Lifecycle;
 import org.json.JSONObject;
 
@@ -52,9 +52,7 @@ import org.json.JSONObject;
  * @version $Id$
  */
 @Entity
-@Table(name = "patient_matching",
-    uniqueConstraints = { @UniqueConstraint(columnNames =
-        { "referencePatientId", "referenceServerId", "matchedPatientId", "matchedServerId" }) })
+@Table(name = "patient_matching")
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     /** separates between tokens. */
@@ -100,11 +98,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     /* an href to remote patient (either matched or reference). Only one of these options is true
      * 1. matched patient and reference patient are local =>
-     *       referenceServerId==null, matchedServerId==null, href==null
+     *       getReferenceServerId()==null, getMatchedServerId()==null, href==null (for both patients)
      * 2. matched patient is remote and reference is local =>
-     *       referenceServerId==null, matchedServerId!=null, href!=null, href then refers to matched patient.
+     *       getReferenceServerId()==null, getMatchedServerId()!=null, href!=null, href refers to matched patient.
      * 3. reference patient is remote and matched is local =>
-     *       referenceServerId!=null, matchedServerId==null, href!=null, href then refers to reference patient.
+     *       getReferenceServerId()!=null, getMatchedServerId()==null, href!=null, href refers to reference patient.
      */
     private String href;
 
@@ -112,9 +110,14 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
      * Attributes of reference patient
      */
     @Basic
+    @Index(name = "referencePatientIndex")
     private String referencePatientId;
 
+    /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
+     * but getters return it as `null`
+     */
     @Basic
+    @Index(name = "referenceServerIndex")
     private String referenceServerId;
 
     @Basic
@@ -128,9 +131,14 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
      * Attributes of matched patient
      */
     @Basic
+    @Index(name = "matchedPatientIndex")
     private String matchedPatientId;
 
+    /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
+     * but getters return it as `null`
+     */
     @Basic
+    @Index(name = "matchedServerIndex")
     private String matchedServerId;
 
     @Basic
@@ -174,15 +182,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         // Reference patient
         Patient referencePatient = similarityView.getReference();
         this.referencePatientId = referencePatient.getId();
-        this.referenceServerId = referenceServerId;
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId);
+        this.referenceServerId = (referenceServerId == null) ? "" : referenceServerId;
+        // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
+        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
         // will hold a patient with restricted access, because of the restricted visibility of the local patient
         // to the remote server. Reading the patient's details will not work. However, since it's a local patient,
         // it's possible to get a non-restricted version of it.
-        this.matchedServerId = matchedServerId;
         Patient matchedPatient = null;
         if (this.isIncoming()) {
             matchedPatient = getPatient(similarityView.getId());
@@ -190,7 +198,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             matchedPatient = similarityView;
         }
         this.matchedPatientId = matchedPatient.getId();
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId);
+        this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
+        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId);
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
@@ -267,7 +276,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public String getReferenceServerId()
     {
-        return this.referenceServerId;
+        return StringUtils.isEmpty(this.referenceServerId) ? null : this.referenceServerId;
     }
 
     @Override
@@ -279,7 +288,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public String getMatchedServerId()
     {
-        return this.matchedServerId;
+        return StringUtils.isEmpty(this.matchedServerId) ? null : this.matchedServerId;
     }
 
     @Override
@@ -392,9 +401,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void onLoad(Session arg0, Serializable arg1)
     {
         this.referencePatientInMatch = new DefaultPatientInMatch(
-            this, this.referencePatientId, this.referenceServerId, this.referenceDetails);
+            this, this.referencePatientId, this.getReferenceServerId(), this.referenceDetails);
         this.matchedPatientInMatch = new DefaultPatientInMatch(
-            this, this.matchedPatientId, this.matchedServerId, this.matchedDetails);
+            this, this.matchedPatientId, this.getMatchedServerId(), this.matchedDetails);
     }
 
     @Override
@@ -444,13 +453,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public boolean isIncoming()
     {
-        return this.referenceServerId != null && this.matchedServerId == null;
+        return this.getReferenceServerId() != null && this.getMatchedServerId() == null;
     }
 
     @Override
     public boolean isOutgoing()
     {
-        return this.referenceServerId == null && this.matchedServerId != null;
+        return this.getReferenceServerId() == null && this.getMatchedServerId() != null;
     }
 
     private static Patient getPatient(String patientId)

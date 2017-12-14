@@ -56,8 +56,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 {
     /** A query used to delete all matcheds for the given local patient (ID == localId). */
     private static final String HQL_DELETE_MATCHES_FOR_LOCAL_PATIENT =
-            "delete DefaultPatientMatch where referenceServerId is null"
-            + " and matchedServerId is null"
+            "delete DefaultPatientMatch where referenceServerId = '' and matchedServerId =''"
             + " and (referencePatientId = :localId or matchedPatientId = :localId)";
 
     /**
@@ -119,7 +118,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     {
         List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarPatients) {
-            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+            PatientMatch match = new DefaultPatientMatch(similarityView, "", "");
             matches.add(match);
         }
         return this.saveLocalMatches(matches, patientId);
@@ -147,8 +146,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                         patientId, refPatientID);
                 }
             }
-            PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, null)
-                            : new DefaultPatientMatch(similarityView, null, serverId);
+            PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, "")
+                            : new DefaultPatientMatch(similarityView, "", serverId);
             matchesToSave.add(match);
         }
 
@@ -162,7 +161,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
         }
 
-        this.logger.error("Deleting {} existing MME matches which are being replaced by {} new matches"
+        this.logger.debug("Deleting {} existing MME matches which are being replaced by {} new matches"
                           + " (server: [{}], incoming: [{}])",
                           matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
 
@@ -198,7 +197,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         List<PatientMatch> result = query.list();
 
-        this.logger.error("Retrieved [{}] un-notified matches with score > [{}]", result.size(), score);
+        this.logger.debug("Retrieved [{}] un-notified matches with score > [{}]", result.size(), score);
 
         if (!this.endTransaction(session)) {
             return Collections.emptyList();
@@ -224,7 +223,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
             return this.loadMatchesByCriteria(
                 new Criterion[] { this.notifiedRestriction(notifiedStatus),
-                                  this.patientIsReference(localPatientId, null),
+                                  this.patientIsReference(localPatientId, ""),
                                   Restrictions.eq("matchedServerId", remoteServerId)});
         } else {
             return Collections.emptyList();
@@ -260,6 +259,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
     }
 
+    private String getStoredServerId(String serverId)
+    {
+        if (serverId == null) {
+            return "";
+        }
+        return serverId;
+    }
+
     private Criterion notifiedRestriction(boolean notified)
     {
         return Restrictions.eq("notified", notified);
@@ -268,22 +275,13 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Criterion patientIsReference(String patientId, String serverId)
     {
         return Restrictions.and(Restrictions.eq("referencePatientId", patientId),
-                                this.compareServerId("referenceServerId", serverId));
+                                Restrictions.eq("referenceServerId", this.getStoredServerId(serverId)));
     }
 
     private Criterion patientIsMatch(String patientId, String serverId)
     {
         return Restrictions.and(Restrictions.eq("matchedPatientId", patientId),
-                                this.compareServerId("matchedServerId", serverId));
-    }
-
-    private Criterion compareServerId(String serverField, String serverId)
-    {
-        if (serverId == null) {
-            return Restrictions.isNull(serverField);
-        } else {
-            return Restrictions.eq(serverField, serverId);
-        }
+                                Restrictions.eq("matchedServerId", this.getStoredServerId(serverId)));
     }
 
     @SuppressWarnings("unchecked")
