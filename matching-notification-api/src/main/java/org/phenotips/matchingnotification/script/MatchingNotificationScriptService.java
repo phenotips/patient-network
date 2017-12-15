@@ -258,6 +258,8 @@ public class MatchingNotificationScriptService implements ScriptService
             boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
                 match.getMatched().getEmails());
             if (hasNullPatient || isSelfMatch) {
+                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to selfMatch or nullPatient",
+                        match.getReferencePatientId(), match.getMatchedPatientId());
                 iterator.remove();
             }
         }

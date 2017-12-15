@@ -60,13 +60,24 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             + " and matchedServerId is null"
             + " and (referencePatientId = :localId or matchedPatientId = :localId)";
 
-    /** A sub-query for the query below, to find matches similar to the given match, but that has been notified. */
+    /**
+     *  A sub-query for the query below, to find matches similar to the given match, but that has been notified.
+     *  A special case is when there is a similar local match, but where matched and reference patients are reversed.
+     */
     private static final String HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED =
             "from DefaultPatientMatch as m2 where m2.notified = true"
-            + " and m.referencePatientId = m2.referencePatientId"
-            + " and m.referenceServerId = m2.referenceServerId"
-            + " and m.matchedPatientId = m2.matchedPatientId"
-            + " and m.matchedServerId = m2.matchedServerId";
+            + " and ("
+            + " ("
+            + "  m.referencePatientId = m2.referencePatientId"
+            + "  and m.referenceServerId = m2.referenceServerId"
+            + "  and m.matchedPatientId = m2.matchedPatientId"
+            + "  and m.matchedServerId = m2.matchedServerId"
+            + " ) or ("
+            + "  m.referencePatientId = m2.matchedPatientId"
+            + "  and m.matchedPatientId = m2.referencePatientId"
+            + "  and m.matchedServerId = m2.referenceServerId"
+            + "  and m.referenceServerId = m2.matchedServerId)"
+            + ")";
 
     /** A query to find all un-notified matches with a score greater than given (score == minScore). */
     private static final String HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE =
