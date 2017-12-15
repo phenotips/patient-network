@@ -54,10 +54,15 @@ import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 @Singleton
 public class DefaultMatchStorageManager implements MatchStorageManager
 {
-    /** A query used to delete all matcheds for the given local patient (ID == localId). */
-    private static final String HQL_DELETE_MATCHES_FOR_LOCAL_PATIENT =
+    /** A query used to delete all local matches for the given local patient (ID == localId). */
+    private static final String HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT =
             "delete DefaultPatientMatch where referenceServerId = '' and matchedServerId =''"
             + " and (referencePatientId = :localId or matchedPatientId = :localId)";
+
+    /** A query used to delete all matches (including MME) for the given local patient (ID == localId). */
+    private static final String HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT =
+            "delete DefaultPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
+            + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
     /**
      *  A sub-query for the query below, to find matches similar to the given match, but that has been notified.
@@ -107,7 +112,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.beginTransaction();
         for (String ptId : refPatients) {
-            this.deleteMatchesForLocalPatient(session, ptId, false);
+            this.deleteLocalMatchesForLocalPatient(session, ptId, false);
         }
         this.saveMatches(session, matches);
         return this.endTransaction(session);
@@ -370,13 +375,20 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public boolean deleteMatchesForLocalPatient(String patientId)
     {
         Session session = this.beginTransaction();
-        this.deleteMatchesForLocalPatient(session, patientId, true);
+
+        Query query = session.createQuery(HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT);
+        query.setParameter("localId", patientId);
+
+        int numDeleted = query.executeUpdate();
+
+        this.logger.debug("Removed all [{}] stored matches for patient [{}]", numDeleted, patientId);
+
         return this.endTransaction(session);
     }
 
-    private void deleteMatchesForLocalPatient(Session session, String patientId, boolean deleteNotified)
+    private void deleteLocalMatchesForLocalPatient(Session session, String patientId, boolean deleteNotified)
     {
-        Query query = session.createQuery(HQL_DELETE_MATCHES_FOR_LOCAL_PATIENT
+        Query query = session.createQuery(HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT
                 + (deleteNotified ? "" : " and notified = false"));
         query.setParameter("localId", patientId);
 
