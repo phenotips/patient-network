@@ -1,2 +1,3 @@
 org.phenotips.matchingnotification.internal.R71502PatientNetwork178DataMigration
 org.phenotips.matchingnotification.internal.R71502PatientNetwork196DataMigration
+org.phenotips.matchingnotification.internal.R71502PatientNetwork241DataMigration

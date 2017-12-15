@@ -58,7 +58,7 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
  * local matches with modified patients.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1.5
  */
 @Component
 @Named("R71502PatientNetwork196")
