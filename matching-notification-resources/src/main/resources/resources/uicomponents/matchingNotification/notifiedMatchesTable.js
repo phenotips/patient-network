@@ -72,16 +72,18 @@ var PhenoTips = (function (PhenoTips) {
         console.log(ajaxResponse.responseText);
         this._utils.showSuccess('send-notifications-messages');
 
-        var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
+        if (ajaxResponse.responseJSON && ajaxResponse.responseJSON.results && ajaxResponse.responseJSON.results.length > 0) {
+            var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
-        if (failedIds.length > 0) {
-            alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+            if (failedIds.length > 0) {
+                alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+            }
+
+            // Update table state
+            this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
+            this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
+            this._matchesTable.update();
         }
-
-        // Update table state
-        this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
-        this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
-        this._matchesTable.update();
     },
 
     _onFailSendNotification : function()

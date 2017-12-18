@@ -27,9 +27,10 @@ import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
+import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.PhenotypesMap;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.vocabulary.Vocabulary;
 import org.phenotips.vocabulary.VocabularyManager;
@@ -135,7 +136,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patientId = patient.getId();
         this.serverId = serverId;
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
-        setAccess();
+        this.setAccess();
         this.populateContactInfo(null);
         this.readDetails(patient);
     }
@@ -155,8 +156,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.serverId = serverId;
         this.patient = getLocalPatient();
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
-        setAccess();
-        populateContactInfo(this.href);
+        this.setAccess();
+        this.populateContactInfo(match.getHref());
         this.rebuildDetails(patientDetails);
     }
 
@@ -179,8 +180,9 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
 
         json.put("hasExomeData", this.hasExomeData());
-        json.put("genesStatus", this.genotype.getGenesStatus());
-
+        if (this.genotype != null) {
+            json.put("genesStatus", this.genotype.getGenesStatus());
+        }
         return json;
     }
 
@@ -407,7 +409,7 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private void setAccess()
     {
-        if (this.patient == null) {
+        if (!this.isLocal() || this.patient == null) {
             // Remote patient, assume we have access
             this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
         } else if (this.patient instanceof PatientSimilarityView) {

@@ -22,6 +22,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
+import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
@@ -49,6 +50,9 @@ public class LocalMatchFinder implements MatchFinder
     @Inject
     private SimilarPatientsFinder finder;
 
+    @Inject
+    private MatchStorageManager matchStorageManager;
+
     @Override
     public int getPriority()
     {
@@ -67,6 +71,8 @@ public class LocalMatchFinder implements MatchFinder
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);
         }
+
+        this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
         return matches;
     }

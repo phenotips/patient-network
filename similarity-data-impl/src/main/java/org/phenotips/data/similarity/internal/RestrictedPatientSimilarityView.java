@@ -23,12 +23,13 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
-import org.phenotips.data.similarity.FeatureClusterView;
-import org.phenotips.vocabulary.VocabularyTerm;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
+import org.phenotips.data.similarity.genotype.RestrictedPatientGenotypeSimilarityView;
+import org.phenotips.data.similarity.phenotype.RestrictedPatientPhenotypeSimilarityView;
 
 import org.xwiki.model.reference.DocumentReference;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -110,16 +111,23 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     }
 
     @Override
-    protected FeatureClusterView createFeatureClusterView(Collection<Feature> match, Collection<Feature> reference,
-        AccessType access, VocabularyTerm root, double score)
+    protected PatientPhenotypeSimilarityView createPhenotypeSimilarityView(Set<? extends Feature> match,
+        Set<? extends Feature> reference, AccessType access)
     {
-        return new RestrictedFeatureClusterView(match, reference, access, root, score);
+        return new RestrictedPatientPhenotypeSimilarityView(match, reference, access);
     }
 
     @Override
     protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
     {
         return new RestrictedDisorderSimilarityView(match, reference, this.access);
+    }
+
+    @Override
+    protected PatientGenotypeSimilarityView createGenotypeSimilarityView(Patient match, Patient reference,
+        AccessType access)
+    {
+        return new RestrictedPatientGenotypeSimilarityView(match, reference, this.access);
     }
 
     @Override

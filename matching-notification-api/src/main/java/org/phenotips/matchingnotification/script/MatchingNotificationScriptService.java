@@ -146,10 +146,12 @@ public class MatchingNotificationScriptService implements ScriptService
      * Saves a list of matches that were found by a local Solr similarity search request.
      *
      * @param similarityViews list of similarity views
+     * @param patientId local patient ID for whom to save matches
+     * @return true if successful
      */
-    public void saveLocalMatches(List<PatientSimilarityView> similarityViews)
+    public boolean saveLocalMatches(List<PatientSimilarityView> similarityViews, String patientId)
     {
-        this.matchingNotificationManager.saveIncomingMatches(similarityViews, null);
+        return this.matchingNotificationManager.saveLocalMatchesViews(similarityViews, patientId);
     }
 
     /**
@@ -163,10 +165,9 @@ public class MatchingNotificationScriptService implements ScriptService
      * @param ids JSON list of ids of matching that should be notified
      * @return result JSON
      */
-    @SuppressWarnings("unchecked")
     public String sendNotifications(String ids)
     {
-        Map<Long, String> idsList = this.jsonToIdsMap(ids);
+        Map<Long, List<String>> idsList = this.jsonToIdsMap(ids);
         List<PatientMatchNotificationResponse> notificationResults =
             this.matchingNotificationManager.sendNotifications(idsList);
 
@@ -203,9 +204,9 @@ public class MatchingNotificationScriptService implements ScriptService
         return ids;
     }
 
-    private Map<Long, String> jsonToIdsMap(String idsJson)
+    private Map<Long, List<String>> jsonToIdsMap(String idsJson)
     {
-        Map<Long, String> ids = new HashMap<>();
+        Map<Long, List<String>> ids = new HashMap<>();
         try {
             if (StringUtils.isNotEmpty(idsJson)) {
                 JSONObject idsObject = new JSONObject(idsJson);
@@ -213,7 +214,12 @@ public class MatchingNotificationScriptService implements ScriptService
                     JSONArray idsJSONArray = idsObject.getJSONArray(IDS_STRING);
                     for (Object item : idsJSONArray) {
                         JSONObject obj = (JSONObject) item;
-                        ids.put(obj.optLong("matchId"), obj.optString("patientId"));
+                        List<String> patientIds = ids.get(obj.optLong("matchId"));
+                        if (patientIds == null) {
+                            patientIds = new LinkedList<String>();
+                        }
+                        patientIds.add(obj.optString("patientId"));
+                        ids.put(obj.optLong("matchId"), patientIds);
                     }
                 }
             }
@@ -252,6 +258,8 @@ public class MatchingNotificationScriptService implements ScriptService
             boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
                 match.getMatched().getEmails());
             if (hasNullPatient || isSelfMatch) {
+                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to selfMatch or nullPatient",
+                        match.getReferencePatientId(), match.getMatchedPatientId());
                 iterator.remove();
             }
         }

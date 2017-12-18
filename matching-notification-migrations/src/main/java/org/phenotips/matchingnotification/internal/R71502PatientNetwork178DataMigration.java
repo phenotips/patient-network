@@ -104,7 +104,7 @@ public class R71502PatientNetwork178DataMigration extends AbstractHibernateDataM
             }
             t.commit();
         } catch (HibernateException ex) {
-            R71502PatientNetwork178DataMigration.this.logger.warn("Failed to migrate PatientMatch status: {}",
+            R71502PatientNetwork178DataMigration.this.logger.error("Failed to migrate PatientMatch status: {}",
                 ex.getMessage());
             if (t != null) {
                 t.rollback();

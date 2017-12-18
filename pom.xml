@@ -75,6 +75,8 @@
     <module>access-rules</module>
     <module>similarity-data-api</module>
     <module>similarity-data-impl</module>
+    <module>similarity-genotype-view</module>
+    <module>similarity-phenotype-view</module>
     <module>similarity-search</module>
     <module>communication</module>
     <module>ui</module>
@@ -301,6 +303,144 @@
               <differenceType>7012</differenceType>
               <method>org.phenotips.data.permissions.AccessLevel getAccess()</method>
               <justification>Added to determine what type of access does the user have to this patient profile.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/FeatureClusterView</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getId()</method>
+              <justification>Added to determine the root/ancestor id of the cluster.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/FeatureClusterView</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getName()</method>
+              <justification>Added to determine the root/ancestor name of the cluster.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/FeatureClusterView</className>
+              <differenceType>7002</differenceType>
+              <method>double getScore()</method>
+              <justification>Relocated to PatientSimilarityView.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/FeatureClusterView</className>
+              <differenceType>4001</differenceType>
+              <to>org/phenotips/data/Feature</to>
+              <justification>Removed org.phenotips.data.Feature from the set of implemented interfaces</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/FeatureClusterView</className>
+              <differenceType>4001</differenceType>
+              <to>org/phenotips/data/VocabularyProperty</to>
+              <justification>Removed org.phenotips.data.VocabularyProperty from the set of implemented interfaces</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PhenotypesMap</className>
+              <differenceType>8001</differenceType>
+              <justification>Relocating PhenotypesMap to new phenotype-view component.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7006</differenceType>
+              <method>org.phenotips.matchingnotification.match.PhenotypesMap getPhenotypes()</method>
+              <to>org.phenotips.data.similarity.phenotype.PhenotypesMap</to>
+              <justification>Relocating PhenotypesMap to new phenotype-view component.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveOutgoingMatches(java.util.List, java.lang.String, java.lang.String)</method>
+              <justification>Added to save outgoing remote matches ffom remore server.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatchesViews(java.util.List, java.lang.String)</method>
+              <justification>Added to save local remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List loadMatchesByReferencePatientId(java.lang.String)</method>
+              <justification>Renamed to loadMatchesByPatientId().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>void saveMatches(java.util.List)</method>
+              <justification>Removed, substituted by saveLocalMatchesViews() and saveLocalMatches().</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean deleteMatches(java.lang.String)</method>
+              <justification>Added to delete all matches by this local patient ID.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List loadMatchesBetweenPatients(java.lang.String, java.lang.String, java.lang.String, java.lang.String)</method>
+              <justification>Used to collect matches for notifications.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List loadMatchesByPatientIds(java.lang.String, java.lang.String)</method>
+              <justification>Added to search matches with provided paient IDs of matched patients.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatches(java.util.List, java.lang.String)</method>
+              <justification>Added to save local matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveLocalMatchesViews(java.util.List, java.lang.String)</method>
+              <justification>Added to save local matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean saveRemoteMatches(java.util.List, java.lang.String, java.lang.String, boolean)</method>
+              <justification>Added to save outgoing or incoming remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7004</differenceType>
+              <method>boolean saveIncomingMatches(java.util.List, java.lang.String)</method>
+              <justification>Added patient ID parameter to save incoming remote matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>org.hibernate.Session beginNotificationMarkingTransaction()</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean endNotificationMarkingTransaction(org.hibernate.Session)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean deleteMatchesForLocalPatient(java.lang.String)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(java.util.List, java.lang.String)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7004</differenceType>
+              <method>boolean markNotified(org.hibernate.Session, java.util.List)</method>
+              <justification>Cleaning API, decoupling implementation from API</justification>
             </difference>
           </ignored>
           <excludes>

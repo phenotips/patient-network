@@ -92,19 +92,27 @@
       </text>
     </class>
     <property>
-      <html>#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal; padding: 0.2em;')
+      <html>#set($table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: middle; font-weight: normal; padding: 0.2em;')
+#set($phenotype-table = 'border: 1px solid black; border-collapse: collapse; text-align: left; vertical-align: top; font-weight: normal;')
 #set($subheader = 'font-weight : bold;')
 #set($grey-background = 'background-color : lightgrey; width : 300px;')
 #set($space-between-matches = 'margin-top : 25px;')
 #set($disclaimer = 'font-size : 10px;')
 #set($patient-id = 'white-space : no-wrap;')
+#set($abnormality-category = 'margin: 3px 0 3px 0; font-weight: bold;')
+#set($transparent = 'color: transparent;')
+#set($bullet-list = 'list-style-type: disc; margin: 0 0 0 2em;')
+#set($transparent-list = 'list-style-type: none; margin: 0 0 0 2em;')
 #if ("$!subjectPatient.serverId" == "")
   #set($subjectPatientObj = $services.patients.get($!subjectPatient.patientId))
 #end
+#set ($preferenceDoc = $xwiki.getDocumentAsAuthor("XWiki.XWikiPreferences"))
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.salutation', 'xhtml/1.0')&lt;/p&gt;
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.introduction', 'xhtml/1.0', [$matches.size()])&lt;/p&gt;
 #foreach ($match in $matches)
-&lt;table  style="$table"&gt;
+#set($config = $preferenceDoc.getObject("PhenomeCentral.RemoteMatchingServiceConfiguration", 'serverId', $!match.subjectMatchedPatient.serverId, false))
+#set($matchedPatientServerName = $config.getValue('humanReadableName'))
+&lt;table style="$table"&gt;
    &lt;thead&gt;
       &lt;tr&gt;
          &lt;th&gt;&lt;/th&gt;
@@ -118,31 +126,40 @@
          &lt;th style="$grey-background $table"&gt;
             &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div&gt;
-               &lt;span&gt;$!{escapetool.xml($!match.matchedPatient.patientId)}&lt;/span&gt;
-               &lt;span&gt;$!{escapetool.xml($!match.matchedPatient.serverId)}&lt;/span&gt;
+               &lt;span&gt;$!{escapetool.xml($!match.subjectMatchedPatient.patientId)}&lt;/span&gt;
+               &lt;span&gt;#if("$!{matchedPatientServerName}" != "")$!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0'): $!{escapetool.xml($matchedPatientServerName)}#end&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
       &lt;/tr&gt;
    &lt;/thead&gt;
    &lt;tbody&gt;
+##
+##  =====  Mode Of Inheritance section  =====
+##
       &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
 #foreach ($item in $!subjectPatient.modeOfInheritance)
-&lt;div&gt;$!{escapetool.xml($item)}&lt;div&gt;
+&lt;div&gt;$!{escapetool.xml($item)}&lt;/div&gt;
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($item in $!match.matchedPatient.modeOfInheritance)
-&lt;div&gt;$!{escapetool.xml($!item)}&lt;div&gt;
+#foreach ($item in $!match.subjectMatchedPatient.modeOfInheritance)
+&lt;div&gt;$!{escapetool.xml($!item)}&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
+##
+##  =====  Age Of Onset section  =====
+##
       &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;$!{escapetool.xml($!subjectPatient.ageOfOnset)}&lt;/td&gt;
-         &lt;td style="$table"&gt;$!{escapetool.xml($!match.matchedPatient.ageOfOnset)}&lt;/td&gt;
+         &lt;td style="$table"&gt;$!{escapetool.xml($!match.subjectMatchedPatient.ageOfOnset)}&lt;/td&gt;
       &lt;/tr&gt;
+##
+##  =====  Genes section  =====
+##
       &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.genes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
          &lt;td style="$table"&gt;
@@ -151,14 +168,14 @@
 #end
          &lt;/td&gt;
          &lt;td style="$table"&gt;
-#foreach ($gene in $match.matchedPatient.candidateGenes)
+#foreach ($gene in $match.subjectMatchedPatient.candidateGenes)
 &lt;div&gt;$!{escapetool.xml($!gene)}&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
-      &lt;tr style="$table"&gt;
-         &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
-         &lt;td style="$table"&gt;
+##
+##  =====  Phenotypes section  =====
+##
 #macro (__findPhenotype $list $id)
   #set ($phenotype = '')
   #foreach ($p in $list)
@@ -167,71 +184,114 @@
     #end
   #end
 #end
-#foreach ($phenotypeCategoryBlock in $match.featureMatches)
-&lt;div style=" background-color: #333; color: #fff; margin: 3px 0 3px 0;"&gt;* $phenotypeCategoryBlock.category.name&lt;/div&gt;##
-  #foreach ($item in $phenotypeCategoryBlock.match)
-    #__findPhenotype($subjectPatient.phenotypes.predefined, $item)
-    #if ($phenotype != '')
-&lt;div&gt;
-#if ($phenotype.observed == 'no')
-$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
-#else
-$!{escapetool.xml($phenotype.name)}
-#end
-&lt;/div&gt;
-#end
-#end
-#end
-#foreach ($phenotype in $subjectPatient.phenotypes.freeText)
-&lt;div&gt;
-#if ($phenotype.observed == 'no')
-$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
-#else
-$!{escapetool.xml($!phenotype.name)}
-#end
-&lt;/div&gt;
-#end
-         &lt;/td&gt;
+##
+#macro (__generatePhenotypeTableBlock $predefinedFeatureSet $freetextFeatureSet $targetPatientType)
+  &lt;td style="$phenotype-table"&gt;
+  #foreach ($phenotypeAbnormalityBlock in $match.featureMatches)
+    ## we need to determine whether $subjectPatient is match or reference in a match to print right corresponding feature array
+    #if ($!subjectPatient.patientId == $!match.match.matchedPatientId)
+      #set($subjectFeatureArray = $phenotypeAbnormalityBlock.match)
+      #set($matchFeatureArray = $phenotypeAbnormalityBlock.reference)
+    #else
+      #set($matchFeatureArray = $phenotypeAbnormalityBlock.match)
+      #set($subjectFeatureArray = $phenotypeAbnormalityBlock.reference)
+    #end
+    #if ($targetPatientType == 'subject')
+      #set($featureIdsArray = $subjectFeatureArray)
+      ## we need to determine the difference in array sizes to generate empty divs for smaller arrays to align categories in table
+      #if ($matchFeatureArray.length() &gt; $subjectFeatureArray.length())
+        #set($diff = $matchFeatureArray.length() - $subjectFeatureArray.length())
+      #else
+        #set($diff = 0)
+      #end
+    #else
+      #set($featureIdsArray = $matchFeatureArray)
+      ## we need to determine the difference in array sizes to generate empty divs for smaller arrays to align categories in table
+      #if ($matchFeatureArray.length() &lt; $subjectFeatureArray.length())
+        #set($diff = $subjectFeatureArray.length() - $matchFeatureArray.length())
+      #else
+        #set($diff = 0)
+      #end
+    #end
+    &lt;div style="$abnormality-category"&gt;$phenotypeAbnormalityBlock.category.name&lt;/div&gt;
+    #if ($predefinedFeatureSet.size() &gt; 0)
+      &lt;ul style="$bullet-list"&gt;##
+      #foreach ($item in $featureIdsArray)
+        #__findPhenotype($predefinedFeatureSet, $item)
+        #if ($phenotype != '')
+          &lt;li&gt;##
+          #if ($phenotype.observed == 'no')
+            $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])##
+          #else
+            $!{escapetool.xml($phenotype.name)}##
+          #end
+          &lt;/li&gt;
+        #end
+      #end
+      &lt;/ul&gt;
+    #end
+    ## generate empty divs for smaller arrays to align categories in table
+    #if ($diff &gt; 0)
+      &lt;ul style="$transparent-list"&gt;
+      #foreach ($iteration in [1..$diff])
+        &lt;li style="$transparent"&gt;.&lt;/li&gt;
+      #end
+      &lt;/ul&gt;
+    #end
+  #end
+  #if ($freetextFeatureSet.size() &gt; 0)
+    &lt;div style="$abnormality-category"&gt;Free Text&lt;/div&gt;
+    &lt;ul style="$bullet-list"&gt;##
+    #foreach ($phenotype in $freetextFeatureSet)
+      &lt;li&gt;##
+        #if ($phenotype.observed == 'no')
+          $!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])##
+        #else
+          $!{escapetool.xml($!phenotype.name)}##
+        #end
+      &lt;/li&gt;
+    #end
+    &lt;/ul&gt;
+  #end
+  &lt;/td&gt;
+#end## End of macro
+      &lt;tr style="$table"&gt;
+        &lt;td style="$table"&gt;&lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label', 'xhtml/1.0')&lt;/div&gt;&lt;/td&gt;
+##
+## Generate Feature block for subject patient
+##
+#__generatePhenotypeTableBlock($subjectPatient.phenotypes.predefined, $subjectPatient.phenotypes.freeText, 'subject')
+##
+## Generate Feature block for matched patient
+##
+#__generatePhenotypeTableBlock($match.subjectMatchedPatient.phenotypes.predefined, $match.subjectMatchedPatient.phenotypes.freeText, 'matched')
+      &lt;/tr&gt;
+##
+##  =====  Contact section  =====
+##
+      &lt;tr style="$table"&gt;
          &lt;td style="$table"&gt;
-#foreach ($phenotypeCategoryBlock in $match.featureMatches)
-&lt;div style=" background-color: #333; color: #fff; margin: 3px 0 3px 0;"&gt;* $phenotypeCategoryBlock.category.name&lt;/div&gt;##
-  #foreach ($item in $phenotypeCategoryBlock.reference)
-    #__findPhenotype($match.matchedPatient.phenotypes.predefined, $item)
-    #if ($phenotype != '')
-&lt;div&gt;
-#if ($phenotype.observed == 'no')
-$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
-#else
-$!{escapetool.xml($!phenotype.name)}
-#end
-&lt;/div&gt;
-#end
-#end
-#end
-#foreach ($phenotype in $match.matchedPatient.phenotypes.freeText)
-&lt;div&gt;
-#if ($phenotype.observed == 'no')
-$!services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', 'xhtml/1.0', [$!phenotype.name])
-#else
-$!{escapetool.xml($!phenotype.name)}
-#end
-&lt;/div&gt;
+            &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.label', 'xhtml/1.0')&lt;/div&gt;
+         &lt;/td&gt;
+         &lt;td style="$table"&gt;&lt;/td&gt;
+         &lt;td style="$table"&gt;
+#foreach ($email in $!match.subjectMatchedPatientEmails)
+&lt;div style="$subheader"&gt;$!{escapetool.xml($!email)}&lt;/div&gt;
 #end
          &lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr style="$table"&gt;
-         &lt;td colspan="3"&gt;
-            &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.label', 'xhtml/1.0')&lt;/div&gt;
-#foreach ($email in $match.matchedPatient.emails)
-&lt;div&gt;$!{escapetool.xml($!email)}&lt;/div&gt;
-#end
-&lt;div&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.instructions', 'xhtml/1.0')&lt;/div&gt;
-         &lt;/td&gt;
+        &lt;td colspan="3"&gt;
+          &lt;div&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.contact.instructions', 'xhtml/1.0')&lt;/div&gt;
+        &lt;/td&gt;
       &lt;/tr&gt;
    &lt;tbody&gt;
 &lt;/table&gt;
 &lt;div style="$space-between-matches"/&gt;
 #end
+##
+##  =====  Closing section  =====
+##
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.conclusion', 'xhtml/1.0')&lt;/p&gt;
 &lt;p&gt;$!services.localization.render('phenotips.matchingNotifications.email.closing', 'xhtml/1.0')&lt;br /&gt;
 $!services.localization.render('phenotips.matchingNotifications.email.signature', 'xhtml/1.0')&lt;/p&gt;
@@ -249,6 +309,7 @@ $!services.localization.render('phenotips.matchingNotifications.email.signature'
 $services.localization.render('phenotips.matchingNotifications.email.introduction', [$matches.size()])
 
 $services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label'): $!subjectPatient.patientId $!subjectPatient.externalId
+
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
 #foreach ($item in $!subjectPatient.modeOfInheritance)
 * $!item
@@ -274,26 +335,33 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 #end
 #end
 
+-----------
+#set ($preferenceDoc = $xwiki.getDocumentAsAuthor("XWiki.XWikiPreferences"))
+
 #foreach ($match in $matches)
-$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $match.matchedPatient.patientId $!match.matchedPatient.serverId
+#set($config = $preferenceDoc.getObject("PhenomeCentral.RemoteMatchingServiceConfiguration", 'serverId', $!match.subjectMatchedPatient.serverId, false))
+#set($matchedPatientServerName = $config.getValue('humanReadableName'))
+$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $!match.subjectMatchedPatient.patientId#if("$!{matchedPatientServerName}" != "") $!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0') $!{escapetool.xml($matchedPatientServerName)}#end
+
+
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
-#foreach ($item in $match.matchedPatient.modeOfInheritance)
+#foreach ($item in $match.subjectMatchedPatient.modeOfInheritance)
 * $!item
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.matchedPatient.ageOfOnset
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.subjectMatchedPatient.ageOfOnset
 $services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
-#foreach ($gene in $match.matchedPatient.candidateGenes)
+#foreach ($gene in $match.subjectMatchedPatient.candidateGenes)
 * $!gene
 #end
 $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'):
-#foreach ($!phenotype in $match.matchedPatient.phenotypes.predefined)
+#foreach ($!phenotype in $match.subjectMatchedPatient.phenotypes.predefined)
 #if ($!phenotype.observed == 'no')
 * $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
 #else
 * $!phenotype.name
 #end
 #end
-#foreach ($!phenotype in $match.matchedPatient.phenotypes.freeText)
+#foreach ($!phenotype in $match.subjectMatchedPatient.phenotypes.freeText)
 #if ($!phenotype.observed == 'no')
 * $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
 #else
@@ -301,7 +369,7 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 #end
 #end
 $services.localization.render('phenotips.matchingNotifications.email.table.contact.label'):
-#foreach ($email in $match.matchedPatient.emails)
+#foreach ($email in $match.subjectMatchedPatientEmails)
 * $!email
 #end
 

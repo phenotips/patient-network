@@ -17,13 +17,12 @@
  */
 package org.phenotips.matchingnotification.storage;
 
+import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
-
-import org.hibernate.Session;
 
 /**
  * @version $Id$
@@ -31,13 +30,6 @@ import org.hibernate.Session;
 @Role
 public interface MatchStorageManager
 {
-    /**
-     * Stores matches.
-     *
-     * @param matches to store
-     */
-    void saveMatches(List<PatientMatch> matches);
-
     /**
      * Loads matches filtered by the parameters.
      *
@@ -56,58 +48,70 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
 
     /**
-     * Load all matches where reference patient is same as parameter.
+     * Load all matches where reference/matched patient ID is same as one of parameters.
      *
-     * @param patientId id of reference patient to load matches for
+     * @param patientId1 id of reference/matched patient to load matches for
+     * @param serverId1 id of the server that hosts patientId1
+     * @param patientId2 id of reference/matched patient to load matches for
+     * @param serverId2 id of the server that hosts patientId2
      * @return list of matches
      */
-    List<PatientMatch> loadMatchesByReferencePatientId(String patientId);
+    List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
+            String patientId2, String serverId2);
 
     /**
-     * Initialize the notification marking transaction. See also {@code markNotified} and
-     * {@code endNotificationMarkingTransaction}.
+     * Marks all matches in {@code matches} as notified.
      *
-     * @return the session. Null if initialization failed.
-     */
-    Session beginNotificationMarkingTransaction();
-
-    /**
-     * Marks all matches in {@code matches} as notified. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
-     *
-     * @param session the transaction session created for marking.
      * @param matches list of matches to mark as notified.
      * @return true if successful
      */
-    boolean markNotified(Session session, List<PatientMatch> matches);
+    boolean markNotified(List<PatientMatch> matches);
 
     /**
-     * Sets status to all matches in {@code matches} to a passed status string. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
+     * Sets status to all matches in {@code matches} to a passed status string.
      *
-     * @param session the transaction session created for marking.
      * @param matches list of matches to mark as notified.
      * @param status whether the matches should be marked as saved, rejected or uncategorized
      * @return true if successful
      */
-    boolean setStatus(Session session, List<PatientMatch> matches, String status);
+    boolean setStatus(List<PatientMatch> matches, String status);
 
     /**
-     * Commits the notification marking transaction. See also {@code startNotificationMarkingTransaction} and
-     * {@code markNotified}.
+     * Deletes all matches (including those that users have been notified about, and MME matches)
+     * for the given local patient.
      *
-     * @param session the transaction session created for marking.
+     * @param patientId local patient ID for whom to delete matches.
      * @return true if successful
      */
-    boolean endNotificationMarkingTransaction(Session session);
+    boolean deleteMatchesForLocalPatient(String patientId);
 
     /**
-     * Delete matches. The method required a session created by
-     * {@code startNotificationMarkingTransaction}.
+     * Saves a list of local matches.
      *
-     * @param session the transaction session created for marking.
-     * @param matches list of matches to delete.
+     * @param matches list of similarity views
+     * @param patientId local patient ID for whom to save matches
      * @return true if successful
      */
-    boolean deleteMatches(Session session, List<PatientMatch> matches);
+    boolean saveLocalMatches(List<PatientMatch> matches, String patientId);
+
+    /**
+     * Saves a list of local matches.
+     *
+     * @param similarityViews list of similarity views
+     * @param patientId local patient ID for whom to save matches
+     * @return true if successful
+     */
+    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId);
+
+    /**
+     * Saves a list of matches that were found by a remote outgoing/incoming request.
+     *
+     * @param similarityViews list of similarity views
+     * @param patientId remote patient ID for whom to save matches
+     * @param serverId id of remote server
+     * @param isIncoming whether we are saving results of incoming (then true) or outgoing request
+     * @return true if successful
+     */
+    boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId, String serverId,
+        boolean isIncoming);
 }

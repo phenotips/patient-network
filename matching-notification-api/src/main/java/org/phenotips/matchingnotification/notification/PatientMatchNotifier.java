@@ -42,7 +42,7 @@ public interface PatientMatchNotifier
      * @param matchesIds map of ids of matches to patients Ids to be notified
      * @return list of emails
      */
-    List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, String> matchesIds);
+    List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, List<String>> matchesIds);
 
     /**
      * Sends notification for an email.

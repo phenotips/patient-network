@@ -30,7 +30,6 @@ import org.xwiki.model.reference.DocumentReference;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +38,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.mail.MessagingException;
 
-import org.hibernate.Session;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWiki;
@@ -126,7 +125,8 @@ public class DefaultActionManager implements ActionManager
             mail.setTextPart((String) options.get(OPTIONS_MESSAGE_FIELD));
             mail.setSubject((String) options.get(SUBJECT_FIELD_STRING));
             mailsender.sendMail(mail, context);
-            setNotified((String) options.get("patientId"), (String) options.get("matchId"));
+            setNotified((String) options.get("patientId"), this.convertServerId((String) options.get("serverId")),
+                    this.convertServerId((String) options.get("matchId")), (String) options.get("matchServerId"));
             return 0;
         } catch (MessagingException e) {
             this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
@@ -135,6 +135,17 @@ public class DefaultActionManager implements ActionManager
             this.logger.error(FAILED_MAIL_MSG, e.getMessage(), e);
             return 400;
         }
+    }
+
+    /*
+     * UI uses "" for the local server, but back-end uses `null`, so need to convert here
+     */
+    private String convertServerId(String serverId)
+    {
+        if (StringUtils.isEmpty(serverId)) {
+            return null;
+        }
+        return serverId;
     }
 
     @Override
@@ -207,21 +218,15 @@ public class DefaultActionManager implements ActionManager
      * mark that match as 'notified' in the match table in the administration.
      *
      * @param patientId reference patientID
+     * @param serverId id of the server that hosts patientId
      * @param matchId matched patient ID
+     * @param matchServerId id of the server that hosts matchedPatientId
      */
-    private void setNotified(String patientId, String matchId)
+    private void setNotified(String patientId, String serverId, String matchedPatientId, String matchServerId)
     {
-        List<PatientMatch> successfulMatches = new LinkedList<>();
-        List<PatientMatch> matchesForPatient = this.matchStorageManager.loadMatchesByReferencePatientId(patientId);
-        for (PatientMatch match : matchesForPatient) {
-            if (match.getMatchedPatientId().equals(matchId)) {
-                successfulMatches.add(match);
-                break;
-            }
-        }
+        List<PatientMatch> successfulMatches = this.matchStorageManager.loadMatchesBetweenPatients(
+                patientId, serverId, matchedPatientId, matchServerId);
 
-        Session session = this.matchStorageManager.beginNotificationMarkingTransaction();
-        this.matchStorageManager.markNotified(session, successfulMatches);
-        this.matchStorageManager.endNotificationMarkingTransaction(session);
+        this.matchStorageManager.markNotified(successfulMatches);
     }
 }

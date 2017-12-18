@@ -18,8 +18,11 @@
 package org.phenotips.matchingnotification.notification.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
-import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.PatientSimilarityViewFactory;
+import org.phenotips.data.Feature;
+import org.phenotips.data.internal.PhenoTipsFeature;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityViewFactory;
+import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
@@ -38,9 +41,11 @@ import org.xwiki.script.service.ScriptService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Provider;
 import javax.mail.Message.RecipientType;
@@ -48,6 +53,7 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +77,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private static final DocumentReferenceResolver<String> REFERENCE_RESOLVER;
 
-    private static final PatientSimilarityViewFactory SIMILARITY_VIEW_FACTORY;
+    private static final PatientPhenotypeSimilarityViewFactory PHENOTYPE_SIMILARITY_VIEW_FACTORY;
 
     private ScriptMimeMessage mimeMessage;
 
@@ -87,20 +93,21 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         MailSenderScriptService mailService = null;
         Provider<XWikiContext> contextProvider = null;
         DocumentReferenceResolver<String> referenceResolver = null;
-        PatientSimilarityViewFactory patientSimilarityViewFactory = null;
+        PatientPhenotypeSimilarityViewFactory patientPhenotypeSimilarityViewFactory = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             mailService = ccm.getInstance(ScriptService.class, "mailsender");
             contextProvider = ccm.getInstance(XWikiContext.TYPE_PROVIDER);
             referenceResolver = ccm.getInstance(DocumentReferenceResolver.TYPE_STRING, "current");
-            patientSimilarityViewFactory = ccm.getInstance(PatientSimilarityViewFactory.class, "restricted");
+            patientPhenotypeSimilarityViewFactory = ccm.getInstance(PatientPhenotypeSimilarityViewFactory.class,
+                "restricted");
         } catch (ComponentLookupException e) {
             LOGGER.error("Error initializing mailService", e);
         }
         MAIL_SERVICE = mailService;
         CONTEXT_PROVIDER = contextProvider;
         REFERENCE_RESOLVER = referenceResolver;
-        SIMILARITY_VIEW_FACTORY = patientSimilarityViewFactory;
+        PHENOTYPE_SIMILARITY_VIEW_FACTORY = patientPhenotypeSimilarityViewFactory;
     }
 
     /**
@@ -152,10 +159,8 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         for (PatientMatch match : this.matches) {
             Map<String, Object> matchMap = new HashMap<>();
 
-            PatientSimilarityView similarityView = SIMILARITY_VIEW_FACTORY.makeSimilarPatient(
-                match.getMatched().getPatient(), match.getReference().getPatient());
             // Feature matching
-            JSONArray featureMatchesJSON = similarityView.getFeatureMatchesJSON();
+            JSONArray featureMatchesJSON = getFeatureMatchesJSON(match);
             if (featureMatchesJSON.length() > 0) {
                 matchMap.put("featureMatches", featureMatchesJSON);
             }
@@ -165,7 +170,11 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
             } else {
                 otherPatient = match.getReference();
             }
-            matchMap.put("matchedPatient", otherPatient);
+            // NOTE: "subjectMatchedPatient" can be reference or match patient inside the match!
+            // Here  "subjectPatient" means the patient this email will be about,
+            //       "subjectMatchedPatient" is one of found matches to the "subjectPatient"
+            matchMap.put("subjectMatchedPatient", otherPatient);
+            matchMap.put("subjectMatchedPatientEmails", otherPatient.getEmails());
             matchMap.put("match", match);
 
             matchesForEmail.add(matchMap);
@@ -238,5 +247,44 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
     public String getSubjectPatientId()
     {
         return this.subjectPatient.getPatientId();
+    }
+
+    private JSONArray getFeatureMatchesJSON(PatientMatch match)
+    {
+        // we reconstruct features from corresponding details saved with match
+        // because there features are already Reordered via DefaultPhenotypesMap
+        Set<? extends Feature> matchFeatures = readFeatures(match.getMatchedDetails());
+        Set<? extends Feature> refFeatures = readFeatures(match.getReferenceDetails());
+
+        // passing null in place of access because the user is admin,
+        // access not used in DefaultPatientPhenotypeSimilarityView
+        PatientPhenotypeSimilarityView featuresView =
+            PHENOTYPE_SIMILARITY_VIEW_FACTORY.createPatientPhenotypeSimilarityView(matchFeatures, refFeatures, null);
+
+        return featuresView.toJSON();
+    }
+
+    // read patient features from match "details" string saved in db
+    private Set<Feature> readFeatures(String patientDetails)
+    {
+        Set<Feature> features = new HashSet<>();
+
+        JSONObject json = new JSONObject(patientDetails);
+        JSONObject phenotypesJson = json.optJSONObject("phenotypes");
+        if (phenotypesJson == null) {
+            return features;
+        }
+        JSONArray array = phenotypesJson.optJSONArray(PhenotypesMap.PREDEFINED);
+        if (array == null) {
+            return features;
+        }
+
+        for (Object object : array) {
+            JSONObject item = (JSONObject) object;
+            Feature phenotipsFeature = new PhenoTipsFeature(item);
+            features.add(phenotipsFeature);
+        }
+
+        return features;
     }
 }

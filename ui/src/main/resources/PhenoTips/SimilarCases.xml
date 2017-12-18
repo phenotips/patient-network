@@ -43,7 +43,7 @@
   #if ("$!matches" == '')
     #set ($matches = [])
   #else
-    $services.matchingNotification.saveLocalMatches($matches)
+    $services.matchingNotification.saveLocalMatches($matches, $patient.getId())
   #end
 {{/velocity}}
 
@@ -548,7 +548,9 @@
           'patient': _this.query,
           'matchId': matchId,
           'token' : token,
-          'contact': contact
+          'contact': contact,
+          'serverId': "",            // "" implies local server. The back-end supports MME servers, but that is not needed for local matches
+          'matchServerId': ""        // same here
         },
         onCreate : function() {
           _this._contactContainer.update('&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')"/&gt;');
