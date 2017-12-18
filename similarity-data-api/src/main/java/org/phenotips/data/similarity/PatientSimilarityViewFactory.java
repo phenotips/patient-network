@@ -26,8 +26,7 @@ import org.xwiki.component.annotation.Role;
  * reference patient's phenotypic profile. The resulting object is an extended version of the {@link Patient base
  * patient API}, which may block access to certain restricted information, and may extend data with similarity
  * information. For example, a feature from the matched patient that matches another feature from the reference patient
- * will {@link FeatureClusterView#getReference() indicate that}, and will be able to compute a
- * {@link FeatureClusterView#getScore() similarity score}.
+ * will {@link FeatureClusterView#getReference() indicate that}.
  *
  * @version $Id$
  * @since 1.0M1

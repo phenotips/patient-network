@@ -36,7 +36,7 @@ import java.util.Set;
 public class RestrictedPatientPhenotypeSimilarityView extends DefaultPatientPhenotypeSimilarityView
 {
     /**
-     * Constructor passing the {@link #match matched feature} and the {@link #reference reference feature}.
+     * Constructor passing the matched feature and the reference feature.
      *
      * @param match the features in the matched patient, can be empty
      * @param reference the features in the reference patient, can be empty

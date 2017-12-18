@@ -78,7 +78,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
 
     /**
      * Constructor passing the {@link #matchFeatures matched features}
-     * and the {@link #reference reference features}.
+     * and the {@link #referenceFeatures reference features}.
      *
      * @param matchFeatures the features in the matched patient, can be empty
      * @param referenceFeatures the features in the reference patient, can be empty
@@ -135,9 +135,10 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
      * Create an instance of the FeatureClusterView for this PatientSimilarityView.
      *
      * @param matchFeatures the features in the matched patient
-     * @param referenceFeatures the features in the reference patient
+     * @param reference the features in the reference patient
      * @param access the access level of the match
      * @param root the root/shared ancestor for the cluster
+     * @return returns a feature view container of matched and reference features with shared root 
      */
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> matchFeatures,
         Collection<Feature> reference, AccessType access, VocabularyTerm root)

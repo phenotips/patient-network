@@ -49,7 +49,7 @@ public abstract class AbstractVariant implements Variant
     /** See {@link #getEffect()}. */
     protected String effect;
 
-    /** See {@link #getGenotype()}. */
+    /** See {@link #isHomozygous()}. */
     protected String gt;
 
     /** See {@link #getAnnotation(String)}. */

@@ -240,7 +240,7 @@ public class DefaultPhenotypesMap extends AbstractMap<String, List<Map<String, S
     }
 
     /**
-     * Reorders predefined phenotypes lists in both maps, for display. See {@reorder}
+     * Reorders predefined phenotypes lists in both maps, for display.
      *
      * @param predefined1 list of predefined phenotypes for one patient
      * @param predefined2 list of predefined phenotypes for another patient
