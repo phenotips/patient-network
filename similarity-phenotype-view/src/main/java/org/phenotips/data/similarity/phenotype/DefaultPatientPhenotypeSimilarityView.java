@@ -138,7 +138,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
      * @param reference the features in the reference patient
      * @param access the access level of the match
      * @param root the root/shared ancestor for the cluster
-     * @return returns a feature view container of matched and reference features with shared root 
+     * @return returns a feature view container of matched and reference features with shared root
      */
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> matchFeatures,
         Collection<Feature> reference, AccessType access, VocabularyTerm root)
