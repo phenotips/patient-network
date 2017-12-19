@@ -51,8 +51,12 @@ import org.json.JSONObject;
 /**
  * @version $Id$
  */
+
 @Entity
 @Table(name = "patient_matching")
+@org.hibernate.annotations.Table(appliesTo = "patient_matching",
+    indexes = { @Index(name = "filterIndex", columnNames = { "notified", "score" }),
+                @Index(name = "propertiesIndex", columnNames = { "notified", "status" })})
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     /** separates between tokens. */
@@ -71,6 +75,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Timestamp foundTimestamp;
 
     @Basic
+    @Index(name = "notifiedIndex")
     private Boolean notified;
 
     @Basic
@@ -84,6 +89,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private Boolean rejected;
 
     @Basic
+    @Index(name = "statusIndex")
     private String status;
 
     @Basic
