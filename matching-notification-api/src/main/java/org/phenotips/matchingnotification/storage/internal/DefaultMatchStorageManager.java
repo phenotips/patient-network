@@ -64,6 +64,19 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             "delete DefaultPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
             + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
+    /** A query used to delete all outgoing MME matches for the given local patient (ID == localId)
+     *  and givenremote server (ID == remoteServerId). */
+    private static final String HQL_DELETE_ALL_OUTGOING_MATCHES_FOR_LOCAL_PATIENT =
+            "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+                    + " and referenceServerId = '' and referencePatientId = :localId"
+                    + " and matchedServerId = :remoteServerId";
+
+    /** A query used to delete all incoming MME matches for the given remote patient (ID == remoteId)
+     *  and givenremote server (ID == remoteServerId). */
+    private static final String HQL_DELETE_ALL_INCOMING_MATCHES_FOR_REMOTE_PATIENT =
+            "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+                    + " and referenceServerId = :remoteServerId and referencePatientId = :remoteId";
+
     /**
      *  A sub-query for the query below, to find matches similar to the given match, but that has been notified.
      *  A special case is when there is a similar local match, but where matched and reference patients are reversed.
@@ -86,7 +99,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     /** A query to find all un-notified matches with a score greater than given (score == minScore). */
     private static final String HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE =
             "from DefaultPatientMatch as m where m.notified = false"
-            + " and score > :minScore and not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")";
+            + " and score >= :minScore and not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")";
 
     /** Handles persistence. */
     @Inject
@@ -112,7 +125,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.beginTransaction();
         for (String ptId : refPatients) {
-            this.deleteLocalMatchesForLocalPatient(session, ptId, false);
+            this.deleteLocalMatchesForLocalPatient(session, ptId, false, false);
         }
         this.saveMatches(session, matches);
         return this.endTransaction(session);
@@ -156,23 +169,21 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             matchesToSave.add(match);
         }
 
-        List<PatientMatch> matchesToDelete = new LinkedList<>();
+        Session session = this.beginTransaction();
+
         for (String ptId : refPatients) {
-            // load all un-notified matches of the same kind for the given reference patient
+            // delete all un-notified un-rejected matches of the same kind for the given reference patient
             if (isIncoming) {
-                matchesToDelete.addAll(this.loadIncomingMatchesByPatientId(ptId, serverId, false));
+                this.deleteIncomingMatchesByPatientId(session, ptId, serverId);
             } else {
-                matchesToDelete.addAll(this.loadOutgoingMatchesByPatientId(ptId, serverId, false));
+                this.deleteOutgoingMatchesByPatientId(session, ptId, serverId);
             }
         }
 
-        this.logger.debug("Deleting {} existing MME matches which are being replaced by {} new matches"
-                          + " (server: [{}], incoming: [{}])",
-                          matchesToDelete.size(), matchesToSave.size(), serverId, isIncoming);
-
-        Session session = this.beginTransaction();
-        this.deleteMatches(session, matchesToDelete);
         this.saveMatches(session, matchesToSave);
+        this.logger.debug("Saved {} new MME matches (server: [{}], incoming: [{}])",
+                matchesToSave.size(), serverId, isIncoming);
+
         return this.endTransaction(session);
     }
 
@@ -217,31 +228,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         if (matchesIds != null && matchesIds.size() > 0) {
             return this.loadMatchesByCriteria(
                 new Criterion[] { Restrictions.in("id", matchesIds.toArray()) });
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    private List<PatientMatch> loadOutgoingMatchesByPatientId(String localPatientId, String remoteServerId,
-            boolean notifiedStatus)
-    {
-        if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
-            return this.loadMatchesByCriteria(
-                new Criterion[] { this.notifiedRestriction(notifiedStatus),
-                                  this.patientIsReference(localPatientId, ""),
-                                  Restrictions.eq("matchedServerId", remoteServerId)});
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    private List<PatientMatch> loadIncomingMatchesByPatientId(String remotePatientId, String remoteServerId,
-            boolean notifiedStatus)
-    {
-        if (StringUtils.isNotEmpty(remotePatientId) && StringUtils.isNotEmpty(remoteServerId)) {
-            return this.loadMatchesByCriteria(
-                new Criterion[] { this.notifiedRestriction(notifiedStatus),
-                                  this.patientIsReference(remotePatientId, remoteServerId) });
         } else {
             return Collections.emptyList();
         }
@@ -386,10 +372,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         return this.endTransaction(session);
     }
 
-    private void deleteLocalMatchesForLocalPatient(Session session, String patientId, boolean deleteNotified)
+    private void deleteLocalMatchesForLocalPatient(Session session, String patientId,
+            boolean deleteNotified, boolean deleteRejected)
     {
         Query query = session.createQuery(HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT
-                + (deleteNotified ? "" : " and notified = false"));
+                + (deleteNotified ? "" : " and notified = false")
+                + (deleteRejected ? "" : " and status != 'rejected'"));
         query.setParameter("localId", patientId);
 
         int numDeleted = query.executeUpdate();
@@ -397,10 +385,38 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         this.logger.debug("Removed [{}] stored local matches for patient [{}]", numDeleted, patientId);
     }
 
-    private void deleteMatches(Session session, List<PatientMatch> matches)
+    /*
+     * Deletes all stored un-notified un-rejected matchs for the given patient and server.
+     */
+    private void deleteOutgoingMatchesByPatientId(Session session, String localPatientId, String remoteServerId)
     {
-        for (PatientMatch match : matches) {
-            session.delete(match);
+        if (StringUtils.isNotEmpty(localPatientId) && StringUtils.isNotEmpty(remoteServerId)) {
+
+            Query query = session.createQuery(HQL_DELETE_ALL_OUTGOING_MATCHES_FOR_LOCAL_PATIENT);
+            query.setParameter("localId", localPatientId);
+            query.setParameter("remoteServerId", remoteServerId);
+
+            int numDeleted = query.executeUpdate();
+
+            this.logger.debug("Removed all [{}] stored outgoing  matches for patient [{}] and server [{}]",
+                    numDeleted, localPatientId, remoteServerId);
+        }
+    }
+
+    /*
+     * Deletes all stored un-notified un-rejected matchs for the given patient and server.
+     */
+    private void deleteIncomingMatchesByPatientId(Session session, String remotePatientId, String remoteServerId)
+    {
+        if (StringUtils.isNotEmpty(remotePatientId) && StringUtils.isNotEmpty(remoteServerId)) {
+            Query query = session.createQuery(HQL_DELETE_ALL_INCOMING_MATCHES_FOR_REMOTE_PATIENT);
+            query.setParameter("remoteId", remotePatientId);
+            query.setParameter("remoteServerId", remoteServerId);
+
+            int numDeleted = query.executeUpdate();
+
+            this.logger.debug("Removed all [{}] stored incoming  matches for remote patient [{}] and server [{}]",
+                    numDeleted, remotePatientId, remoteServerId);
         }
     }
 
