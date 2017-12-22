@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.5</version>
   </parent>
   <artifactId>patient-network-ui</artifactId>
   <name>PhenoTips - Patient network - Documents providing patient network functionality</name>

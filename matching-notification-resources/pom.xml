@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.5</version>
   </parent>
   <artifactId>matching-notification-resources</artifactId>
   <name>Phenotips - Patient Network - Matching Notification - JS and CSS Resources</name>
