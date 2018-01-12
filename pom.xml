@@ -486,6 +486,30 @@
               <to>void</to>
               <justification>Removed unused return.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinder</className>
+              <differenceType>7012</differenceType>
+              <method>void recordStartMatchesSearch()</method>
+              <justification>Record the beginning time of matches search for each server</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinder</className>
+              <differenceType>7012</differenceType>
+              <method>void recordEndMatchesSearch()</method>
+              <justification>Record the completion time of matches search for each server</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinderManager</className>
+              <differenceType>7012</differenceType>
+              <method>void recordStartMatchesSearch()</method>
+              <justification>Record the beginning time of matches search for each match finder</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinderManager</className>
+              <differenceType>7012</differenceType>
+              <method>void recordEndMatchesSearch()</method>
+              <justification>Record the completion time of matches search for each match finder</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

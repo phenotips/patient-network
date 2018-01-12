@@ -91,12 +91,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     @Override
     public void findAndSaveMatches()
     {
+        this.matchFinderManager.recordStartMatchesSearch();
+
         List<Patient> patients = this.getPatientsList();
         for (Patient patient : patients) {
             this.logger.debug("Finding matches for patient {}.", patient.getId());
-
             this.matchFinderManager.findMatches(patient);
         }
+
+        this.matchFinderManager.recordEndMatchesSearch();
     }
 
     /*

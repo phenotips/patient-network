@@ -75,4 +75,20 @@ public class DefaultMatchFinderManager implements MatchFinderManager
 
         return matches;
     }
+
+    @Override
+    public void recordStartMatchesSearch()
+    {
+        for (MatchFinder service : this.matchFinderProvider.get()) {
+            service.recordStartMatchesSearch();
+        }
+    }
+
+    @Override
+    public void recordEndMatchesSearch()
+    {
+        for (MatchFinder service : this.matchFinderProvider.get()) {
+            service.recordEndMatchesSearch();
+        }
+    }
 }
