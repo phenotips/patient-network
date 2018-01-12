@@ -43,4 +43,13 @@ public interface MatchFinder
      */
     List<PatientMatch> findMatches(Patient patient);
 
+    /**
+     * Record start time for running matches search.
+     */
+    void recordStartMatchesSearch();
+
+    /**
+     * Record completed time for running matches search.
+     */
+    void recordEndMatchesSearch();
 }

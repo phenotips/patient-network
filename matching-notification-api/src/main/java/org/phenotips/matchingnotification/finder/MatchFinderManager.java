@@ -37,4 +37,14 @@ public interface MatchFinderManager
      * @return list of matches
      */
     List<PatientMatch> findMatches(Patient patient);
+
+    /**
+     * For every match finder record start time for running matches search.
+     */
+    void recordStartMatchesSearch();
+
+    /**
+     * For every match finder record completed time for running matches search.
+     */
+    void recordEndMatchesSearch();
 }
