@@ -90,8 +90,6 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     public void initialize() throws InitializationException
     {
         XWikiContext context = this.provider.get();
-        this.previousStartedTime = null;
-        this.prefsDoc = null;
 
         try {
             this.prefsDoc = context.getWiki().getDocument(MATCHING_RUN_INFO_DOCUMENT, context);
@@ -159,7 +157,7 @@ public class LocalMatchFinder implements MatchFinder, Initializable
             XWikiContext context = this.provider.get();
             context.getWiki().saveDocument(this.prefsDoc, context);
         } catch (XWikiException e) {
-            this.logger.error("Failed to save matching run start time for localhost {}.");
+            this.logger.error("Failed to save matching run start time for localhost.", e.getMessage(), e);
         }
     }
 
@@ -177,7 +175,7 @@ public class LocalMatchFinder implements MatchFinder, Initializable
             XWikiContext context = this.provider.get();
             context.getWiki().saveDocument(this.prefsDoc, context);
         } catch (XWikiException e) {
-            this.logger.error("Failed to save matching run start time for localhost {}.");
+            this.logger.error("Failed to save matching run complete time for localhost.", e.getMessage(), e);
         }
     }
 }
