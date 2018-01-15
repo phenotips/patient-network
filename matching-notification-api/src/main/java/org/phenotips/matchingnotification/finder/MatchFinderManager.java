@@ -41,10 +41,10 @@ public interface MatchFinderManager
     /**
      * For every match finder record start time for running matches search.
      */
-    void recordStartMatchesSearch();
+    void recordMatcherStart();
 
     /**
      * For every match finder record completed time for running matches search.
      */
-    void recordEndMatchesSearch();
+    void recordMatcherEnd();
 }

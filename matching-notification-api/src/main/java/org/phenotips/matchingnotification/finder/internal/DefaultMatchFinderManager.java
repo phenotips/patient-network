@@ -77,7 +77,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     }
 
     @Override
-    public void recordStartMatchesSearch()
+    public void recordMatcherStart()
     {
         for (MatchFinder service : this.matchFinderProvider.get()) {
             service.recordStartMatchesSearch();
@@ -85,7 +85,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     }
 
     @Override
-    public void recordEndMatchesSearch()
+    public void recordMatcherEnd()
     {
         for (MatchFinder service : this.matchFinderProvider.get()) {
             service.recordEndMatchesSearch();

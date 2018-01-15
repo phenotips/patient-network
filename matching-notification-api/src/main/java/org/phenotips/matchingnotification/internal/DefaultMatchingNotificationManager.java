@@ -91,7 +91,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     @Override
     public void findAndSaveMatches()
     {
-        this.matchFinderManager.recordStartMatchesSearch();
+        this.matchFinderManager.recordMatcherStart();
 
         List<Patient> patients = this.getPatientsList();
         for (Patient patient : patients) {
@@ -99,7 +99,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.matchFinderManager.findMatches(patient);
         }
 
-        this.matchFinderManager.recordEndMatchesSearch();
+        this.matchFinderManager.recordMatcherEnd();
     }
 
     /*
