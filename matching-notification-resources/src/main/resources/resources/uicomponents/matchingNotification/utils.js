@@ -26,11 +26,11 @@ define(["jquery"], function($)
             return [successfulIds, failedIds];
         },
 
-        showHint : function(messagesFieldName, message) 
+        showHint : function(messagesFieldName, message, cssClass) 
         {
             var messages = $('#' + messagesFieldName);
             messages.empty();
-            messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+            messages.append(new Element('div', {'class' : cssClass ? cssClass : ''}).update(message));
         }
 
     });

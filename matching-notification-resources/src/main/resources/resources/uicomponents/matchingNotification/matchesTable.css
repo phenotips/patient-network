@@ -71,6 +71,10 @@
   color: green;
 }
 
+#show-matches-messages .invalid {
+  color: #CC3333;
+}
+
 #table-filter-div div, #access-filter-div div {
   display: inline-block;
 }

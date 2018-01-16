@@ -71,7 +71,7 @@ var PhenoTips = (function (PhenoTips) {
         var score = this._checkScore('show-matches-score', 'show-matches-messages');
         var phenScore = this._checkScore('show-matches-phen-score', 'show-matches-messages');
         var genScore = this._checkScore('show-matches-gen-score', 'show-matches-messages');
-        if (score == undefined && phenScore == undefined && genScore == undefined) {
+        if (score == undefined || phenScore == undefined || genScore == undefined) {
             return;
         }
         new Ajax.Request(this._ajaxURL, {
@@ -120,14 +120,9 @@ var PhenoTips = (function (PhenoTips) {
         var score = this._$('#' + scoreFieldName).val();
         if (score == undefined || score == "") {
             return 0;
-        } else if (isNaN(score)) {
-            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
-            return;
-        }
-        scoreNumber = Number(score);
-        if (scoreNumber < 0 || scoreNumber > 1) {
-            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
-            return;
+        } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
+            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')", "invalid");
+            return undefined;
         }
         return score;
     },
