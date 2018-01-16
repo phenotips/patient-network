@@ -34,10 +34,12 @@ public interface MatchStorageManager
      * Loads matches filtered by the parameters.
      *
      * @param score threshold for matches
+     * @param phenScore only matches with phenotypical score higher or equal to this value are returned
+     * @param genScore only matches with genotypical score higher or equal to this value are returned
      * @param notified whether the matches were notified of
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, boolean notified);
+    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean notified);
 
     /**
      * Load all matches with ids in {@code matchesIds}.

@@ -53,6 +53,10 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
 &lt;div id="score-filter-div"&gt;
   &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.label')) &lt;/label&gt;
   &lt;input id="show-matches-score" type="text" style="width: 5em;"/&gt;
+  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label')) &lt;/label&gt;
+  &lt;input id="show-matches-phen-score" type="text" style="width: 5em;"/&gt;
+  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label')) &lt;/label&gt;
+  &lt;input id="show-matches-gen-score" type="text" style="width: 5em;"/&gt;
   &lt;button id="show-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.go.label'))&lt;/button&gt;
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;

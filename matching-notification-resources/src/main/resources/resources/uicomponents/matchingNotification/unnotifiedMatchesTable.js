@@ -51,21 +51,13 @@ var PhenoTips = (function (PhenoTips) {
 
     _findMatches : function()
     {
-        var score = this._checkScore('find-matches-score', 'find-matches-messages');
-        if (score == undefined) {
-            return;
-        }
         new Ajax.Request(this._ajaxURL, {
-            parameters : {action : 'find-matches',
-                          score  : score
+            parameters : {action : 'find-matches'
             },
             onSuccess : function (response) {
                 this._utils.showSuccess('find-matches-messages');
-                console.log("find matches result, score = " + score);
+                console.log("find matches result:");
                 console.log(response.responseJSON);
-
-                this._$('#show-matches-score').val(score);
-                this._showMatches();
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('find-matches-messages');
@@ -77,12 +69,16 @@ var PhenoTips = (function (PhenoTips) {
     _showMatches : function()
     {
         var score = this._checkScore('show-matches-score', 'show-matches-messages');
-        if (score == undefined) {
+        var phenScore = this._checkScore('show-matches-phen-score', 'show-matches-messages');
+        var genScore = this._checkScore('show-matches-gen-score', 'show-matches-messages');
+        if (score == undefined && phenScore == undefined && genScore == undefined) {
             return;
         }
         new Ajax.Request(this._ajaxURL, {
             parameters : {action   : 'show-matches',
                           score    : score,
+                          phenScore : phenScore,
+                          genScore : genScore,
                           notified : false
             },
             onSuccess : function (response) {
@@ -123,12 +119,11 @@ var PhenoTips = (function (PhenoTips) {
     _checkScore : function(scoreFieldName, messagesFieldName) {
         var score = this._$('#' + scoreFieldName).val();
         if (score == undefined || score == "") {
-            this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.emptyScore')");
-            return;
+            return 0;
         } else if (isNaN(score)) {
             this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
             return;
-        };
+        }
         scoreNumber = Number(score);
         if (scoreNumber < 0 || scoreNumber > 1) {
             this._utils.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.invalidScore')");
