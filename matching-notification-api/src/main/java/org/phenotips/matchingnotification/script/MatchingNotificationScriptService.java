@@ -90,19 +90,11 @@ public class MatchingNotificationScriptService implements ScriptService
     private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
     /**
-     * Find patient matches and saves only those with score higher or equals to {@code score}.
-     *
-     * @param score only matches with score higher or equal to this value are saved
-     * @return JSON with the saved matches (after filtering)
+     * Find and save matches to all local patients.
      */
-    public String findAndSaveMatches(double score)
+    public void findAndSaveMatches()
     {
-        List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
-        if (!isAdmin()) {
-            filterNonUsersMatches(matches);
-        }
-        JSONObject json = this.patientMatchExport.toJSON(matches);
-        return json.toString();
+        this.matchingNotificationManager.findAndSaveMatches();
     }
 
     /**

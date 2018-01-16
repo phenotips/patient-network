@@ -18,7 +18,6 @@
 package org.phenotips.matchingnotification;
 
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
 import org.xwiki.component.annotation.Role;
@@ -34,11 +33,8 @@ public interface MatchingNotificationManager
 {
     /**
      * Find and save matches to all local patients.
-     *
-     * @param score save matches with score higher or equals to this value
-     * @return true if successful
      */
-    List<PatientMatch> findAndSaveMatches(double score);
+    void findAndSaveMatches();
 
     /**
      * Sends notification to the owner of every match with id in {@code matchesId}, then marks match as notified.

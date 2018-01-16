@@ -454,6 +454,38 @@
               <method>java.util.List loadMatches(double, boolean)</method>
               <justification>Added phenotypical and genotypical score parameters.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7004</differenceType>
+              <method>java.util.List findAndSaveMatches(double)</method>
+              <justification>Removed score parameter.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>7004</differenceType>
+              <method>java.lang.String findAndSaveMatches(double)</method>
+              <justification>Removed score parameter.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>7004</differenceType>
+              <method>java.lang.String getMatches(double, boolean)</method>
+              <justification>Added phenotypical and genotypical score parameters.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7006</differenceType>
+              <method>java.util.List findAndSaveMatches(double)</method>
+              <to>void</to>
+              <justification>Removed unused return.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>7006</differenceType>
+              <method>java.lang.String findAndSaveMatches(double)</method>
+              <to>void</to>
+              <justification>Removed unused return.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
