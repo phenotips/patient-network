@@ -442,6 +442,12 @@
               <method>boolean markNotified(org.hibernate.Session, java.util.List)</method>
               <justification>Cleaning API, decoupling implementation from API</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/similarity/SimilarPatientsFinder</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List findSimilarPatients(org.phenotips.data.Patient, java.lang.String)</method>
+              <justification>Allows finding only matching patients which are consented to be found</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

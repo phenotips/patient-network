@@ -17,6 +17,7 @@
  */
 package org.phenotips.similarity.internal;
 
+import org.phenotips.data.ConsentManager;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
@@ -99,6 +100,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Inject
     private SolrCoreContainerHandler cores;
 
+    @Inject
+    private ConsentManager consentManager;
+
     /** The Solr server instance used. */
     private SolrClient server;
 
@@ -111,13 +115,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Override
     public List<PatientSimilarityView> findSimilarPatients(Patient referencePatient)
     {
-        return find(referencePatient, false);
+        return findSimilarPatients(referencePatient, null);
+    }
+
+    @Override
+    public List<PatientSimilarityView> findSimilarPatients(Patient referencePatient, String requiredConsentId)
+    {
+        return find(referencePatient, requiredConsentId, false);
     }
 
     @Override
     public List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient)
     {
-        return find(referencePatient, true);
+        return find(referencePatient, null, true);
     }
 
     @Override
@@ -127,7 +137,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return count(query);
     }
 
-    private List<PatientSimilarityView> find(Patient referencePatient, boolean prototypes)
+    private List<PatientSimilarityView> find(Patient referencePatient, String requiredConsentId, boolean prototypes)
     {
         this.logger.debug("Searching for patients similar to [{}] using access level {}",
             referencePatient.getDocument(), this.accessLevelThreshold.getName());
@@ -142,6 +152,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             Patient matchPatient = this.patients.get(name);
             if (matchPatient == null) {
                 // Leftover patient in the index, should be removed
+                continue;
+            }
+            // check consents, if required
+            if (requiredConsentId != null && !consentManager.hasConsent(matchPatient, requiredConsentId)) {
                 continue;
             }
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
