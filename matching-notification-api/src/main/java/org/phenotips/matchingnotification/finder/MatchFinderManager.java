@@ -31,20 +31,21 @@ import java.util.List;
 public interface MatchFinderManager
 {
     /**
-     * Find matches for a given patient.
+     * Finds matches for all local patients which are matchable (by querying both local instance
+     * and all enabled MME servers - the latter only for patients which have MME consent enabled).
      *
-     * @param patient to find matches for
+     * The matches will be stored in matching notification table.
+     */
+    void findMatchesForAllPatients();
+
+    /**
+     * Finds matches for a given patient (by querying both local instance
+     * and all enabled MME servers - the latter only if MME consent is enabled for the patient).
+     *
+     * As a side effect, the matches will be stored in matching notification table.
+     *
+     * @param patient to find matches for. No check is made to make sure the patient is matchable.
      * @return list of matches
      */
     List<PatientMatch> findMatches(Patient patient);
-
-    /**
-     * For every match finder record start time for running matches search.
-     */
-    void recordMatcherStart();
-
-    /**
-     * For every match finder record completed time for running matches search.
-     */
-    void recordMatcherEnd();
 }
