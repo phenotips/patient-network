@@ -17,10 +17,7 @@
  */
 package org.phenotips.matchingnotification.internal;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
@@ -32,9 +29,6 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,15 +55,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 {
     private Logger logger = LoggerFactory.getLogger(DefaultMatchingNotificationManager.class);
 
-    @Inject
-    private QueryManager qm;
-
-    @Inject
-    private PatientRepository patientRepository;
-
-    @Inject
-    private PermissionsManager permissionsManager;
-
     /** Needed for checking if a given access level provides read access to patients. */
     @Inject
     @Named("view")
@@ -91,50 +76,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     @Override
     public void findAndSaveMatches()
     {
-        this.matchFinderManager.recordMatcherStart();
-
-        List<Patient> patients = this.getPatientsList();
-        for (Patient patient : patients) {
-            this.logger.debug("Finding matches for patient {}.", patient.getId());
-            this.matchFinderManager.findMatches(patient);
-        }
-
-        this.matchFinderManager.recordMatcherEnd();
-    }
-
-    /*
-     * Returns a list of patients with visibility>=matchable
-     */
-    private List<Patient> getPatientsList()
-    {
-        List<String> potentialPatientIds = null;
-        List<Patient> patients = new LinkedList<>();
-        try {
-            Query q = this.qm.createQuery(
-                "select doc.name "
-                    + "from Document doc, "
-                    + "doc.object(PhenoTips.PatientClass) as patient "
-                    + "where patient.identifier is not null order by patient.identifier desc",
-                Query.XWQL);
-            potentialPatientIds = q.execute();
-        } catch (QueryException e) {
-            this.logger.error("Error retrieving a list of patients for matching: {}", e);
-            return null;
-        }
-
-        for (String patientId : potentialPatientIds) {
-            Patient patient = this.patientRepository.get(patientId);
-            if (patient == null) {
-                continue;
-            }
-
-            Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
-            if (patientVisibility.compareTo(this.matchableVisibility) >= 0) {
-                patients.add(patient);
-            }
-        }
-
-        return patients;
+        this.matchFinderManager.findMatchesForAllPatients();
     }
 
     @Override

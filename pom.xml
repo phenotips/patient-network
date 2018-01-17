@@ -501,13 +501,7 @@
             <difference>
               <className>org/phenotips/matchingnotification/finder/MatchFinderManager</className>
               <differenceType>7012</differenceType>
-              <method>void recordMatcherStart()</method>
-              <justification>Record the beginning time of matches search for each match finder</justification>
-            </difference>
-            <difference>
-              <className>org/phenotips/matchingnotification/finder/MatchFinderManager</className>
-              <differenceType>7012</differenceType>
-              <method>void recordMatcherEnd()</method>
+              <method>void findMatchesForAllPatients()</method>
               <justification>Record the completion time of matches search for each match finder</justification>
             </difference>
           </ignored>
