@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
@@ -89,9 +88,9 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     @Override
     public void initialize() throws InitializationException
     {
-        XWikiContext context = this.provider.get();
-
         try {
+            XWikiContext context = this.provider.get();
+
             this.prefsDoc = context.getWiki().getDocument(MATCHING_RUN_INFO_DOCUMENT, context);
 
             if (this.prefsDoc != null && !this.prefsDoc.isNew()) {
@@ -102,7 +101,7 @@ public class LocalMatchFinder implements MatchFinder, Initializable
                     context.getWiki().saveDocument(this.prefsDoc, context);
                 }
             }
-        } catch (XWikiException e) {
+        } catch (Exception e) {
             this.logger.error("Failed to modify matching run info document: {}", e.getMessage(), e);
         }
     }
@@ -142,21 +141,24 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     @Override
     public void recordStartMatchesSearch()
     {
+        // note: error() is used intentionally since this is important information we always want to have in the logs
+        this.logger.error("Starting find all local matches run...");
+
         if (this.prefsDoc == null) {
             return;
         }
 
-        BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
-
-        // cash last started search date to compare with last modification date for patient
-        this.previousStartedTime = object.getDateValue("startedTime");
-        // set new started time
-        object.setDateValue("startedTime", new Date());
-
         try {
+            BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
+
+            // cash last started search date to compare with last modification date for patient
+            this.previousStartedTime = object.getDateValue("startedTime");
+            // set new started time
+            object.setDateValue("startedTime", new Date());
+
             XWikiContext context = this.provider.get();
             context.getWiki().saveDocument(this.prefsDoc, context);
-        } catch (XWikiException e) {
+        } catch (Exception e) {
             this.logger.error("Failed to save matching run start time for localhost.", e.getMessage(), e);
         }
     }
@@ -164,17 +166,19 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     @Override
     public void recordEndMatchesSearch()
     {
+        this.logger.error("Finished find all local matches run");
+
         if (this.prefsDoc == null) {
             return;
         }
 
-        BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
-        object.setDateValue("completedTime", new Date());
-
         try {
+            BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
+            object.setDateValue("completedTime", new Date());
+
             XWikiContext context = this.provider.get();
             context.getWiki().saveDocument(this.prefsDoc, context);
-        } catch (XWikiException e) {
+        } catch (Exception e) {
             this.logger.error("Failed to save matching run complete time for localhost.", e.getMessage(), e);
         }
     }
