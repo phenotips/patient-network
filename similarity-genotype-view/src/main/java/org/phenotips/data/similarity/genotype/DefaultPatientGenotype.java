@@ -24,6 +24,9 @@ import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.Variant;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
+import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -51,6 +54,9 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     /** Factory for loading exome data. */
     protected static ExomeManager exomeManager;
 
+    /** Manager to allow access to HGNC vocabulary gene data. */
+    protected static VocabularyManager vocabularyManager;
+
     private static final String STATUS_CANDIDATE = "candidate";
 
     private static final String STATUS_SOLVED = "solved";
@@ -75,13 +81,14 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
      */
     public DefaultPatientGenotype(Patient patient)
     {
-        // Initialize static exome manager
+        // Initialize static exome and vocabulary managers
         if (exomeManager == null) {
             ComponentManager componentManager = ComponentManagerRegistry.getContextComponentManager();
             try {
                 exomeManager = componentManager.getInstance(ExomeManager.class, "exomiser");
+                vocabularyManager = componentManager.getInstance(VocabularyManager.class);
             } catch (ComponentLookupException e) {
-                LOGGER.error("Unable to look up ExomeManager: " + e.toString());
+                LOGGER.error("Error loading static components: {}", e.getMessage(), e);
             }
         }
 
@@ -116,7 +123,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
                     continue;
                 }
 
-                geneName = geneName.trim();
+                geneName = getGeneSymbol(geneName.trim());
                 String status = gene.get("status");
                 if (StringUtils.isBlank(status) || STATUS_CANDIDATE.equals(status)) {
                     geneCandidateNames.add(geneName);
@@ -205,5 +212,16 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     public boolean hasExomeData()
     {
         return this.exome != null;
+    }
+
+    private String getGeneSymbol(String geneEnsemblId)
+    {
+        String symbol = geneEnsemblId;
+        if (vocabularyManager != null) {
+            Vocabulary hgnc = vocabularyManager.getVocabulary("HGNC");
+            VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
+            symbol = (term != null) ? (String) term.get("symbol") : symbol;
+        }
+        return symbol;
     }
 }
