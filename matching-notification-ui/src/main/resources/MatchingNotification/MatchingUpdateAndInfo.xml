@@ -24,7 +24,7 @@
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>PhenomeCentral.WebHome</parent>
+  <parent>PhenoTips.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <author>xwiki:XWiki.Admin</author>
   <customClass/>
@@ -43,19 +43,42 @@
   <content>{{include reference="PhenoTips.TabelarDataMacros"/}}
 
 {{velocity}}
+$xwiki.ssfx.use('uicomponents/matchingNotification/findMatches.css')##
+$xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/findMatches.js', true)##
+
 #set ($displayDocumentName = 'PhenomeCentral.MatchingUpdateAndInfo')
 $xwiki.ssx.use($displayDocumentName)
 #set ($doc = $xwiki.getDocument($displayDocumentName))
 #set ($infoClassname = 'PhenomeCentral.MatchingRunInfoClass')
 
-== Previous updates ==
+== $services.localization.render('phenotips.findMatches.previousUpdates.label') ==
 
 #__extradata_displayTable($infoClassname, {'counter' : false, 'labels' : false, 'mode' : 'view'})
 
+== $services.localization.render('phenotips.findMatches.refreshMatches.label') ==
+
+{{html}}
+&lt;div&gt;
+  &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.localMatches.label'))&lt;/label&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-all-local-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshAll'))&lt;/button&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-updated-local-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
+  &lt;div class="find-matches-message" id="find-local-matches-messages"/&gt;
+  &lt;br/&gt;&lt;br/&gt;
+  &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.otherMatches.label')) &lt;/label&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-all-other-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshAll'))&lt;/button&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-updated-other-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
+  &lt;div class="find-matches-message" id="find-other-matches-messages"/&gt;
+&lt;/div&gt;
+{{/html}}
 
 {{/velocity}}</content>
   <object>
-    <name>PhenomeCentral.MatchingRunInfo</name>
+    <name>PhenomeCentral.MatchingUpdateAndInfo</name>
     <number>0</number>
     <className>XWiki.ConfigurableClass</className>
     <guid>8b1e3a03-f66e-4841-98f3-056a034314e3</guid>
@@ -244,7 +267,7 @@ $xwiki.ssx.use($displayDocumentName)
       <categoryPriority>0</categoryPriority>
     </property>
     <property>
-      <codeToExecute>{{include reference="PhenomeCentral.MatchingRunInfo" /}}</codeToExecute>
+      <codeToExecute>{{include reference="PhenomeCentral.MatchingUpdateAndInfo" /}}</codeToExecute>
     </property>
     <property>
       <configurationClass/>
@@ -256,7 +279,7 @@ $xwiki.ssx.use($displayDocumentName)
       <displayInCategory>phenotips</displayInCategory>
     </property>
     <property>
-      <displayInSection>Matching run info</displayInSection>
+      <displayInSection>Refresh matches</displayInSection>
     </property>
     <property>
       <heading/>
@@ -346,7 +369,7 @@ $xwiki.ssx.use($displayDocumentName)
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>PhenomeCentral.MatchingRunInfo</name>
+    <name>PhenomeCentral.MatchingUpdateAndInfo</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>5d5483d2-e6fc-4163-ba6d-9900e28db454</guid>
