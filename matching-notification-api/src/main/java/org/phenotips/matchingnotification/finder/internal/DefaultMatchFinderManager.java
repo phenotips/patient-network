@@ -88,14 +88,11 @@ public class DefaultMatchFinderManager implements MatchFinderManager
         List<PatientMatch> matches = new LinkedList<>();
 
         for (MatchFinder service : this.matchFinderProvider.get()) {
-
-            this.logger.error("Using service {}", service.getClass().getSimpleName());
-
             try {
                 List<PatientMatch> foundMatches = service.findMatches(patient);
                 matches.addAll(foundMatches);
 
-                this.logger.error("Found {} matches by {}", foundMatches.size(), service.getClass().getSimpleName());
+                this.logger.debug("Found {} matches by {}", foundMatches.size(), service.getClass().getSimpleName());
 
                 for (PatientMatch match : foundMatches) {
                     this.logger.debug(match.toString());
