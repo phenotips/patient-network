@@ -20,7 +20,7 @@
 
 <xwikidoc version="1.1">
   <web>PhenomeCentral</web>
-  <name>MatchingRunInfo</name>
+  <name>MatchingUpdateAndInfo</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -43,12 +43,16 @@
   <content>{{include reference="PhenoTips.TabelarDataMacros"/}}
 
 {{velocity}}
-#set ($displayDocumentName = 'PhenomeCentral.MatchingRunInfo')
+#set ($displayDocumentName = 'PhenomeCentral.MatchingUpdateAndInfo')
 $xwiki.ssx.use($displayDocumentName)
 #set ($doc = $xwiki.getDocument($displayDocumentName))
 #set ($infoClassname = 'PhenomeCentral.MatchingRunInfoClass')
 
+== Previous updates ==
+
 #__extradata_displayTable($infoClassname, {'counter' : false, 'labels' : false, 'mode' : 'view'})
+
+
 {{/velocity}}</content>
   <object>
     <name>PhenomeCentral.MatchingRunInfo</name>

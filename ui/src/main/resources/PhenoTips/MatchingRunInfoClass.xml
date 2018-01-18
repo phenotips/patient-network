@@ -50,18 +50,18 @@
     <validationScript/>
     <completedTime>
       <customDisplay/>
-	  <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
-	  <disabled>0</disabled>
-	  <emptyIsToday>1</emptyIsToday>
-	  <name>completedTime</name>
-	  <number>3</number>
-	  <picker>1</picker>
-	  <prettyName>Time completed</prettyName>
-	  <size>20</size>
-	  <unmodifiable>0</unmodifiable>
-	  <validationMessage/>
-	  <validationRegExp/>
-	  <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+      <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
+      <disabled>0</disabled>
+      <emptyIsToday>1</emptyIsToday>
+      <name>completedTime</name>
+      <number>3</number>
+      <picker>1</picker>
+      <prettyName>Last time completed</prettyName>
+      <size>20</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
     </completedTime>
     <serverName>
       <customDisplay/>
@@ -69,7 +69,7 @@
       <name>serverName</name>
       <number>1</number>
       <picker>0</picker>
-      <prettyName>Server name</prettyName>
+      <prettyName>Server</prettyName>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
@@ -78,18 +78,30 @@
     </serverName>
     <startedTime>
       <customDisplay/>
-	  <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
-	  <disabled>0</disabled>
-	  <emptyIsToday>1</emptyIsToday>
-	  <name>startedTime</name>
-	  <number>2</number>
-	  <picker>1</picker>
-	  <prettyName>Time started</prettyName>
-	  <size>20</size>
-	  <unmodifiable>0</unmodifiable>
-	  <validationMessage/>
-	  <validationRegExp/>
-	  <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+      <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
+      <disabled>0</disabled>
+      <emptyIsToday>1</emptyIsToday>
+      <name>startedTime</name>
+      <number>2</number>
+      <picker>1</picker>
+      <prettyName>Last time started</prettyName>
+      <size>20</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
     </startedTime>
+    <numPatientsUsedForLastMatchRun>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>numPatientsUsedForLastMatchRun</name>
+      <number>4</number>
+      <prettyName>Number of local patients updated</prettyName>
+      <size>8</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </numPatientsUsedForLastMatchRun>
   </class>
 </xwikidoc>

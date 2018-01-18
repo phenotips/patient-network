@@ -68,6 +68,16 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     private static final EntityReference MATCHING_RUN_INFO_DOCUMENT =
         new EntityReference("MatchingRunInfo", EntityType.DOCUMENT, PHENOMECENTRAL_SPACE);
 
+    private static final String RUN_INFO_DOCUMENT_SERVERNAME = "serverName";
+
+    private static final String RUN_INFO_DOCUMENT_LOCALSERVER = "local matches";
+
+    private static final String RUN_INFO_DOCUMENT_STARTTIME = "startedTime";
+
+    private static final String RUN_INFO_DOCUMENT_ENDTIME = "completedTime";
+
+    private static final String RUN_INFO_DOCUMENT_PATIENTCOUNT = "numPatientsUsedForLastMatchRun";
+
     private Logger logger = LoggerFactory.getLogger(LocalMatchFinder.class);
 
     @Inject
@@ -83,6 +93,8 @@ public class LocalMatchFinder implements MatchFinder, Initializable
 
     private Date previousStartedTime;
 
+    private Integer numPatientsTestedForMatches;
+
     private XWikiDocument prefsDoc;
 
     @Override
@@ -94,10 +106,11 @@ public class LocalMatchFinder implements MatchFinder, Initializable
             this.prefsDoc = context.getWiki().getDocument(MATCHING_RUN_INFO_DOCUMENT, context);
 
             if (this.prefsDoc != null && !this.prefsDoc.isNew()) {
-                BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
+                BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS,
+                        RUN_INFO_DOCUMENT_SERVERNAME, RUN_INFO_DOCUMENT_LOCALSERVER, false);
                 if (object == null) {
                     object = this.prefsDoc.newXObject(MATCHING_RUN_INFO_CLASS, context);
-                    object.setStringValue("serverName", "localhost");
+                    object.setStringValue(RUN_INFO_DOCUMENT_SERVERNAME, RUN_INFO_DOCUMENT_LOCALSERVER);
                     context.getWiki().saveDocument(this.prefsDoc, context);
                 }
             }
@@ -133,6 +146,8 @@ public class LocalMatchFinder implements MatchFinder, Initializable
             matches.add(match);
         }
 
+        this.numPatientsTestedForMatches++;
+
         this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
         return matches;
@@ -144,23 +159,12 @@ public class LocalMatchFinder implements MatchFinder, Initializable
         // note: error() is used intentionally since this is important information we always want to have in the logs
         this.logger.error("Starting find all local matches run...");
 
-        if (this.prefsDoc == null) {
-            return;
-        }
+        this.numPatientsTestedForMatches = 0;
 
-        try {
-            BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
-
-            // cash last started search date to compare with last modification date for patient
-            this.previousStartedTime = object.getDateValue("startedTime");
-            // set new started time
-            object.setDateValue("startedTime", new Date());
-
-            XWikiContext context = this.provider.get();
-            context.getWiki().saveDocument(this.prefsDoc, context);
-        } catch (Exception e) {
-            this.logger.error("Failed to save matching run start time for localhost.", e.getMessage(), e);
-        }
+        // TODO: need to review how this optimization is implemented. For now we
+        //       store the last time this matcher was started, and do not update matches for
+        //       patients modified before that time
+        this.previousStartedTime = this.recordMatchSearchStatus(RUN_INFO_DOCUMENT_STARTTIME);
     }
 
     @Override
@@ -168,18 +172,43 @@ public class LocalMatchFinder implements MatchFinder, Initializable
     {
         this.logger.error("Finished find all local matches run");
 
-        if (this.prefsDoc == null) {
-            return;
-        }
+        this.recordMatchSearchStatus(RUN_INFO_DOCUMENT_ENDTIME);
 
+        // TODO: currently the "find all matches" method structures the loops as:
+        //
+        //  for (patients) {
+        //    for (matchers) {
+        //      matcher.findMatches(patient)
+        //    }
+        //  }
+        //
+        // which means this.findMatches() does not know if it is called as part of a big loop
+        // or as a standalone call for just one patient. So to make sure this.findMatches() always
+        // runs when called manually, need to reset this.previousStartedTime
+        this.previousStartedTime = null;
+    }
+
+    /*
+     * @return the start time of the previous local matcher run
+     */
+    private Date recordMatchSearchStatus(String timePropertyName)
+    {
         try {
-            BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, "serverName", "localhost", false);
-            object.setDateValue("completedTime", new Date());
-
             XWikiContext context = this.provider.get();
+
+            BaseObject object = this.prefsDoc.getXObject(MATCHING_RUN_INFO_CLASS, RUN_INFO_DOCUMENT_SERVERNAME,
+                    RUN_INFO_DOCUMENT_LOCALSERVER, false);
+
+            Date previousRunStartedTime = object.getDateValue(RUN_INFO_DOCUMENT_STARTTIME);
+
+            object.setIntValue(RUN_INFO_DOCUMENT_PATIENTCOUNT, this.numPatientsTestedForMatches);
+            object.setDateValue(timePropertyName, new Date());
             context.getWiki().saveDocument(this.prefsDoc, context);
+
+            return previousRunStartedTime;
         } catch (Exception e) {
-            this.logger.error("Failed to save matching run complete time for localhost.", e.getMessage(), e);
+            this.logger.error("Failed to save matching run status {}.", timePropertyName, e);
         }
+        return null;
     }
 }
