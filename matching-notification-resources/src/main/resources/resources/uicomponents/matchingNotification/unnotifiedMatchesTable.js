@@ -31,7 +31,6 @@ var PhenoTips = (function (PhenoTips) {
             onFailure    : this._onFailSendNotification.bind(this)
         });
 
-        $('#find-matches-button').on('click', this._findMatches.bind(this));
         $('#show-matches-button').on('click', this._showMatches.bind(this));
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
         $('#rejected').on('click', this._setFilter.bind(this));
@@ -49,23 +48,6 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
-    _findMatches : function()
-    {
-        new Ajax.Request(this._ajaxURL, {
-            parameters : {action : 'find-matches'
-            },
-            onSuccess : function (response) {
-                this._utils.showSuccess('find-matches-messages');
-                console.log("find matches result:");
-                console.log(response.responseJSON);
-            }.bind(this),
-            onFailure : function (response) {
-                this._utils.showFailure('find-matches-messages');
-            }.bind(this)
-        });
-        this._utils.showSent('find-matches-messages');
-    },
-
     _showMatches : function()
     {
         var score = this._checkScore('show-matches-score', 'show-matches-messages');
@@ -75,24 +57,30 @@ var PhenoTips = (function (PhenoTips) {
             return;
         }
         new Ajax.Request(this._ajaxURL, {
-            parameters : {action   : 'show-matches',
-                          score    : score,
-                          phenScore : phenScore,
-                          genScore : genScore,
-                          notified : false
-            },
+            parameters : {
+                    action    : 'show-matches',
+                    score     : score,
+                    phenScore : phenScore,
+                    genScore  : genScore,
+                    notified  : false },
             onSuccess : function (response) {
-                this._utils.showSuccess('show-matches-messages');
-                console.log("show matches result, score = " + score);
-                console.log(response.responseJSON);
+                    if (response.responseJSON) {
+                        this._utils.showReplyReceived('show-matches-messages');
 
-                var matches = response.responseJSON.matches;
-                this._matchesTable.update(matches);
-            }.bind(this),
+                        console.log("Show matches response JSON (min scores: " + score + "/" + phenScore + "/" + genScore + "):");
+                        console.log(response.responseJSON);
+
+                        var matches = response.responseJSON.matches;
+                        this._matchesTable.update(matches);
+                    } else {
+                        this._utils.showFailure('show-matches-messages');
+                    }
+                }.bind(this),
             onFailure : function (response) {
-                this._utils.showFailure('show-matches-messages');
-            }.bind(this)
+                    this._utils.showFailure('show-matches-messages');
+                }.bind(this)
         });
+
         this._utils.showSent('show-matches-messages');
     },
 
@@ -136,21 +124,27 @@ var PhenoTips = (function (PhenoTips) {
 
     _onSuccessSendNotification : function(ajaxResponse)
     {
-        console.log("onSuccess, received:");
+        this._utils.showReplyReceived('send-notifications-messages');
+
+        console.log("Send notification - reply received:");
         console.log(ajaxResponse.responseText);
-        this._utils.showSuccess('send-notifications-messages');
 
-        var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
+        if (ajaxResponse.responseJSON && ajaxResponse.responseJSON.results && ajaxResponse.responseJSON.results.length > 0) {
+            var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
 
-        if (failedIds.length > 0) {
-            alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+            if (failedIds.length > 0) {
+                alert("Sending notification failed for the matches with the following ids: " + failedIds.join());
+            }
+
+            // Update table state
+            this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
+            this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
+            this._matchesTable.update();
+        } else {
+            if (!ajaxResponse.responseJSON || !ajaxResponse.responseJSON.results) {
+                this._utils.showFailure('send-notifications-messages');
+            }
         }
-
-        // Update table state
-        this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
-        this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
-        this._matchesTable.update();
-
     },
 
     _onFailSendNotification : function()

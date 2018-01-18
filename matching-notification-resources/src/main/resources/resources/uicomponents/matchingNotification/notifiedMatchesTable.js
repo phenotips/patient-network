@@ -45,8 +45,8 @@ var PhenoTips = (function (PhenoTips) {
                           notified : true
             },
             onSuccess : function (response) {
-                this._utils.showSuccess('show-matches-messages');
-                console.log("show matches result");
+                this._utils.showReplyReceived('show-matches-messages');
+                console.log("Show matches AJAX reply:");
                 console.log(response.responseJSON);
 
                 var matches = response.responseJSON.matches;
@@ -68,9 +68,10 @@ var PhenoTips = (function (PhenoTips) {
 
     _onSuccessSendNotification : function(ajaxResponse)
     {
-        console.log("onSuccess, received:");
+        this._utils.showReplyReceived('send-notifications-messages');
+
+        console.log("Send notification - reply received:");
         console.log(ajaxResponse.responseText);
-        this._utils.showSuccess('send-notifications-messages');
 
         if (ajaxResponse.responseJSON && ajaxResponse.responseJSON.results && ajaxResponse.responseJSON.results.length > 0) {
             var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
@@ -83,6 +84,10 @@ var PhenoTips = (function (PhenoTips) {
             this._matchesTable.setState(successfulIds, { 'notified': true, 'notify': false, 'status': 'success' });
             this._matchesTable.setState(failedIds, { 'notify': true, 'status': 'failure' });
             this._matchesTable.update();
+        } else {
+            if (!ajaxResponse.responseJSON || !ajaxResponse.responseJSON.results) {
+                this._utils.showFailure('send-notifications-messages');
+            }
         }
     },
 
