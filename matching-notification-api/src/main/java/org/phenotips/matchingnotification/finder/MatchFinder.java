@@ -36,12 +36,29 @@ public interface MatchFinder
     int getPriority();
 
     /**
-     * Find matches for a given patient.
+     * Returns a name which can be used to select a specific matcher to be run.
+     * @return a name
+     */
+    String getName();
+
+    /**
+     * Finds matches for a given patient.
+     *
+     * TODO: this should be a default method, once we switch to Java 1.8
      *
      * @param patient to find matches for
      * @return list of matches
      */
     List<PatientMatch> findMatches(Patient patient);
+
+    /**
+     * Finds matches for a given patient updated after the last time {@link #recordStartMatchesSearch()} was run.
+     *
+     * @param patient to find matches for
+     * @param onlyUpdatedAfterLastRun if true, only considers patients updated after the last time matcher was run
+     * @return list of matches
+     */
+    List<PatientMatch> findMatches(Patient patient, boolean onlyUpdatedAfterLastRun);
 
     /**
      * Record start time for running matches search.
