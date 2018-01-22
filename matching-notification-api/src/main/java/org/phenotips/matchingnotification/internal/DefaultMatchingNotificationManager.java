@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -74,9 +75,9 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     private MatchStorageManager matchStorageManager;
 
     @Override
-    public void findAndSaveMatches()
+    public void findAndSaveMatches(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
-        this.matchFinderManager.findMatchesForAllPatients();
+        this.matchFinderManager.findMatchesForAllPatients(matchersToUse, onlyCheckPatientsUpdatedAfterLastRun);
     }
 
     @Override
