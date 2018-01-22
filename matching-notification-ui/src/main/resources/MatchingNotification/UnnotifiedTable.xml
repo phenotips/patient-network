@@ -52,10 +52,10 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
 &lt;div id="score-filter-div"&gt;
   &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.label')) &lt;/label&gt;
   &lt;input id="show-matches-score" type="text" style="width: 5em;"/&gt;
-  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label')) &lt;/label&gt;
-  &lt;input id="show-matches-phen-score" type="text" style="width: 5em;"/&gt;
   &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label')) &lt;/label&gt;
   &lt;input id="show-matches-gen-score" type="text" style="width: 5em;"/&gt;
+  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label')) &lt;/label&gt;
+  &lt;input id="show-matches-phen-score" type="text" style="width: 5em;"/&gt;
   &lt;button id="show-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.go.label'))&lt;/button&gt;
   &lt;div id="show-matches-messages"/&gt;
 &lt;/div&gt;
@@ -63,7 +63,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
   &lt;div&gt;&lt;input type="checkbox" id="rejected" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideFiltered'))&lt;/div&gt;
   &lt;div&gt;&lt;input type="checkbox" id="saved" /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideSaved'))&lt;/div&gt;
   &lt;div&gt;&lt;input type="checkbox" id="uncategorized" /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideUncategorized'))&lt;/div&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="expand_all" checked/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))&lt;/div&gt;
+  &lt;div&gt;&lt;input type="checkbox" id="expand_all"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))&lt;/div&gt;
   &lt;div&gt;&lt;select id="gene_status_filter"&gt;
     &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
     &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;

@@ -40,13 +40,13 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var ids = [];
             var checkedElms = this._tableElement.find('input[data-patientid]:checked');
-            
+
             $.each(checkedElms, function(index, elm) {
                 if($(elm).data('matchid') && $(elm).data('patientid')) {
                     ids.push({'matchId' : $(elm).data('matchid'), 'patientId' : $(elm).data('patientid')});
                 }
             }.bind(this));
-            
+
             return ids;
         },
 
@@ -140,7 +140,7 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _roundScore : function(score)
         {
-            return Math.round(Number(score) * 100) / 100;
+            return Math.floor(Number(score) * 100) / 100;
         },
 
         _rowWriter : function(rowIndex, record, columns, cellWriter)
