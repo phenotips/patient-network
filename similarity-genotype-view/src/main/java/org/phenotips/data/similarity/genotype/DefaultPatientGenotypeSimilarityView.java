@@ -252,8 +252,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
 
         int numGenesReported = 0;
         for (Map.Entry<String, Double> geneEntry : genes) {
-            String gene = geneEntry.getKey();
-            String symbol = getGeneSymbol(gene);
+            String symbol = geneEntry.getKey();
+            String gene = getEnsemblId(symbol);
             Double score = geneEntry.getValue();
 
             JSONObject geneObject = new JSONObject();
@@ -262,7 +262,7 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
                 geneObject.put("symbol", symbol);
             }
             geneObject.put("score", score);
-            JSONObject geneJSON = getGeneJSON(gene);
+            JSONObject geneJSON = getGeneJSON(symbol);
             for (String key : geneJSON.keySet()) {
                 geneObject.put(key, geneJSON.get(key));
             }
@@ -276,14 +276,18 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
         return genesJSON;
     }
 
-    private String getGeneSymbol(String geneEnsemblId)
+    private String getEnsemblId(String geneSymbol)
     {
-        String symbol = null;
+        String ensemblId = geneSymbol;
         if (vocabularyManager != null) {
             Vocabulary hgnc = vocabularyManager.getVocabulary("HGNC");
-            VocabularyTerm term = hgnc.getTerm(geneEnsemblId);
-            symbol = (term != null) ? (String) term.get("symbol") : null;
+            VocabularyTerm term = hgnc.getTerm(geneSymbol);
+            @SuppressWarnings("unchecked")
+            final List<String> ensemblIdList = term != null ? (List<String>) term.get("ensembl_gene_id") : null;
+            ensemblId = ensemblIdList != null && !ensemblIdList.isEmpty() ? ensemblIdList.get(0) : null;
+            // Retain information as is if we can't find Ensembl ID.
+            ensemblId = ensemblId != null ? ensemblId : geneSymbol;
         }
-        return symbol;
+        return ensemblId;
     }
 }

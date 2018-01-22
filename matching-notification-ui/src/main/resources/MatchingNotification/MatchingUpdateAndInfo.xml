@@ -19,92 +19,69 @@
 -->
 
 <xwikidoc version="1.1">
-  <web>MatchingNotification</web>
-  <name>UnnotifiedTable</name>
+  <web>PhenomeCentral</web>
+  <name>MatchingUpdateAndInfo</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1458756494000</creationDate>
   <parent>PhenoTips.WebHome</parent>
+  <creator>xwiki:XWiki.Admin</creator>
   <author>xwiki:XWiki.Admin</author>
+  <customClass/>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1467919930000</date>
-  <contentUpdateDate>1467835100000</contentUpdateDate>
+  <creationDate>1397573785000</creationDate>
+  <date>1398197370000</date>
+  <contentUpdateDate>1398197370000</contentUpdateDate>
   <version>1.1</version>
   <title/>
+  <defaultTemplate/>
+  <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
-  <content>{{velocity}}
-$xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
-$xwiki.linkx.use($services.webjars.url('jquery-dynatable', 'jquery.dynatable.css'), {'type': 'text/css', 'rel': 'stylesheet'})##
+  <hidden>false</hidden>
+  <content>{{include reference="PhenoTips.TabelarDataMacros"/}}
+
+{{velocity}}
+$xwiki.ssfx.use('uicomponents/matchingNotification/findMatches.css')##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
-$xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/findMatches.js', true)##
+
+#set ($displayDocumentName = 'PhenomeCentral.MatchingUpdateAndInfo')
+$xwiki.ssx.use($displayDocumentName)
+#set ($doc = $xwiki.getDocument($displayDocumentName))
+#set ($infoClassname = 'PhenomeCentral.MatchingRunInfoClass')
+
+== $services.localization.render('phenotips.findMatches.previousUpdates.label') ==
+
+#__extradata_displayTable($infoClassname, {'counter' : false, 'labels' : false, 'mode' : 'view'})
+
+== $services.localization.render('phenotips.findMatches.refreshMatches.label') ==
 
 {{html}}
-&lt;div id="score-filter-div"&gt;
-  &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.label')) &lt;/label&gt;
-  &lt;input id="show-matches-score" type="text" style="width: 5em;"/&gt;
-  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label')) &lt;/label&gt;
-  &lt;input id="show-matches-gen-score" type="text" style="width: 5em;"/&gt;
-  &lt;label&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label')) &lt;/label&gt;
-  &lt;input id="show-matches-phen-score" type="text" style="width: 5em;"/&gt;
-  &lt;button id="show-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.go.label'))&lt;/button&gt;
-  &lt;div id="show-matches-messages"/&gt;
-&lt;/div&gt;
-&lt;div id="table-filter-div"&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="rejected" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideFiltered'))&lt;/div&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="saved" /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideSaved'))&lt;/div&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="uncategorized" /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hideUncategorized'))&lt;/div&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="expand_all"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))&lt;/div&gt;
-  &lt;div&gt;&lt;select id="gene_status_filter"&gt;
-    &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
-    &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
-    &lt;option value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
-    &lt;option value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
-    &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
-  &lt;/select&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterByGeneStatus'))&lt;/div&gt;
-&lt;/div&gt;
-#if (!$hasAdmin)
-&lt;div id="access-filter-div"&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="owner" checked /&gt;patients owned by me&lt;/div&gt;
-  &lt;div&gt;&lt;input type="checkbox" id="view" checked /&gt;patients shared with me&lt;/div&gt;
-&lt;/div&gt;
-#end
-&lt;div id="matchesTable-search"&gt;&lt;span&gt;$services.localization.render('phenotips.matchingNotifications.table.search.label') &lt;input type="text" id="search-matchesTable-input"&gt;&lt;/span>&lt;/div&gt;
-&lt;input id="hidden-show-label" type="hidden" value="$services.localization.render('phenotips.matchingNotifications.table.show.label')"&gt;
-&lt;div id="filter-div"&gt;
-&lt;table id="matchesTable" class="matches-table"&gt;
-  &lt;thead&gt;
-    &lt;th data-dynatable-column="notification"&gt;&lt;span title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notification'))" class="fa fa-envelope"/&gt;&lt;/th&gt;
-    &lt;th data-dynatable-column="status" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
-    &lt;th data-dynatable-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referencePatient'))&lt;/th&gt;
-    &lt;th data-dynatable-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedPatient'))&lt;/th&gt;
-    &lt;th data-dynatable-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
-    &lt;th data-dynatable-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))&lt;/th&gt;
-    &lt;th data-dynatable-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))&lt;/th&gt;
-    &lt;th data-dynatable-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.referenceEmails'))&lt;/th&gt;
-    &lt;th data-dynatable-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matchedEmails'))&lt;/th&gt;
-    &lt;th data-dynatable-column="foundTimestamp" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.foundTimestamp'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.foundTimestamp'))&lt;/th&gt;
-    &lt;th data-dynatable-column="id" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.id'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.id'))&lt;/th&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-&lt;br/&gt;
 &lt;div&gt;
-  &lt;button id="send-notifications-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/button&gt;
-  &lt;div id="send-notifications-messages"/&gt;
+  &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.localMatches.label'))&lt;/label&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-all-local-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshAll'))&lt;/button&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-updated-local-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
+  &lt;div class="find-matches-message" id="find-local-matches-messages"/&gt;
+  &lt;br/&gt;&lt;br/&gt;
+  &lt;label&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.otherMatches.label')) &lt;/label&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-all-other-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshAll'))&lt;/button&gt;
+  &lt;nbsp;&lt;nbsp;
+  &lt;button class="find-matches-button" id="find-updated-other-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
+  &lt;div class="find-matches-message" id="find-other-matches-messages"/&gt;
 &lt;/div&gt;
 {{/html}}
+
 {{/velocity}}</content>
   <object>
-    <name>MatchingNotification.UnnotifiedTable</name>
+    <name>PhenomeCentral.MatchingUpdateAndInfo</name>
     <number>0</number>
     <className>XWiki.ConfigurableClass</className>
-    <guid>cbae75c7-77e2-4667-9a83-327cc8885abf</guid>
+    <guid>8b1e3a03-f66e-4841-98f3-056a034314e3</guid>
     <class>
       <name>XWiki.ConfigurableClass</name>
       <customClass/>
@@ -121,7 +98,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
         <displayFormType>select</displayFormType>
         <displayType/>
         <name>advancedOnly</name>
-        <number>5</number>
+        <number>1</number>
         <prettyName>advancedOnly</prettyName>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -290,7 +267,7 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
       <categoryPriority>0</categoryPriority>
     </property>
     <property>
-      <codeToExecute>{{include reference="MatchingNotification.UnnotifiedTable" /}}</codeToExecute>
+      <codeToExecute>{{include reference="PhenomeCentral.MatchingUpdateAndInfo" /}}</codeToExecute>
     </property>
     <property>
       <configurationClass/>
@@ -302,10 +279,10 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
       <displayInCategory>phenotips</displayInCategory>
     </property>
     <property>
-      <displayInSection>Matching Notification</displayInSection>
+      <displayInSection>Refresh matches</displayInSection>
     </property>
     <property>
-      <heading>Manual matching notification</heading>
+      <heading/>
     </property>
     <property>
       <iconAttachment/>
@@ -317,7 +294,101 @@ $xwiki.jsfx.use('uicomponents/matchingNotification/unnotifiedMatchesTable.js', t
       <propertiesToShow/>
     </property>
     <property>
-      <sectionPriority>7000</sectionPriority>
+      <sectionPriority>7002</sectionPriority>
+    </property>
+  </object>
+  <object>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>2</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>PhenomeCentral.MatchingUpdateAndInfo</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>5d5483d2-e6fc-4163-ba6d-9900e28db454</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.extradata-list td {
+  text-align: left;
+}</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
     </property>
   </object>
 </xwikidoc>

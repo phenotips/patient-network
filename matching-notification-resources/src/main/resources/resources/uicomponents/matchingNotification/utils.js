@@ -8,15 +8,15 @@ define(["jquery"], function($)
         },
 
         showSent : function(messagesFieldName) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.requestSent')");
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matching.ajaxutils.requestSent')");
         },
 
-        showSuccess : function(messagesFieldName, value) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.success')");
+        showReplyReceived : function(messagesFieldName, value) {
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matching.ajaxutils.done')");
         },
 
         showFailure : function(messagesFieldName) {
-            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matchingNotifications.failure')");
+            this.showHint(messagesFieldName, "$services.localization.render('phenotips.matching.ajaxutils.failure')");
         },
 
         getResults : function(results)
@@ -26,11 +26,11 @@ define(["jquery"], function($)
             return [successfulIds, failedIds];
         },
 
-        showHint : function(messagesFieldName, message) 
+        showHint : function(messagesFieldName, message, cssClass)
         {
             var messages = $('#' + messagesFieldName);
             messages.empty();
-            messages.append(new Element('div', {'class' : 'xHint'}).update(message));
+            messages.append(new Element('div', {'class' : cssClass ? cssClass : ''}).update(message));
         }
 
     });

@@ -48,8 +48,8 @@ public class SimilarPatientsScriptService implements ScriptService
     private SimilarPatientsFinder finder;
 
     /**
-     * Returns a list of patients similar to a reference patient. The reference patient must be owned by the current
-     * user (or one of their groups). Only accessible patients are returned.
+     * Returns a list of patients similar to a reference patient.
+     * See {@link SimilarPatientsFinder#findSimilarPatients(Patient)}.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the similar patients found in the database, an empty list if no patients are found or if the reference
@@ -61,8 +61,8 @@ public class SimilarPatientsScriptService implements ScriptService
     }
 
     /**
-     * Returns a list of patients similar to a reference patient. The reference patient must be owned by the current
-     * user (or one of their groups). Only accessible patients are returned.
+     * Returns a list of prototype patients similar to a reference patient.
+     * See {@link SimilarPatientsFinder#findSimilarPrototypes(Patient)}.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the similar patients found in the database, an empty list if no patients are found or if the reference
@@ -74,12 +74,13 @@ public class SimilarPatientsScriptService implements ScriptService
     }
 
     /**
-     * Checks how many patients similar to a reference patient exist, and returns their count. The reference patient
-     * must be owned by the current user (or one of their groups). Only accessible patients are counted.
+     * @deprecated Checks how many patients similar to a reference patient exist, and returns their count.
+     * See {@link SimilarPatientsFinder#countSimilarPatients(Patient)}.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid
      */
+    @Deprecated
     public long countSimilarPatients(Patient referencePatient)
     {
         return this.finder.countSimilarPatients(referencePatient);

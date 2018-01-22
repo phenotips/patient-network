@@ -654,8 +654,11 @@ public class RestrictedPatientSimilarityViewTest
 
         VocabularyManager vocabularyManager = mock(VocabularyManager.class);
         Vocabulary hpo = mock(Vocabulary.class);
+        Vocabulary hgnc = mock(Vocabulary.class);
         when(componentManager.getInstance(VocabularyManager.class)).thenReturn(vocabularyManager);
         when(vocabularyManager.getVocabulary("HPO")).thenReturn(hpo);
+        when(vocabularyManager.getVocabulary("HGNC")).thenReturn(hgnc);
+        doReturn(null).when(hgnc).getTerm(Matchers.anyString());
 
         List<VocabularyTerm> topAbnormalityTerms = new ArrayList<>();
         when(hpo.search(Matchers.anyMapOf(String.class, String.class),

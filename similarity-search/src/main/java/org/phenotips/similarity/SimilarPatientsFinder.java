@@ -36,18 +36,30 @@ import java.util.List;
 public interface SimilarPatientsFinder
 {
     /**
-     * Returns a list of patients similar to a reference patient. The reference patient must be owned by the current
-     * user (or one of their groups). Only accessible patients are returned.
+     * Returns a list of local patients similar to the reference patient. Only matchable patients are returned.
+     * May only return a subsset of all matches (e.g. top N matches based on internally computed match score).
+     *
+     * Only returns patients with the requested consent granted (e.g. a "remotely matchable" consent).
+     *
+     * @param referencePatient the reference patient, must not be {@code null}.
+     * @param requiredConsentId a (possibly {@code null}) id of a consent which should be granted to a
+     *                          patient for it to be considered as a match
+     * @return a list of similar patients found in the database, an empty list if no patients are found or
+     *         if the reference patient is invalid
+     */
+    List<PatientSimilarityView> findSimilarPatients(Patient referencePatient, String requiredConsentId);
+
+    /**
+     * A convenience method similar to {@link #findSimilarPatients(Patient)} above,
+     * for the case when no consents are requied.
      *
      * @param referencePatient the reference patient, must not be {@code null}
-     * @return the similar patients found in the database, an empty list if no patients are found or if the reference
-     *         patient is invalid
+     * @return a (possibly empty) list of similar patients found in the database
      */
     List<PatientSimilarityView> findSimilarPatients(Patient referencePatient);
 
     /**
-     * Returns a list of template patients similar to a reference patient. The reference patient must be owned by the
-     * current user (or one of their groups).
+     * Returns a list of template patients similar to a reference patient.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the similar patient templates found in the database, an empty list if no templates are found or if the
@@ -56,11 +68,12 @@ public interface SimilarPatientsFinder
     List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient);
 
     /**
-     * Checks how many patients similar to a reference patient exist, and returns their count. The reference patient
-     * must be owned by the current user (or one of their groups). Only accessible patients are counted.
+     * @deprecated Checks how many patients similar to a reference patient exist, and returns their count.
+     * Only matchable patients are counted. No consents are checked.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid
      */
+    @Deprecated
     long countSimilarPatients(Patient referencePatient);
 }

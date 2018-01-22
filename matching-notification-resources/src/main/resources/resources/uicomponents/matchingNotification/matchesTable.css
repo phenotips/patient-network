@@ -65,10 +65,15 @@
   margin-top: 15px;
   margin-bottom: 25px;
 }
-#find-matches-messages, #show-matches-messages {
+
+#send-notifications-messages, #show-matches-messages {
   display: inline-block;
   margin-left: 1em;
   color: green;
+}
+
+#show-matches-messages .invalid {
+  color: #CC3333;
 }
 
 #table-filter-div div, #access-filter-div div {

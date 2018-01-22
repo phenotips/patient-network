@@ -21,12 +21,15 @@ import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
+import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.security.authorization.AuthorizationService;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.script.service.ScriptService;
@@ -34,15 +37,19 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -59,10 +66,17 @@ import org.slf4j.LoggerFactory;
 @Component
 @Named("matchingNotification")
 @Singleton
-public class MatchingNotificationScriptService implements ScriptService
+public class MatchingNotificationScriptService implements ScriptService, Initializable
 {
     /** key for matches ids array in JSON. */
     public static final String IDS_STRING = "ids";
+
+    /** the name of the "local" matchfinder, which gets special treatment. */
+    public static final String LOCAL_MATCHFINDER_NAME = "local";
+
+    private static final Set<String> LOCAL_MATCHER = new HashSet<String>(Arrays.asList(LOCAL_MATCHFINDER_NAME));
+
+    private Set<String> otherMatchers;
 
     @Inject
     private PatientMatchExport patientMatchExport;
@@ -82,6 +96,9 @@ public class MatchingNotificationScriptService implements ScriptService
     @Inject
     private EntityReferenceResolver<String> resolver;
 
+    @Inject
+    private Provider<List<MatchFinder>> matchFinderProvider;
+
     /** Needed for checking if a given access level provides read access to patients. */
     @Inject
     @Named("view")
@@ -89,32 +106,57 @@ public class MatchingNotificationScriptService implements ScriptService
 
     private Logger logger = LoggerFactory.getLogger(MatchingNotificationScriptService.class);
 
-    /**
-     * Find patient matches and saves only those with score higher or equals to {@code score}.
-     *
-     * @param score only matches with score higher or equal to this value are saved
-     * @return JSON with the saved matches (after filtering)
-     */
-    public String findAndSaveMatches(double score)
+    @Override
+    public void initialize() throws InitializationException
     {
-        List<PatientMatch> matches = this.matchingNotificationManager.findAndSaveMatches(score);
-        if (!isAdmin()) {
-            filterNonUsersMatches(matches);
+        this.otherMatchers = new HashSet<String>();
+        for (MatchFinder service : this.matchFinderProvider.get()) {
+            if (!LOCAL_MATCHER.contains(service.getName())) {
+                this.otherMatchers.add(service.getName());
+            }
         }
-        JSONObject json = this.patientMatchExport.toJSON(matches);
-        return json.toString();
+    }
+
+    /**
+     * Finds all matches between all (matchable) local patients.
+     *
+     * Matches will be stored in the matching noification table.
+     *
+     * @param onlyCheckPatientsUpdatedAfterLastRun if true, only patients which have been
+     *            modified after the last time local matcher was run will be tested for macthes
+     */
+    public void findLocalMatches(boolean onlyCheckPatientsUpdatedAfterLastRun)
+    {
+        this.matchingNotificationManager.findAndSaveMatches(LOCAL_MATCHER, onlyCheckPatientsUpdatedAfterLastRun);
+    }
+
+    /**
+     * Finds all matches using all matchers other than local which are available in the system (e.g. MME).
+     * Each matcher will only consider patients which qualify to be matched by the matcher (e.g. MME matcher
+     * will only find matches for patients which are consented for MME).
+     *
+     * Matches will be stored in the matching noification table.
+     *
+     * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
+     *            patients which have been modified since that matcher was run
+     */
+    public void findOtherMatches(boolean onlyCheckPatientsUpdatedAfterLastRun)
+    {
+        this.matchingNotificationManager.findAndSaveMatches(this.otherMatchers, onlyCheckPatientsUpdatedAfterLastRun);
     }
 
     /**
      * Returns a JSON object containing all matches from database filtered by parameters.
      *
-     * @param score only matches with score higher or equal to this value are returned
+     * @param score only matches with general score higher or equal to this value are returned
+     * @param phenScore only matches with phenotypical score higher or equal to this value are returned
+     * @param genScore only matches with genotypical score higher or equal to this value are returned
      * @param notified whether the matches were notified of
      * @return a JSON object with a list of matches
      */
-    public String getMatches(double score, boolean notified)
+    public String getMatches(double score, double phenScore, double genScore, boolean notified)
     {
-        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, notified);
+        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, phenScore, genScore, notified);
         filterPatientsFromMatches(matches);
         if (!isAdmin()) {
             filterNonUsersMatches(matches);

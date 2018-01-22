@@ -22,11 +22,11 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
-import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,24 +34,18 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @version $Id$
  */
 @Component
 @Named("local")
 @Singleton
-public class LocalMatchFinder implements MatchFinder
+public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
 {
-    private Logger logger = LoggerFactory.getLogger(LocalMatchFinder.class);
+    private static final String RUN_INFO_DOCUMENT_LOCALSERVER = "local matches";
 
     @Inject
     private SimilarPatientsFinder finder;
-
-    @Inject
-    private MatchStorageManager matchStorageManager;
 
     @Override
     public int getPriority()
@@ -60,17 +54,35 @@ public class LocalMatchFinder implements MatchFinder
     }
 
     @Override
-    public List<PatientMatch> findMatches(Patient patient)
+    public String getName()
     {
+        return "local";
+    }
+
+    @Override
+    public List<String> getRunInfoDocumentIdList()
+    {
+        return Arrays.asList(RUN_INFO_DOCUMENT_LOCALSERVER);
+    }
+
+    @Override
+    public List<PatientMatch> findMatches(Patient patient, boolean onlyUpdatedAfterLastRun)
+    {
+        List<PatientMatch> matches = new LinkedList<>();
+
+        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {
+            return matches;
+        }
 
         this.logger.debug("Finding local matches for patient {}.", patient.getId());
 
-        List<PatientMatch> matches = new LinkedList<>();
         List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
         for (PatientSimilarityView similarityView : similarPatients) {
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);
         }
+
+        this.numPatientsTestedForMatches++;
 
         this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
