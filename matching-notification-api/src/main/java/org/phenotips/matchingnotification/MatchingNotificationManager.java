@@ -18,12 +18,14 @@
 package org.phenotips.matchingnotification;
 
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @version $Id$
@@ -32,9 +34,17 @@ import java.util.Map;
 public interface MatchingNotificationManager
 {
     /**
-     * Find and save matches to all local patients.
+     * Finds matches for all local patients. For each patient each matcher used will check if the patient can be
+     * matched using the matcher (e.g. patient is "matchable", or a "matchable" consent is granted, etc.).
+     *
+     * All matches that are found will be stored in the matching notification table.
+     *
+     * @param matchersToUse a list of matchers to be used indicated by their internal names
+     *            (see {@link MatchFinder#getName()}). If null, all matchers will be used
+     * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
+     *            patients which have been modified since that matcher was run
      */
-    void findAndSaveMatches();
+    void findAndSaveMatches(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
      * Sends notification to the owner of every match with id in {@code matchesId}, then marks match as notified.

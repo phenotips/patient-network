@@ -23,6 +23,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @version $Id$
@@ -31,20 +32,28 @@ import java.util.List;
 public interface MatchFinderManager
 {
     /**
-     * Finds matches for all local patients which are matchable (by querying both local instance
-     * and all enabled MME servers - the latter only for patients which have MME consent enabled).
+     * Finds matches for all local patients. For each patient each matcher used will check if the patient can be
+     * matched using the matcher (e.g. patient is "matchable", or a "matchable" consent is granted, etc.).
      *
-     * The matches will be stored in matching notification table.
+     * As a side effect, all matches that are found will be stored in the matching notification table.
+     *
+     * @param matchersToUse a list of matchers to be used indicated by their internal names
+     *            (see {@link MatchFinder#getName()}). If null, all matchers will be used
+     * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
+     *            patients which have been modified since that matcher was run
      */
-    void findMatchesForAllPatients();
+    void findMatchesForAllPatients(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
-     * Finds matches for a given patient (by querying both local instance
-     * and all enabled MME servers - the latter only if MME consent is enabled for the patient).
+     * Finds matches for a given patient using all available matchers. Each matcher will do
+     * their own check to make sure patient can be matched using the matcher (e.g. if a required consent is granted).
      *
-     * As a side effect, the matches will be stored in matching notification table.
+     * All matchers will be run even if the patient has already been matched using the matcher
+     * after it has been updated.
      *
-     * @param patient to find matches for. No check is made to make sure the patient is matchable.
+     * As a side effect, the matches that are found will be stored in the matching notification table.
+     *
+     * @param patient to find matches for
      * @return list of matches
      */
     List<PatientMatch> findMatches(Patient patient);

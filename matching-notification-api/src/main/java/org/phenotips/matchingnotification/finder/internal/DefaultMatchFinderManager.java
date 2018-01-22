@@ -31,6 +31,7 @@ import org.xwiki.query.QueryManager;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -67,29 +68,40 @@ public class DefaultMatchFinderManager implements MatchFinderManager
 
 
     @Override
-    public void findMatchesForAllPatients()
+    public void findMatchesForAllPatients(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
-        this.recordFindAllStart();
+        this.recordFindAllStart(matchersToUse);
 
         List<Patient> patients = this.getPatientsList();
 
         for (Patient patient : patients) {
             this.logger.debug("Finding matches for patient {}.", patient.getId());
-            this.findMatches(patient);
+            this.findMatches(patient, matchersToUse, onlyCheckPatientsUpdatedAfterLastRun);
         }
 
-        this.recordFindAllEnd();
+        this.recordFindAllEnd(matchersToUse);
     }
 
 
     @Override
     public List<PatientMatch> findMatches(Patient patient)
     {
+        return this.findMatches(patient, null, false);
+    }
+
+
+    private List<PatientMatch> findMatches(Patient patient,
+            Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
+    {
         List<PatientMatch> matches = new LinkedList<>();
 
         for (MatchFinder service : this.matchFinderProvider.get()) {
             try {
-                List<PatientMatch> foundMatches = service.findMatches(patient);
+                if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
+                    continue;
+                }
+
+                List<PatientMatch> foundMatches = service.findMatches(patient, onlyCheckPatientsUpdatedAfterLastRun);
                 matches.addAll(foundMatches);
 
                 this.logger.debug("Found {} matches by {}", foundMatches.size(), service.getClass().getSimpleName());
@@ -99,24 +111,29 @@ public class DefaultMatchFinderManager implements MatchFinderManager
                 }
 
             } catch (Exception ex) {
-                this.logger.error("Failed to invoke matches finder [{}]",
-                    service.getClass().getCanonicalName(), ex);
+                this.logger.error("Failed to invoke match finder [{}]", service.getName(), ex);
             }
         }
 
         return matches;
     }
 
-    private void recordFindAllStart()
+    private void recordFindAllStart(Set<String> matchersToUse)
     {
         for (MatchFinder service : this.matchFinderProvider.get()) {
+            if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
+                continue;
+            }
             service.recordStartMatchesSearch();
         }
     }
 
-    private void recordFindAllEnd()
+    private void recordFindAllEnd(Set<String> matchersToUse)
     {
         for (MatchFinder service : this.matchFinderProvider.get()) {
+            if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
+                continue;
+            }
             service.recordEndMatchesSearch();
         }
     }
