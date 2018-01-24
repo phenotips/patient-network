@@ -340,7 +340,12 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
-                td += '<div>' + emails[i] + '</div>';
+                var email = emails[i]
+                if (email.indexOf("://") > -1) {
+                    email = email.split('/')[2];
+                    email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
+                }
+                td += '<div>' + email + '</div>';
             }
             if (!isRemote) {
                 td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
