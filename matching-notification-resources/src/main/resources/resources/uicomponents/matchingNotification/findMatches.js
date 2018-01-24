@@ -47,8 +47,13 @@ var PhenoTips = (function (PhenoTips) {
                 return;
             }
 
+            var serverIds = JSON.stringify(servers);
+
             new Ajax.Request(this._ajaxURL, {
-                parameters : { "action" : action, "servers" : servers },
+                parameters : { "action" : action, "servers" : serverIds },
+                onCreate : function() {
+                    this._utils.showHint(messageContainer, "$services.localization.render('phenotips.matching.ajaxutils.requestSent')");
+                    }.bind(this),
                 onSuccess : function(response) {
                         this._utils.showHint(messageContainer, "$services.localization.render('phenotips.findMatches.refreshMatches.afterUpdate')");
                     }.bind(this),

@@ -71,7 +71,7 @@ $xwiki.ssx.use($displayDocumentName)
 ##
 == $services.localization.render('phenotips.findMatches.refreshMatches.label') ==
 
-(% class="extradata-list" %)#foreach($prop in $dataClass.properties)|=(% class="col-label $prop.name" %)$prop.translatedPrettyName#end(% class="col-label select-for-update" %)|=$services.localization.render('phenotips.findMatches.refreshMatches.selectForSearch')##
+(% class="extradata-list" %)#foreach($prop in $dataClass.properties)|=(% class="col-label $prop.name" %)$prop.translatedPrettyName#end|=(% class="col-label select-for-update" %)$services.localization.render('phenotips.findMatches.refreshMatches.selectForSearch')##
 
 #set ($localHostObject = $doc.getObject($infoClassname, 'serverName', 'local'))
 #set ($serverName = $services.localization.render('phenotips.findMatches.refreshMatches.localhost.label'))
@@ -112,7 +112,7 @@ $xwiki.ssx.use($displayDocumentName)
   &lt;button class="find-matches-button" id="find-all-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshAll'))&lt;/button&gt;
   &lt;nbsp;&lt;nbsp;
   &lt;button class="find-matches-button" id="find-updated-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
-  &lt;div id="find-matches-messages"/&gt;
+  &lt;div class="find-matches-message" id="find-matches-messages"/&gt;
 &lt;/div&gt;
 {{/html}}
 

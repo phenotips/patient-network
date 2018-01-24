@@ -57,9 +57,13 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     public List<PatientMatch> findMatches(List<Patient> patients, Set<String> serverIds,
         boolean onlyUpdatedAfterLastRun)
     {
-        this.recordStartMatchesSearch(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
-
         List<PatientMatch> matches = new LinkedList<>();
+
+        if (!serverIds.contains(RUN_INFO_DOCUMENT_LOCALSERVER_ID)) {
+            return matches;
+        }
+
+        this.recordStartMatchesSearch(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
 
         for (Patient patient : patients) {
             if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {

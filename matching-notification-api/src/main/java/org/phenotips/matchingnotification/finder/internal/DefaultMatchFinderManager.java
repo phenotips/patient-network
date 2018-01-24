@@ -71,9 +71,6 @@ public class DefaultMatchFinderManager implements MatchFinderManager
         List<Patient> patients = this.getPatientsList();
 
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
-            if (matchFinder instanceof LocalMatchFinder && !serverIds.contains("local")) {
-                continue;
-            }
             matchFinder.findMatches(patients, serverIds, onlyCheckPatientsUpdatedAfterLastRun);
         }
     }
