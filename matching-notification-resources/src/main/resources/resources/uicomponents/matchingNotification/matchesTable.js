@@ -260,7 +260,7 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<div class="genes-div">';
             var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
-            var exomeIcon = ((hasExomeData) ? '<span class="fa fa-gg-circle" title="patient has exome data"></span>' : '');
+            var exomeIcon = ((hasExomeData) ? '<span class="fa fa-chain" title="patient has exome data"></span>' : '');
             var genesTitle = 'Genes ' + '  ' + statusStr + ' ' + exomeIcon;
             if (genes.size() == 0) {
                 genesTitle += ': -';
@@ -356,7 +356,12 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
-                td += '<div>' + emails[i] + '</div>';
+                var email = emails[i]
+                if (email.indexOf("://") > -1) {
+                    email = email.split('/')[2];
+                    email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
+                }
+                td += '<div>' + email + '</div>';
             }
             if (!isRemote) {
                 td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
