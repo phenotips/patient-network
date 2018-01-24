@@ -20,35 +20,35 @@ var PhenoTips = (function (PhenoTips) {
 
             this._utils = new utils();
 
-            $('#find-updated-local-matches-button').on('click', this._findUpdatedLocalMatches.bind(this));
-            $('#find-all-local-matches-button').on('click', this._findAllLocalMatches.bind(this));
-
-            $('#find-updated-other-matches-button').on('click', this._findUpdatedOtherMatches.bind(this));
-            $('#find-all-other-matches-button').on('click', this._findAllOtherMatches.bind(this));
+            $('#find-updated-matches-button').on('click', this._findUpdatedMatches.bind(this));
+            $('#find-all-matches-button').on('click', this._findAllMatches.bind(this));
         },
 
-        _findUpdatedLocalMatches : function() {
-            this._findMatches("find-local-updated-matches", "find-local-matches-messages");
+        _findUpdatedMatches : function() {
+            this._findMatches("find-updated-matches", "find-matches-messages");
         },
 
-        _findAllLocalMatches : function() {
-            this._findMatches("find-local-all-matches", "find-local-matches-messages");
+        _findAllMatches : function() {
+            this._findMatches("find-all-matches", "find-matches-messages");
         },
 
-        _findUpdatedOtherMatches : function() {
-            this._findMatches("find-other-updated-matches", "find-other-matches-messages");
-        },
-
-        _findAllOtherMatches : function() {
-            this._findMatches("find-other-all-matches", "find-other-matches-messages");
-        },
         _findMatches : function(action, messageContainer)
         {
             // disable all find matches buttons while matching is running...
             this._$('.find-matches-button').each( function() { this.disable() } );
 
+            var servers = [];
+            this._$('.select-for-update input').each( function(index, elm) {
+                if (elm.checked) { servers.push(elm.value); }
+            } );
+
+            if (servers.length == 0) {
+                this._$('.find-matches-button').each( function() { this.enable() } );
+                return;
+            }
+
             new Ajax.Request(this._ajaxURL, {
-                parameters : { "action" : action },
+                parameters : { "action" : action, "servers" : servers },
                 onSuccess : function(response) {
                         this._utils.showHint(messageContainer, "$services.localization.render('phenotips.findMatches.refreshMatches.afterUpdate')");
                     }.bind(this),
@@ -60,6 +60,7 @@ var PhenoTips = (function (PhenoTips) {
                     this._$('.find-matches-button').each( function() { this.enable() } );
                 }.bind(this)
             });
+
             this._utils.showSent(messageContainer);
         }
     });
