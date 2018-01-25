@@ -59,8 +59,12 @@ import org.json.JSONObject;
                 @Index(name = "propertiesIndex", columnNames = { "notified", "status" })})
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
+    private static final int DB_HREF_FIELD_LENGTH = 2048;
+
+    private static final int DB_MAX_DEFAULT_STRING_LENGTH = 255;
+
     /** separates between tokens. */
-    public static final String SEPARATOR = ";";
+    private static final String SEPARATOR = ";";
 
     private static final String ID = "id";
 
@@ -109,7 +113,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
      *       getReferenceServerId()==null, getMatchedServerId()!=null, href!=null, href refers to matched patient.
      * 3. reference patient is remote and matched is local =>
      *       getReferenceServerId()!=null, getMatchedServerId()==null, href!=null, href refers to reference patient.
+     *
+     * Note: some servers (e.g. Pubcasefinder) send extremely long links, so the length of the field
+     *       has to be increased beyond the default. For now the length is set to the suggested practical
+     *       length limit of a URL, to balance storage vs generality, as suggested @
+     *       https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
      */
+    @Column(length = DB_HREF_FIELD_LENGTH)
     private String href;
 
     /*
@@ -187,7 +197,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         // Reference patient
         Patient referencePatient = similarityView.getReference();
-        this.referencePatientId = referencePatient.getId();
+        this.referencePatientId = this.limitStringLength(referencePatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.referenceServerId = (referenceServerId == null) ? "" : referenceServerId;
         // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
         this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId);
@@ -203,7 +213,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         } else {
             matchedPatient = similarityView;
         }
-        this.matchedPatientId = matchedPatient.getId();
+        this.matchedPatientId = this.limitStringLength(matchedPatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
         this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId);
 
@@ -217,7 +227,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.genotypeScore = similarityView.getGenotypeScore();
 
         if (this.matchedPatientInMatch.isLocal()) {
-            this.href = this.referencePatientInMatch.getHref();
+            this.href = this.limitStringLength(this.referencePatientInMatch.getHref(), DB_HREF_FIELD_LENGTH);
         } else {
             this.href = this.matchedPatientInMatch.getHref();
         }
@@ -230,6 +240,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         // After reordering!
         this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
         this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
+    }
+
+    /** To protect from remote servers using extremely long href or patient IDs. */
+    private String limitStringLength(String inputString, int maxLength)
+    {
+        if (inputString.length() > maxLength) {
+            return inputString.substring(0, maxLength);
+        }
+        return inputString;
     }
 
     @Override
