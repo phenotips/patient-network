@@ -54,7 +54,7 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     }
 
     @Override
-    public List<PatientMatch> findMatches(List<Patient> patients, Set<String> serverIds,
+    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds,
         boolean onlyUpdatedAfterLastRun)
     {
         List<PatientMatch> matches = new LinkedList<>();
@@ -65,12 +65,14 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
 
         this.recordStartMatchesSearch(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
 
-        for (Patient patient : patients) {
-            if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {
-                return matches;
+        for (String patientId : patientIds) {
+
+            Patient patient = this.getPatientForTheMatchSearch(patientId, onlyUpdatedAfterLastRun);
+            if (patient == null) {
+                continue;
             }
 
-            this.logger.debug("Finding local matches for patient {}.", patient.getId());
+            this.logger.debug("Finding local matches for patient {}.", patientId);
 
             List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
             for (PatientSimilarityView similarityView : similarPatients) {

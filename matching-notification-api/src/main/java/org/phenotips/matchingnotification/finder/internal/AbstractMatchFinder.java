@@ -19,6 +19,9 @@ package org.phenotips.matchingnotification.finder.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.PatientRepository;
+import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
@@ -28,6 +31,7 @@ import org.xwiki.model.reference.EntityReference;
 import java.util.Date;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.joda.time.DateTime;
@@ -74,6 +78,16 @@ public abstract class AbstractMatchFinder implements MatchFinder
     @Inject
     private Provider<XWikiContext> provider;
 
+    @Inject
+    private PatientRepository patientRepository;
+
+    @Inject
+    private PermissionsManager permissionsManager;
+
+    @Inject
+    @Named("matchable")
+    private Visibility matchableVisibility;
+
     private DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
     /*
@@ -91,6 +105,25 @@ public abstract class AbstractMatchFinder implements MatchFinder
             }
         }
         return false;
+    }
+
+    protected Patient getPatientForTheMatchSearch(String patientId, boolean onlyUpdatedAfterLastRun)
+    {
+        Patient patient = this.patientRepository.get(patientId);
+        if (patient == null) {
+            return null;
+        }
+
+        Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
+        if (patientVisibility.compareTo(this.matchableVisibility) < 0) {
+            return null;
+        }
+
+        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {
+            return null;
+        }
+
+        return patient;
     }
 
     @Override
