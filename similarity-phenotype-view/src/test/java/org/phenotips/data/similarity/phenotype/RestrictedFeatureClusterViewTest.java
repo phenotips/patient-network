@@ -195,11 +195,11 @@ public class RestrictedFeatureClusterViewTest
         match.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, false));
         match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
-        // All features are null, but the count is correct
+        // All features are not null and the count is correct
         o = new RestrictedFeatureClusterView(match, reference, limited, null);
         Assert.assertEquals(match.size(), o.getMatch().size());
         for (Feature f : o.getMatch()) {
-            Assert.assertEquals(null, f);
+            Assert.assertTrue(match.contains(f));
         }
     }
 
@@ -311,11 +311,11 @@ public class RestrictedFeatureClusterViewTest
             Assert.assertEquals(reference.get(i).getId(), ref.getString(i));
         }
 
-        // Match term ids should all be empty strings
+        // Match term ids should all not be empty strings
         JSONArray mat = result.getJSONArray("match");
         Assert.assertEquals(match.size(), mat.length());
         for (int i = 0; i < match.size(); i++) {
-            Assert.assertEquals("", mat.getString(i));
+            Assert.assertEquals(match.get(i).getId(), mat.getString(i));
         }
     }
 
