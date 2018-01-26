@@ -407,7 +407,7 @@ public class RestrictedPatientSimilarityViewTest
         }
     }
 
-    /** No phenotypes are directly disclosed for matchable patients. */
+    /** All phenotypes are directly disclosed for matchable patients. */
     @Test
     public void testGetPhenotypesWithMatchAccess() throws ComponentLookupException
     {
@@ -416,7 +416,10 @@ public class RestrictedPatientSimilarityViewTest
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
         Set<? extends Feature> phenotypes = o.getFeatures();
-        Assert.assertEquals(0, phenotypes.size());
+        Assert.assertEquals(4, phenotypes.size());
+        for (Feature p : phenotypes) {
+            Assert.assertNotNull(p.getId());
+        }
     }
 
     /** No phenotypes are disclosed for private patients. */
@@ -609,7 +612,7 @@ public class RestrictedPatientSimilarityViewTest
                 JSONArray match = cluster.getJSONArray("match");
                 for (int j = 0; j < match.length(); j++) {
                     String id = match.getString(j);
-                    Assert.assertEquals("", id);
+                    Assert.assertEquals("HP:", id.substring(0, 3));
                 }
             }
             if (cluster.has("reference")) {

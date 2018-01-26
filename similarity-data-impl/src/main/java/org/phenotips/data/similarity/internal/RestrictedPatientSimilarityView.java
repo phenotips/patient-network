@@ -93,10 +93,10 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public Set<? extends Feature> getFeatures()
     {
-        if (this.access.isOpenAccess()) {
-            return super.getFeatures();
-        } else {
+        if (this.access.isPrivateAccess()) {
             return Collections.emptySet();
+        } else {
+            return super.getFeatures();
         }
     }
 
@@ -133,7 +133,8 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     @Override
     public <T> PatientData<T> getData(String name)
     {
-        if (this.access.isOpenAccess() || (this.access.isLimitedAccess() && "contact".equals(name))) {
+        if (this.access.isOpenAccess()
+            || (this.access.isLimitedAccess() && ("contact".equals(name) || "genes".equals(name)))) {
             return this.match.getData(name);
         }
 
