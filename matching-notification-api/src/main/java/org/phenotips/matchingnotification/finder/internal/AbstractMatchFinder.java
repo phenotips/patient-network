@@ -23,8 +23,6 @@ import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
@@ -48,7 +46,7 @@ import com.xpn.xwiki.objects.BaseObject;
 /**
  * @version $Id$
  */
-public abstract class AbstractMatchFinder implements MatchFinder, Initializable
+public abstract class AbstractMatchFinder implements MatchFinder
 {
     private static final EntityReference PHENOMECENTRAL_SPACE = new EntityReference("PhenomeCentral", EntityType.SPACE);
 
@@ -79,14 +77,6 @@ public abstract class AbstractMatchFinder implements MatchFinder, Initializable
     private Provider<XWikiContext> provider;
 
     private DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
-
-    private XWikiDocument runInfoDoc;
-
-    @Override
-    public void initialize() throws InitializationException
-    {
-        this.runInfoDoc = this.getMatchingRunInfoDoc();
-    }
 
     /*
      * The list of server names that will be added to the run info document
@@ -146,11 +136,12 @@ public abstract class AbstractMatchFinder implements MatchFinder, Initializable
      */
     private Date recordMatchFinderStatus(String timePropertyName)
     {
-        if (this.runInfoDoc == null) {
-            return null;
-        }
-
         try {
+            XWikiDocument runInfoDoc = getMatchingRunInfoDoc();
+            if (runInfoDoc == null) {
+                return null;
+            }
+
             XWikiContext context = this.provider.get();
 
             List<String> remoteIds = this.getRunInfoDocumentIdList();
@@ -158,10 +149,10 @@ public abstract class AbstractMatchFinder implements MatchFinder, Initializable
             Date previousRunStartedTime = new Date();
 
             for (String serverId : remoteIds) {
-                BaseObject object = this.runInfoDoc.getXObject(MATCHING_RUN_INFO_CLASS, RUN_INFO_DOCUMENT_SERVERNAME,
+                BaseObject object = runInfoDoc.getXObject(MATCHING_RUN_INFO_CLASS, RUN_INFO_DOCUMENT_SERVERNAME,
                         serverId, false);
                 if (object == null) {
-                    object = this.runInfoDoc.newXObject(MATCHING_RUN_INFO_CLASS, context);
+                    object = runInfoDoc.newXObject(MATCHING_RUN_INFO_CLASS, context);
                     object.setStringValue(RUN_INFO_DOCUMENT_SERVERNAME, serverId);
                 } else {
                     // use the earliest start time for all servers used
@@ -174,7 +165,7 @@ public abstract class AbstractMatchFinder implements MatchFinder, Initializable
                 object.setIntValue(RUN_INFO_DOCUMENT_PATIENTCOUNT, this.numPatientsTestedForMatches);
                 object.setDateValue(timePropertyName, new Date());
             }
-            context.getWiki().saveDocument(this.runInfoDoc, context);
+            context.getWiki().saveDocument(runInfoDoc, context);
 
             return previousRunStartedTime;
         } catch (Exception e) {
