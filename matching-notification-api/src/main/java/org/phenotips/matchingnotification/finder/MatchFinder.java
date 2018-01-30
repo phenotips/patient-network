@@ -39,21 +39,10 @@ public interface MatchFinder
      * Finds matches for a given patient updated after the last time {@link #recordStartMatchesSearch()} was run.
      *
      * @param patientIds List of local patients IDs
-     * @param serverIds a list of servers to be used for matches search indicated by their ids.
+     * @param serverIds a list of servers to be used for matches search indicated by their ids. Servers which
+     *                  are not supported by the given matcher will be silently ignored.
      * @param onlyUpdatedAfterLastRun if true, only considers patients updated after the last time matcher was run
      * @return list of matches
      */
     List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun);
-
-    /**
-     * @param serverId ID of a servers that is currently used for matches search.
-     * Record start time for running matches search.
-     */
-    void recordStartMatchesSearch(String serverId);
-
-    /**
-     * @param serverId ID of a servers that is currently used for matches search.
-     * Record completed time for running matches search.
-     */
-    void recordEndMatchesSearch(String serverId);
 }

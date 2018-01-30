@@ -23,12 +23,16 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
+import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -66,14 +70,12 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
     private static final String RUN_INFO_DOCUMENT_PATIENTCOUNT = "numPatientsUsedForLastMatchRun";
 
-    protected Date previousStartedTime;
-
-    protected Integer numPatientsTestedForMatches;
-
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Inject
     protected MatchStorageManager matchStorageManager;
+
+    protected enum MatchRunStatus { NOT_RUN, OK, ERROR };
 
     @Inject
     private Provider<XWikiContext> provider;
@@ -90,24 +92,60 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
     private DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
+    protected abstract Set<String> getSupportedServerIdList();
+
+    protected abstract MatchRunStatus specificFindMatches(Patient patient, String serverId,
+            List<PatientMatch> matchesList);
+
+    @Override
+    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds,
+            boolean onlyUpdatedAfterLastRun)
+    {
+        List<PatientMatch> patientMatches = new LinkedList<>();
+        serverIds.retainAll(this.getSupportedServerIdList());
+
+        for (String serverId : serverIds) {
+            Date lastRunTime = this.recordStartMatchesSearch(serverId);
+
+            int numPatientsTestedForMatches = 0;
+
+            for (String patientId : patientIds) {
+                Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
+                if (patient == null) {
+                    continue;
+                }
+
+                MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
+
+                if (matcherStatus != MatchRunStatus.NOT_RUN) {
+                    numPatientsTestedForMatches++;
+                }
+            }
+
+            this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches);
+        }
+
+        return patientMatches;
+    }
+
     /*
      * TODO: possibly make this "public" to be able to query which patients will be updated when the matcher
      *       is run before actually running it. But need to rework when `previousStartedTime` is obtained for that
      */
-    protected boolean isPatientUpdatedAfterLastRun(Patient patient)
+    protected boolean isPatientUpdatedAfterGivenTime(Patient patient, Date time)
     {
-        if (this.previousStartedTime != null) {
+        if (time != null) {
             PatientData<String> patientData = patient.<String>getData("metadata");
             DateTime lastModificationDate = this.dateFormatter.parseDateTime(patientData.get("date"));
 
-            if (lastModificationDate.isBefore(new DateTime(this.previousStartedTime))) {
+            if (lastModificationDate.isBefore(new DateTime(time))) {
                 return true;
             }
         }
         return false;
     }
 
-    protected Patient getPatientForTheMatchSearch(String patientId, boolean onlyUpdatedAfterLastRun)
+    protected Patient getPatientIfShouldBeUsed(String patientId, boolean onlyUpdatedAfterLastRun, Date lastRunTime)
     {
         Patient patient = this.patientRepository.get(patientId);
         if (patient == null) {
@@ -119,33 +157,28 @@ public abstract class AbstractMatchFinder implements MatchFinder
             return null;
         }
 
-        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {
+        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterGivenTime(patient, lastRunTime)) {
             return null;
         }
 
         return patient;
     }
 
-    @Override
-    public void recordStartMatchesSearch(String serverId)
+    protected Date recordStartMatchesSearch(String serverId)
     {
         // note: error() is used intentionally since this is important information we always want to have in the logs
         this.logger.error("Starting [{}] match finder for multiple patients...", serverId);
 
-        this.numPatientsTestedForMatches = 0;
+        Date previousStartedTime = this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_STARTTIME, 0);
 
-        // TODO: need to review how this optimization is implemented. For now we
-        //       store the last time this matcher was started, and do not update matches for
-        //       patients modified before that time
-        this.previousStartedTime = this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_STARTTIME);
+        return previousStartedTime;
     }
 
-    @Override
-    public void recordEndMatchesSearch(String serverId)
+    protected void recordEndMatchesSearch(String serverId, int numPatientsTestedForMatches)
     {
         this.logger.error("Finished running [{}] match finder", serverId);
 
-        this.previousStartedTime = this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_ENDTIME);
+        this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_ENDTIME, numPatientsTestedForMatches);
     }
 
     /*
@@ -154,7 +187,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
      *
      * @return the start time of the previous run of the same matcher for the same server
      */
-    private Date recordMatchFinderStatus(String serverId, String timePropertyName)
+    private Date recordMatchFinderStatus(String serverId, String timePropertyName, int numPatientsTestedForMatches)
     {
         try {
             XWikiDocument runInfoDoc = getMatchingRunInfoDoc();
@@ -174,8 +207,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
             } else {
                 previousRunStartedTime = object.getDateValue(RUN_INFO_DOCUMENT_STARTTIME);
             }
-
-            object.setIntValue(RUN_INFO_DOCUMENT_PATIENTCOUNT, this.numPatientsTestedForMatches);
+            object.setIntValue(RUN_INFO_DOCUMENT_PATIENTCOUNT, numPatientsTestedForMatches);
             object.setDateValue(timePropertyName, new Date());
 
             context.getWiki().saveDocument(runInfoDoc, context);

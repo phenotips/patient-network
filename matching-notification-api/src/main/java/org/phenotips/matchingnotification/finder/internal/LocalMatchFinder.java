@@ -26,6 +26,8 @@ import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +46,9 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
 {
     private static final String RUN_INFO_DOCUMENT_LOCALSERVER_ID = "local";
 
+    private static final Set<String> SUPPORTED_SERVER_IDS =
+            new HashSet<>(Arrays.asList(RUN_INFO_DOCUMENT_LOCALSERVER_ID));
+
     @Inject
     private SimilarPatientsFinder finder;
 
@@ -54,39 +59,27 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     }
 
     @Override
-    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds,
-        boolean onlyUpdatedAfterLastRun)
+    protected Set<String> getSupportedServerIdList()
     {
+        return SUPPORTED_SERVER_IDS;
+    }
+
+    @Override
+    protected MatchRunStatus specificFindMatches(Patient patient, String serverId, List<PatientMatch> matchesList)
+    {
+        this.logger.debug("Finding local matches for patient {}.", patient.getId());
+
+        List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
+
         List<PatientMatch> matches = new LinkedList<>();
-
-        if (!serverIds.contains(RUN_INFO_DOCUMENT_LOCALSERVER_ID)) {
-            return matches;
+        for (PatientSimilarityView similarityView : similarPatients) {
+            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+            matches.add(match);
         }
+        this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
-        this.recordStartMatchesSearch(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
+        matchesList.addAll(matches);
 
-        for (String patientId : patientIds) {
-
-            Patient patient = this.getPatientForTheMatchSearch(patientId, onlyUpdatedAfterLastRun);
-            if (patient == null) {
-                continue;
-            }
-
-            this.logger.debug("Finding local matches for patient {}.", patientId);
-
-            List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
-            for (PatientSimilarityView similarityView : similarPatients) {
-                PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
-                matches.add(match);
-            }
-
-            this.numPatientsTestedForMatches++;
-
-            this.matchStorageManager.saveLocalMatches(matches, patient.getId());
-        }
-
-        this.recordEndMatchesSearch(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
-
-        return matches;
+        return MatchRunStatus.OK;
     }
 }
