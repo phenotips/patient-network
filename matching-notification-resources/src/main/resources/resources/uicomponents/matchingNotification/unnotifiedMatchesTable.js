@@ -23,7 +23,6 @@ var PhenoTips = (function (PhenoTips) {
         this._tableElement = this._$('#matchesTable');
 
         this._utils = new utils();
-        this._showMatchTypes = {"notified" : false, "rejected" : false, "saved" : true, "uncategorized" : true};
         this._matchesTable = new matchesTable(this._tableElement, this._afterProcessTableRegisterStatus.bind(this));
         this._notifier = new notifier({
             ajaxHandler  : this._ajaxURL,
@@ -33,11 +32,6 @@ var PhenoTips = (function (PhenoTips) {
 
         $('#show-matches-button').on('click', this._showMatches.bind(this));
         $('#send-notifications-button').on('click', this._sendNotification.bind(this));
-        $('#rejected').on('click', this._setFilter.bind(this));
-        $('#saved').on('click', this._setFilter.bind(this));
-        $('#uncategorized').on('click', this._setFilter.bind(this));
-
-        this._setFilter();
     },
 
     // callback for after matches table is drawn
@@ -188,16 +182,6 @@ var PhenoTips = (function (PhenoTips) {
                 return (this._$.inArray(match.id, successfulIds)>-1);
             }
         }.bind(this);
-    },
-
-    _setFilter : function(event)
-    {
-        if (event && event.target && event.target.id) {
-            this._showMatchTypes[event.target.id] = !event.target.checked;
-        }
-        this._matchesTable.setFilter( function (match) {
-            return this._showMatchTypes[match.status];
-        }.bind(this) );
     }
     });
     return PhenoTips;
