@@ -260,12 +260,16 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<div class="genes-div">';
             var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
-            var exomeIcon = ((hasExomeData) ? '<span class="fa fa-chain" title="patient has exome data"></span>' : '');
-            var genesTitle = 'Genes ' + '  ' + statusStr + ' ' + exomeIcon;
+            var genesTitle = 'Genes';
             if (genes.size() == 0) {
                 genesTitle += ': -';
+            } else {
+                genesTitle += ' ' + statusStr +':';
             }
             td += '<p class="subtitle">' + genesTitle + '</p>';
+            if (hasExomeData) {
+                td += '<p class="subtitle">* Exome data present</p>';
+            }
             if (genes.size() != 0) {
                 td += '<ul>';
                 for (var i = 0 ; i < genes.size() ; i++) {
@@ -283,9 +287,9 @@ define(["jquery", "dynatable"], function($, dyna)
             var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
 
             var td = '<div class="phenotypes-div">';
-            var phenotypesTitle = 'Phenotypes';
+            var phenotypesTitle = 'Phenotypes:';
             if (empty) {
-                phenotypesTitle += ': -';
+                phenotypesTitle += ' -';
             }
             td += '<p class="subtitle">' + phenotypesTitle + '</p>';
             if (!empty) {
@@ -327,7 +331,7 @@ define(["jquery", "dynatable"], function($, dyna)
             }
             td += '<p class="subtitle">' + aooTitle + '</p>';
             if (age_of_onset) {
-                td += age_of_onset;
+                td += '<ul><li>' + age_of_onset + '</li></ul>';
             }
             td += '</div>';
             return td;
