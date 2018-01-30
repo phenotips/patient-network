@@ -374,7 +374,8 @@ define(["jquery", "dynatable"], function($, dyna)
                         _rowWriter: this._rowWriter.bind(this)
                     },
                     features: {
-                        pushState : false
+                        pushState : false,
+                        sort: false
                     }
                 }).bind('dynatable:afterProcess', this._afterProcessTable.bind(this));
 
