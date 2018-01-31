@@ -35,6 +35,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -185,7 +186,7 @@ public class MatchingNotificationScriptService implements ScriptService
             }
         }
 
-        return this.successfulIdsToJSON(new ArrayList<Long>(idsList.keySet()), successfullyNotified).toString();
+        return this.successfulIdsToJSON(idsList.keySet(), successfullyNotified).toString();
     }
 
     private List<Long> jsonToIdsList(String idsJson)
@@ -203,7 +204,7 @@ public class MatchingNotificationScriptService implements ScriptService
                 }
             }
         } catch (JSONException ex) {
-            this.logger.error("Error on converting input {} to JSON: {}", idsJson, ex);
+            this.logger.error("Error converting a JSON list {} to a list: {}", idsJson, ex);
         }
 
         return ids;
@@ -229,13 +230,13 @@ public class MatchingNotificationScriptService implements ScriptService
                 }
             }
         } catch (JSONException ex) {
-            this.logger.error("Error on converting input {} to JSON: {}", idsJson, ex);
+            this.logger.error("Error converting a JSON map {} to a map: {}", idsJson, ex);
         }
 
         return ids;
     }
 
-    private JSONObject successfulIdsToJSON(List<Long> allIds, List<Long> successfulIds)
+    private JSONObject successfulIdsToJSON(Collection<Long> allIds, List<Long> successfulIds)
     {
         JSONArray results = new JSONArray();
         for (Long id : allIds) {
