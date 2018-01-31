@@ -105,24 +105,28 @@ public abstract class AbstractMatchFinder implements MatchFinder
         serverIds.retainAll(this.getSupportedServerIdList());
 
         for (String serverId : serverIds) {
-            Date lastRunTime = this.recordStartMatchesSearch(serverId);
+            try {
+                Date lastRunTime = this.recordStartMatchesSearch(serverId);
 
-            int numPatientsTestedForMatches = 0;
+                int numPatientsTestedForMatches = 0;
 
-            for (String patientId : patientIds) {
-                Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
-                if (patient == null) {
-                    continue;
+                for (String patientId : patientIds) {
+                    Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
+                    if (patient == null) {
+                        continue;
+                    }
+
+                    MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
+
+                    if (matcherStatus != MatchRunStatus.NOT_RUN) {
+                        numPatientsTestedForMatches++;
+                    }
                 }
 
-                MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
-
-                if (matcherStatus != MatchRunStatus.NOT_RUN) {
-                    numPatientsTestedForMatches++;
-                }
+                this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches);
+            } catch (Exception ex) {
+                this.logger.error("Error finding matches using server [{}]: [{}]", serverId, ex.getMessage(), ex);
             }
-
-            this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches);
         }
 
         return patientMatches;
