@@ -27,8 +27,10 @@ import org.phenotips.similarity.SimilarPatientsFinder;
 import org.xwiki.component.annotation.Component;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -42,7 +44,10 @@ import javax.inject.Singleton;
 @Singleton
 public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
 {
-    private static final String RUN_INFO_DOCUMENT_LOCALSERVER = "local matches";
+    private static final String RUN_INFO_DOCUMENT_LOCALSERVER_ID = "local";
+
+    private static final Set<String> SUPPORTED_SERVER_IDS =
+            new HashSet<>(Arrays.asList(RUN_INFO_DOCUMENT_LOCALSERVER_ID));
 
     @Inject
     private SimilarPatientsFinder finder;
@@ -54,38 +59,27 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     }
 
     @Override
-    public String getName()
+    protected Set<String> getSupportedServerIdList()
     {
-        return "local";
+        return SUPPORTED_SERVER_IDS;
     }
 
     @Override
-    public List<String> getRunInfoDocumentIdList()
+    protected MatchRunStatus specificFindMatches(Patient patient, String serverId, List<PatientMatch> matchesList)
     {
-        return Arrays.asList(RUN_INFO_DOCUMENT_LOCALSERVER);
-    }
-
-    @Override
-    public List<PatientMatch> findMatches(Patient patient, boolean onlyUpdatedAfterLastRun)
-    {
-        List<PatientMatch> matches = new LinkedList<>();
-
-        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterLastRun(patient)) {
-            return matches;
-        }
-
         this.logger.debug("Finding local matches for patient {}.", patient.getId());
 
         List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
+
+        List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarPatients) {
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
             matches.add(match);
         }
-
-        this.numPatientsTestedForMatches++;
-
         this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
-        return matches;
+        matchesList.addAll(matches);
+
+        return MatchRunStatus.OK;
     }
 }

@@ -17,12 +17,12 @@
  */
 package org.phenotips.matchingnotification.finder;
 
-import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @version $Id$
@@ -36,37 +36,13 @@ public interface MatchFinder
     int getPriority();
 
     /**
-     * Returns a name which can be used to select a specific matcher to be run.
-     * @return a name
-     */
-    String getName();
-
-    /**
-     * Finds matches for a given patient.
-     *
-     * TODO: this should be a default method, once we switch to Java 1.8
-     *
-     * @param patient to find matches for
-     * @return list of matches
-     */
-    List<PatientMatch> findMatches(Patient patient);
-
-    /**
      * Finds matches for a given patient updated after the last time {@link #recordStartMatchesSearch()} was run.
      *
-     * @param patient to find matches for
+     * @param patientIds List of local patients IDs
+     * @param serverIds a list of servers to be used for matches search indicated by their ids. Servers which
+     *                  are not supported by the given matcher will be silently ignored.
      * @param onlyUpdatedAfterLastRun if true, only considers patients updated after the last time matcher was run
      * @return list of matches
      */
-    List<PatientMatch> findMatches(Patient patient, boolean onlyUpdatedAfterLastRun);
-
-    /**
-     * Record start time for running matches search.
-     */
-    void recordStartMatchesSearch();
-
-    /**
-     * Record completed time for running matches search.
-     */
-    void recordEndMatchesSearch();
+    List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun);
 }

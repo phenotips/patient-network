@@ -18,14 +18,12 @@
 package org.phenotips.matchingnotification;
 
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @version $Id$
@@ -34,35 +32,12 @@ import java.util.Set;
 public interface MatchingNotificationManager
 {
     /**
-     * Finds matches for all local patients. For each patient each matcher used will check if the patient can be
-     * matched using the matcher (e.g. patient is "matchable", or a "matchable" consent is granted, etc.).
-     *
-     * All matches that are found will be stored in the matching notification table.
-     *
-     * @param matchersToUse a list of matchers to be used indicated by their internal names
-     *            (see {@link MatchFinder#getName()}). If null, all matchers will be used
-     * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
-     *            patients which have been modified since that matcher was run
-     */
-    void findAndSaveMatches(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun);
-
-    /**
      * Sends notification to the owner of every match with id in {@code matchesId}, then marks match as notified.
      *
      * @param idsList map of ids of matches to patients Ids to be notified
      * @return a list of PatientmatchNotificationResponse
      */
     List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> idsList);
-
-    /**
-     * Saves a list of local matches for a patient.
-     *
-     * @param similarityViews list of similarity views
-     * @param patientId local patient ID for whom the matches were foun
-     *        (needed only to know which existing matches to remove/replace)
-     * @return true if successful
-     */
-    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote incoming request.

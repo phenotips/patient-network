@@ -526,7 +526,37 @@
               <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
               <differenceType>7002</differenceType>
               <method>java.lang.String findAndSaveMatches(double)</method>
-              <justification>Updating API to match back-end changes and provide new functi9onality for better control over matchers</justification>
+              <justification>Updating API to match back-end changes and provide new functionality for better control over matchers</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List findAndSaveMatches(double)</method>
+              <justification>Updating API to match back-end changes and provide new functionality for better control over matchers</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinderManager</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List findMatches(org.phenotips.data.Patient)</method>
+              <justification>Updating API to match back-end changes and provide new functionality for better control over matchers</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinder</className>
+              <differenceType>7004</differenceType>
+              <method>java.util.List findMatches(org.phenotips.data.Patient)</method>
+              <justification>A method with more control over which matches are searched for</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinder</className>
+              <differenceType>7012</differenceType>
+              <method>void recordStartMatchesSearch(java.lang.String)</method>
+              <justification>Record the completion time of matches search for each server</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/finder/MatchFinder</className>
+              <differenceType>7012</differenceType>
+              <method>void recordEndMatchesSearch(java.lang.String)</method>
+              <justification>Record the completion time of matches search for each server</justification>
             </difference>
           </ignored>
           <excludes>
