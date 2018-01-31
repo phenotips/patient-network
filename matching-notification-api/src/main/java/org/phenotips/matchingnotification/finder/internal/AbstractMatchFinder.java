@@ -102,10 +102,15 @@ public abstract class AbstractMatchFinder implements MatchFinder
             boolean onlyUpdatedAfterLastRun)
     {
         List<PatientMatch> patientMatches = new LinkedList<>();
-        serverIds.retainAll(this.getSupportedServerIdList());
+
+        Set<String> supportedServers = this.getSupportedServerIdList();
 
         for (String serverId : serverIds) {
             try {
+                if (!supportedServers.contains(serverId)) {
+                    continue;
+                }
+
                 Date lastRunTime = this.recordStartMatchesSearch(serverId);
 
                 int numPatientsTestedForMatches = 0;
