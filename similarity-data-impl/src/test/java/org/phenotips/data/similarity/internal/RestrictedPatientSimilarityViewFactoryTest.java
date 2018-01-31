@@ -174,7 +174,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Assert.assertNotNull(result);
         Assert.assertSame(mockReference, result.getReference());
         Assert.assertNull(result.getDocument());
-        Assert.assertEquals(0, result.getFeatures().size());
+        Assert.assertEquals(4, result.getFeatures().size());
         Assert.assertEquals(2, result.getDisorders().size());
     }
 

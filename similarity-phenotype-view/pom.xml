@@ -27,7 +27,7 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.15</coverage.instructionRatio>
+    <coverage.instructionRatio>0.13</coverage.instructionRatio>
   </properties>
 
   <artifactId>similarity-phenotype-view</artifactId>
