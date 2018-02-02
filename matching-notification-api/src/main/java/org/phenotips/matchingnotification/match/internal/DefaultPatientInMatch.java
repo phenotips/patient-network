@@ -208,7 +208,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public boolean isLocal()
     {
-        return this.getServerId() == null;
+        return StringUtils.isEmpty(this.getServerId());
     }
 
     @Override
