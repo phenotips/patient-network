@@ -3,3 +3,23 @@
   margin-left: 1em;
   color: green;
 }
+
+.run-still-running {
+  color: red;
+}
+
+.extradata-list td.server-name {
+  text-align: left;
+  padding-right: 2em;
+}
+
+.extradata-list td.begin-time, .extradata-list td.end-time {
+  text-align: left;
+  padding-right: 25px;
+}
+
+#template('colorThemeInit.vm')
+
+.extradata-list.select-server-row td, .extradata-list.select-server-row th {
+  border-bottom: 1px solid $theme.borderColor;
+}

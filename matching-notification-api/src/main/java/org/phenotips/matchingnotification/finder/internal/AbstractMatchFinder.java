@@ -68,7 +68,13 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
     private static final String RUN_INFO_DOCUMENT_ENDTIME = "completedTime";
 
-    private static final String RUN_INFO_DOCUMENT_PATIENTCOUNT = "numPatientsUsedForLastMatchRun";
+    private static final String RUN_INFO_DOCUMENT_PATIENTCOUNT = "numPatientsCheckedForMatches";
+
+    private static final String RUN_INFO_DOCUMENT_NUMERRORS = "numErrors";
+
+    private static final String RUN_INFO_DOCUMENT_TOTALMATCHES = "totalMatchesFound";
+
+    private static final String RUN_INFO_DOCUMENT_AVG_TIME_PER_PATIENT = "averageTimePerPatient";
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -114,6 +120,9 @@ public abstract class AbstractMatchFinder implements MatchFinder
                 Date lastRunTime = this.recordStartMatchesSearch(serverId);
 
                 int numPatientsTestedForMatches = 0;
+                int numErrors = 0;
+                int totalMatchesFound = 0;
+                long totalRunTime = 0;
 
                 for (String patientId : patientIds) {
                     Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
@@ -121,14 +130,24 @@ public abstract class AbstractMatchFinder implements MatchFinder
                         continue;
                     }
 
+                    int matchesBefore = patientMatches.size();
+                    long startTime = System.currentTimeMillis();
+
                     MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
+
+                    totalRunTime += (System.currentTimeMillis() - startTime);
+                    totalMatchesFound += (patientMatches.size() - matchesBefore);
 
                     if (matcherStatus != MatchRunStatus.NOT_RUN) {
                         numPatientsTestedForMatches++;
                     }
+                    if (matcherStatus == MatchRunStatus.ERROR) {
+                        numErrors++;
+                    }
                 }
 
-                this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches);
+                this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches,
+                        numErrors, totalMatchesFound, totalRunTime);
             } catch (Exception ex) {
                 this.logger.error("Error finding matches using server [{}]: [{}]", serverId, ex.getMessage(), ex);
             }
@@ -178,16 +197,18 @@ public abstract class AbstractMatchFinder implements MatchFinder
         // note: error() is used intentionally since this is important information we always want to have in the logs
         this.logger.error("Starting [{}] match finder for multiple patients...", serverId);
 
-        Date previousStartedTime = this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_STARTTIME, 0);
+        Date previousStartedTime = this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_STARTTIME, 0, 0, 0, 0);
 
         return previousStartedTime;
     }
 
-    protected void recordEndMatchesSearch(String serverId, int numPatientsTestedForMatches)
+    protected void recordEndMatchesSearch(String serverId, int numPatientsTestedForMatches,
+            int numErrors, int totalMatchesFound, long totalRunTime)
     {
         this.logger.error("Finished running [{}] match finder", serverId);
 
-        this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_ENDTIME, numPatientsTestedForMatches);
+        this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_ENDTIME, numPatientsTestedForMatches,
+                numErrors, totalMatchesFound, totalRunTime);
     }
 
     /*
@@ -196,7 +217,8 @@ public abstract class AbstractMatchFinder implements MatchFinder
      *
      * @return the start time of the previous run of the same matcher for the same server
      */
-    private Date recordMatchFinderStatus(String serverId, String timePropertyName, int numPatientsTestedForMatches)
+    private Date recordMatchFinderStatus(String serverId, String timePropertyName, int numPatientsTestedForMatches,
+            int numErrors, int totalMatchesFound, long totalRunTime)
     {
         try {
             XWikiDocument runInfoDoc = getMatchingRunInfoDoc();
@@ -217,6 +239,13 @@ public abstract class AbstractMatchFinder implements MatchFinder
                 previousRunStartedTime = object.getDateValue(RUN_INFO_DOCUMENT_STARTTIME);
             }
             object.setIntValue(RUN_INFO_DOCUMENT_PATIENTCOUNT, numPatientsTestedForMatches);
+            object.setIntValue(RUN_INFO_DOCUMENT_NUMERRORS, numErrors);
+            object.setIntValue(RUN_INFO_DOCUMENT_TOTALMATCHES, totalMatchesFound);
+
+            Double averageTimePerPatient = (numPatientsTestedForMatches == 0) ? 0
+                    : Math.round((double) totalRunTime / (10 * (double) numPatientsTestedForMatches)) / 100.0;
+            object.setDoubleValue(RUN_INFO_DOCUMENT_AVG_TIME_PER_PATIENT, averageTimePerPatient);
+
             object.setDateValue(timePropertyName, new Date());
 
             context.getWiki().saveDocument(runInfoDoc, context);

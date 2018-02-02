@@ -43,12 +43,13 @@
   <content>{{include reference="PhenoTips.TabelarDataMacros"/}}
 
 {{velocity}}
-$xwiki.ssfx.use('uicomponents/matchingNotification/findMatches.css')##
+$xwiki.ssfx.use('uicomponents/matchingNotification/findMatches.css', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/findMatches.js', true)##
 
 #set ($displayDocumentName = 'PhenomeCentral.MatchingUpdateAndInfo')
 $xwiki.ssx.use($displayDocumentName)
+
 #set ($doc = $xwiki.getDocument($displayDocumentName))
 #set ($infoClassname = 'PhenomeCentral.MatchingRunInfoClass')
 #set ($preferenceDoc = $xwiki.getDocument('XWiki.XWikiPreferences'))
@@ -61,17 +62,33 @@ $xwiki.ssx.use($displayDocumentName)
     #set($beginTime = $object.getValue('startedTime'))
     #set($endTime = $object.getValue('completedTime'))
     #set($numPatients = $object.getValue('numPatientsUsedForLastMatchRun'))
+    #if ($endTime.after($beginTime))
+      #set($completed = $services.localization.render('phenotips.findMatches.refreshMatches.runFinished'))
+      #set($completedCSS = 'run-finished-ok')
+    #else
+      #set($completed = $services.localization.render('phenotips.findMatches.refreshMatches.runStillRunningOrCrashed'))
+      #set($completedCSS = 'run-still-running')
+    #end
   #else
     #set($beginTime = '-')
     #set($endTime = '-')
     #set($numPatients = '-')
+    #set($completed = '-')
+    #set($completedCSS = '')
   #end
-  |(% class="server-name" %)$escapetool.xml($serverName)|(% class="begin-time" %)$beginTime|(% class="end-time" %)$endTime|(% class="num-patients" %)$numPatients|(% class="select-for-update" %){{html clean="false" wiki="false"}}&lt;input type="checkbox" value="$serverID"&gt;{{/html}}
+  (% class="extradata-list select-server-row" %)|(% class="server-name" %)$escapetool.xml($serverName)|(% class="begin-time" %)$beginTime|(% class="end-time" %)$endTime|(% class="last-run-status $completedCSS" %)$completed|(% class="select-for-update" %){{html clean="false" wiki="false"}}&lt;input type="checkbox" value="$serverID"&gt;{{/html}}
 #end
 ##
 == $services.localization.render('phenotips.findMatches.refreshMatches.label') ==
-
-(% class="extradata-list" %)#foreach($prop in $dataClass.properties)|=(% class="col-label $prop.name" %)$prop.translatedPrettyName#end|=(% class="col-label select-for-update" %)$services.localization.render('phenotips.findMatches.refreshMatches.selectForSearch')##
+## only some of the properties are displayed in the summary table
+#set ($propertiesInSummaryTable = ['serverName', 'startedTime', 'completedTime'])
+#set ($headerNames = [])
+#foreach($prop in $dataClass.properties)
+  #if ($propertiesInSummaryTable.contains($prop.name))
+    #set($result = $headerNames.add($prop.translatedPrettyName))
+  #end
+#end
+(% class="extradata-list select-server-row" %)#foreach($headerName in $headerNames)|=(% class="col-label" %)$headerName#end|=(% class="col-label last-run-status" %)$services.localization.render('phenotips.findMatches.refreshMatches.lastRunStatus')|=(% class="col-label select-for-update" %)$services.localization.render('phenotips.findMatches.refreshMatches.selectForSearch')##
 
 #set ($localHostObject = $doc.getObject($infoClassname, 'serverName', 'local'))
 #set ($serverName = $services.localization.render('phenotips.findMatches.refreshMatches.localhost.label'))
@@ -81,7 +98,7 @@ $xwiki.ssx.use($displayDocumentName)
 ## only display those which have a non-empty token and the checkbox to show in UI is checked
 ##=======================================
 #foreach ($config in $allRemotes)
-  #if ($config.getProperty('remoteAuthToken').getValue() != "" &amp;&amp; $config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('includeInUI').getValue() == 1)
+  #if ($config.getProperty('remoteAuthToken').getValue() != "" &amp;&amp; $config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('searchMatches').getValue() == 1)
     #set ($headerID = "mme-${foreach.count}")
     #set ($serverID = $config.getProperty('serverId').getValue())
     #set ($serverName = $config.getProperty('humanReadableName').getValue())
@@ -90,15 +107,6 @@ $xwiki.ssx.use($displayDocumentName)
       #set ($serverName = $serverID)
     #end
     #set($updateObject = $doc.getObject($infoClassname, 'serverName', $serverID))
-    #if ($updateObject)
-      #set($beginTime = $updateObject.getValue('startedTime'))
-      #set($endTime = $updateObject.getValue('completedTime'))
-      #set($numPatients = $updateObject.getValue('numPatientsUsedForLastMatchRun'))
-    #else
-      #set($beginTime = '-')
-      #set($endTime = '-')
-      #set($numPatients = '-')
-    #end
     #__generateTableRow($serverName $serverID $updateObject)
   #end
 #end
@@ -114,7 +122,13 @@ $xwiki.ssx.use($displayDocumentName)
   &lt;button class="find-matches-button" id="find-updated-matches-button" type="button"&gt;$escapetool.xml($services.localization.render('phenotips.findMatches.refreshMatches.refreshUpdated'))&lt;/button&gt;
   &lt;div class="find-matches-message" id="find-matches-messages"/&gt;
 &lt;/div&gt;
+&lt;br&gt;&lt;br&gt;
 {{/html}}
+
+
+== $services.localization.render('phenotips.findMatches.previousUpdates.label') ==
+
+#__extradata_displayTable($infoClassname, {'counter' : false, 'labels' : false, 'mode' : 'view'})
 
 {{/velocity}}</content>
   <object>

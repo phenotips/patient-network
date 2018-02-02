@@ -121,7 +121,7 @@ public class MatchingNotificationScriptService implements ScriptService
     public String getMatches(double score, double phenScore, double genScore, boolean notified)
     {
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, phenScore, genScore, notified);
-        filterPatientsFromMatches(matches);
+        filterIrrelevantMatches(matches);
         if (!isAdmin()) {
             filterNonUsersMatches(matches);
         }
@@ -253,18 +253,31 @@ public class MatchingNotificationScriptService implements ScriptService
 
     /**
      * Filters out matches that contain non-existing local patients or self-matches.
+     *
+     * TODO:
+     *
+     * - After the introduction of "on-delete" listeners which remove all matches for the deleted patient
+     *   there should be no more "null matches".
+     * - After latest updates to LocalMatchFinder the only way a "self-match" may end up in matching notification
+     *   is through match finding on the patient page.
+     *
+     *   => once storage manager is updated to ignore those matches and we verify that everything
+     *      works as expected and this filter never filters out any matches this method should be removed.
      */
-    private void filterPatientsFromMatches(List<PatientMatch> matches)
+    private void filterIrrelevantMatches(List<PatientMatch> matches)
     {
         ListIterator<PatientMatch> iterator = matches.listIterator();
         while (iterator.hasNext()) {
             PatientMatch match = iterator.next();
-            boolean hasNullPatient = (match.getReference().isLocal() && match.getReference().getPatient() == null)
-                || (match.getMatched().isLocal() && match.getMatched().getPatient() == null);
-            boolean isSelfMatch = CollectionUtils.isEqualCollection(match.getReference().getEmails(),
-                match.getMatched().getEmails());
-            if (hasNullPatient || isSelfMatch) {
-                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to selfMatch or nullPatient",
+            if ((match.getReference().isLocal() && match.getReference().getPatient() == null)
+                    || (match.getMatched().isLocal() && match.getMatched().getPatient() == null)) {
+                this.logger.error("Filtered out match for reference=[{}], match=[{}] due to null patient",
+                        match.getReferencePatientId(), match.getMatchedPatientId());
+                iterator.remove();
+            }
+            if (CollectionUtils.isEqualCollection(match.getReference().getEmails(),
+                    match.getMatched().getEmails())) {
+                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to same owner(s)",
                         match.getReferencePatientId(), match.getMatchedPatientId());
                 iterator.remove();
             }
