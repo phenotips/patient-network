@@ -31,7 +31,9 @@ define(["jquery", "dynatable"], function($, dyna)
                     || match.matched.externalId.includes(this._searchFilter)
                     || match.reference.externalId.includes(this._searchFilter)
                     || match.matched.emails.toString().includes(this._searchFilter)
-                    || match.reference.emails.toString().includes(this._searchFilter) ) 
+                    || match.reference.emails.toString().includes(this._searchFilter)
+                    || match.matched.serverId.includes(this._searchFilter)
+                    || match.reference.serverId.toString().includes(this._searchFilter) )
                     && ( this._showMatchAccessTypes[match.matched.access] || this._showMatchAccessTypes[match.reference.access] ) // by match access type (owned or shares cases for non admin users)
                     && match.matchingGenesTypes.indexOf(this._geneFilterValue) > -1 // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
                     && this._showMatchTypes[match.status]; // by match status (rejected, saved, uncategorized)
@@ -112,6 +114,10 @@ define(["jquery", "dynatable"], function($, dyna)
 
                 // validation flag
                 match.status = match.status || '';
+
+                // for serverId search
+                match.matched.serverId = match.matched.serverId || '';
+                match.reference.serverId = match.reference.serverId || '';
 
                 // scores
                 match.score = this._roundScore(match.score);
