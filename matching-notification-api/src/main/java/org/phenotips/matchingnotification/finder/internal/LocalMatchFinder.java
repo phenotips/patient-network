@@ -36,6 +36,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * @version $Id$
  */
@@ -74,6 +76,14 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
         List<PatientMatch> matches = new LinkedList<>();
         for (PatientSimilarityView similarityView : similarPatients) {
             PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+
+            // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
+            // and they break match count calculation if they are included
+            if (match.getReference().getEmails().size() > 0 && CollectionUtils.isEqualCollection(
+                    match.getReference().getEmails(), match.getMatched().getEmails())) {
+                continue;
+            }
+
             matches.add(match);
         }
         this.matchStorageManager.saveLocalMatches(matches, patient.getId());

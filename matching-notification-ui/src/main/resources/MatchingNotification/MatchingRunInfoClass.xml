@@ -91,17 +91,57 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
     </startedTime>
-    <numPatientsUsedForLastMatchRun>
+    <numPatientsCheckedForMatches>
       <customDisplay/>
       <disabled>0</disabled>
-      <name>numPatientsUsedForLastMatchRun</name>
+      <name>numPatientsCheckedForMatches</name>
       <number>4</number>
-      <prettyName>Number of local patients updated</prettyName>
+      <prettyName>Number of local patients processed</prettyName>
       <size>8</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
+      <numberType>integer</numberType>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
-    </numPatientsUsedForLastMatchRun>
+    </numPatientsCheckedForMatches>
+    <numErrors>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>numErrors</name>
+      <number>5</number>
+      <prettyName>Number of errors</prettyName>
+      <size>8</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <numberType>integer</numberType>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </numErrors>
+    <totalMatchesFound>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>totalMatchesFound</name>
+      <number>6</number>
+      <prettyName>Total matches found</prettyName>
+      <size>8</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <numberType>integer</numberType>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </totalMatchesFound>
+    <averageTimePerPatient>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>averageTimePerPatient</name>
+      <number>7</number>
+      <prettyName>Average time per request, sec</prettyName>
+      <size>8</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <numberType>double</numberType>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </averageTimePerPatient>
   </class>
 </xwikidoc>
