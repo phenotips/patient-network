@@ -101,6 +101,7 @@
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
+      <numberType>integer</numberType>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </numPatientsCheckedForMatches>
     <numErrors>
@@ -113,6 +114,7 @@
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
+      <numberType>integer</numberType>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </numErrors>
     <totalMatchesFound>
@@ -125,6 +127,7 @@
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
+      <numberType>integer</numberType>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </totalMatchesFound>
     <averageTimePerPatient>
@@ -137,6 +140,7 @@
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
+      <numberType>double</numberType>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </averageTimePerPatient>
   </class>
