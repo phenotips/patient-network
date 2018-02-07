@@ -40,10 +40,12 @@ var PhenoTips = (function (PhenoTips) {
     {
         var _this = this;
         new Ajax.Request(this._ajaxURL, {
-            parameters : {action   : 'show-matches',
-                          score    : 0,
-                          notified : true
-            },
+            parameters : {
+                    action    : 'show-matches',
+                    score     : 0,
+                    phenScore : 0,
+                    genScore  : 0,
+                    notified  : true },
             onSuccess : function (response) {
                 this._utils.showReplyReceived('show-matches-messages');
                 console.log("Show matches AJAX reply:");

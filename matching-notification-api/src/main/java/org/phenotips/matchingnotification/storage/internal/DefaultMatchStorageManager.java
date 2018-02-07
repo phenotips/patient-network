@@ -112,24 +112,33 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     public boolean saveLocalMatches(List<PatientMatch> matches, String patientId)
     {
-        Set<String> refPatients = new HashSet<>();
-        refPatients.add(patientId);
-
-        for (PatientMatch match : matches) {
-            String refPatientID = match.getReferencePatientId();
-            if (!patientId.equals(refPatientID)) {
-                refPatients.add(refPatientID);
-                this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
-                                  patientId, refPatientID);
-            }
-        }
-
         Session session = this.beginTransaction();
-        for (String ptId : refPatients) {
-            this.deleteLocalMatchesForLocalPatient(session, ptId, false, false);
+        boolean transactionCompleted = false;
+
+        try {
+            Set<String> refPatients = new HashSet<>();
+            refPatients.add(patientId);
+
+            for (PatientMatch match : matches) {
+                String refPatientID = match.getReferencePatientId();
+                if (!patientId.equals(refPatientID)) {
+                    refPatients.add(refPatientID);
+                    this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
+                                      patientId, refPatientID);
+                }
+            }
+
+            for (String ptId : refPatients) {
+                this.deleteLocalMatchesForLocalPatient(session, ptId, false, false);
+            }
+            this.saveMatches(session, matches);
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error saving local matches: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-        this.saveMatches(session, matches);
-        return this.endTransaction(session);
+        return transactionCompleted;
     }
 
     @Override
@@ -147,45 +156,53 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
         String serverId, boolean isIncoming)
     {
-        Set<String> refPatients = new HashSet<>();
-        refPatients.add(patientId);
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
 
-        List<PatientMatch> matchesToSave = new LinkedList<>();
-        for (PatientSimilarityView similarityView : similarityViews) {
-            String refPatientID = similarityView.getReference().getId();
-            if (!patientId.equals(refPatientID)) {
-                refPatients.add(refPatientID);
+        try {
+            Set<String> refPatients = new HashSet<>();
+            refPatients.add(patientId);
+
+            List<PatientMatch> matchesToSave = new LinkedList<>();
+            for (PatientSimilarityView similarityView : similarityViews) {
+                String refPatientID = similarityView.getReference().getId();
+                if (!patientId.equals(refPatientID)) {
+                    refPatients.add(refPatientID);
+                    if (isIncoming) {
+                        this.logger.error(
+                            "A list of incoming matches for remote patient {} also constains matches for patient {}",
+                            patientId, refPatientID);
+                    } else {
+                        this.logger.error(
+                            "A list of outgoing matches for local patient {} also constains matches for patient {}",
+                            patientId, refPatientID);
+                    }
+                }
+                PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, "")
+                                : new DefaultPatientMatch(similarityView, "", serverId);
+                matchesToSave.add(match);
+            }
+
+            for (String ptId : refPatients) {
+                // delete all un-notified un-rejected matches of the same kind for the given reference patient
                 if (isIncoming) {
-                    this.logger.error(
-                        "A list of incoming matches for remote patient {} also constains matches for patient {}",
-                        patientId, refPatientID);
+                    this.deleteIncomingMatchesByPatientId(session, ptId, serverId);
                 } else {
-                    this.logger.error(
-                        "A list of outgoing matches for local patient {} also constains matches for patient {}",
-                        patientId, refPatientID);
+                    this.deleteOutgoingMatchesByPatientId(session, ptId, serverId);
                 }
             }
-            PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, "")
-                            : new DefaultPatientMatch(similarityView, "", serverId);
-            matchesToSave.add(match);
+
+            this.saveMatches(session, matchesToSave);
+            transactionCompleted = true;
+
+            this.logger.debug("Saved {} new MME matches (server: [{}], incoming: [{}])",
+                    matchesToSave.size(), serverId, isIncoming);
+        } catch (Exception ex) {
+            this.logger.error("Error saving remote matches: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-
-        Session session = this.beginTransaction();
-
-        for (String ptId : refPatients) {
-            // delete all un-notified un-rejected matches of the same kind for the given reference patient
-            if (isIncoming) {
-                this.deleteIncomingMatchesByPatientId(session, ptId, serverId);
-            } else {
-                this.deleteOutgoingMatchesByPatientId(session, ptId, serverId);
-            }
-        }
-
-        this.saveMatches(session, matchesToSave);
-        this.logger.debug("Saved {} new MME matches (server: [{}], incoming: [{}])",
-                matchesToSave.size(), serverId, isIncoming);
-
-        return this.endTransaction(session);
+        return transactionCompleted;
     }
 
     @Override
@@ -208,23 +225,25 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         //  first:   patientA - patientB - notified     - <data at the moment of notification>
         //  second:  patientA - patientB - NOT notified - <data as of last match check>
 
-        Session session = this.beginTransaction();
+        Session session = this.sessionFactory.getSessionFactory().openSession();
+        try {
+            Query query = session.createQuery(HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE);
+            query.setParameter("minScore", score);
+            query.setParameter("phenScore", phenScore);
+            query.setParameter("genScore", genScore);
 
-        Query query = session.createQuery(HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE);
-        query.setParameter("minScore", score);
-        query.setParameter("phenScore", phenScore);
-        query.setParameter("genScore", genScore);
+            List<PatientMatch> result = query.list();
 
-        List<PatientMatch> result = query.list();
+            this.logger.debug("Retrieved [{}] un-notified matches with score > [{}], phenotypical score > [{}],"
+                + " genotypical score > [{}]", result.size(), score, phenScore, genScore);
 
-        this.logger.debug("Retrieved [{}] un-notified matches with score > [{}], phenotypical score > [{}],"
-            + " genotypical score > [{}]", result.size(), score, phenScore, genScore);
-
-        if (!this.endTransaction(session)) {
+            return result;
+        } catch (Exception ex) {
+            this.logger.error("Load matches failed [{}]", ex.getMessage(), ex);
             return Collections.emptyList();
+        } finally {
+            session.close();
         }
-
-        return result;
     }
 
     @Override
@@ -294,7 +313,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
             matches = criteria.list();
         } catch (HibernateException ex) {
-            this.logger.error("loadMatchesByCriteria. Criteria: {},  ERROR: [{}]",
+            this.logger.error("Error loading matches by criteria. Criteria: {},  ERROR: [{}]",
                 Arrays.toString(criteriaToApply), ex);
         } finally {
             session.close();
@@ -306,22 +325,40 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public boolean markNotified(List<PatientMatch> matches)
     {
         Session session = this.beginTransaction();
-        for (PatientMatch match : matches) {
-            match.setNotified();
-            session.update(match);
+        boolean transactionCompleted = false;
+
+        try {
+            for (PatientMatch match : matches) {
+                match.setNotified();
+                session.update(match);
+            }
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error marking matches as notified: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-        return this.endTransaction(session);
+        return transactionCompleted;
     }
 
     @Override
     public boolean setStatus(List<PatientMatch> matches, String status)
     {
         Session session = this.beginTransaction();
-        for (PatientMatch match : matches) {
-            match.setStatus(status);
-            session.update(match);
+        boolean transactionCompleted = false;
+
+        try {
+            for (PatientMatch match : matches) {
+                match.setStatus(status);
+                session.update(match);
+            }
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error saving matches statuses: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-        return this.endTransaction(session);
+        return transactionCompleted;
     }
 
     /**
@@ -341,15 +378,20 @@ public class DefaultMatchStorageManager implements MatchStorageManager
      * {@code markNotified}.
      *
      * @param session the transaction session created for marking.
+     * @param commitChanges wheather transaction should be committed or rolled back
      * @return true if successful
      */
-    private boolean endTransaction(Session session)
+    private boolean endTransaction(Session session, boolean commitChanges)
     {
         Transaction t = null;
         try {
             t = session.getTransaction();
-            t.commit();
-            session.flush();
+            if (commitChanges) {
+                t.commit();
+                session.flush();
+            } else {
+                t.rollback();
+            }
         } catch (HibernateException ex) {
             this.logger.error("ERROR committing changes to the matching notification database", ex);
             if (t != null) {
@@ -366,15 +408,22 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public boolean deleteMatchesForLocalPatient(String patientId)
     {
         Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
 
-        Query query = session.createQuery(HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT);
-        query.setParameter("localId", patientId);
+        try {
+            Query query = session.createQuery(HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT);
+            query.setParameter("localId", patientId);
 
-        int numDeleted = query.executeUpdate();
+            int numDeleted = query.executeUpdate();
+            transactionCompleted = true;
 
-        this.logger.debug("Removed all [{}] stored matches for patient [{}]", numDeleted, patientId);
-
-        return this.endTransaction(session);
+            this.logger.debug("Removed all [{}] stored matches for patient [{}]", numDeleted, patientId);
+        } catch (Exception ex) {
+            this.logger.error("Error deleting matches for local patients: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
     }
 
     private void deleteLocalMatchesForLocalPatient(Session session, String patientId,

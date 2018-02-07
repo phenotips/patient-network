@@ -21,10 +21,8 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.vocabulary.VocabularyTerm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.FeatureClusterView} that reveals the full patient information
@@ -54,17 +52,10 @@ public class RestrictedFeatureClusterView extends DefaultFeatureClusterView
     @Override
     public Collection<Feature> getMatch()
     {
-        // null access is passed when we go through email notification process, user is admin
-        if (this.access == null || this.access.isOpenAccess()) {
-            return super.getMatch();
-        } else if (this.access.isPrivateAccess()) {
+        if (this.access != null && this.access.isPrivateAccess()) {
             return Collections.emptySet();
         } else {
-            List<Feature> hiddenFeatures = new ArrayList<Feature>(this.match.size());
-            for (int i = 0; i < this.match.size(); i++) {
-                hiddenFeatures.add(null);
-            }
-            return Collections.unmodifiableCollection(hiddenFeatures);
+            return super.getMatch();
         }
     }
 }

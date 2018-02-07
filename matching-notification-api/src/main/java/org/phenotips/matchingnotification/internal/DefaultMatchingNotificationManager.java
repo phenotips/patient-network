@@ -21,7 +21,6 @@ import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
-import org.phenotips.matchingnotification.finder.MatchFinderManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
@@ -36,7 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -69,16 +67,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     private PatientMatchNotifier notifier;
 
     @Inject
-    private MatchFinderManager matchFinderManager;
-
-    @Inject
     private MatchStorageManager matchStorageManager;
-
-    @Override
-    public void findAndSaveMatches(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
-    {
-        this.matchFinderManager.findMatchesForAllPatients(matchersToUse, onlyCheckPatientsUpdatedAfterLastRun);
-    }
 
     @Override
     public List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> matchesIds)
@@ -122,12 +111,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
         }
         return successfulMatches;
-    }
-
-    @Override
-    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId)
-    {
-        return this.matchStorageManager.saveLocalMatchesViews(similarityViews, patientId);
     }
 
     @Override

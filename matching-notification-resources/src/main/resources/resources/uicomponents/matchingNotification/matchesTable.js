@@ -12,11 +12,32 @@ define(["jquery", "dynatable"], function($, dyna)
             this._tableBuilt = false;
 
             this._showMatchAccessTypes = {"owner" : true, "shared" : true};
+            this._showMatchTypes = {"notified" : false, "rejected" : false, "saved" : true, "uncategorized" : true};
+            this._searchFilter = "";
+            this._geneFilterValue = "all";
 
+            $('#rejected').on('click', this._filterByMatchStatus.bind(this));
+            $('#saved').on('click', this._filterByMatchStatus.bind(this));
+            $('#uncategorized').on('click', this._filterByMatchStatus.bind(this));
             $('#expand_all').on('click', this._expandAllClicked.bind(this));
             $('#gene_status_filter').on('change', this._filterByGeneStatus.bind(this));
             $('#owner').on('click', this._filterByAccess.bind(this));
             $('#view').on('click', this._filterByAccess.bind(this));
+            $('#search-matchesTable-input').on('input', this._filterBySearchInput.bind(this));
+
+            this._filter = function (match) {
+                   return ( match.matched.patientId.includes(this._searchFilter) // filter by search input in patient ID, external ID and emails
+                    || match.reference.patientId.includes(this._searchFilter)
+                    || match.matched.externalId.includes(this._searchFilter)
+                    || match.reference.externalId.includes(this._searchFilter)
+                    || match.matched.emails.toString().includes(this._searchFilter)
+                    || match.reference.emails.toString().includes(this._searchFilter)
+                    || match.matched.serverId.includes(this._searchFilter)
+                    || match.reference.serverId.toString().includes(this._searchFilter) )
+                    && ( this._showMatchAccessTypes[match.matched.access] || this._showMatchAccessTypes[match.reference.access] ) // by match access type (owned or shares cases for non admin users)
+                    && match.matchingGenesTypes.indexOf(this._geneFilterValue) > -1 // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
+                    && this._showMatchTypes[match.status]; // by match status (rejected, saved, uncategorized)
+            }.bind(this);
         },
 
         update : function(matches)
@@ -25,14 +46,6 @@ define(["jquery", "dynatable"], function($, dyna)
                 this._matches = JSON.parse(JSON.stringify(matches))
                 this._formatMatches();
             }
-            this._buildTable();
-        },
-
-        // filter is a function that filters out some matches.
-        // For example: for filtering rejected matches.
-        setFilter : function(filter)
-        {
-            this._filter = filter;
             this._buildTable();
         },
 
@@ -102,6 +115,10 @@ define(["jquery", "dynatable"], function($, dyna)
                 // validation flag
                 match.status = match.status || '';
 
+                // for serverId search
+                match.matched.serverId = match.matched.serverId || '';
+                match.reference.serverId = match.reference.serverId || '';
+
                 // scores
                 match.score = this._roundScore(match.score);
                 match.phenotypicScore = this._roundScore(match.phenotypicScore);
@@ -120,11 +137,15 @@ define(["jquery", "dynatable"], function($, dyna)
 
         _buildMatchingGenesTypes : function(match) {
             var matchedGenesTypes = [];
+            matchedGenesTypes.push('all'); // for showing all types if 'all' selected
             if (match.genotypicScore > 0 && match.matched.genes.size() > 0 && match.reference.genes.size() > 0) {
                 var status1 = match.matched.genesStatus ? match.matched.genesStatus : "candidate";
                 var status2 = match.reference.genesStatus ? match.reference.genesStatus : "candidate";
                 matchedGenesTypes.push(status1 + '_' + status2);
                 matchedGenesTypes.push(status2 + '_' + status1);
+                if (match.matched.hasExomeData || match.reference.hasExomeData) {
+                    matchedGenesTypes.push('has_exome');
+                }
             }
             // remove possible repetitions
             return matchedGenesTypes.uniq();
@@ -244,12 +265,16 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             var td = '<div class="genes-div">';
             var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
-            var exomeIcon = ((hasExomeData) ? '<span class="fa fa-chain" title="patient has exome data"></span>' : '');
-            var genesTitle = 'Genes ' + '  ' + statusStr + ' ' + exomeIcon;
+            var genesTitle = 'Genes';
             if (genes.size() == 0) {
                 genesTitle += ': -';
+            } else {
+                genesTitle += ' ' + statusStr +':';
             }
             td += '<p class="subtitle">' + genesTitle + '</p>';
+            if (hasExomeData) {
+                td += '<p class="subtitle">* Exome data present</p>';
+            }
             if (genes.size() != 0) {
                 td += '<ul>';
                 for (var i = 0 ; i < genes.size() ; i++) {
@@ -267,9 +292,9 @@ define(["jquery", "dynatable"], function($, dyna)
             var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
 
             var td = '<div class="phenotypes-div">';
-            var phenotypesTitle = 'Phenotypes';
+            var phenotypesTitle = 'Phenotypes:';
             if (empty) {
-                phenotypesTitle += ': -';
+                phenotypesTitle += ' -';
             }
             td += '<p class="subtitle">' + phenotypesTitle + '</p>';
             if (!empty) {
@@ -311,7 +336,7 @@ define(["jquery", "dynatable"], function($, dyna)
             }
             td += '<p class="subtitle">' + aooTitle + '</p>';
             if (age_of_onset) {
-                td += age_of_onset;
+                td += '<ul><li>' + age_of_onset + '</li></ul>';
             }
             td += '</div>';
             return td;
@@ -374,13 +399,13 @@ define(["jquery", "dynatable"], function($, dyna)
                         _rowWriter: this._rowWriter.bind(this)
                     },
                     features: {
-                        pushState : false
+                        pushState : false,
+                        sort: false
                     }
                 }).bind('dynatable:afterProcess', this._afterProcessTable.bind(this));
 
                 // first time needs to be run manually
                 this._afterProcessTable();
-                $('#search-matchesTable-input').on('input', this._filterBySearchInput.bind(this));
                 $('#dynatable-search-matchesTable').hide();
                 $('#dynatable-search-notifiedMatchesTable').hide();
                 // make Show: label translatable
@@ -448,6 +473,17 @@ define(["jquery", "dynatable"], function($, dyna)
             div2.height(h);
         },
 
+        _markToNotify : function(elm)
+        {
+            if ($(elm).attr('id') != 'notifyTd') {
+                // unselect first column checkbox if any of emails checkboxes selected
+                $(elm).closest('tr').find('#notifyTd').prop("checked", false);
+            } else {
+                // select both emails checkboxes if first column checkbox is selected
+                $(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
+            }
+        },
+
         // target is the component that was clicked to expand/collapse (this +/- sign).
         // expand is boolean, when undefined, the value will be understood from target
         _expandCollapseGP : function(target, expand)
@@ -491,21 +527,8 @@ define(["jquery", "dynatable"], function($, dyna)
         {
             if (event && event.target) {
                 this._geneFilterValue = event.target.selectedOptions[0].value;
-                if (this._geneFilterValue == "all") {
-                    this.setFilter(null);
-                    this._buildTable();
-                    return;
-                }
-                if (this._geneFilterValue == "has_exome") {
-                    this.setFilter( function (match) {
-                        return match.matched.hasExomeData || match.reference.hasExomeData;
-                    }.bind(this) );
-                    return;
-                }
-                this.setFilter( function (match) {
-                    return match.matchingGenesTypes.indexOf(this._geneFilterValue) > -1;
-                }.bind(this) );
             }
+            this._buildTable();
         },
 
         // searches by substring in patient ID, external ID and emails
@@ -515,40 +538,25 @@ define(["jquery", "dynatable"], function($, dyna)
             if (event && event.target) {
                 this._searchFilter = event.target.value;
                 if (this._isBlank(this._searchFilter)) {
-                    this.setFilter(null);
-                    this._buildTable();
-                    return;
+                    this._searchFilter = '';
                 }
-                this._searchFilter = this._searchFilter.trim();
-                this.setFilter( function (match) {
-                    return match.matched.patientId.includes(this._searchFilter)
-                        || match.reference.patientId.includes(this._searchFilter)
-                        || match.matched.externalId.includes(this._searchFilter)
-                        || match.reference.externalId.includes(this._searchFilter)
-                        || match.matched.emails.toString().includes(this._searchFilter)
-                        || match.reference.emails.toString().includes(this._searchFilter);
-                }.bind(this) );
             }
-        },
-
-        _markToNotify : function(elm)
-        {
-            if ($(elm).attr('id') != 'notifyTd') {
-                // unselect first column checkbox if any of emails checkboxes selected
-                $(elm).closest('tr').find('#notifyTd').prop("checked", false);
-            } else {
-                // select both emails checkboxes if first column checkbox is selected
-                $(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
-            }
+            this._buildTable();
         },
 
         _filterByAccess : function(event) {
             if (event && event.target && event.target.id) {
                 this._showMatchAccessTypes[event.target.id] = !event.target.checked;
             }
-            this._matchesTable.setFilter( function (match) {
-                return this._showMatchAccessTypes[match.matched.access] || this._showMatchAccessTypes[match.reference.access];
-            }.bind(this) );
+            this._buildTable();
+        },
+
+        _filterByMatchStatus : function(event)
+        {
+            if (event && event.target && event.target.id) {
+                this._showMatchTypes[event.target.id] = !event.target.checked;
+            }
+            this._buildTable();
         },
 
         // checking if a string is blank or contains only white-space

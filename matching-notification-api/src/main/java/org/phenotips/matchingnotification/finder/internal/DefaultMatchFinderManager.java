@@ -17,13 +17,9 @@
  */
 package org.phenotips.matchingnotification.finder.internal;
 
-import org.phenotips.data.Patient;
-import org.phenotips.data.PatientRepository;
-import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
-import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.query.Query;
@@ -60,90 +56,22 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     @Inject
     private QueryManager qm;
 
-    @Inject
-    private PatientRepository patientRepository;
-
-    @Inject
-    private PermissionsManager permissionsManager;
-
-
     @Override
-    public void findMatchesForAllPatients(Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
+    public void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
-        this.recordFindAllStart(matchersToUse);
+        List<String> patients = this.getPatientsList();
 
-        List<Patient> patients = this.getPatientsList();
-
-        for (Patient patient : patients) {
-            this.logger.debug("Finding matches for patient {}.", patient.getId());
-            this.findMatches(patient, matchersToUse, onlyCheckPatientsUpdatedAfterLastRun);
-        }
-
-        this.recordFindAllEnd(matchersToUse);
-    }
-
-
-    @Override
-    public List<PatientMatch> findMatches(Patient patient)
-    {
-        return this.findMatches(patient, null, false);
-    }
-
-
-    private List<PatientMatch> findMatches(Patient patient,
-            Set<String> matchersToUse, boolean onlyCheckPatientsUpdatedAfterLastRun)
-    {
-        List<PatientMatch> matches = new LinkedList<>();
-
-        for (MatchFinder service : this.matchFinderProvider.get()) {
-            try {
-                if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
-                    continue;
-                }
-
-                List<PatientMatch> foundMatches = service.findMatches(patient, onlyCheckPatientsUpdatedAfterLastRun);
-                matches.addAll(foundMatches);
-
-                this.logger.debug("Found {} matches by {}", foundMatches.size(), service.getClass().getSimpleName());
-
-                for (PatientMatch match : foundMatches) {
-                    this.logger.debug(match.toString());
-                }
-
-            } catch (Exception ex) {
-                this.logger.error("Failed to invoke match finder [{}]", service.getName(), ex);
-            }
-        }
-
-        return matches;
-    }
-
-    private void recordFindAllStart(Set<String> matchersToUse)
-    {
-        for (MatchFinder service : this.matchFinderProvider.get()) {
-            if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
-                continue;
-            }
-            service.recordStartMatchesSearch();
-        }
-    }
-
-    private void recordFindAllEnd(Set<String> matchersToUse)
-    {
-        for (MatchFinder service : this.matchFinderProvider.get()) {
-            if (matchersToUse != null && !matchersToUse.contains(service.getName())) {
-                continue;
-            }
-            service.recordEndMatchesSearch();
+        for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
+            matchFinder.findMatches(patients, serverIds, onlyCheckPatientsUpdatedAfterLastRun);
         }
     }
 
     /**
-     * Returns a list of patients with visibility >= matchable.
+     * Returns a list of patient Ids.
      */
-    private List<Patient> getPatientsList()
+    private List<String> getPatientsList()
     {
-        List<Patient> patients = new LinkedList<>();
+        List<String> patients = new LinkedList<>();
 
         try {
             Query q = this.qm.createQuery(
@@ -152,19 +80,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
                     + "doc.object(PhenoTips.PatientClass) as patient "
                     + "where patient.identifier is not null order by patient.identifier desc",
                 Query.XWQL);
-            List<String> potentialPatientIds = q.execute();
-
-            for (String patientId : potentialPatientIds) {
-                Patient patient = this.patientRepository.get(patientId);
-                if (patient == null) {
-                    continue;
-                }
-
-                Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
-                if (patientVisibility.compareTo(this.matchableVisibility) >= 0) {
-                    patients.add(patient);
-                }
-            }
+            patients = q.execute();
         } catch (Exception e) {
             this.logger.error("Error retrieving a list of patients for matching: {}", e);
         }
