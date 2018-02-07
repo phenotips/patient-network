@@ -36,7 +36,7 @@ public interface MatchFinder
     int getPriority();
 
     /**
-     * Finds matches for a given patient updated after the last time {@link #recordStartMatchesSearch()} was run.
+     * Finds matches for a given patient updated after the last time the match finder was run.
      *
      * @param patientIds List of local patients IDs
      * @param serverIds a list of servers to be used for matches search indicated by their ids. Servers which
