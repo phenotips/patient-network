@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * code.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSimilarityView
 {

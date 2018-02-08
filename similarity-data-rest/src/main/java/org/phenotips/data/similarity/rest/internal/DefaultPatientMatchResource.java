@@ -50,7 +50,7 @@ import org.slf4j.Logger;
  * Default implementation of the {@link PatientMatchResource}.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 @Component
 @Named("org.phenotips.data.similarity.rest.internal.DefaultPatientMatchResource")

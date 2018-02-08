@@ -37,7 +37,7 @@ import org.json.JSONObject;
  * Implementation of {@link MatchedPatientClusterView} that stores the provided reference patient and its matches.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 public class DefaultMatchedPatientClusterView implements MatchedPatientClusterView
 {

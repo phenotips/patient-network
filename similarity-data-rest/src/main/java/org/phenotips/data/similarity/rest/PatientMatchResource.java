@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
  * Resource for working with patient match data.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 @Unstable("New API introduced in 1.2")
 @Path("/patients/{patient-id}/similar-cases")

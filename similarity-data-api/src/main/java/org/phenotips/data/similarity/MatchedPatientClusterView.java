@@ -29,7 +29,7 @@ import org.json.JSONObject;
  * View of the reference patient and its collection of possible matches.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 @Unstable
 public interface MatchedPatientClusterView
