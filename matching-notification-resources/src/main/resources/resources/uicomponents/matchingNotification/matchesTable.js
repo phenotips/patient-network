@@ -193,10 +193,10 @@ define(["jquery", "dynatable"], function($, dyna)
                         tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                         break;
                     case 'referenceEmails':
-                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.hasOwnProperty('serverId'));
+                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId);
                         break;
                     case 'matchedEmails':
-                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.hasOwnProperty('serverId'));
+                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId);
                         break;
                     default:
                         tr += cellWriter(columns[index], record);
@@ -235,13 +235,11 @@ define(["jquery", "dynatable"], function($, dyna)
             var externalId = (!this._isBlank(patient.externalId)) ? " : " + patient.externalId : '';
             // Patient id and collapsible icon
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
-            if (!patient.serverId) { // local patient
+            if (patient.serverId == '') { // local patient
                 var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
                 td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
-                if (patient.serverId) {
-                    td += '<span> (' + patient.serverId + ')</span>';
-                }
             } else { // remote patient
+                // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
                 td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
             }
             td += '</div>';
@@ -361,7 +359,7 @@ define(["jquery", "dynatable"], function($, dyna)
             return td;
         },
 
-        _getEmailsTd : function(emails, patientId, matchId, isRemote)
+        _getEmailsTd : function(emails, patientId, matchId, serverId)
         {
             var td = '<td>';
             for (var i=0; i<emails.length; i++) {
@@ -372,7 +370,7 @@ define(["jquery", "dynatable"], function($, dyna)
                 }
                 td += '<div>' + email + '</div>';
             }
-            if (!isRemote) {
+            if (serverId == '') { // add notification checkbox for local patient
                 td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
             }
             td += '</td>';
