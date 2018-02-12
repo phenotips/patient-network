@@ -141,4 +141,10 @@ public interface PatientInMatch
      * @return What type of access does the user have to this patient profile.
      */
     AccessLevel getAccess();
+
+    /**
+     * @return status of genes (solved or candidate) stored in PatientGenotype class,
+     *         or null if patient does not have genotype.
+     */
+    String getGenesStatus();
 }

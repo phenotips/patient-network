@@ -23,7 +23,8 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-  <suppress checks="ExecutableStatementCount" files="DefaultPhenotypesMap.java"/>
-  <suppress checks="ClassFanOutComplexity" files="DefaultMatchingNotificationManager.java"/>
-  <suppress checks="ClassFanOutComplexity" files="DefaultPatientInMatch"/>
+  <suppress checks="ReturnCount" files="DefaultMatchingNotificationResource.java"/>
+  <suppress checks="ParameterNumber" files="DefaultMatchingNotificationResource.java"/>
+  <suppress checks="CyclomaticComplexity" files="DefaultMatchingNotificationResource.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultMatchingNotificationResource.java"/>
 </suppressions>

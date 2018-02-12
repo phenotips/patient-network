@@ -1,14 +1,19 @@
+#template('colorThemeInit.vm')
+
+..matches-table {
+  margin: 0;
+}
 .matches-table .collapsed {
   visibility: hidden;
   height: 1px;
   overflow: hidden;
 }
 
-.matches-table .succeed {
+.matches-table .succeed, .success {
   color: green;
 }
 
-.matches-table .failed {
+.matches-table .failed, .failure  {
   color: red;
 }
 
@@ -20,8 +25,12 @@
   color: inherit;
 }
 
-.matches-table .patient-div {
-  margin-bottom: 10px;
+.hint-loading {
+  color: blue;
+}
+
+.matches-table .collapse-gp-div {
+  margin-top: 5px;
 }
 
 .matches-table .patient-href {
@@ -29,13 +38,17 @@
 }
 
 .matches-table .genes-div, .matches-table .age-of-onset-div  {
-  background: lightgrey;
+  background: #fff9ee;
 }
 
 .matches-table .subtitle {
   margin-bottom: 0px;
   margin-top: 0px;
-  font-style: oblique;
+  font-style: normal;
+  text-transform: uppercase;
+  color: #369;
+  font-size: .8em;
+  font-weight: 700;
 }
 
 .matches-table ul {
@@ -51,6 +64,8 @@
 
 .matches-table th {
   white-space: nowrap;
+  border: 1px solid #ffffff;
+  font-weight: normal;
 }
 
 .matches-table td {
@@ -61,24 +76,29 @@
   white-space: nowrap;
 }
 
-#score-filter-div {
-  margin-top: 15px;
-  margin-bottom: 25px;
-}
-
 #send-notifications-messages, #show-matches-messages {
   display: inline-block;
   margin-left: 1em;
   color: green;
 }
 
-#show-matches-messages .invalid {
+#send-notifications-messages {
+  vertical-align: top;
+}
+
+#score-validation-message {
+  font-size: 83%;
+}
+
+#show-matches-messages .invalid, #score-validation-message .invalid {
   color: #CC3333;
 }
 
-#table-filter-div div, #access-filter-div div {
-  display: inline-block;
+#find-matches-score {
+  width: 4.5em;
+  float: right;
 }
+
 #table-filter-div {
   margin-bottom: 15px;
 }
@@ -87,15 +107,72 @@
   margin: 0 5px 0 15px;
 }
 
-#matchesTable-search {
+#notified-matches {
+  margin-left: 20px;
+}
+
+#show-matches-button {
+  margin: 10px 40px 20px 0;
+}
+
+#pagination-info {
+  display: inline-block;
+  float: left;
+}
+
+.matches-table .first-header-row {
+  text-align: -webkit-center;
+}
+
+.matches-table th .collapse-marker {
   float: right;
-  margin-bottom: 10px;
+  color: #EA972D;
+  cursor: pointer;
+  margin-left: 3px;
 }
 
-#search-matchesTable-input {
-    width: 70%;
+.messages-hint {
+  color: #CC3333;
+  margin-top: 5px;
+  font-size: .8em;
 }
 
-#dynatable-per-page-matchesTable {
-  margin-left: 5px;
+.messages-hint-input {
+  background-color: #fff9ee!important;
+  border: 1px solid #c33!important;
+  color: #404040!important;
+}
+
+input.notify , td span.fa.fa-envelope {
+  vertical-align: middle;
+}
+
+.pagesizeselect {
+  margin-left: 3px;
+  padding: 0;
+}
+
+.matches-table ul {
+  margin-left: 1em;
+  list-style: none;
+}
+
+#global-search {
+  float: right;
+}
+
+#show-matches-score {
+  width: 4em;
+}
+#show-matches-gen-score {
+  width: 5.3em;
+}
+#show-matches-phen-score {
+  width: 5.8em;
+}
+.xwiki-livetable-pagination {
+  color: #636B75;
+  font-size: 90%;
+  line-height: 22px;
+  border: 0px;
 }

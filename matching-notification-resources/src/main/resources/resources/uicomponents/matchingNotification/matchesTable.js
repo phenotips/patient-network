@@ -1,566 +1,778 @@
-define(["jquery", "dynatable"], function($, dyna)
+require(["matchingNotification/matchesNotifier",
+         "matchingNotification/utils",
+         "matchingNotification/matcherPaginator",
+         "matchingNotification/matcherPageSizer"],
+        function(notifier, utils)
 {
-    return Class.create({
+    var loadMNM = function(notifier, utils) {
+        new PhenoTips.widgets.MatchesTable(notifier, utils);
+    };
 
-        // tableElement - the DOM element for table
-        // afterProcessingCallback - a callback for after drawing the table
-        initialize : function (tableElement, afterProcessingCallback)
-        {
-            this._tableElement = tableElement;
-            this._afterProcessingCallback = afterProcessingCallback;
+    (XWiki.domIsLoaded && loadMNM(notifier, utils)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, notifier, utils));
+});
 
-            this._tableBuilt = false;
+var PhenoTips = (function (PhenoTips) {
+    var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+    widgets.MatchesTable = Class.create({
 
-            this._showMatchAccessTypes = {"owner" : true, "shared" : true};
-            this._showMatchTypes = {"notified" : false, "rejected" : false, "saved" : true, "uncategorized" : true};
-            this._searchFilter = "";
-            this._geneFilterValue = "all";
+    initialize : function (notifier, utils)
+    {
+        this._tableElement = $('matchesTable');
+        this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/";
+        this._tableCollabsed = true;
 
-            $('#rejected').on('click', this._filterByMatchStatus.bind(this));
-            $('#saved').on('click', this._filterByMatchStatus.bind(this));
-            $('#uncategorized').on('click', this._filterByMatchStatus.bind(this));
-            $('#expand_all').on('click', this._expandAllClicked.bind(this));
-            $('#gene_status_filter').on('change', this._filterByGeneStatus.bind(this));
-            $('#owner').on('click', this._filterByAccess.bind(this));
-            $('#view').on('click', this._filterByAccess.bind(this));
-            $('#search-matchesTable-input').on('input', this._filterBySearchInput.bind(this));
+        this._offset = 1;
+        this._maxResults = 10;
+        this._minScore = 0;
+        this._page = 1;
+        this.pagination = $('pagination-matching-notifications');
+        this.resultsSummary = $('panels-livetable-limits');
+        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.pagination, this._maxResults);
 
-            this._filter = function (match) {
-                   return ( match.matched.patientId.includes(this._searchFilter) // filter by search input in patient ID, external ID and emails
-                    || match.reference.patientId.includes(this._searchFilter)
-                    || match.matched.externalId.includes(this._searchFilter)
-                    || match.reference.externalId.includes(this._searchFilter)
-                    || match.matched.emails.toString().includes(this._searchFilter)
-                    || match.reference.emails.toString().includes(this._searchFilter)
-                    || match.matched.serverId.includes(this._searchFilter)
-                    || match.reference.serverId.toString().includes(this._searchFilter) )
-                    && ( this._showMatchAccessTypes[match.matched.access] || this._showMatchAccessTypes[match.reference.access] ) // by match access type (owned or shares cases for non admin users)
-                    && match.matchingGenesTypes.indexOf(this._geneFilterValue) > -1 // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
-                    && this._showMatchTypes[match.status]; // by match status (rejected, saved, uncategorized)
-            }.bind(this);
-        },
+        this._utils = new utils(this._tableElement);
+        this._notifier = new notifier(this._tableElement, this._ajaxURL);
 
-        update : function(matches)
-        {
-            if (matches != undefined) {
-                this._matches = JSON.parse(JSON.stringify(matches))
-                this._formatMatches();
-            }
-            this._buildTable();
-        },
+        $('show-matches-button').on('click', this._showMatches.bind(this));
+        $('send-notifications-button').on('click', this._sendNotification.bind(this));
+        $('expand_all').on('click', this._expandAllClicked.bind(this));
 
-        getMarkedToNotify : function()
-        {
-            var ids = [];
-            var checkedElms = this._tableElement.find('input[data-patientid]:checked');
+        $('show-matches-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
+        $('show-matches-phen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
+        $('show-matches-gen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
 
-            $.each(checkedElms, function(index, elm) {
-                if($(elm).data('matchid') && $(elm).data('patientid')) {
-                    ids.push({'matchId' : $(elm).data('matchid'), 'patientId' : $(elm).data('patientid')});
-                }
+        $('show-matches-score').on('change', function() {this._utils.validateScore('show-matches-score', 'score-validation-message');}.bind(this));
+        $('show-matches-phen-score').on('change', function() {this._utils.validateScore('show-matches-phen-score', 'score-validation-message');}.bind(this));
+        $('show-matches-gen-score').on('change', function() {this._utils.validateScore('show-matches-gen-score', 'score-validation-message');}.bind(this));
+
+        this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
+        this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.ageOfOnset'))";
+        this._MODE_OF_INHERITANCE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.modeOfInheritance'))";
+        this._NOT_OBSERVED = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notObserved'))";
+        this._GENES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.genes'))";
+        this._PHENOTYPES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label')):";
+        this._NOTIFY = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify'))";
+        this._NONE_STANDART_PHENOTYPE = "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))";
+        this._SAVED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))";
+        this._REJECTED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
+        this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
+
+        this._initiateFilters();
+
+        // Memorise Advanced filers open/close state
+        var filtersButton = $('toggle-filters-button');
+        var key = this._utils._getCookieKey(filtersButton.up('.entity-directory').id);
+        this._toggleFilters(filtersButton.up('.xwiki-livetable-topfilters-tip'), (XWiki.cookies.read(key) == 'hidden'));
+        filtersButton.observe('click', function(event) {
+            event.stop();
+            this._toggleFilters(event.findElement('.xwiki-livetable-container .xwiki-livetable-topfilters-tip'));
+        }.bind(this));
+
+        // set behaviour for hide/show email columns triggers
+        this._initiateEmailColumnsBehaviur();
+
+        $("panels-livetable-ajax-loader" ).hide();
+
+        document.observe("notified:success", this._handleNotifiedUpdate.bind(this));
+        document.observe("notified:failed", this._handleNotifiedUpdate.bind(this));
+    },
+
+    _initiateFilters : function()
+    {
+        this._filterValues = {};
+        this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
+        this._filterValues.matchStatus = {"rejected" : false, "saved" : true, "uncategorized" : true};
+        this._filterValues.matchType = "all";
+        this._filterValues.geneStatus = "all";
+        this._filterValues.serverId = "";
+        this._filterValues.externalId = "";
+        this._filterValues.email = "";
+        this._filterValues.geneSymbol = "";
+
+        $$('input[name="status-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.matchStatus[event.currentTarget.value] = event.currentTarget.checked;
+                this._update(this._advancedFilter);
             }.bind(this));
+        }.bind(this));
 
-            return ids;
-        },
+        $('gene-status-filter').on('change', function(event) {
+            this._filterValues.geneStatus = event.currentTarget.value;
+            this._update(this._advancedFilter);
+        }.bind(this));
 
-        setState : function(matchIds, state)
-        {
-            var strMatchIds = String(matchIds).split(",");
-            var matchesToSet = $.grep(this._matches, function(match) {
-                var curIds = String(match.id).split(",");
-                if (strMatchIds.length < curIds.length) {
-                    return this._listIsSubset(strMatchIds, curIds);
+        $('matches-type-filter').on('change', function(event) {
+            this._filterValues.matchType = event.currentTarget.value;
+            this._update(this._advancedFilter);
+        }.bind(this));
+
+        $$('input[name="access-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                if (event.currentTarget.value == "owner") {
+                    this._filterValues.matchAccess["owner"]  = event.currentTarget.checked;
                 } else {
-                    return this._listIsSubset(curIds, strMatchIds);
+                    this._filterValues.matchAccess["edit"]   = event.currentTarget.checked;
+                    this._filterValues.matchAccess["manage"] = event.currentTarget.checked;
+                    this._filterValues.matchAccess["view"]   = event.currentTarget.checked;
                 }
+                this._update(this._advancedFilter);
             }.bind(this));
+        }.bind(this));
 
-            $.each(matchesToSet, function(index, match) {
-                if (state.hasOwnProperty('notified')) {
-                    match.notified = state.notified;
-                }
-                if (state.hasOwnProperty('notify')) {
-                    match.notify = state.notify;
-                }
-                if (state.hasOwnProperty('status')) {
-                    match.status = state.status;
-                }
-                // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
-            }.bind(this))
-        },
+        $('server-id-filter').on('input', function(event) {
+            this._filterValues.serverId = event.currentTarget.value.toLowerCase();
+            this._update(this._advancedFilter);
+        }.bind(this));
 
-        //////////////////
+        $('external-id-filter').on('input', function(event) {
+            this._filterValues.externalId = event.currentTarget.value.toLowerCase();
+            this._update(this._advancedFilter);
+        }.bind(this));
 
-        // Return true if all elements of the first list are found in the second
-        _listIsSubset : function(first, second)
-        {
-            for (var i = 0; i < first.length; i++) {
-                if ($.inArray(first[i], second) == -1) {
-                    return false;
-                }
-            }
-            return true;
-        },
+        $('email-filter').on('input', function(event) {
+            this._filterValues.email = event.currentTarget.value.toLowerCase();
+            this._update(this._advancedFilter);
+        }.bind(this));
 
-        _formatMatches : function()
-        {
-            this._matches.each(function (match, index)
-            {
-                // add field for match row index
-                match.rowIndex = index;
+        $('gene-symbol-filter').on('input', function(event) {
+            this._filterValues.geneSymbol = event.currentTarget.value.toLowerCase();
+            this._update(this._advancedFilter);
+        }.bind(this));
 
-                // to-notify flag
-                match.notify = match.notify || false;
+        $('global-search-input').on('input', function(event) {
+            this._filterValues.globalFilter = event.currentTarget.value.toLowerCase();
+            this._update(this._globalFilter);
+        }.bind(this));
 
-                // validation flag
-                match.status = match.status || '';
+        this._globalFilter = function (match) {
+            return ( match.matched.patientId.toLowerCase().includes(this._filterValues.globalFilter) // filter by search input in patient ID, external ID and emails
+             || match.reference.patientId.toLowerCase().includes(this._filterValues.globalFilter)
+             || match.matched.externalId.toLowerCase().includes(this._filterValues.globalFilter)
+             || match.reference.externalId.toLowerCase().includes(this._filterValues.globalFilter)
+             || match.matched.emails.toString().toLowerCase().includes(this._filterValues.globalFilter)
+             || match.reference.emails.toString().toLowerCase().includes(this._filterValues.globalFilter)
+             || match.matched.genes.toString().toLowerCase().includes(this._filterValues.globalFilter)
+             || match.reference.genes.toString().toLowerCase().includes(this._filterValues.globalFilter)
+             || match.matched.serverId.toLowerCase().includes(this._filterValues.globalFilter)
+             || match.reference.serverId.toLowerCase().includes(this._filterValues.globalFilter) )
+             && ( this._filterValues.matchAccess[match.matched.access] || this._filterValues.matchAccess[match.reference.access] ) // by match access type (owned or shares cases for non admin users)
+             && match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1 // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
+             && this._filterValues.matchStatus[match.status]; // by match status (rejected, saved, uncategorized)
+        }.bind(this);
 
-                // for serverId search
-                match.matched.serverId = match.matched.serverId || '';
-                match.reference.serverId = match.reference.serverId || '';
+        this._advancedFilter = function (match) {
+            var hasExternalIdMatch = match.matched.patientId.toLowerCase().includes(this._filterValues.externalId) // filter by search input in patient ID, external ID and emails
+                || match.reference.patientId.toLowerCase().includes(this._filterValues.externalId)
+                || match.matched.externalId.toLowerCase().includes(this._filterValues.externalId)
+                || match.reference.externalId.toLowerCase().includes(this._filterValues.externalId);
+            var hasEmailMatch = match.matched.emails.toString().toLowerCase().includes(this._filterValues.email)
+                || match.reference.emails.toString().toLowerCase().includes(this._filterValues.email);
+            var hasGeneSymbolMatch = match.matched.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol)
+                || match.reference.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol);
+            var hasServerIdMatch = match.matched.serverId.toLowerCase().includes(this._filterValues.serverId)
+                || match.reference.serverId.toLowerCase().includes(this._filterValues.serverId);
+            // by match access type (owned or shares cases for non admin users)
+            var hasAccessTypeMath = this._filterValues.matchAccess[match.matched.access]
+                || this._filterValues.matchAccess[match.reference.access];
+            // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
+            var hsGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
+            // by match status (rejected, saved, uncategorized)
+            var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
 
-                // scores
-                match.score = this._roundScore(match.score);
-                match.phenotypicScore = this._roundScore(match.phenotypicScore);
-                match.genotypicScore = this._roundScore(match.genotypicScore);
+            return  hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasServerIdMatch && hasAccessTypeMath && hasMatchStatusMatch;
+        }.bind(this);
+    },
 
-                // emails
-                match.reference.emails = this._formatEmails(match.reference.emails);
-                match.matched.emails = this._formatEmails(match.matched.emails);
+    _sendNotification : function()
+    {
+        this._notifier._sendNotification(this._matches);
+    },
 
-                // build array of types of genes matches for future faster filtering
-                // possible types:  ["solved_solved", "solved_candidate", "candidate_solved", "candidate_candidate"]
-                // FUTURE: more possible values, ex. "candidate_exome"
-                match.matchingGenesTypes = this._buildMatchingGenesTypes(match);
-            }.bind(this));
-        },
-
-        _buildMatchingGenesTypes : function(match) {
-            var matchedGenesTypes = [];
-            matchedGenesTypes.push('all'); // for showing all types if 'all' selected
-            if (match.genotypicScore > 0 && match.matched.genes.size() > 0 && match.reference.genes.size() > 0) {
-                var status1 = match.matched.genesStatus ? match.matched.genesStatus : "candidate";
-                var status2 = match.reference.genesStatus ? match.reference.genesStatus : "candidate";
-                matchedGenesTypes.push(status1 + '_' + status2);
-                matchedGenesTypes.push(status2 + '_' + status1);
-                if (match.matched.hasExomeData || match.reference.hasExomeData) {
-                    matchedGenesTypes.push('has_exome');
-                }
-            }
-            // remove possible repetitions
-            return matchedGenesTypes.uniq();
-        },
-
-        _formatEmails : function(emails) {
-            if (emails.length == 0) {
-                return "-";
+    _toggleFilters : function (filtersElt, forceHide) {
+        if (filtersElt) {
+            filtersElt.toggleClassName('collapsed', forceHide);
+            filtersElt.up('.xwiki-livetable-container').toggleClassName('hidden-filters', forceHide);
+            var key = this._utils._getCookieKey(filtersElt.up('.entity-directory').id);
+            if (filtersElt.hasClassName('collapsed')) {
+                XWiki.cookies.create(key, 'hidden', '');
             } else {
-                return emails;
+                XWiki.cookies.erase(key);
             }
-        },
+        }
+    },
 
-        _roundScore : function(score)
-        {
-            return Math.floor(Number(score) * 100) / 100;
-        },
-
-        _rowWriter : function(rowIndex, record, columns, cellWriter)
-        {
-            var trClass = record.status ? record.status : '';
-            switch(record.status) {
-                case 'success':
-                    trClass += ' succeed';
-                    break;
-                case 'failure':
-                    trClass += ' failed';
-                    break;
-            }
-            var tr = '<tr id="row-' + record.rowIndex + '" data-matchid="' + record.id + '" class="' + trClass + '">';
-
-            // For each column in table, get record's attribute, or formatted element
-            columns.each(function( column, index) {
-                switch(column.id) {
-                    case 'notification':
-                        tr += this._getNotificationTd(record, 'notifyTd');
-                        break;
-                    case 'status':
-                        tr += this._getStatusTd(record);
-                        break;
-                    case 'referencePatient':
-                        tr += this._getPatientDetailsTd(record.reference, 'referencePatientTd', record.id);
-                        break;
-                    case 'matchedPatient':
-                        tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
-                        break;
-                    case 'referenceEmails':
-                        tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId);
-                        break;
-                    case 'matchedEmails':
-                        tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId);
-                        break;
-                    default:
-                        tr += cellWriter(columns[index], record);
-                        break;
-                }
+    _initiateEmailColumnsBehaviur : function()
+    {
+        this.CollapseEmails = {"referenceEmails" : true, "matchedEmails" : true};
+        this._tableElement.select('th .collapse-marker').each(function (elm) {
+            elm.on('click', function(event) {
+                var trigger = event.element();
+                var columnName = trigger.up().dataset.column;
+                var hide = trigger.hasClassName('fa-angle-double-left');
+                this.CollapseEmails[columnName] = hide;
+                trigger.toggleClassName('fa-angle-double-left');
+                trigger.toggleClassName('fa-angle-double-right');
+                this._tableElement.select('td[name="' + columnName + '"] div[name="notification-email-long"]').each(function (email) {
+                    hide ? email.hide() : email.show();
+                });
+                this._tableElement.select('td[name="' + columnName + '"] div[name="notification-email-short"]').each(function (email) {
+                    hide ? email.show() : email.hide();
+                });
             }.bind(this));
+        }.bind(this));
+    },
 
-            tr += '</tr>';
+    _showMatches : function()
+    {
+        this._utils.clearHint('show-matches-messages');
+        this._cachedMatches = [];
+        this._matches = [];
 
-            return tr;
-        },
+        var options = this._generateOptions();
+        if (!options) return;
 
-        _getNotificationTd : function(record, tdId)
-        {
-            return '<td><input  id="' + tdId + '" type="checkbox" class="notify" data-matchid="' + record.id + '" ' + (record.notify ? 'checked ' : '') + '/></td>';
-        },
+        new Ajax.Request(this._ajaxURL + 'show-matches', {
+            contentType:'application/json',
+            parameters : options,
+            onCreate : function () { $("panels-livetable-ajax-loader" ).show(); },
+            onSuccess : function (response) {
+                if (response.responseJSON) {
+                    //this._utils.showReplyReceived('show-matches-messages');
 
-        _getStatusTd : function(record)
-        {
-            return '<td>'
-            + '<select class="status" data-matchid="' + record.id +'">'
-            + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
-            + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>saved</option>'
-            + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>rejected</option>'
-            + '</select></td>';
-        },
+                    console.log("Show matches response JSON (min scores: " + options.score + "/" + options.phenScore + "/" + options.genScore + "):");
+                    console.log(response.responseJSON);
 
-        _simpleCellWriter : function(value)
-        {
-            return '<td style="text-align: left">' + value + '</td>';
-        },
-
-        _getPatientDetailsTd : function(patient, tdId, matchId)
-        {
-            var td = '<td id="' + tdId + '">';
-            var externalId = (!this._isBlank(patient.externalId)) ? " : " + patient.externalId : '';
-            // Patient id and collapsible icon
-            td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
-            if (patient.serverId == '') { // local patient
-                var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
-                td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
-            } else { // remote patient
-                // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
-                td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
-            }
-            td += '</div>';
-
-            // Collapsible div
-            td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
-
-            td += this._getAgeOfOnset(patient.age_of_onset);
-            td += this._getModeOfInheritance(patient.mode_of_inheritance);
-            td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
-            td += this._getPhenotypesDiv(patient.phenotypes);
-
-            // End collapsible div
-            td += '</div>';
-
-            td += '</td>';
-            return td;
-        },
-
-        _getGenesDiv : function(genes, hasExomeData, genesStatus)
-        {
-            var td = '<div class="genes-div">';
-            var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
-            var genesTitle = 'Genes';
-            if (genes.size() == 0) {
-                genesTitle += ': -';
-            } else {
-                genesTitle += ' ' + statusStr +':';
-            }
-            td += '<p class="subtitle">' + genesTitle + '</p>';
-            if (hasExomeData) {
-                td += '<p class="subtitle">* Exome data present</p>';
-            }
-            if (genes.size() != 0) {
-                td += '<ul>';
-                for (var i = 0 ; i < genes.size() ; i++) {
-                    var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
-                    td += '<li>' + gene + '</li>';
+                    if (response.responseJSON.hasOwnProperty("results")) {
+                        var matches = response.responseJSON;
+                        this._cachedMatches = JSON.parse(JSON.stringify(matches.results));
+                        this._formatMatches();
+                    }
+                } else {
+                    this._utils.showFailure('show-matches-messages');
                 }
-                td += '</ul>';
-            }
-            td += '</div>';
-            return td;
-        },
+            }.bind(this),
+            onFailure : function (response) {
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this),
+            onComplete : function () {
+                this._update(this._advancedFilter);
+                $("panels-livetable-ajax-loader" ).hide();
+            }.bind(this)
+        });
+    },
 
-        _getPhenotypesDiv : function(phenotypes)
-        {
-            var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
+    // Generate options for matches search AJAX request
+    _generateOptions : function()
+    {
+        var score = this._utils.validateScore('show-matches-score', 'show-matches-messages');
+        var phenScore = this._utils.validateScore('show-matches-phen-score', 'show-matches-messages');
+        var genScore = this._utils.validateScore('show-matches-gen-score', 'show-matches-messages');
+        if (score == undefined || phenScore == undefined || genScore == undefined) {
+            return;
+        }
 
-            var td = '<div class="phenotypes-div">';
-            var phenotypesTitle = 'Phenotypes:';
-            if (empty) {
-                phenotypesTitle += ' -';
-            }
-            td += '<p class="subtitle">' + phenotypesTitle + '</p>';
-            if (!empty) {
-                td += '<ul>';
-                td += this._addPhenotypes(phenotypes.predefined, false);
-                td += this._addPhenotypes(phenotypes.freeText, true);
-                td += '</ul>';
-            }
-            td += '</div>';
-            return td;
-        },
+        var options = {'score'      : score,
+                       'phenScore'  : phenScore,
+                       'genScore'   : genScore,
+                       'notified'   : $('notified-matches').checked};
+        return options;
+    },
 
-        _addPhenotypes : function(phenotypesArray, asFreeText)
-        {
-            var td = '';
-            for (var i = 0 ; i < phenotypesArray.size() ; i++) {
-                var observed = phenotypesArray[i].observed != "no";
-                td += '<li>'
-                if (asFreeText) {
-                    td += '<div>';
-                    td += '<span class="fa fa-exclamation-triangle" title="$services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype')"/> ';
-                }
-                td += (!observed ? 'NO ' : '') + phenotypesArray[i].name;
-                if (asFreeText) {
-                    td += '</div>';
-                }
-                td += '</li>';
-            }
-            return td;
-        },
+    // params:
+    // filter - Filter function to apply to matches
+    _update : function(filter)
+    {
+        var tableBody = this._tableElement.down('tbody');
+        tableBody.update('');
 
-        _getAgeOfOnset(age_of_onset)
-        {
-            var td = '<div class="age-of-onset-div">';
-
-            var aooTitle = 'Age of onset: ';
-            if (age_of_onset == '' || age_of_onset == undefined) {
-                aooTitle += ' -';
-            }
-            td += '<p class="subtitle">' + aooTitle + '</p>';
-            if (age_of_onset) {
-                td += '<ul><li>' + age_of_onset + '</li></ul>';
-            }
-            td += '</div>';
-            return td;
-        },
-
-        _getModeOfInheritance(mode_of_inheritance)
-        {
-            var td = '<div class="mode-of-inheritance-div">';
-            var moiTitle = 'Mode of inheritance: ';
-            if (mode_of_inheritance.size() == 0) {
-                moiTitle += ' -';
-            }
-            td += '<p class="subtitle">' + moiTitle + '</p>';
-            if (mode_of_inheritance.size() != 0) {
-                td += '<ul>';
-                for (var i = 0 ; i < mode_of_inheritance.size() ; i++) {
-                    td += '<li>' + mode_of_inheritance[i] + '</li>';
-                }
-                td += '</ul>';
-            }
-            td += '</div>';
-            return td;
-        },
-
-        _getEmailsTd : function(emails, patientId, matchId, serverId)
-        {
-            var td = '<td>';
-            for (var i=0; i<emails.length; i++) {
-                var email = emails[i]
-                if (email.indexOf("://") > -1) {
-                    email = email.split('/')[2];
-                    email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
-                }
-                td += '<div>' + email + '</div>';
-            }
-            if (serverId == '') { // add notification checkbox for local patient
-                td += '<span class="fa fa-envelope" title="Notify"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
-            }
-            td += '</td>';
-            return td;
-        },
-
-        _buildTable : function()
-        {
-            if (!this._matches) {
+        if (!this._cachedMatches || this._cachedMatches.length == 0) {
+            this.pagination.hide();
+            this.resultsSummary.hide();
+        } else {
+            this._matches = this._cachedMatches.filter( (filter) ? filter : this._advancedFilter);
+            if (!this._matches || this._matches.length == 0) {
                 return;
             }
-            var matchesToUse = $.grep(this._matches, this._filter || function(match) {return match});
 
-            if (this._tableBuilt) {
-                var table = this._tableElement.data('dynatable');
-                table.settings.dataset.originalRecords = matchesToUse;
-                table.process();
-            } else {
-                this._tableElement.dynatable({
-                    dataset: {
-                        records: matchesToUse
-                    },
-                    writers: {
-                        _rowWriter: this._rowWriter.bind(this)
-                    },
-                    features: {
-                        pushState : false,
-                        sort: false
-                    }
-                }).bind('dynatable:afterProcess', this._afterProcessTable.bind(this));
+            this.pagination.show();
+            this.resultsSummary.show();
 
-                // first time needs to be run manually
-                this._afterProcessTable();
-                $('#dynatable-search-matchesTable').hide();
-                $('#dynatable-search-notifiedMatchesTable').hide();
-                // make Show: label translatable
-                $$('.dynatable-per-page-label')[0].innerText = $('#hidden-show-label')[0].value;
-            }
+            this.totalResultsCount = this._matches.length;
+            this.totalPages = Math.ceil(this.totalResultsCount/this._maxResults);
+            this._page = 1;
 
-            this._tableBuilt = true;
-        },
-
-        _afterProcessTable : function()
-        {
-            this._afterProcessTableRegisterCollapisbleDivs();
-            this._afterProcessTablePatientsDivs();
-            this._expandAllClicked();
-
-            this._afterProcessTableNotifyListeners();
-
-            if (this._afterProcessingCallback != undefined) {
-                this._afterProcessingCallback();
-            }
-        },
-
-        _afterProcessTableRegisterCollapisbleDivs : function()
-        {
-            this._tableElement.find('.collapse-gp-tool').on('click', function(event) {
-                this._expandCollapseGP(event.target);
-            }.bind(this));
-        },
-
-        _afterProcessTableNotifyListeners : function()
-        {
-            this._tableElement.find('.notify').on('click', function(event) {
-                this._markToNotify(event.target);
-            }.bind(this));
-        },
-
-        _afterProcessTablePatientsDivs : function()
-        {
-            var referenceTh = $(this._tableElement.find('[data-dynatable-column="referencePatient"]')[0]);
-            var matchedTh = $(this._tableElement.find('[data-dynatable-column="matchedPatient"]')[0]);
-            var w = Math.max(referenceTh.width(), matchedTh.width());
-            referenceTh.width(w);
-            matchedTh.width(w);
-
-            // Makes patient details divs the same height in patient and matched patient columns
-            this._tableElement.find('tbody').find('tr').each(function (index, elm)
-            {
-                var referencePatientTd = $(elm).find('#referencePatientTd');
-                var matchedPatientTd = $(elm).find('#matchedPatientTd');
-
-                var divs = ['.genes-div', '.phenotypes-div', '.age-of-onset-div', '.mode-of-inheritance-div'];
-                $.each(divs, function(key, div_class) {
-                    this._makeSameHeight(referencePatientTd, matchedPatientTd, div_class);
-                }.bind(this));
-            }.bind(this));
-        },
-
-        _makeSameHeight : function(td1, td2, div_class)
-        {
-            var div1 = $(td1).find(div_class);
-            var div2 = $(td2).find(div_class);
-
-            var h = Math.max(div1.height(), div2.height());
-            div1.height(h);
-            div2.height(h);
-        },
-
-        _markToNotify : function(elm)
-        {
-            if ($(elm).attr('id') != 'notifyTd') {
-                // unselect first column checkbox if any of emails checkboxes selected
-                $(elm).closest('tr').find('#notifyTd').prop("checked", false);
-            } else {
-                // select both emails checkboxes if first column checkbox is selected
-                $(elm).closest('tr').find('input[data-patientid]').prop("checked", elm.checked);
-            }
-        },
-
-        // target is the component that was clicked to expand/collapse (this +/- sign).
-        // expand is boolean, when undefined, the value will be understood from target
-        _expandCollapseGP : function(target, expand)
-        {
-            var matchId = $(target).data('matchid');
-
-            // collapse/expand divs
-            this._tableElement.find('[data-matchid="' + matchId + '"].collapse-gp-div').each(function (index, elm) {
-                if (expand == undefined) {
-                    expand = $(elm).hasClass('collapsed');
-                }
-                if (expand) {
-                    $(elm).removeClass("collapsed");
-                } else {
-                    $(elm).addClass("collapsed");
-                }
-            }.bind(this));
-
-            // change display of collapse/display component (+/-)
-            this._tableElement.find('[data-matchid="' + matchId + '"].collapse-gp-tool').each(function (index, elm) {
-                if (expand) {
-                    $(elm).removeClass("fa-plus-square-o");
-                    $(elm).addClass("fa-minus-square-o");
-                } else {
-                    $(elm).removeClass("fa-minus-square-o");
-                    $(elm).addClass("fa-plus-square-o");
-                }
-            }.bind(this));
-        },
-
-        _expandAllClicked : function()
-        {
-            var checkbox = $('#expand_all');
-            var expand = $(checkbox).is(':checked');
-            this._tableElement.find('.collapse-gp-tool').each(function (index, elm) {
-                this._expandCollapseGP(elm, expand);
-            }.bind(this));
-        },
-
-        _filterByGeneStatus : function(event)
-        {
-            if (event && event.target) {
-                this._geneFilterValue = event.target.selectedOptions[0].value;
-            }
             this._buildTable();
-        },
-
-        // searches by substring in patient ID, external ID and emails
-        _filterBySearchInput : function(event)
-        {
-            event.stopPropagation();
-            if (event && event.target) {
-                this._searchFilter = event.target.value;
-                if (this._isBlank(this._searchFilter)) {
-                    this._searchFilter = '';
-                }
-            }
-            this._buildTable();
-        },
-
-        _filterByAccess : function(event) {
-            if (event && event.target && event.target.id) {
-                this._showMatchAccessTypes[event.target.id] = !event.target.checked;
-            }
-            this._buildTable();
-        },
-
-        _filterByMatchStatus : function(event)
-        {
-            if (event && event.target && event.target.id) {
-                this._showMatchTypes[event.target.id] = !event.target.checked;
-            }
-            this._buildTable();
-        },
-
-        // checking if a string is blank or contains only white-space
-        _isBlank : function(str)
-        {
-            return (!str || !str.trim());
         }
-    });
-});
+    },
+
+    _buildTable : function()
+    {
+        var tableBody = this._tableElement.down('tbody');
+        tableBody.update('');
+
+        if (!this._matches) {
+            return;
+        }
+
+        var begin = this._maxResults*(this._page - 1);
+        var end = Math.min(this._page*this._maxResults, this.totalResultsCount);
+        var matchesForPage = this._matches.slice(begin, end);
+        this.paginator.refreshPagination(this._maxResults);
+
+        var firstItemRangeNo = begin + 1;
+        var lastItemRangeNo = end;
+        var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + lastItemRangeNo).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
+        this._displaySummary(tableSummary, $('panels-livetable-limits'), true);
+
+        matchesForPage.each( function (match, index) {
+            var tr = this._rowWriter(index, match, this._tableElement.select('.second-header-row th'), this._simpleCellWriter);
+            tableBody.insert(tr);
+        }.bind(this));
+
+        this._afterProcessTable();
+    },
+
+    _displaySummary : function (message, container, isHeader) {
+        var c = container || this._tableElement;
+        var summary = new Element("p", {"class" : "summary"});
+        if (isHeader && this._page) {
+          summary.update(message);
+          new PhenoTips.widgets.MatcherPageSizer(this, summary, null, this._maxResults)
+        } else {
+          summary.update(message);
+        }
+
+        c.update(summary);
+        return summary;
+    },
+
+    _formatMatches : function()
+    {
+        this._cachedMatches.each( function (match, index) {
+            // add field for match row index
+            match.rowIndex = index;
+
+            // validation flag
+            match.status = match.status || '';
+
+            // for serverId search
+            match.matched.serverId = match.matched.serverId || '';
+            match.reference.serverId = match.reference.serverId || '';
+
+            // scores
+            match.score = this._utils._roundScore(match.score);
+            match.phenotypicScore = this._utils._roundScore(match.phenotypicScore);
+            match.genotypicScore = this._utils._roundScore(match.genotypicScore);
+
+            // emails
+            match.reference.emails = this._formatEmails(match.reference.emails);
+            match.matched.emails = this._formatEmails(match.matched.emails);
+
+            // build array of types of genes matches for future faster filtering
+            // possible types:  ["solved_solved", "solved_candidate", "candidate_solved", "candidate_candidate"]
+            // FUTURE: more possible values, ex. "candidate_exome"
+            match.matchingGenesTypes = this._buildMatchingGenesTypes(match);
+        }.bind(this));
+    },
+
+    _buildMatchingGenesTypes : function(match) {
+        var matchedGenesTypes = [];
+        matchedGenesTypes.push('all'); // for showing all types if 'all' selected
+        if (match.genotypicScore > 0 && match.matched.genes.size() > 0 && match.reference.genes.size() > 0) {
+            var status1 = match.matched.genesStatus ? match.matched.genesStatus : "candidate";
+            var status2 = match.reference.genesStatus ? match.reference.genesStatus : "candidate";
+            matchedGenesTypes.push(status1 + '_' + status2);
+            matchedGenesTypes.push(status2 + '_' + status1);
+            if (match.matched.hasExomeData || match.reference.hasExomeData) {
+                matchedGenesTypes.push('has_exome');
+            }
+        }
+        // remove possible repetitions
+        return matchedGenesTypes.uniq();
+    },
+
+    _formatEmails : function(emails) {
+        if (emails.length == 0) {
+            return "-";
+        } else {
+            return emails;
+        }
+    },
+
+    _rowWriter : function(rowIndex, record, columns, cellWriter)
+    {
+        var tr = '<tr id="row-' + record.rowIndex + '" data-matchid="' + record.id + '">';
+
+        // For each column in table, get record's attribute, or formatted element
+        columns.each(function(column, index) {
+            switch(column.dataset.column) {
+                case 'status':
+                    tr += this._getStatusTd(record);
+                    break;
+                case 'referencePatient':
+                    tr += this._getPatientDetailsTd(record.reference, 'referencePatientTd', record.id);
+                    break;
+                case 'matchedPatient':
+                    tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
+                    break;
+                case 'referenceEmails':
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner);
+                    break;
+                case 'matchedEmails':
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner);
+                    break;
+                default:
+                    tr += cellWriter(record[column.dataset.column]);
+                    break;
+            }
+        }.bind(this));
+
+        tr += '</tr>';
+
+        return tr;
+    },
+
+    _getStatusTd : function(record)
+    {
+        if (this._tableElement.down('th[data-column="status"]').hasClassName("hidden")) {
+            return '';
+        }
+        return '<td>'
+        + '<select class="status" data-matchid="' + record.id +'">'
+        + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+        + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
+        + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
+        + '</select></td>';
+    },
+
+    _simpleCellWriter : function(value)
+    {
+        return '<td style="text-align: left">' + value + '</td>';
+    },
+
+    _getPatientDetailsTd : function(patient, tdId, matchId)
+    {
+        var td = '<td id="' + tdId + '">';
+        var externalId = (!this._utils._isBlank(patient.externalId)) ? " : " + patient.externalId : '';
+        // Patient id and collapsible icon
+        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
+        if (patient.serverId == '') { // local patient
+            var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
+            td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
+        } else { // remote patient
+            // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
+            td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
+        }
+        td += '</div>';
+
+        // Collapsible div
+        td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
+
+        td += this._getAgeOfOnset(patient.age_of_onset);
+        td += this._getModeOfInheritance(patient.mode_of_inheritance);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
+        td += this._getPhenotypesDiv(patient.phenotypes);
+
+        // End collapsible div
+        td += '</div>';
+
+        td += '</td>';
+        return td;
+    },
+
+    _getGenesDiv : function(genes, hasExomeData, genesStatus)
+    {
+        var td = '<div class="genes-div">';
+        var statusStr = ((genesStatus) ? '(' + genesStatus + ')': '');
+        var genesTitle = this._GENES;
+        if (genes.size() == 0) {
+            genesTitle += ': -';
+        } else {
+            genesTitle += ' ' + statusStr +':';
+        }
+        td += '<p class="subtitle">' + genesTitle + '</p>';
+        if (hasExomeData) {
+            td += '<p class="subtitle">* ' + this._HAS_EXOME_DATA + '</p>';
+        }
+        if (genes.size() != 0) {
+            td += '<ul>';
+            for (var i = 0 ; i < genes.size() ; i++) {
+                var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
+                td += '<li>' + gene + '</li>';
+            }
+            td += '</ul>';
+        }
+        td += '</div>';
+        return td;
+    },
+
+    _getPhenotypesDiv : function(phenotypes)
+    {
+        var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
+
+        var td = '<div class="phenotypes-div">';
+        var phenotypesTitle = this._PHENOTYPES;
+        if (empty) {
+            phenotypesTitle += ': -';
+        }
+        td += '<p class="subtitle">' + phenotypesTitle + '</p>';
+        if (!empty) {
+            td += '<ul>';
+            td += this._addPhenotypes(phenotypes.predefined, false);
+            td += this._addPhenotypes(phenotypes.freeText, true);
+            td += '</ul>';
+        }
+        td += '</div>';
+        return td;
+    },
+
+    _addPhenotypes : function(phenotypesArray, asFreeText)
+    {
+        var td = '';
+        for (var i = 0 ; i < phenotypesArray.size() ; i++) {
+            var observed = phenotypesArray[i].observed != "no";
+            td += '<li>'
+            if (asFreeText) {
+                td += '<div>';
+                td += '<span class="fa fa-exclamation-triangle" title="' + this._NONE_STANDART_PHENOTYPE + '/> ';
+            }
+
+            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + phenotypesArray[i].name;
+            if (asFreeText) {
+                td += '</div>';
+            }
+            td += '</li>';
+        }
+        return td;
+    },
+
+    _getAgeOfOnset(age_of_onset)
+    {
+        var td = '<div class="age-of-onset-div">';
+
+        var aooTitle = this._AGE_OF_ONSET;
+        if (age_of_onset == '' || age_of_onset == undefined) {
+            aooTitle += ' -';
+        }
+        td += '<p class="subtitle">' + aooTitle + '</p>';
+        if (age_of_onset) {
+            td += '<ul><li>' + age_of_onset + '</li></ul>';
+        }
+        td += '</div>';
+        return td;
+    },
+
+    _getModeOfInheritance(mode_of_inheritance)
+    {
+        var td = '<div class="mode-of-inheritance-div">';
+        var moiTitle = this._MODE_OF_INHERITANCE;
+        if (mode_of_inheritance.size() == 0) {
+            moiTitle += ' -';
+        }
+        td += '<p class="subtitle">' + moiTitle + '</p>';
+        if (mode_of_inheritance.size() != 0) {
+            td += '<ul>';
+            for (var i = 0 ; i < mode_of_inheritance.size() ; i++) {
+                td += '<li>' + mode_of_inheritance[i] + '</li>';
+            }
+            td += '</ul>';
+        }
+        td += '</div>';
+        return td;
+    },
+
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner)
+    {
+        var td = '<td name="' + cellName + '">';
+        for (var i=0; i < emails.length; i++) {
+            if (emails[i].startsWith('mailto:')) {
+                emails[i] = emails[i].replace('mailto:', '').replace(',', ', ');
+            }
+            var email = emails[i]
+            if (email.indexOf("://") > -1) {
+                email = email.split('/')[2];
+                email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
+            }
+            td += '<div name="notification-email-long">' + email + '</div>';
+        }
+        td += '<div name="notification-email-short">' + emails[0].substring(0, 9) + '...' + '</div>';
+
+        // add notification checkbox for local patient but not for self (not for patients owned by logged in user)
+        if (serverId == '' && !isOwner) {
+            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
+        }
+        td += '</td>';
+        return td;
+    },
+
+    _changePageSize: function(newLimit) {
+      this._maxResults = newLimit;
+      this.totalPages = Math.ceil(this.totalResultsCount/this._maxResults);
+      this._page = 1;
+      this._buildTable();
+    },
+
+ // -- AFTER PROCESS TABLE
+
+    _afterProcessTable : function()
+    {
+        this._afterProcessTableRegisterCollapisbleDivs();
+        this._afterProcessTableStatusListeners();
+        this._afterProcessTableCollapseEmails();
+        this._afterProcessTablePatientsDivs();
+    },
+
+    _afterProcessTableStatusListeners : function()
+    {
+        if (this._tableElement.down('.status')) {
+            this._tableElement.down('.status').on('change', this._setMatchesStatus.bind(this));
+        }
+    },
+
+    _afterProcessTableRegisterCollapisbleDivs : function()
+    {
+        this._tableElement.select('.collapse-gp-tool').each(function (elm) {
+            var element = elm;
+            elm.on('click', function(event) {
+                var expand = elm.hasClassName("fa-plus-square-o");
+                this._expandCollapseGP(element, expand);
+            }.bind(this));
+            this._expandCollapseGP(elm, !this._tableCollabsed);
+        }.bind(this));
+    },
+
+    _afterProcessTablePatientsDivs : function()
+    {
+        // Makes patient details divs the same height in patient and matched patient columns
+        this._tableElement.select('tbody tr').each( function (elm, index) {
+            var referencePatientTd = elm.down('#referencePatientTd');
+            var matchedPatientTd = elm.down('#matchedPatientTd');
+
+            var divs = ['.genes-div', '.phenotypes-div', '.age-of-onset-div', '.mode-of-inheritance-div'];
+            divs.each(function(div_class, skey) {
+                this._makeSameHeight(referencePatientTd, matchedPatientTd, div_class);
+            }.bind(this));
+        }.bind(this));
+    },
+
+    _afterProcessTableCollapseEmails : function()
+    {
+        ["referenceEmails", "matchedEmails"].each(function (columnName) {
+            var hide = this.CollapseEmails[columnName];
+            this._tableElement.select('td[name="' + columnName + '"] div[name="notification-email-long"]').each(function (email) {
+                hide ? email.hide() : email.show();
+            });
+            this._tableElement.select('td[name="' + columnName + '"] div[name="notification-email-short"]').each(function (email) {
+                hide ? email.show() : email.hide();
+            });
+        }.bind(this));
+    },
+
+    _makeSameHeight : function(td1, td2, div_class)
+    {
+        var div1 = td1.down(div_class);
+        var div2 = td2.down(div_class);
+
+        var h = Math.max(parseInt(div1.getStyle("height")), parseInt(div2.getStyle("height")));
+        div1.setStyle({"height": h + 'px'});
+        div2.setStyle({"height": h + 'px'});
+    },
+
+    // target is the component that was clicked to expand/collapse (this +/- sign).
+    // expand is boolean, when undefined, the value will be understood from target
+    _expandCollapseGP : function(target, expand)
+    {
+        var matchId = target.dataset.matchid;
+
+        // collapse/expand divs
+        this._tableElement.select('[data-matchid="' + matchId + '"].collapse-gp-div').each(function (elm, index) {
+            (expand) ? elm.show(): elm.hide();
+        }.bind(this));
+
+        // change display of collapse/display component (+/-)
+        this._tableElement.select('[data-matchid="' + matchId + '"].collapse-gp-tool').each(function (elm) {
+            if (expand) {
+                elm.removeClassName("fa-plus-square-o");
+                elm.addClassName("fa-minus-square-o");
+            } else {
+                elm.addClassName("fa-plus-square-o");
+                elm.removeClassName("fa-minus-square-o");
+            }
+        }.bind(this));
+    },
+
+    _expandAllClicked : function(event)
+    {
+        var checkbox = event.element();
+        if (!checkbox) return;
+        this._tableCollabsed = !checkbox.checked;
+        this._tableElement.select('.collapse-gp-tool').each(function (elm) {
+            this._expandCollapseGP(elm, !this._tableCollabsed);
+        }.bind(this));
+    },
+
+//--POST_PROCESS NOTIFICATION
+    _handleNotifiedUpdate: function(event)
+    {
+        this._setState(event.memo.matchIds, event.memo.properties);
+    },
+
+    _setState : function(matchIds, properties)
+    {
+        var strMatchIds = String(matchIds).split(",");
+        var matchesToSet = [];
+        this._matches.each( function(match) {
+            var curIds = String(match.id).split(",");
+            if ( (strMatchIds.length < curIds.length && this._utils._listIsSubset(strMatchIds, curIds))
+                || (strMatchIds.length >= curIds.length && this._utils._listIsSubset(curIds, strMatchIds)) ){
+                    matchesToSet.push(match);
+                }
+        }.bind(this));
+
+        matchesToSet.each( function(match, index) {
+            if (properties.hasOwnProperty('notified')) {
+                match.notified = properties.notified;
+            }
+            if (properties.hasOwnProperty('status')) {
+                match.status = properties.status;
+            }
+            if (properties.hasOwnProperty('state')) {
+                this._tableElement.down('[data-matchid="' + match.id +'"]').addClassName(properties.state);
+            }
+            // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
+        }.bind(this))
+    },
+
+//--SET MATCH STATUS BLOCK --
+
+    // Send request to change match status
+    _setMatchesStatus : function(event)
+    {
+        var target = event.element();
+        if (!target) return;
+        var matchId = String(target.dataset.matchid);
+        var status = target.value;
+        var ids = matchId.split(",");
+
+        new Ajax.Request(this._ajaxURL + 'set-status', {
+            contentType:'application/json',
+            parameters : {'ids'    : ids,
+                          'status' : status
+            },
+            onSuccess : function (response) {
+                var result = response.responseJSON.results;
+                if (results.success) {
+                    this._setState(successfulIds, { 'status': status });
+                } else {
+                    this._setState(successfulIds, { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Setting status `" + status + "` failed for match with id " + results.id);
+                }
+            }.bind(this),
+            onFailure : function (response) {
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
+        });
+    }
+
+   });
+    return PhenoTips;
+}(PhenoTips || {}));

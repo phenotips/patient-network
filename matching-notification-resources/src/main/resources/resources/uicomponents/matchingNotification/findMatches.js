@@ -1,56 +1,55 @@
-require(["jquery",
-         "matchingNotification/utils"],
-        function($, utils)
+require(["matchingNotification/utils"],
+        function(utils)
 {
-    var loadFM = function($, utils) {
-        new PhenoTips.widgets.FindMatches($, utils);
+    var loadFM = function(utils) {
+        new PhenoTips.widgets.FindMatches(utils);
     };
 
-    (XWiki.domIsLoaded && loadFM($, utils)) || document.observe("xwiki:dom:loaded", loadFM.bind(this, $, utils));
+    (XWiki.domIsLoaded && loadFM(utils)) || document.observe("xwiki:dom:loaded", loadFM.bind(this, utils));
 });
 
 var PhenoTips = (function (PhenoTips) {
     var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
     widgets.FindMatches = Class.create({
 
-        initialize : function ($, utils)
+        initialize : function (utils)
         {
-            this._ajaxURL = new XWiki.Document('RequestHandler', 'MatchingNotification').getURL('get') + '?outputSyntax=plain';
-            this._$ = $;
+            this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/find-matches";
 
             this._utils = new utils();
 
-            $('#find-updated-matches-button').on('click', this._findUpdatedMatches.bind(this));
-            $('#find-all-matches-button').on('click', this._findAllMatches.bind(this));
+            $('find-updated-matches-button').on('click', this._findUpdatedMatches.bind(this));
+            $('find-all-matches-button').on('click', this._findAllMatches.bind(this));
         },
 
         _findUpdatedMatches : function() {
-            this._findMatches("find-updated-matches", "find-matches-messages");
+            this._findMatches(true, "find-matches-messages");
         },
 
         _findAllMatches : function() {
-            this._findMatches("find-all-matches", "find-matches-messages");
+            this._findMatches(false, "find-matches-messages");
         },
 
-        _findMatches : function(action, messageContainer)
+        _findMatches : function(onlyCheckPatientsUpdatedAfterLastRun, messageContainer)
         {
             // disable all find matches buttons while matching is running...
-            this._$('.find-matches-button').each( function() { this.disable() } );
+            $$('.find-matches-button').each( function(elm) { elm.disable() } );
 
             var servers = [];
-            this._$('.select-for-update input').each( function(index, elm) {
+            $$('.select-for-update input').each( function(elm) {
                 if (elm.checked) { servers.push(elm.value); }
             } );
 
             if (servers.length == 0) {
-                this._$('.find-matches-button').each( function() { this.enable() } );
+                $$('.find-matches-button').each( function(elm) { elm.enable() } );
                 return;
             }
 
-            var serverIds = JSON.stringify(servers);
-
             new Ajax.Request(this._ajaxURL, {
-                parameters : { "action" : action, "servers" : serverIds },
+            	contentType:'application/json',
+                parameters : { "onlyCheckPatientsUpdatedAfterLastRun" : onlyCheckPatientsUpdatedAfterLastRun,
+                               "serverIds" : servers 
+                },
                 onCreate : function() {
                     this._utils.showHint(messageContainer, "$services.localization.render('phenotips.matching.ajaxutils.requestSent')");
                     }.bind(this),
@@ -62,7 +61,7 @@ var PhenoTips = (function (PhenoTips) {
                     }.bind(this),
                 onComplete: function() {
                     // re-enable buttons
-                    this._$('.find-matches-button').each( function() { this.enable() } );
+                    $$('.find-matches-button').each( function(elm) { elm.enable() } );
                 }.bind(this)
             });
 

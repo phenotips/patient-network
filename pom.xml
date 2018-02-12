@@ -85,6 +85,7 @@
     <module>matching-notification-ui</module>
     <module>matching-notification-api</module>
     <module>matching-notification-migrations</module>
+    <module>matching-notification-rest</module>
   </modules>
 
   <build>
@@ -558,6 +559,17 @@
               <differenceType>7012</differenceType>
               <method>void recordEndMatchesSearch(java.lang.String)</method>
               <justification>Record the completion time of matches search for each server</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientInMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getGenesStatus()</method>
+              <justification>Record the completion time of matches search for each server</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/script/MatchingNotificationScriptService</className>
+              <differenceType>8001</differenceType>
+              <justification>Removing script service in favour of REST service.</justification>
             </difference>
           </ignored>
           <excludes>

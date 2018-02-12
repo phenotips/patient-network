@@ -24,6 +24,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -38,6 +39,9 @@ import org.phenotips.vocabulary.VocabularyTerm;
 import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +73,10 @@ public class DefaultPatientInMatch implements PatientInMatch
     private static final VocabularyManager VOCABULARY_MANAGER;
 
     private static final PermissionsManager PERMISSIONS_MANAGER;
+
+    private static final PatientAccessHelper ACCESS_HELPER;
+
+    private static final UserManager USER_MANAGER;
 
     private static final String GENES = "genes";
 
@@ -105,6 +113,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
         PermissionsManager pm = null;
+        PatientAccessHelper pa = null;
+        UserManager um = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
@@ -112,6 +122,8 @@ public class DefaultPatientInMatch implements PatientInMatch
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
             pm = ccm.getInstance(PermissionsManager.class);
+            pa = ccm.getInstance(PatientAccessHelper.class);
+            um = ccm.getInstance(UserManager.class);
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -120,6 +132,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         PATIENT_REPOSITORY = patientRepository;
         VOCABULARY_MANAGER = vm;
         PERMISSIONS_MANAGER = pm;
+        ACCESS_HELPER = pa;
+        USER_MANAGER = um;
     }
 
     /**
@@ -172,6 +186,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.access != null) {
             json.put("access", this.access.getName());
         }
+        json.put("isOwner", isUserOwner());
 
         // Merge in all items from details column
         JSONObject detailsColumn = this.getDetailsColumnJSON();
@@ -298,6 +313,19 @@ public class DefaultPatientInMatch implements PatientInMatch
         return this.access;
     }
 
+    @Override
+    public String getGenesStatus()
+    {
+        // if the patient is remote, we return false for now
+        if (this.patient == null) {
+            return null;
+        }
+        if (this.genotype == null) {
+            return null;
+        }
+        return this.genotype.getGenesStatus();
+    }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
      * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
@@ -417,5 +445,18 @@ public class DefaultPatientInMatch implements PatientInMatch
         } else {
             this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
         }
+    }
+
+    /**
+     * Checks if current user is owner of one patient.
+     */
+    private boolean isUserOwner()
+    {
+        User user = USER_MANAGER.getCurrentUser();
+        DocumentReference userRef = user.getProfileDocument();
+        if (this.patient != null && userRef.equals(ACCESS_HELPER.getOwner(this.patient).getUser())) {
+            return true;
+        }
+        return false;
     }
 }

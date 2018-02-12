@@ -217,7 +217,7 @@
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
         if (options.enablePagination) {
-          this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), 10);
+          this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), this._maxResults);
           var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
           this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
           this.page = 1;
@@ -343,7 +343,7 @@
         this.refreshButton.down('span').addClassName('fa-refresh');
         this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.refreshMatches'))";
       }
-      if (!data || data.resultsCount &lt;= 0) {
+      if (data.resultsCount &lt;= 0) {
         this.pagination.addClassName('hidden');
         this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noSimilarCases'))");
         return;
