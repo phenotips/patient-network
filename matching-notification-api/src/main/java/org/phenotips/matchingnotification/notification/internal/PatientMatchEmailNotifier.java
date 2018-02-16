@@ -32,9 +32,11 @@ import org.xwiki.mail.MailStatus;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Singleton;
 
@@ -58,12 +60,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         MatchesByPatient mbp = new MatchesByPatient(matches);
         List<PatientMatchEmail> emails = new LinkedList<>();
 
-        List<String> patientIds = new LinkedList<>();
+        Set<String> patientIds = new HashSet<>();
         for (List<String> ids : matchesIds.values()) {
             patientIds.addAll(ids);
         }
-
-        Collections.sort(patientIds);
 
         for (String subjectPatientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
