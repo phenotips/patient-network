@@ -216,13 +216,11 @@
           this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
-        if (options.enablePagination) {
-          this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), this._maxResults);
-          var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
-          this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
-          this.page = 1;
-          this.pagination = $('pagination-similar-cases' + serverSuffix);
-        }
+        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), this._maxResults);
+        var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
+        this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
+        this.page = 1;
+        this.pagination = $('pagination-similar-cases' + serverSuffix);
       }
       this.launchSearchExisting();
 
@@ -303,6 +301,24 @@
     	  case 400:
     	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
     	    break;
+          case 204:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.neverSentMME'))";
+            break;
+          case 409:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantSendThisPatientOverMME'))";
+            break;
+          case 503:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantConnectMME'))";
+            break;
+          case 403:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthorizedMME'))";
+            break;
+          case 415:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unsupportedProtocolMME'))";
+            break;
+          case 406:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.invalidRequestMME'))";
+            break;
     	  case 500:
     	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
     	    break;
@@ -1072,8 +1088,7 @@
         minScore: minScore &amp;&amp; minScore.value,
         mmeServer: mmeServer &amp;&amp; mmeServer.value,
         omimSection: omimSection &amp;&amp; omimSection.value,
-        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value,
-        enablePagination: true
+        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
       });
     });
   };
@@ -1316,7 +1331,7 @@
       var currentMax = (!this.max) ? pages : this.max;
       var currentPage = this.table.page;
       var startPage = Math.floor(currentPage / currentMax) * currentMax - 1;
-      
+
       // always display the first page
       if (startPage&gt;1) {
          this.pagesNode.insert(_this.createPageLink(1, false));
