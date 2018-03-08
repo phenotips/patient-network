@@ -299,7 +299,10 @@ Regards,
 $!{config.name}
 $!{config.email}
 $!{config.groups}
-#end</text>
+#end
+
+
+$services.localization.render('phenotips.matchingNotifications.email.disclaimer')</text>
     </property>
   </object>
   <object>
