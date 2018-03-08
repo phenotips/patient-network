@@ -34,6 +34,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -110,6 +111,25 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
 
     @Override
+    public List<PatientMatch> getMatchesToBePlacedIntoNotificationTable(List<PatientSimilarityView> inputMatches)
+    {
+        List<PatientMatch> matches = new LinkedList<>();
+        for (PatientSimilarityView similarityView : inputMatches) {
+            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+
+            // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
+            // and they break match count calculation if they are included
+            if (match.getReference().getEmails().size() > 0 && CollectionUtils.isEqualCollection(
+                    match.getReference().getEmails(), match.getMatched().getEmails())) {
+                continue;
+            }
+
+            matches.add(match);
+        }
+        return matches;
+    }
+
+    @Override
     public boolean saveLocalMatches(List<PatientMatch> matches, String patientId)
     {
         Session session = this.beginTransaction();
@@ -139,17 +159,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
         return transactionCompleted;
-    }
-
-    @Override
-    public boolean saveLocalMatchesViews(List<PatientSimilarityView> similarPatients, String patientId)
-    {
-        List<PatientMatch> matches = new LinkedList<>();
-        for (PatientSimilarityView similarityView : similarPatients) {
-            PatientMatch match = new DefaultPatientMatch(similarityView, "", "");
-            matches.add(match);
-        }
-        return this.saveLocalMatches(matches, patientId);
     }
 
     @Override

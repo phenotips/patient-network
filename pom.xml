@@ -571,6 +571,12 @@
               <differenceType>8001</differenceType>
               <justification>Removing script service in favour of REST service.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List getMatchesToBePlacedIntoNotificationTable(java.util.List)</method>
+              <justification>New helper method</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

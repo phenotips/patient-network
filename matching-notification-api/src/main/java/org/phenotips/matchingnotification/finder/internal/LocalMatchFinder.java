@@ -21,22 +21,18 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-
-import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @version $Id$
@@ -71,21 +67,10 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     {
         this.logger.debug("Finding local matches for patient {}.", patient.getId());
 
-        List<PatientSimilarityView> similarPatients = this.finder.findSimilarPatients(patient);
+        List<PatientSimilarityView> localMatches = this.finder.findSimilarPatients(patient);
 
-        List<PatientMatch> matches = new LinkedList<>();
-        for (PatientSimilarityView similarityView : similarPatients) {
-            PatientMatch match = new DefaultPatientMatch(similarityView, null, null);
+        List<PatientMatch> matches = this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(localMatches);
 
-            // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
-            // and they break match count calculation if they are included
-            if (match.getReference().getEmails().size() > 0 && CollectionUtils.isEqualCollection(
-                    match.getReference().getEmails(), match.getMatched().getEmails())) {
-                continue;
-            }
-
-            matches.add(match);
-        }
         this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
         matchesList.addAll(matches);
