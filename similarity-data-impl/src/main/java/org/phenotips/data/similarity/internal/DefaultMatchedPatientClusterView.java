@@ -22,6 +22,7 @@ import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,17 +50,13 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
 
     private static final String RETURNED_SIZE_LABEL = "returnedCount";
 
-    private static final String OWNER_LABEL = "owner";
-
-    private static final String EMAIL_LABEL = "email";
-
     private static final String OFFSET_LABEL = "offset";
 
     /** @see #getReference(). */
     private final Patient reference;
 
     /** @see #getMatches(). */
-    private final List<PatientSimilarityView> matches;
+    private final List<? extends PatientSimilarityView> matches;
 
     /**
      * Default constructor that takes in a reference {@code patient}, and its {@code matches}.
@@ -69,11 +66,23 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
      */
     public DefaultMatchedPatientClusterView(
         @Nonnull final Patient patient,
-        @Nullable final List<PatientSimilarityView> matches)
+        @Nullable final List<? extends PatientSimilarityView> matches)
     {
         Validate.notNull(patient, "The reference patient should not be null.");
         this.reference = patient;
         this.matches = CollectionUtils.isNotEmpty(matches) ? matches : Collections.<PatientSimilarityView>emptyList();
+
+        // Sort by score
+        Collections.sort(this.matches, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
+            {
+                double score1 = o1.getScore();
+                double score2 = o2.getScore();
+                return (int) Math.signum(score2 - score1);
+            }
+        });
     }
 
     @Override
@@ -97,21 +106,22 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
     @Override
     public JSONObject toJSON()
     {
-        final int size = size() == 0 ? 0 : size() - 1;
-        return toJSON(0, size);
+        return toJSON(0, size());
     }
 
     @Override
-    public JSONObject toJSON(final int fromIndex, final int toIndex)
-        throws IndexOutOfBoundsException, IllegalArgumentException
+    public JSONObject toJSON(final int fromIndex, final int maxResults)
+        throws IndexOutOfBoundsException
     {
-        if (toIndex < fromIndex) {
-            throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
+        if (fromIndex < 0) {
+            throw new IndexOutOfBoundsException("fromIndex(" + fromIndex + ") < 0");
+        }
+        // always allow fromIndex of 0, otherwise do not allow index greater than the last element
+        if (fromIndex > 0 && fromIndex >= size()) {
+            throw new IndexOutOfBoundsException("fromIndex(" + fromIndex + ") > numMatches(" + size() + ")");
         }
         final JSONObject referenceJson = this.reference.toJSON();
-        final JSONArray matchesJson = convertEmpty(fromIndex, toIndex)
-            ? new JSONArray()
-            : buildMatchesJSONArray(fromIndex, toIndex);
+        final JSONArray matchesJson = buildMatchesJSONArray(fromIndex, maxResults);
         return new JSONObject()
             .put(QUERY_LABEL, referenceJson)
             .put(TOTAL_SIZE_LABEL, size())
@@ -121,29 +131,19 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
     }
 
     /**
-     * Returns true iff there are no matches, and this empty data set should be converted to JSON.
-     *
-     * @param fromIndex the starting index for match to convert (inclusive, zero-based)
-     * @param toIndex the last index for match to convert (inclusive, zero-based)
-     * @return true iff there are no matches, but the empty {@link #getMatches()} should be converted to JSON
-     */
-    private boolean convertEmpty(final int fromIndex, final int toIndex)
-    {
-        return size() == 0 && fromIndex == 0 && toIndex == 0;
-    }
-
-    /**
      * Builds a JSON representation of {@link #getMatches()}.
      *
      * @param fromIndex the starting index for match to convert (inclusive, zero-based)
      * @param toIndex the last index for match to convert (inclusive, zero-based)
      * @return a {@link JSONArray} of {@link #getMatches()}
      */
-    private JSONArray buildMatchesJSONArray(final int fromIndex, final int toIndex)
+    private JSONArray buildMatchesJSONArray(final int fromIndex, final int maxResults)
     {
         final JSONArray matchesJson = new JSONArray();
 
-        for (int i = fromIndex; i <= toIndex; i++) {
+        final int toIndex = (maxResults < 0) ? size() : Math.min(size(), fromIndex + maxResults);
+
+        for (int i = fromIndex; i < toIndex; i++) {
             final JSONObject matchJson = this.matches.get(i).toJSON();
             matchesJson.put(matchJson);
         }

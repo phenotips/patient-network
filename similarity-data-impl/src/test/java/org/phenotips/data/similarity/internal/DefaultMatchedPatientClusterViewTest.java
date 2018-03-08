@@ -206,16 +206,17 @@ public class DefaultMatchedPatientClusterViewTest
         this.matches.toJSON(-1, 3);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void toJSONThrowsExceptionIfToIndexIsGreaterThanFromIndex()
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void toJSONThrowsExceptionIfFromIndexIsGreaterThanNumberOfRecords()
     {
-        this.matches.toJSON(3, 0);
+        this.matches.toJSON(100, 1);
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
-    public void toJSONThrowsExceptionIfToIndexInvalid()
+    @Test
+    public void toJSONWorksOkIfMaxRecordsIsLargerThanNumberOfRecords()
     {
-        this.matches.toJSON(1, 20);
+        final JSONObject result = this.matches.toJSON(0, 100);
+        Assert.assertEquals(result.getJSONArray(RESULTS_LABEL).length(), 5);
     }
 
     @Test

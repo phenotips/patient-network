@@ -71,12 +71,13 @@ public interface MatchedPatientClusterView
      * {@link IndexOutOfBoundsException} if one or both indices are out of bounds, and {@link IllegalArgumentException}
      * if {@code fromIndex > toIndex}.
      *
-     * @param fromIndex the starting position
-     * @param toIndex the end position (inclusive)
+     * @param fromIndex the starting position (zero-based)
+     * @param maxResults maximum number of results to return (if there are less items left starting from fromIndex
+     *         then all will be returned, if there are >= than maxResults results, then maxResults will be returned)
      * @return a {@link JSONObject} containing the requested subset of data from the {@link #getReference() reference
      *         patient} and its {@link #getMatches() matches}
-     * @throws IndexOutOfBoundsException if (<tt>fromIndex &lt; 0 || toIndex &gt;= {@link #size()}
-     * @throws IllegalArgumentException if fromIndex &gt; toIndex</tt>)
+     * @throws IndexOutOfBoundsException if
+     *         (<tt>fromIndex &lt; 0 || (fromIndex &gt; 0 &amp;&amp; fromIndex &gt;= {@link #size()}</tt>)
      */
-    JSONObject toJSON(int fromIndex, int toIndex) throws IndexOutOfBoundsException, IllegalArgumentException;
+    JSONObject toJSON(int fromIndex, int maxResults) throws IndexOutOfBoundsException;
 }
