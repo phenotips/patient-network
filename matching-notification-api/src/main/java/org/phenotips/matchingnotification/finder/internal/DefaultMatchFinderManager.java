@@ -59,9 +59,13 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     @Override
     public void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
+        this.logger.error("Finding matches for all patients for servers [{}] (only updated patients: [{}])",
+                serverIds.toString(), onlyCheckPatientsUpdatedAfterLastRun);
+
         List<String> patients = this.getPatientsList();
 
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
+            this.logger.debug("Starting matchFinder with priority = [{}]", matchFinder.getPriority());
             matchFinder.findMatches(patients, serverIds, onlyCheckPatientsUpdatedAfterLastRun);
         }
     }

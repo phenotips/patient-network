@@ -14,7 +14,7 @@ var PhenoTips = (function (PhenoTips) {
 
         initialize : function (utils)
         {
-            this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/find-matches";
+            this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/refresh-matches";
 
             this._utils = new utils();
 

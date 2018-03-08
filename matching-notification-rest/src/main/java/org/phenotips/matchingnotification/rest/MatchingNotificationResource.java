@@ -47,17 +47,22 @@ import javax.ws.rs.core.Response;
 public interface MatchingNotificationResource
 {
     /**
-     * Finds all matches between all (matchable) local patients or for selected remote servers. Matches will be stored
-     * in the matching notification table.
+     * Finds matches for all (eligible) local patients on the selected servers (local matches or MME matches).
+     *
+     * Different servers may have different "matching eligibility" criteria, e.g. a patient may have to be "matchable",
+     * and/or a "matchable" consent should be granted, etc.
+     *
+     * All matches will be stored in the matching notification table (if a match between the same two patients
+     * is already in the table, it will be replaced by the new match, in effect "refreshing" the match).
      *
      * @param serverIds list or server IDs selected for matches search
-     * @param onlyCheckPatientsUpdatedAfterLastRun if true, only patients which have been modified after the last time
-     *            local matcher was run will be tested for matches
+     * @param onlyCheckPatientsUpdatedAfterLastRun if true, for each server only local patients which have been
+     *            modified after the last time this refresh was run for that server will be tested for matches
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/find-matches")
-    void findMatches(
+    @Path("/refresh-matches")
+    void refreshMatches(
         @FormParam("serverIds") Set<String> serverIds,
         @FormParam("onlyCheckPatientsUpdatedAfterLastRun")
         @DefaultValue("false") boolean onlyCheckPatientsUpdatedAfterLastRun);

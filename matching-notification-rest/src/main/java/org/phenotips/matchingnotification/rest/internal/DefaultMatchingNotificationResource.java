@@ -131,7 +131,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     private AccessLevel viewAccess;
 
     @Override
-    public void findMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
+    public void refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
         this.matchFinderManager.findMatchesForAllPatients(serverIds, onlyCheckPatientsUpdatedAfterLastRun);
     }
