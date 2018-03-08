@@ -22,7 +22,6 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
 import org.phenotips.similarity.SimilarPatientsFinder;
-
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.container.Container;
@@ -176,71 +175,71 @@ public class DefaultPatientMatchResourceTest
     }
 
     @Test
-    public void findMatchingPatientsNullReferenceReturnsBadRequest()
+    public void findMatchesForPatientNullReferenceReturnsBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        final Response response = this.component.findMatchingPatients(null);
+        final Response response = this.component.findMatchesForPatient(null);
         verify(this.logger).error("No reference patient ID was provided.");
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsEmptyReferenceReturnsBadRequest()
+    public void findMatchesForPatientEmptyReferenceReturnsBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        final Response response = this.component.findMatchingPatients(StringUtils.EMPTY);
+        final Response response = this.component.findMatchesForPatient(StringUtils.EMPTY);
         verify(this.logger).error("No reference patient ID was provided.");
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsBlankReferenceReturnsBadRequest()
+    public void findMatchesForPatientBlankReferenceReturnsBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        final Response response = this.component.findMatchingPatients(StringUtils.SPACE);
+        final Response response = this.component.findMatchesForPatient(StringUtils.SPACE);
         verify(this.logger).error("No reference patient ID was provided.");
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsPatientDoesNotExistResultsInBadRequest()
+    public void findMatchesForPatientPatientDoesNotExistResultsInBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
         when(this.repository.get(REFERENCE)).thenReturn(null);
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         verify(this.logger).error("Patient with ID: {} could not be found.", REFERENCE);
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsUserNotAuthorizedToSeeReferencePatientResultsInNotAuthorized()
+    public void findMatchesForPatientUserNotAuthorizedToSeeReferencePatientResultsInNotAuthorized()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
         when(this.repository.get(REFERENCE)).thenThrow(new SecurityException(UNAUTHORIZED_MSG));
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         verify(this.logger).error("Failed to retrieve patient with ID [{}]: {}", REFERENCE, UNAUTHORIZED_MSG);
         Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsNoMatchesFoundResultsInEmptyValidResponse()
+    public void findMatchesForPatientNoMatchesFoundResultsInEmptyValidResponse()
     {
         final List<PatientSimilarityView> matches = Collections.emptyList();
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
         when(this.similarPatientsFinder.findSimilarPatients(this.reference)).thenReturn(matches);
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         final JSONObject expected = new JSONObject()
             .put(QUERY, new JSONObject()
                 .put(ID, REFERENCE))
@@ -254,77 +253,77 @@ public class DefaultPatientMatchResourceTest
     }
 
     @Test
-    public void findMatchingPatientsLessThanOneOffsetResultsInBadRequest()
+    public void findMatchesForPatientLessThanOneOffsetResultsInBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("-1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         verify(this.logger).error("The requested offset is out of bounds: {}", -1);
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsTooLargeOffsetResultsInBadRequest()
+    public void findMatchesForPatientTooLargeOffsetResultsInBadRequest()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("60");
         when(this.request.getProperty(LIMIT)).thenReturn("80");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         verify(this.logger).error("The requested offset is out of bounds: {}", 60);
         Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
-    public void findMatchingPatientsOffsetNullDefaultsToOne()
+    public void findMatchesForPatientOffsetNullDefaultsToOne()
     {
         when(this.request.getProperty(OFFSET)).thenReturn(null);
         when(this.request.getProperty(LIMIT)).thenReturn("80");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(this.expectedAll.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsLimitNullDefaultsToNegativeOne()
+    public void findMatchesForPatientLimitNullDefaultsToNegativeOne()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn(null);
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(this.expectedAll.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsReqNoNullDefaultsToOne()
+    public void findMatchesForPatientReqNoNullDefaultsToOne()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn(null);
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(this.expectedAll.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsLimitBiggerThanMatchesNumberReturnsAllMatchesFromOffset()
+    public void findMatchesForPatientLimitBiggerThanMatchesNumberReturnsAllMatchesFromOffset()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("80");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(this.expectedAll.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsLimitNegativeReturnsAllMatchesFromOffset()
+    public void findMatchesForPatientLimitNegativeReturnsAllMatchesFromOffset()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("2");
         when(this.request.getProperty(LIMIT)).thenReturn("-1");
@@ -340,13 +339,13 @@ public class DefaultPatientMatchResourceTest
                 .put(this.match2.toJSON())
                 .put(this.match3.toJSON()));
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(expected.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsLimitLessThanLastResultReturnsCorrectSubset()
+    public void findMatchesForPatientLimitLessThanLastResultReturnsCorrectSubset()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("2");
         when(this.request.getProperty(LIMIT)).thenReturn("1");
@@ -361,20 +360,20 @@ public class DefaultPatientMatchResourceTest
             .put(RESULTS, new JSONArray()
                 .put(this.match2.toJSON()));
 
-        final Response response = this.component.findMatchingPatients(REFERENCE);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assert.assertTrue(expected.similar(response.getEntity()));
     }
 
     @Test
-    public void findMatchingPatientsUnexpectedExceptionIsThrown()
+    public void findMatchesForPatientUnexpectedExceptionIsThrown()
     {
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
         when(this.repository.get(REFERENCE)).thenThrow(new UnexpectedException(UNEXPECTED_MSG));
-        final Response response = this.component.findMatchingPatients(REFERENCE);
-        verify(this.logger).error("Unexpected exception while generating matches JSON: {}", UNEXPECTED_MSG);
+        final Response response = this.component.findMatchesForPatient(REFERENCE);
+        verify(this.logger).error("Unexpected exception while generating matches: {}", UNEXPECTED_MSG);
         Assert.assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     }
 
