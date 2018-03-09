@@ -138,13 +138,13 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Override
     public Response getMatches(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final boolean notified)
+        @Nullable final double genScore, final boolean onlyNotified)
     {
         final Request request = this.container.getRequest();
         final int reqNo = NumberUtils.toInt((String) request.getProperty(REQ_NO), 1);
 
         try {
-            return getMatchesResponse(score, phenScore, genScore, notified, reqNo);
+            return getMatchesResponse(score, phenScore, genScore, onlyNotified, reqNo);
         } catch (final SecurityException e) {
             this.logger.error("Failed to retrieve matches: {}", e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -203,9 +203,9 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final boolean notified, final int reqNo)
+        @Nullable final double genScore, final boolean onlyNotified, final int reqNo)
     {
-        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, phenScore, genScore, notified);
+        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, phenScore, genScore, onlyNotified);
 
         filterIrrelevantMatches(matches);
 

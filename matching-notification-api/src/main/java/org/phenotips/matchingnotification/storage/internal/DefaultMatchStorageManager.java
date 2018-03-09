@@ -97,11 +97,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             + "  and m.referenceServerId = m2.matchedServerId)"
             + ")";
 
-    /** A query to find all un-notified matches with a score greater than given (score == minScore). */
-    private static final String HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE =
-            "from DefaultPatientMatch as m where m.notified = false"
-            + " and score >= :minScore and phenotypeScore >= :phenScore"
-            + " and genotypeScore >= :genScore and not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")";
+    /** A query to find all matches with a score greater than given (score == minScore).
+     *
+     * One complication is that for notified matches there may be both a notified and an un-notified versions
+     * of the match, so need to show only one of them (the notified one).
+     * */
+    private static final String HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE =
+            "from DefaultPatientMatch as m where"
+            + " score >= :minScore and phenotypeScore >= :phenScore"
+            + " and genotypeScore >= :genScore and"
+            + " (m.notified = true or (not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")))";
 
     /** Handles persistence. */
     @Inject
@@ -216,16 +221,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean notified)
+    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyNotified)
     {
-        if (notified) {
+        if (onlyNotified) {
             // this is simple, just return all matches with the given score which have been notified
             return this.loadMatchesByCriteria(
                     new Criterion[] { Restrictions.ge("score", score), Restrictions.ge("phenotypeScore", phenScore),
-                        Restrictions.ge("genotypeScore", genScore), this.notifiedRestriction(notified) });
+                        Restrictions.ge("genotypeScore", genScore), this.notifiedRestriction(true) });
         }
 
-        // ...else it is more complicated: need to return all matches that haven't been notified, but
+        // ...else it is more complicated: need to return all matches, but
         // also exclude matches that have a similar match that have been notified
         //
         // This is because if owners of a match were notified, the notified version of the match
@@ -236,7 +241,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
-            Query query = session.createQuery(HQL_QUERY_FIND_UNNOTIFIED_MATCHES_BY_SCORE);
+            Query query = session.createQuery(HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE);
             query.setParameter("minScore", score);
             query.setParameter("phenScore", phenScore);
             query.setParameter("genScore", genScore);

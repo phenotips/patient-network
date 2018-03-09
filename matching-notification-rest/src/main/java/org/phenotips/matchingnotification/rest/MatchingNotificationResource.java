@@ -78,7 +78,7 @@ public interface MatchingNotificationResource
      * @param score only matches with general score higher or equal to this value are returned
      * @param phenScore only matches with phenotypic score higher or equal to this value are returned
      * @param genScore only matches with genotypic score higher or equal to this value are returned
-     * @param notified whether the matches were notified of
+     * @param onlyNotified when true only loads matches that have been notified
      * @return a response containing a JSON object with a list of matches
      */
     @POST
@@ -88,7 +88,7 @@ public interface MatchingNotificationResource
     Response getMatches(@FormParam("score") @DefaultValue("0.5") double score,
         @FormParam("phenScore") @DefaultValue("0") double phenScore,
         @FormParam("genScore") @DefaultValue("0") double genScore,
-        @FormParam("notified") @DefaultValue("false") boolean notified);
+        @FormParam("onlyNotified") @DefaultValue("false") boolean onlyNotified);
 
     /**
      * Sends email notifications for each match. Example:
