@@ -251,15 +251,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     private JSONObject successfulIdsToJSON(List<Long> allIds, List<Long> successfulIds)
     {
-        JSONArray results = new JSONArray();
-        for (Long id : allIds) {
-            JSONObject result = new JSONObject();
-            result.accumulate("id", id);
-            result.accumulate("success", successfulIds.contains(id));
-            results.put(result);
-        }
+        JSONObject result = new JSONObject();
+        result.put("success", successfulIds);
+        allIds.removeAll(successfulIds);
+        result.put("failed", allIds);
         JSONObject reply = new JSONObject();
-        reply.put("results", results);
+        reply.put("results", result);
 
         return reply;
     }

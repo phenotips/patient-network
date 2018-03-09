@@ -22,7 +22,7 @@ define(["matchingNotification/utils"], function(utils)
                 return;
             }
             // console.log("Sending " + idsToNotify);
-var idsToNotify = JSON.stringify({ ids: ids});
+            var idsToNotify = JSON.stringify({ ids: ids});
             new Ajax.Request(this._ajaxURL + 'send-notifications', {
                 parameters : {'ids' : idsToNotify},
                 onCreate : function (response) {

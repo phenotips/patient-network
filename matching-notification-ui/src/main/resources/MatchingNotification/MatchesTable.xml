@@ -121,12 +121,12 @@ $xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
     &lt;/div&gt;
 ##--TABLE--
     &lt;div id="table-container"&gt;
-## ERROR MESSAGE CONTAINER
-    &lt;div id="show-matches-messages"&gt;&lt;/div&gt;
 ## Pagination
     &lt;div class="xwiki-livetable-pagination" id="pagination-info"&gt;
       &lt;span id="panels-livetable-limits" class="xwiki-livetable-limits"&gt;&lt;/span&gt;
       &lt;span id="panels-livetable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$services.localization.render('platform.livetable.loading')" title="" /&gt;$services.localization.render('platform.livetable.loading')&lt;/span&gt;
+## ERROR MESSAGE CONTAINER
+      &lt;div id="show-matches-messages"&gt;&lt;/div&gt;
     &lt;/div&gt;
 ## Global search
     &lt;div id="global-search"&gt;&lt;input type="text" id="global-search-input" placeholder="$services.localization.render('phenotips.matchingNotifications.table.globalSearch.placeholder')"&gt;&lt;/div&gt;

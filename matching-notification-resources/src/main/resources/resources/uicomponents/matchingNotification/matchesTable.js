@@ -81,7 +81,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues = {};
         this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
         this._filterValues.matchStatus = {"rejected" : false, "saved" : true, "uncategorized" : true};
-        this._filterValues.matchType = "all";
+        this._filterValues.remoteType = "all";
         this._filterValues.geneStatus = "all";
         this._filterValues.serverId = "";
         this._filterValues.externalId = "";
@@ -101,7 +101,7 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         $('matches-type-filter').on('change', function(event) {
-            this._filterValues.matchType = event.currentTarget.value;
+            this._filterValues.remoteType = event.currentTarget.value;
             this._update(this._advancedFilter);
         }.bind(this));
 
@@ -174,11 +174,12 @@ var PhenoTips = (function (PhenoTips) {
             var hasAccessTypeMath = this._filterValues.matchAccess[match.matched.access]
                 || this._filterValues.matchAccess[match.reference.access];
             // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
-            var hsGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
+            var hasGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
+            var hasRemoteTypeMatch = match.remoteTypes.indexOf(this._filterValues.remoteType) > -1;
 
-            return  hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasServerIdMatch && hasAccessTypeMath && hasMatchStatusMatch;
+            return  hasRemoteTypeMatch && hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasServerIdMatch && hasAccessTypeMath && hasMatchStatusMatch && hasGeneExomeTypeMatch;
         }.bind(this);
     },
 
@@ -254,8 +255,8 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showFailure('show-matches-messages');
             }.bind(this),
             onComplete : function () {
-                this._update(this._advancedFilter);
                 $("panels-livetable-ajax-loader" ).hide();
+                this._update(this._advancedFilter);
             }.bind(this)
         });
     },
@@ -371,7 +372,25 @@ var PhenoTips = (function (PhenoTips) {
             // possible types:  ["solved_solved", "solved_candidate", "candidate_solved", "candidate_candidate"]
             // FUTURE: more possible values, ex. "candidate_exome"
             match.matchingGenesTypes = this._buildMatchingGenesTypes(match);
+            
+            match.remoteTypes = this._getRemoteType(match);
         }.bind(this));
+    },
+
+    _getRemoteType : function(match)
+    {
+        var matchedTypes = [];
+        matchedTypes.push('all'); 
+        if (match.matched.serverId == "" && match.reference.serverId == "") {
+            matchedTypes.push("local");
+        }
+        if (match.matched.serverId != "" && match.reference.serverId == "") {
+            matchedTypes.push("outgoing");
+        }
+        if (match.matched.serverId == "" && match.reference.serverId != "") {
+            matchedTypes.push("incoming");
+        }
+        return matchedTypes;
     },
 
     _buildMatchingGenesTypes : function(match) {
@@ -615,17 +634,17 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTable : function()
     {
+        this._afterProcessTablePatientsDivs();
         this._afterProcessTableRegisterCollapisbleDivs();
         this._afterProcessTableStatusListeners();
         this._afterProcessTableCollapseEmails();
-        this._afterProcessTablePatientsDivs();
     },
 
     _afterProcessTableStatusListeners : function()
     {
-        if (this._tableElement.down('.status')) {
-            this._tableElement.down('.status').on('change', this._setMatchesStatus.bind(this));
-        }
+        this._tableElement.select('.status').each( function(selectEl) {
+            selectEl.on('change', this._setMatchesStatus.bind(this));
+        }.bind(this));
     },
 
     _afterProcessTableRegisterCollapisbleDivs : function()
@@ -709,7 +728,7 @@ var PhenoTips = (function (PhenoTips) {
             this._expandCollapseGP(elm, !this._tableCollabsed);
         }.bind(this));
     },
-
+ 
 //--POST_PROCESS NOTIFICATION
     _handleNotifiedUpdate: function(event)
     {
@@ -755,16 +774,16 @@ var PhenoTips = (function (PhenoTips) {
 
         new Ajax.Request(this._ajaxURL + 'set-status', {
             contentType:'application/json',
-            parameters : {'ids'    : ids,
-                          'status' : status
+            parameters : {'matchesIds'    : ids,
+                          'status'        : status
             },
             onSuccess : function (response) {
-                var result = response.responseJSON.results;
-                if (results.success) {
-                    this._setState(successfulIds, { 'status': status });
-                } else {
-                    this._setState(successfulIds, { 'state': 'failed' });
-                    this._utils.showFailure('show-matches-messages', "Setting status `" + status + "` failed for match with id " + results.id);
+                var results = response.responseJSON.results;
+                if (results.success && results.success.length > 0) {
+                    this._setState(results.success, { 'status': status, 'state': 'success' });
+                } else if (results.failed && results.failed.length > 0) {
+                    this._setState(results.failed, { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Setting status `" + status + "` failed");
                 }
             }.bind(this),
             onFailure : function (response) {

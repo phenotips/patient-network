@@ -64,8 +64,8 @@ public interface MatchingNotificationResource
     @Path("/refresh-matches")
     void refreshMatches(
         @FormParam("serverIds") Set<String> serverIds,
-        @FormParam("onlyCheckPatientsUpdatedAfterLastRun")
-        @DefaultValue("false") boolean onlyCheckPatientsUpdatedAfterLastRun);
+        @FormParam("onlyCheckPatientsUpdatedAfterLastRun") @DefaultValue("false")
+        boolean onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
      * Returns a JSON object containing all matches or matches owned by logged user (if not admin), filtered by
@@ -113,8 +113,8 @@ public interface MatchingNotificationResource
      * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:
      *
      * <pre>
-     * Input: ["1", "2", "3"], "saved"
-     * Output: {"results": [{"id": "1", "success": true}, {"id": "2", "success": false}, {"id": "3", "success": true}]}
+     * Input: ["1", "2"], "saved"
+     * Output: {"results": {"success": [1,2]}}
      * </pre>
      *
      * @param matchesIds List of matches IDs to change the status for

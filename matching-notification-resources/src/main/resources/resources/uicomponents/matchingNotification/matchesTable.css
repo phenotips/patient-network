@@ -1,8 +1,9 @@
 #template('colorThemeInit.vm')
 
-..matches-table {
-  margin: 0;
+#matchesTable {
+  margin: 0!important;
 }
+
 .matches-table .collapsed {
   visibility: hidden;
   height: 1px;
@@ -17,16 +18,8 @@
   color: red;
 }
 
-.matches-table .rejected {
-  color: lightgrey;
-}
-
 .matches-table .ok {
   color: inherit;
-}
-
-.hint-loading {
-  color: blue;
 }
 
 .matches-table .collapse-gp-div {
@@ -54,6 +47,8 @@
 .matches-table ul {
   margin-top: 0px;
   margin-bottom: 0px;
+  margin-left: 1em;
+  list-style: none;
 }
 
 .matches-table .collapse-gp-div div {
@@ -82,6 +77,10 @@
   color: green;
 }
 
+#show-matches-messages {
+  margin-top: 0.8em;
+}
+
 #send-notifications-messages {
   vertical-align: top;
 }
@@ -99,14 +98,6 @@
   float: right;
 }
 
-#table-filter-div {
-  margin-bottom: 15px;
-}
-
-#gene_status_filter {
-  margin: 0 5px 0 15px;
-}
-
 #notified-matches {
   margin-left: 20px;
 }
@@ -117,7 +108,6 @@
 
 #pagination-info {
   display: inline-block;
-  float: left;
 }
 
 .matches-table .first-header-row {
@@ -152,11 +142,6 @@ input.notify , td span.fa.fa-envelope {
   padding: 0;
 }
 
-.matches-table ul {
-  margin-left: 1em;
-  list-style: none;
-}
-
 #global-search {
   float: right;
 }
@@ -175,4 +160,7 @@ input.notify , td span.fa.fa-envelope {
   font-size: 90%;
   line-height: 22px;
   border: 0px;
+}
+.xwiki-livetable-loader {
+  padding-top: 3px;
 }
