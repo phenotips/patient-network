@@ -23,3 +23,7 @@
 .extradata-list.select-server-row td, .extradata-list.select-server-row th {
   border-bottom: 1px solid $theme.borderColor;
 }
+
+.msdialog-box .warning-text {
+  margin-bottom: 1em;
+}
