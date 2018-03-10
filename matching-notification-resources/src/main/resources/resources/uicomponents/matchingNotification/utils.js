@@ -24,28 +24,13 @@ define([], function()
             $(messagesFieldName).update('');
         },
 
-        getResults : function(results)
-        {
-            var successfulIds = [];
-            var failedIds     = [];
-            results.each( function (item) {
-                if (item.success) {
-                    successfulIds.push(item.id);
-                } else {
-                    failedIds.push(item.id);
-                }
-            })
-            return [successfulIds, failedIds];
-        },
-
         showHint : function(messagesFieldName, message, cssClass)
         {
             var messages = $(messagesFieldName);
             messages.update(new Element('div', {'class' : cssClass}).update(message));
         },
 
-        validateScore : function(scoreFieldName, messagesFieldName) {
-            var score = $(scoreFieldName).value;
+        validateScore : function(score, messagesFieldName) {
             if (score == undefined || score == "") {
                 return 0;
             } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {

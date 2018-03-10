@@ -1,7 +1,11 @@
 #template('colorThemeInit.vm')
 
-#matchesTable {
+.do-not-remove-or-first-css-rule-is-not-used {
+}
+
+table#matchesTable {
   margin: 0!important;
+  width: 100%;
 }
 
 .matches-table .collapsed {
@@ -102,8 +106,11 @@
   margin-left: 20px;
 }
 
+.expandall {
+}
+
 #show-matches-button {
-  margin: 10px 40px 20px 0;
+  margin: 10px 40px 0 0;
 }
 
 #pagination-info {
@@ -146,14 +153,14 @@ input.notify , td span.fa.fa-envelope {
   float: right;
 }
 
-#show-matches-score {
-  width: 4em;
+#show-matches-score, input[name="score"] {
+  width: 4em!important;
 }
-#show-matches-gen-score {
-  width: 5.3em;
+#show-matches-gen-score, input[name="phenotypicScore"] {
+  width: 5.3em!important;
 }
-#show-matches-phen-score {
-  width: 5.8em;
+#show-matches-phen-score, input[name="genotypicScore"] {
+  width: 5.8em!important;
 }
 .xwiki-livetable-pagination {
   color: #636B75;
@@ -163,4 +170,27 @@ input.notify , td span.fa.fa-envelope {
 }
 .xwiki-livetable-loader {
   padding-top: 3px;
+}
+.separator {
+  height: 20px;
+  background-color: white;
+}
+.xHelpButton {
+  margin-left: 10px;
+}
+.xTooltip {
+  width: 30em;
+  max-width: 30em;
+}
+.xHelpButton {
+  margin-left: 5px;
+}
+
+span.avoidwrap {
+  display:inline-block;
+}
+
+a.button.toggle-filters.secondary-filters {
+  margin-top: 2em !important;
+  cursor: default !important;
 }

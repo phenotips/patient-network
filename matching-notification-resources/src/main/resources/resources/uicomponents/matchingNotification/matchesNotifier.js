@@ -44,20 +44,17 @@ define(["matchingNotification/utils"], function(utils)
             console.log("Send notification - reply received:");
             console.log(ajaxResponse.responseText);
 
-            if (ajaxResponse.responseJSON && ajaxResponse.responseJSON.results && ajaxResponse.responseJSON.results.length > 0) {
-                var [successfulIds, failedIds] = this._utils.getResults(ajaxResponse.responseJSON.results);
-
-                if (failedIds.length > 0) {
-                    alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + failedIds.join());
-                }
+            if (ajaxResponse.responseJSON && ajaxResponse.responseJSON.results) {
+                var results = ajaxResponse.responseJSON.results;
 
                 // Update table state
-                if (successfulIds.length > 0) {
-                    var event = { 'matchIds' : successfulIds, 'properties' : {'notified': true, 'state': 'success'} };
+                if (results.success && results.success.length > 0 ) {
+                    var event = { 'matchIds' : results.success, 'properties' : {'notified': true, 'state': 'success'} };
                     document.fire("notified:success", event);
                 }
-                if (failedIds.length > 0) {
-                    var event = { 'matchIds' : failedIds, 'properties' : {'state': 'failure'} };
+                if (results.failed && results.failed.length > 0) {
+                    alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + results.failed.join());
+                    var event = { 'matchIds' : results.failed, 'properties' : {'state': 'failure'} };
                     document.fire("notified:failed", event);
                 }
                 this._matchesTable.update();
