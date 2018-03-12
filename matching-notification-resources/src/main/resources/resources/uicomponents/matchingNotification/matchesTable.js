@@ -33,8 +33,8 @@ var PhenoTips = (function (PhenoTips) {
         this._notifier = new notifier(this._tableElement, this._ajaxURL);
 
         $('show-matches-button').on('click', this._showMatches.bind(this));
+        $('send-notifications-button').addClassName("disabled");
         $('send-notifications-button').on('click', this._sendNotification.bind(this));
-        //$('send-notifications-button').setAttribute("disabled", true);
         $('expand_all').on('click', this._expandAllClicked.bind(this));
 
         $('show-matches-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
@@ -692,7 +692,7 @@ var PhenoTips = (function (PhenoTips) {
 
         // add notification checkbox for local patient but not for self (not for patients owned by logged in user)
         if (serverId == '' && !isOwner) {
-            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'">';
+            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'" data-emails="'+ emails.toString() +'">';
         }
         td += '</td>';
         return td;
@@ -720,6 +720,7 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableRegisterCollapisbleDivs();
         this._afterProcessTableStatusListeners();
         this._afterProcessTableCollapseEmails();
+        this._afterProcessTableInitNotificationEmails();
     },
 
     _afterProcessTableStatusListeners : function()
@@ -765,6 +766,19 @@ var PhenoTips = (function (PhenoTips) {
             this._tableElement.select('td[name="' + columnName + '"] div[name="notification-email-short"]').each(function (email) {
                 hide ? email.show() : email.hide();
             });
+        }.bind(this));
+    },
+
+    _afterProcessTableInitNotificationEmails : function()
+    {
+        $$('input[type=checkbox][class="notify"]').each(function (elm) {
+            elm.on('click', function(event) {
+                if (this._notifier._getMarkedToNotify().length > 0) {
+                    $('send-notifications-button').removeClassName("disabled");
+                } else {
+                    $('send-notifications-button').addClassName("disabled");
+                }
+            }.bind(this));
         }.bind(this));
     },
 
