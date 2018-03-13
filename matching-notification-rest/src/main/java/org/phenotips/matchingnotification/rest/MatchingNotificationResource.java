@@ -94,12 +94,13 @@ public interface MatchingNotificationResource
      * Sends email notifications for each match. Example:
      *
      * <pre>
-     * Input: [{'matchId' : 58, 'patientId' : P000067}, {'matchId' : 7, 'patientId' : P000035}]
-     * Output: {"results": [{"id": "58", "success": true}, {"id": "7", "success": false}]}
+     *  Input JSON: {"ids": [{'matchId' : 58, 'patientId' : P000067}, {'matchId' : 7, 'patientId' : P000035}]}
+     *  Output JSON: {"results": {"success":[a list of match ids], "failed": [a list of match ids]}}
      * </pre>
      * <dl>
      * <dt>ids</dt>
-     * <dd>map of ids of matches to patients ids to be notified</dd>
+     * <dd>a JSON object (in the format as described above) with a list of match ids that given patients ids
+     * should be notified about</dd>
      * </dl>
      *
      * @return result JSON
@@ -108,6 +109,29 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/send-notifications")
     Response sendNotifications();
+
+    /**
+     * Returns the content of email to be sent when a user hits "contact this match" button.
+     *
+     * @param matchId the id of the match that should be used to generate the email
+     * @param patientId the id of the patient that is the subject of the email (can be either of
+     *                  the two patients involved in the specified match)
+     * @return a response containing a JSON object, in the following format:
+     *     <pre>
+     *      { "emailContent": text,
+     *        "recipients": [listof email addresses as strings],
+     *        "contentType": type,
+     *        "subject": text }
+     *     </pre>
+     *     where text is a string, and type is the type of content as string (e.g. "text/plain")
+     *     TODO: check what other types we may be returning
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/preview-match-email")
+    Response getEmailToBeSent(@FormParam("matchId") String matchId,
+            @FormParam("subjectPatientId") String patientId);
 
     /**
      * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:

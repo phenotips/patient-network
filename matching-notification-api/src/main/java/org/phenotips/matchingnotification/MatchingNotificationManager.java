@@ -25,6 +25,8 @@ import org.xwiki.component.annotation.Role;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 /**
  * @version $Id$
  */
@@ -38,6 +40,24 @@ public interface MatchingNotificationManager
      * @return a list of PatientmatchNotificationResponse
      */
     List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> idsList);
+
+
+    /**
+     * Returns the contents of the email that wil be send as a nbotification for match with the given id.
+     *
+     * @param matchId match id
+     * @param patientId the id of the patient that is the subject of the email (can be either of
+     *                  the two patients involved in the specified match)
+     * @return a response containing a JSON object, in the following format:
+     *     <pre>
+     *      { "emailContent": text,
+     *        "recipients": [listof email addresses as strings],
+     *        "contentType": type,
+     *        "subject": text }
+     *     </pre>
+     *     where text is a string, and type the type of content as string (e.g. "text/plain")
+     */
+    JSONObject getEmailContent(Long matchId, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote incoming request.

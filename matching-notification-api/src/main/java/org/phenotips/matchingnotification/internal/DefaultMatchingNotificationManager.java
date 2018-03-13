@@ -31,6 +31,7 @@ import org.xwiki.component.annotation.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -40,6 +41,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +113,23 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             }
         }
         return successfulMatches;
+    }
+
+    @Override
+    public JSONObject getEmailContent(Long matchId, String patientId)
+    {
+        Map<Long, List<String>> matchesIds = new HashMap<>();
+
+        List<String> patientIdList = new LinkedList<>();
+        patientIdList.add(patientId);
+        matchesIds.put(matchId, patientIdList);
+
+        List<PatientMatch> matches =
+                this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
+
+        List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
+
+        return emails.get(0).getEmail();
     }
 
     @Override

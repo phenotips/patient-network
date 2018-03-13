@@ -48,8 +48,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Provider;
+import javax.mail.Address;
+import javax.mail.BodyPart;
+import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -68,6 +72,16 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 {
     /** Name of document containing template for email notification. */
     public static final String EMAIL_TEMPLATE = "PatientMatchNotificationEmailTemplate";
+
+    private static final String EMAIL_CONTENT_KEY = "emailContent";
+
+    private static final String EMAIL_CONTENT_TYPE_KEY = "contentType";
+
+    private static final String EMAIL_RECIPIENTS_KEY = "recipients";
+
+    private static final String EMAIL_SUBJECT_KEY = "subject";
+
+    private static final String EMAIL_PREFERRED_CONTENT_TYPE = "text/plain";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatchEmail.class);
 
@@ -286,5 +300,64 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         }
 
         return features;
+    }
+
+    private String getMultipartContent(Object content)
+    {
+        try {
+            if (content instanceof MimeMultipart) {
+                MimeMultipart mmEmail = (MimeMultipart) content;
+                int bodyParts = mmEmail.getCount();
+                for (int i = 0; i < bodyParts; i++) {
+                    BodyPart next = mmEmail.getBodyPart(i);
+                    if (next.getContentType().contains(EMAIL_PREFERRED_CONTENT_TYPE)) {
+                        return next.getContent().toString();
+                    } else {
+                        String text = this.getMultipartContent(next.getContent());
+                        if (StringUtils.isNotBlank(text)) {
+                            return text;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email contents: [{}]", ex.getMessage(), ex);
+        }
+        return "";
+    }
+
+    @Override
+    public JSONObject getEmail()
+    {
+        JSONObject result = new JSONObject();
+
+        try {
+            result.put(EMAIL_CONTENT_KEY, getMultipartContent(this.mimeMessage.getContent()));
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email contents: [{}]", ex.getMessage(), ex);
+            result.put(EMAIL_CONTENT_KEY, "");
+        }
+
+        result.put(EMAIL_CONTENT_TYPE_KEY, EMAIL_PREFERRED_CONTENT_TYPE);
+
+        JSONArray recipients = new JSONArray();
+        try {
+            for (Address address : this.mimeMessage.getRecipients(Message.RecipientType.TO)) {
+                recipients.put(address.toString());
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email recipients: [{}]", ex.getMessage(), ex);
+            recipients.put("");
+        }
+        result.put(EMAIL_RECIPIENTS_KEY, recipients);
+
+        try {
+            result.put(EMAIL_SUBJECT_KEY, this.mimeMessage.getSubject());
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email subject: [{}]", ex.getMessage(), ex);
+            result.put(EMAIL_SUBJECT_KEY, "");
+        }
+
+        return result;
     }
 }

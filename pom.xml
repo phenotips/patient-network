@@ -577,6 +577,18 @@
               <method>java.util.List getMatchesToBePlacedIntoNotificationTable(java.util.List)</method>
               <justification>New helper method</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>org.json.JSONObject getEmailContent(java.lang.Long, java.lang.String)</method>
+              <justification>New helper method</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/notification/PatientMatchEmail</className>
+              <differenceType>7012</differenceType>
+              <method>org.json.JSONObject getEmail()</method>
+              <justification>New helper method</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

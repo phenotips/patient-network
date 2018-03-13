@@ -161,7 +161,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         final String ids = (String) request.getProperty(IDS_STRING);
 
         if (StringUtils.isBlank(ids)) {
-            this.logger.error("The requested ids list is blank");
+            this.logger.error("The requested ids parameter is blank and thus not a valid input JSON");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -181,6 +181,26 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         JSONObject result = this.successfulIdsToJSON(new ArrayList<>(idsList.keySet()),
             successfullyNotified);
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
+    }
+
+    @Override
+    public Response getEmailToBeSent(String matchId, String patientId)
+    {
+        try {
+            Long numericMatchId = Long.parseLong(matchId);
+
+            // TODO: this is a work-in-progress stub to allow testing UI while back-end is being developed
+            JSONObject result = this.matchingNotificationManager.getEmailContent(numericMatchId, patientId);
+
+            return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
+        } catch (NumberFormatException ex) {
+            this.logger.error("Match id is not valid: [{}]", matchId);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (Exception ex) {
+            this.logger.error("Could not get email content for match with id=[{}]: [{}]",
+                    matchId, ex.getMessage(), ex);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override

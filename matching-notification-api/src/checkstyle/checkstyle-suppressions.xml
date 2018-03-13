@@ -26,4 +26,5 @@
   <suppress checks="ExecutableStatementCount" files="DefaultPhenotypesMap.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultMatchingNotificationManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultPatientInMatch"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultPatientMatchEmail"/>
 </suppressions>
