@@ -94,7 +94,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
 
             return processRequest(reference, offset, limit, reqNo);
         } catch (final Exception e) {
-            this.logger.error("Unexpected exception while generating matches: {}", e.getMessage());
+            this.logger.error("Unexpected exception while generating matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -116,7 +116,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
 
             return generateMatchesResponse(patient, offset, limit, reqNo);
         } catch (final SecurityException e) {
-            this.logger.error("Failed to retrieve patient with ID [{}]: {}", reference, e.getMessage());
+            this.logger.error("Failed to retrieve patient with ID [{}]: {}", reference, e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
@@ -139,7 +139,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
 
         this.matchStorageManager.saveLocalMatches(
-                this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+            this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
 
         final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
         try {

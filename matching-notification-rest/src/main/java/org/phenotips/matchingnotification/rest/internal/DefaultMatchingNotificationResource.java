@@ -146,10 +146,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         try {
             return getMatchesResponse(score, phenScore, genScore, onlyNotified, reqNo);
         } catch (final SecurityException e) {
-            this.logger.error("Failed to retrieve matches: {}", e.getMessage());
+            this.logger.error("Failed to retrieve matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch (final Exception e) {
-            this.logger.error("Unexpected exception while generating matches JSON: {}", e.getMessage());
+            this.logger.error("Unexpected exception while generating matches JSON: {}", e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -194,11 +194,11 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (NumberFormatException ex) {
-            this.logger.error("Match id is not valid: [{}]", matchId);
+            this.logger.error("Match id is not valid: [{}]", matchId, ex);
             return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (Exception ex) {
             this.logger.error("Could not get email content for match with id=[{}]: [{}]",
-                    matchId, ex.getMessage(), ex);
+                matchId, ex.getMessage(), ex);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

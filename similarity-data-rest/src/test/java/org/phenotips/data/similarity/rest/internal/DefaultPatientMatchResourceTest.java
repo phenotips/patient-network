@@ -22,6 +22,7 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
 import org.phenotips.similarity.SimilarPatientsFinder;
+
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.container.Container;
@@ -225,9 +226,10 @@ public class DefaultPatientMatchResourceTest
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        when(this.repository.get(REFERENCE)).thenThrow(new SecurityException(UNAUTHORIZED_MSG));
+        SecurityException ex = new SecurityException(UNAUTHORIZED_MSG);
+        when(this.repository.get(REFERENCE)).thenThrow(ex);
         final Response response = this.component.findMatchesForPatient(REFERENCE);
-        verify(this.logger).error("Failed to retrieve patient with ID [{}]: {}", REFERENCE, UNAUTHORIZED_MSG);
+        verify(this.logger).error("Failed to retrieve patient with ID [{}]: {}", REFERENCE, ex);
         Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
     }
 
@@ -371,9 +373,10 @@ public class DefaultPatientMatchResourceTest
         when(this.request.getProperty(OFFSET)).thenReturn("1");
         when(this.request.getProperty(LIMIT)).thenReturn("10");
         when(this.request.getProperty(REQ_NO)).thenReturn("1");
-        when(this.repository.get(REFERENCE)).thenThrow(new UnexpectedException(UNEXPECTED_MSG));
+        UnexpectedException ex = new UnexpectedException(UNEXPECTED_MSG);
+        when(this.repository.get(REFERENCE)).thenThrow(ex);
         final Response response = this.component.findMatchesForPatient(REFERENCE);
-        verify(this.logger).error("Unexpected exception while generating matches: {}", UNEXPECTED_MSG);
+        verify(this.logger).error("Unexpected exception while generating matches: {}", UNEXPECTED_MSG, ex);
         Assert.assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     }
 
