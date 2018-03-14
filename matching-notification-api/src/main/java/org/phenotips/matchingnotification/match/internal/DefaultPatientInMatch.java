@@ -184,7 +184,11 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
         if (this.access != null) {
-            json.put("access", this.access.getName());
+            // FIXME: workaround for incorrect access-setting code in this.setAccess()
+            //        This JSON goes to the UI, which needs to know correct access level
+            if (this.isLocal() && this.patient != null) {
+                json.put("access", this.access.getName());
+            }
         }
         json.put("isOwner", isUserOwner());
 
@@ -438,6 +442,13 @@ public class DefaultPatientInMatch implements PatientInMatch
     private void setAccess()
     {
         if (!this.isLocal() || this.patient == null) {
+            //
+            // FIXME: this is wrong, while server code has "view" access to the in-memory
+            //        copy of the remote patient, from the UI's point of view current user
+            //        does NOT have access to the patient. So need to investigate why this
+            //        fix was needed and do a proper fix. Maybe we no longer need this after
+            //        match obfuscation was removed.
+
             // Remote patient, assume we have access
             this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
         } else if (this.patient instanceof PatientSimilarityView) {
