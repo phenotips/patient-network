@@ -66,6 +66,9 @@ var PhenoTips = (function (PhenoTips) {
         this._SEND = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.send'))";
         this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
+        this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
+        this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
+        this._EMAIL_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.message.label'))";
 
         this._initiateFilters();
 
@@ -85,6 +88,7 @@ var PhenoTips = (function (PhenoTips) {
         this._initiateEmailColumnsBehaviur();
 
         $("panels-livetable-ajax-loader" ).hide();
+        $('checkbox-server-filters').hide();
 
         $('contentmenu') && $('contentmenu').hide();
         $('hierarchy') && $('hierarchy').hide();
@@ -241,10 +245,18 @@ var PhenoTips = (function (PhenoTips) {
 
     _generateContactDialogContainer : function()
     {
-        var container = new Element('div', {'class' : 'anonymous-contact'});
+        var container = new Element('div', {'class' : 'anonymous-contact xform'});
         container.insert(new Element("h2").update(this._CONTACT_DIALOG_HEADER));
+
+        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_TO)));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'to', 'type' : 'text', 'disabled' : true})));
+
+        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_SUBJECT)));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'subject', 'type' : 'text', 'disabled' : true})));
+
+        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_MESSAGE)));
         var text = new Element('textarea', {'name' : 'message'});
-        container.insert(text.disable());
+        container.insert(new Element('dd').insert(text.disable()));
         var buttons = new Element('div', {'class' : 'buttons'});
         buttons.insert(new Element('span', {"class" : "buttonwrapper"}).insert(new Element('input', {'name' : 'send', 'value' : this._SEND, 'class' : 'button'})));
         buttons.insert(new Element('span', {"class" : "buttonwrapper"}).insert(new Element('input', {'name' : 'cancel', 'value' : this._CANCEL, 'class' : 'button secondary'})));
@@ -429,6 +441,9 @@ var PhenoTips = (function (PhenoTips) {
             // for serverId search
             match.matched.serverId = match.matched.serverId || '';
             match.reference.serverId = match.reference.serverId || '';
+
+            match.matched.access = match.matched.access || '';
+            match.reference.access = match.reference.access || '';
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
 
@@ -734,18 +749,22 @@ var PhenoTips = (function (PhenoTips) {
 
     _getNotified : function(record)
     {
-        var matchId = record.id[0] ? record.id[0] : record.id;
-        var patientID = record.matched.patientId;
-        if (record.reference.serverId == '' && !record.reference.isOwner) {
-            patientID = record.reference.patientId;
-        }
         var td = '<td style="text-align: center">';
-        if (record.notified == false) {
-            td += '<a class="contact-button" data-matchid="'
-                + matchId + '" data-patientid="'
-                + patientID + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a>';
+        if (record.reference.access == '' || record.matched.access == '') {
+            var matchId = record.id[0] ? record.id[0] : record.id;
+            var patientID = (record.matched.access == '') ? record.matched.patientId : record.reference.patientId;
+
+            if (record.notified == false) {
+                td += '<a class="contact-button" data-matchid="'
+                    + matchId + '" data-patientid="'
+                    + patientID + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a>';
+            } else {
+                td += this._CONTACTED_LABEL;
+            }
         } else {
-            td += this._CONTACTED_LABEL;
+            if (record.notified == true) {
+                td += this._CONTACTED_LABEL;
+            }
         }
         td += '</td>';
         return td;
@@ -772,9 +791,14 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTableHideApsentServerIdsFromFilter : function()
     {
-        this._tableElement.select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-            (this._presentServerIds.indexOf(selectEl.value) > 0) ? selectEl.show() : selectEl.hide();
-        }.bind(this));
+        if (this._presentServerIds.length > 1) {
+            $('checkbox-server-filters').show();
+            this._tableElement.select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
+                (this._presentServerIds.indexOf(selectEl.value) > 0) ? selectEl.show() : selectEl.hide();
+            }.bind(this));
+        } else {
+            $('checkbox-server-filters').hide();
+        }
     },
 
     _afterProcessTableStatusListeners : function()
@@ -848,24 +872,30 @@ var PhenoTips = (function (PhenoTips) {
         var matchIdToNotify = matchId;
         var patientId = subjectPatientId;
 
-        new Ajax.Request(this._ajaxURL + '/preview-match-email', {
+        new Ajax.Request(this._ajaxURL + 'preview-match-email', {
+            contentType:'application/json',
             parameters : {
                   'matchId': matchId,
                   'subjectPatientId' : patientId
             },
             onCreate : function() {
-                this._contactContainer.update('<img src="/resources/icons/xwiki/ajax-loader-large.gif"/>');
+                this._contactContainer.down('textarea[name="message"]').update('<img src="/resources/icons/xwiki/ajax-loader-large.gif"/>');
                 this._contactDialog.showDialog();
             }.bind(this),
             onSuccess : function(response) {
-                this._contactContainer.down('textarea[name="message"]').update(response.responseText);
-                this._contactContainer.select('input[name="cancel"]').invoke('observe', 'click', function(event) {
+                if (!(response && response.responseJSON)) {
+                    return;
+                }
+                this._contactContainer.down('textarea[name="message"]').update(response.responseJSON.emailContent);
+                this._contactContainer.down('input[name="subject"]').value = response.responseJSON.subject;
+                this._contactContainer.down('input[name="to"]').value = response.responseJSON.recipients.toString();
+                this._contactContainer.down('input[name="cancel"]').on('click', function(event) {
                     this._contactDialog.closeDialog();
                 }.bind(this));
-                this._contactContainer.select('input[name="send"]').invoke('observe', 'click', function(event) {
+                this._contactContainer.down('input[name="send"]').on('click', function(event) {
                     var ids = [];
                     ids.push({'matchId' : matchIdToNotify, 'patientId' : patientId});
-                    this._notifyMatchByIDs(ids);
+                    this._notifier._notifyMatchByIDs(ids);
                     this._contactDialog.showDialog();
                 }.bind(this));
             }.bind(this),

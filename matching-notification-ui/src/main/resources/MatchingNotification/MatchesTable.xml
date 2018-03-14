@@ -93,11 +93,11 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputPhenotype'))
                 &lt;input type="text" id="phenotype-filter"&gt;
               &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputID'))
-                &lt;input type="text" id="external-id-filter"&gt;
-              &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputEmail'))
                 &lt;input type="text" id="email-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputID'))
+                &lt;input type="text" id="external-id-filter"&gt;
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notifiedStatusFilter'))&lt;br&gt;
                 &lt;label&gt;

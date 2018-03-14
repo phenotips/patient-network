@@ -217,9 +217,8 @@ a.contact-button {
   overflow-y: scroll;
   font-size: 100%;
 }
-.anonymous-contact .buttons {
-    clear: both;
-    text-align: right;
+.anonymous-contact .button {
+  width: 5em;
 }
 .anonymous-contact textarea:disabled {
   opacity: .9;
