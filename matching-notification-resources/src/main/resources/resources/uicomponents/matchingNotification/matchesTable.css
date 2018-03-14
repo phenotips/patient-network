@@ -91,6 +91,7 @@ table#matchesTable {
 
 #score-validation-message {
   font-size: 83%;
+  float: left;
 }
 
 #show-matches-messages .invalid, #score-validation-message .invalid {

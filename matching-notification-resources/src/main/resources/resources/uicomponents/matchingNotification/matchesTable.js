@@ -754,7 +754,7 @@ var PhenoTips = (function (PhenoTips) {
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center">';
-        if (record.reference.access == '' || record.matched.access == '') {
+        if (record.reference.serverId == '' && record.matched.serverId == '' && (record.reference.access == '' || record.matched.access == '')) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.access == '') ? record.matched.patientId : record.reference.patientId;
 
