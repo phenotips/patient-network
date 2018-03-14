@@ -32,7 +32,7 @@
   <date>1467919930000</date>
   <contentUpdateDate>1467835100000</contentUpdateDate>
   <version>1.1</version>
-  <title/>
+  <title>My Matches</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -47,6 +47,7 @@ $xwiki.ssx.use('PhenoTips.Widgets')##
 $xwiki.jsx.use('PhenoTips.Widgets')##
 
 {{html clean='false' wiki='true'}}
+#if($hasAdmin)&lt;input type="hidden" id="isAdmin"&gt;#end
 ##--FILTERS--
 &lt;div id="matches-directory" class="entity-directory"&gt;
   &lt;div class="xwiki-livetable-container"&gt;
@@ -60,27 +61,61 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
               &lt;li&gt;
-                &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.hint'))"&gt;&lt;/span&gt;&lt;/div&gt;
-                &lt;input id="show-matches-score" type="text" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))"&gt;
-                &lt;input id="show-matches-phen-score" type="text" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))"&gt;
-                &lt;input id="show-matches-gen-score" type="text" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))"&gt;
+                &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-score" type="text"&gt;&lt;br&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-phen-score" type="text"&gt;&lt;br&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-gen-score" type="text"&gt;
                 &lt;div id="score-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
               &lt;div&gt;
-                &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="show-matches-button" href="#"&gt;&lt;span class="fa fa-refresh" title=""&gt; &lt;/span&gt;&lt;span class="refresh-matches-button"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.search.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
+                &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="show-matches-button" href="#"&gt;&lt;span class="fa fa-refresh"&gt; &lt;/span&gt;&lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.search.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
               &lt;/div&gt;
             &lt;/ul&gt;
             &lt;span id="advanced-filters-header" class='buttonwrapper'&gt;
-              &lt;a class='button toggle-filters secondary-filters' href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.allData.filterButton')&lt;/span&gt;&lt;/a&gt;
+              &lt;a class='button toggle-filters secondary-filters' href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt;&lt;/a&gt;
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputGene'))
+                &lt;input type="text" id="gene-symbol-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputPhenotype'))
+                &lt;input type="text" id="phenotype-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputID'))
+                &lt;input type="text" id="external-id-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputEmail'))
+                &lt;input type="text" id="email-filter"&gt;
+              &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notifiedStatusFilter'))&lt;br&gt;
                 &lt;label&gt;
                   &lt;input name="notified-filter" type="checkbox" value="notified" #if(!$hasAdmin) checked #end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notified'))&lt;br&gt;
                 &lt;/label&gt;&lt;label&gt;
                   &lt;input name="notified-filter" type="checkbox" value="unnotified" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.unnotified'))&lt;/label&gt;&lt;br&gt;
               &lt;/li&gt;
-              &lt;li&gt;
+              &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
+                &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;/label&gt;&lt;br&gt;
+                #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
+                #set ($allRemotes = $preferenceDoc.getObjects("PhenomeCentral.RemoteMatchingServiceConfiguration"))
+                #foreach ($config in $allRemotes)
+                  #if ($config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('humanReadableName').getValue() != "")
+                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt; $escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/label&gt;&lt;br&gt;
+                  #end
+                #end
+              &lt;/li&gt;
+              &lt;li #if(!$hasAdmin)class="hidden"#end&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
                 &lt;input class="score-filter" type="text" name="score" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))"&gt;
                 &lt;input class="score-filter" type="text" name="phenotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))"&gt;
@@ -92,39 +127,18 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
               &lt;/li&gt;
-              &lt;li &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
+              &lt;li #if(!$hasAdmin)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
                 &lt;select id="gene-status-filter"&gt;
                   &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
-                  &lt;option #if(!$hasAdmin)class="hidden"#end value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
-                  &lt;option #if(!$hasAdmin)class="hidden"#end value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
-                  &lt;option #if(!$hasAdmin)class="hidden"#end value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
+                  &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
+                  &lt;option value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
+                  &lt;option value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
                   &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
                 &lt;/select&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.label'))&lt;br&gt;
-                &lt;label&gt;&lt;input name="matches-type-filter" type="checkbox" value="local" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;/label&gt;&lt;br&gt;
- #if(!$hasAdmin)&lt;label &gt;&lt;input name="matches-type-filter" type="checkbox" value="mme" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.mme'))&lt;/label&gt;&lt;br&gt;
-           #else&lt;label &gt;&lt;input name="matches-type-filter" type="checkbox" value="outgoing" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.outgoing'))&lt;/label&gt;&lt;br&gt;
-                &lt;label &gt;&lt;input name="matches-type-filter" type="checkbox" value="incoming" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.incoming'))&lt;/label&gt;#end
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.accessFilter'))&lt;br&gt;
                 &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="owner" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owner'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="view" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.view'))&lt;/label&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdInputID'))
-                &lt;input type="text" id="server-id-filter"&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputID'))
-                &lt;input type="text" id="external-id-filter"&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputEmail'))
-                &lt;input type="text" id="email-filter"&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputGene'))
-                &lt;input type="text" id="gene-symbol-filter"&gt;
-              &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputPhenotype'))
-                &lt;input type="text" id="phenotype-filter"&gt;
               &lt;/li&gt;
             &lt;/ul&gt;
           &lt;/div&gt;
@@ -139,12 +153,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
 ## Pagination
     &lt;div class="xwiki-livetable-pagination" id="pagination-info"&gt;
       &lt;span id="panels-livetable-limits" class="xwiki-livetable-limits"&gt;&lt;/span&gt;
-      &lt;span id="panels-livetable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$services.localization.render('platform.livetable.loading')" title="" /&gt;$services.localization.render('platform.livetable.loading')&lt;/span&gt;
+      &lt;span id="panels-livetable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$services.localization.render('platform.livetable.loading')" /&gt;$services.localization.render('platform.livetable.loading')&lt;/span&gt;
 ## ERROR MESSAGE CONTAINER
       &lt;div id="show-matches-messages"&gt;&lt;/div&gt;
     &lt;/div&gt;
 ## Global search
-    &lt;div id="global-search"&gt;&lt;input type="text" id="global-search-input" placeholder="$services.localization.render('phenotips.matchingNotifications.table.globalSearch.placeholder')"&gt;&lt;/div&gt;
+    &lt;div class="hidden" id="global-search"&gt;&lt;input type="text" id="global-search-input" placeholder="$services.localization.render('phenotips.matchingNotifications.table.globalSearch.placeholder')"&gt;&lt;/div&gt;
 ## TABLE--BODY
     &lt;table id="matchesTable" class="matches-table"&gt;
       &lt;thead&gt;
@@ -184,8 +198,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;/div&gt;
 ##--SEND NOTIFICATION BUTTON
     &lt;br/&gt;
-    &lt;div&gt;
-      &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="send-notifications-button" href="#"&gt;&lt;span class="fa fa-envelope" title=""&gt;&lt;/span&gt;&lt;span class="refresh-matches-button"&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
+    &lt;div #if(!$hasAdmin)class="hidden"#end&gt;
+      &lt;span class="buttonwrapper"&gt;
+        &lt;a class="button" id="send-notifications-button" href="#"&gt;&lt;span class="fa fa-envelope" &gt;&lt;/span&gt;
+          &lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/span&gt;
+        &lt;/a&gt;
+      &lt;/span&gt;
       &lt;div id="send-notifications-messages"&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;/div&gt;##--closing table div id="table-container"

@@ -87,7 +87,7 @@ public interface MatchingNotificationResource
     @Path("/show-matches")
     Response getMatches(@FormParam("score") @DefaultValue("0.5") double score,
         @FormParam("phenScore") @DefaultValue("0") double phenScore,
-        @FormParam("genScore") @DefaultValue("0") double genScore,
+        @FormParam("genScore") @DefaultValue("0.1") double genScore,
         @FormParam("onlyNotified") @DefaultValue("false") boolean onlyNotified);
 
     /**

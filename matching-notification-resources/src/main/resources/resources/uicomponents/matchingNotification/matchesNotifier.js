@@ -21,8 +21,13 @@ define(["matchingNotification/utils"], function(utils)
                 this._utils.showFailure('show-matches-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
                 return;
             }
+            this._notifyMatchByIDs(ids);
+        },
+
+        _notifyMatchByIDs  : function(matchIDs)
+        {
             // console.log("Sending " + idsToNotify);
-            var idsToNotify = JSON.stringify({ ids: ids});
+            var idsToNotify = JSON.stringify({ ids: matchIDs});
             new Ajax.Request(this._ajaxURL + 'send-notifications', {
                 parameters : {'ids' : idsToNotify},
                 onCreate : function (response) {

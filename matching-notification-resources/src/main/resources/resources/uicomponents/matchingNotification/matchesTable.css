@@ -153,13 +153,20 @@ input.notify , td span.fa.fa-envelope {
   float: right;
 }
 
-#show-matches-score, input[name="score"] {
+#show-matches-score, #show-matches-gen-score, #show-matches-phen-score {
+  float: right;
+  width: 5em!important;
+  margin-top: 3px;
+  line-height: 1.2em;
+}
+
+input[name="score"] {
   width: 4em!important;
 }
-#show-matches-gen-score, input[name="genotypicScore"] {
+input[name="genotypicScore"] {
   width: 5.3em!important;
 }
-#show-matches-phen-score, input[name="phenotypicScore"] {
+input[name="phenotypicScore"] {
   width: 5.8em!important;
 }
 .xwiki-livetable-pagination {
@@ -193,4 +200,34 @@ span.avoidwrap {
 a.button.toggle-filters.secondary-filters {
   margin-top: 2em !important;
   cursor: default !important;
+}
+a.contact-button {
+  background: transparent none left top no-repeat;
+}
+.contact-button  .fa.fa-envelope {
+  vertical-align: baseline;
+  margin-right: 3px;
+}
+.anonymous-contact {
+  overflow: hidden;
+}
+.anonymous-contact textarea[name="message"] {
+  height: 380px;
+  resize: none;
+  overflow-y: scroll;
+  font-size: 100%;
+}
+.anonymous-contact .buttons {
+    clear: both;
+    text-align: right;
+}
+.anonymous-contact textarea:disabled {
+  opacity: .9;
+}
+.score-label {
+  float: left;
+  margin-top: 8px;
+}
+.score-label .xHelpButton {
+  margin-left: 0;
 }
