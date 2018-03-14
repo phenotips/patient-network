@@ -67,6 +67,7 @@ var PhenoTips = (function (PhenoTips) {
         this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
+        this._EMAIL_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
         this._EMAIL_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.message.label'))";
 
@@ -247,6 +248,9 @@ var PhenoTips = (function (PhenoTips) {
     {
         var container = new Element('div', {'class' : 'anonymous-contact xform'});
         container.insert(new Element("h2").update(this._CONTACT_DIALOG_HEADER));
+
+        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_FROM)));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'from', 'type' : 'text', 'disabled' : true, 'value' : 'PhenomeCentral <noreply@phenomecentral.org>'})));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_TO)));
         container.insert(new Element('dd').insert(new Element('input', {'name' : 'to', 'type' : 'text', 'disabled' : true})));
@@ -879,7 +883,6 @@ var PhenoTips = (function (PhenoTips) {
                   'subjectPatientId' : patientId
             },
             onCreate : function() {
-                this._contactContainer.down('textarea[name="message"]').update('<img src="/resources/icons/xwiki/ajax-loader-large.gif"/>');
                 this._contactDialog.showDialog();
             }.bind(this),
             onSuccess : function(response) {
@@ -896,7 +899,7 @@ var PhenoTips = (function (PhenoTips) {
                     var ids = [];
                     ids.push({'matchId' : matchIdToNotify, 'patientId' : patientId});
                     this._notifier._notifyMatchByIDs(ids);
-                    this._contactDialog.showDialog();
+                    this._contactDialog.closeDialog();
                 }.bind(this));
             }.bind(this),
             onFailure : function(response) {

@@ -58,11 +58,10 @@ define(["matchingNotification/utils"], function(utils)
                     document.fire("notified:success", event);
                 }
                 if (results.failed && results.failed.length > 0) {
-                    alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + this._getEmailsForMatchIDs(results.failed).toString());
+                    alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + results.failed);
                     var event = { 'matchIds' : results.failed, 'properties' : {'state': 'failure'} };
                     document.fire("notified:failed", event);
                 }
-                this._matchesTable.update();
             } else {
                 if (!ajaxResponse.responseJSON || !ajaxResponse.responseJSON.results) {
                     this._utils.showFailure('send-notifications-messages');
@@ -81,15 +80,6 @@ define(["matchingNotification/utils"], function(utils)
                 }
             });
             return ids;
-        },
-
-        _getEmailsForMatchIDs : function(ids)
-        {
-            var emails = [];
-            ids.each(function (id) {
-                emails.push(this._tableElement.down('input[class="notify"][data-matchid="' + id + '"]').dataset.emails);
-            }.bind(this));
-            return emails;
         }
 
     });
