@@ -107,11 +107,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/li&gt;
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;/label&gt;&lt;br&gt;
+                &lt;div&gt;$escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;&lt;/div&gt;
                 #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
                 #set ($allRemotes = $preferenceDoc.getObjects("PhenomeCentral.RemoteMatchingServiceConfiguration"))
                 #foreach ($config in $allRemotes)
                   #if ($config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('humanReadableName').getValue() != "")
-                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt; $escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/label&gt;&lt;br&gt;
+                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt; $escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/label&gt;&lt;br&gt;
                   #end
                 #end
               &lt;/li&gt;
@@ -136,7 +137,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                   &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
                 &lt;/select&gt;
               &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.accessFilter'))&lt;br&gt;
+              &lt;li class="hidden"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.accessFilter'))&lt;br&gt;
                 &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="owner" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owner'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="view" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.view'))&lt;/label&gt;
               &lt;/li&gt;

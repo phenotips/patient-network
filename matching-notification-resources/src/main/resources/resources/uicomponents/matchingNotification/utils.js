@@ -33,12 +33,13 @@ define([], function()
         validateScore : function(score, className, messagesFieldName) {
             if (score == undefined || score == "") {
                 if (className == 'show-matches-score') {
-                    $('show-matches-score').value = 0.5;
+                    $(className).value = 0.5;
                     return 0.5;
                 } else if (className ==  'show-matches-gen-score') {
-                    $('show-matches-gen-score').value = 0.1;
+                    $(className).value = 0.1;
                     return 0.1;
                 } else {
+                    $(className).value = 0;
                     return 0;
                 }
             } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
@@ -74,7 +75,12 @@ define([], function()
                 }
             }
             return true;
-        }
+        },
 
+        _validateEmail: function (email)
+        {
+            var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
     });
 });

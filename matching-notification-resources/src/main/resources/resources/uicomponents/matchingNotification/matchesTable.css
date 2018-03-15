@@ -47,7 +47,9 @@ table#matchesTable {
   font-size: .8em;
   font-weight: 700;
 }
-
+#hierarchy {
+  padding-top: 0;
+}
 .matches-table ul {
   margin-top: 0px;
   margin-bottom: 0px;
@@ -230,4 +232,7 @@ a.contact-button {
 }
 .score-label .xHelpButton {
   margin-left: 0;
+}
+input.mme {
+  margin-left: 15px!important;
 }
