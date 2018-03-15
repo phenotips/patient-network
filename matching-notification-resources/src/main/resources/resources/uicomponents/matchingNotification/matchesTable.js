@@ -66,6 +66,7 @@ var PhenoTips = (function (PhenoTips) {
         this._SEND = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.send'))";
         this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
+        this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
         this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
         this._EMAIL_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
@@ -250,13 +251,13 @@ var PhenoTips = (function (PhenoTips) {
         container.insert(new Element("h2").update(this._CONTACT_DIALOG_HEADER));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_FROM)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'from', 'type' : 'text', 'disabled' : true, 'value' : 'PhenomeCentral <noreply@phenomecentral.org>'})));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'from', 'type' : 'text', 'disabled' : true})));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_TO)));
         container.insert(new Element('dd').insert(new Element('input', {'name' : 'to', 'type' : 'text', 'disabled' : true})));
 
-        //container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_CC)));
-        //container.insert(new Element('dd').insert(new Element('input', {'name' : 'cc', 'type' : 'text', 'disabled' : true})));
+        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_CC)));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'cc', 'type' : 'text', 'disabled' : true})));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_SUBJECT)));
         container.insert(new Element('dd').insert(new Element('input', {'name' : 'subject', 'type' : 'text', 'disabled' : true})));
@@ -933,7 +934,9 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 this._contactContainer.down('textarea[name="message"]').update(response.responseJSON.emailContent);
                 this._contactContainer.down('input[name="subject"]').value = response.responseJSON.subject;
-                this._contactContainer.down('input[name="to"]').value = response.responseJSON.recipients.toString();
+                this._contactContainer.down('input[name="to"]').value = response.responseJSON.recipients.to.toString();
+                this._contactContainer.down('input[name="cc"]').value = response.responseJSON.recipients.cc.toString();
+                this._contactContainer.down('input[name="from"]').value = response.responseJSON.recipients.from.toString();
                 this._contactDialog.showDialog();
                 // attach listener for "Send" notification button
                 this._contactContainer.down('input[name="send"]').on('click', function(event) {
