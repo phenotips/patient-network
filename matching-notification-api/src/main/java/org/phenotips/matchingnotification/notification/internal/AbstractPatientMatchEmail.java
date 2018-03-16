@@ -37,13 +37,12 @@ import org.xwiki.mail.script.ScriptMimeMessage;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.users.UserManager;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,10 +67,13 @@ import com.xpn.xwiki.XWikiContext;
  *
  * @version $Id$
  */
-public class DefaultPatientMatchEmail implements PatientMatchEmail
+public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 {
-    /** Name of document containing template for email notification. */
-    public static final String EMAIL_TEMPLATE = "PatientMatchNotificationEmailTemplate";
+    protected static final Provider<XWikiContext> CONTEXT_PROVIDER;
+
+    protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultAdminPatientMatchEmail.class);
+
+    protected static final UserManager USERMANAGER;
 
     private static final String EMAIL_CONTENT_KEY = "emailContent";
 
@@ -79,35 +81,40 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
     private static final String EMAIL_RECIPIENTS_KEY = "recipients";
 
+    private static final String EMAIL_RECIPIENTS_TO = "to";
+
+    private static final String EMAIL_RECIPIENTS_FROM = "from";
+
+    private static final String EMAIL_RECIPIENTS_CC = "cc";
+
     private static final String EMAIL_SUBJECT_KEY = "subject";
 
     private static final String EMAIL_PREFERRED_CONTENT_TYPE = "text/plain";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatchEmail.class);
-
     private static final MailSenderScriptService MAIL_SERVICE;
-
-    private static final Provider<XWikiContext> CONTEXT_PROVIDER;
 
     private static final DocumentReferenceResolver<String> REFERENCE_RESOLVER;
 
     private static final PatientPhenotypeSimilarityViewFactory PHENOTYPE_SIMILARITY_VIEW_FACTORY;
 
-    private ScriptMimeMessage mimeMessage;
+    protected ScriptMimeMessage mimeMessage;
 
-    private PatientInMatch subjectPatient;
+    protected PatientInMatch subjectPatient;
 
-    private Collection<PatientMatch> matches;
+    protected Collection<PatientMatch> matches;
 
-    private boolean sent;
+    protected boolean sent;
 
-    private MailStatus mailStatus;
+    protected String customEmailText;
+
+    protected MailStatus mailStatus;
 
     static {
         MailSenderScriptService mailService = null;
         Provider<XWikiContext> contextProvider = null;
         DocumentReferenceResolver<String> referenceResolver = null;
         PatientPhenotypeSimilarityViewFactory patientPhenotypeSimilarityViewFactory = null;
+        UserManager userManager = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             mailService = ccm.getInstance(ScriptService.class, "mailsender");
@@ -115,6 +122,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
             referenceResolver = ccm.getInstance(DocumentReferenceResolver.TYPE_STRING, "current");
             patientPhenotypeSimilarityViewFactory = ccm.getInstance(PatientPhenotypeSimilarityViewFactory.class,
                 "restricted");
+            userManager = ccm.getInstance(UserManager.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error initializing mailService", e);
         }
@@ -122,32 +130,79 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         CONTEXT_PROVIDER = contextProvider;
         REFERENCE_RESOLVER = referenceResolver;
         PHENOTYPE_SIMILARITY_VIEW_FACTORY = patientPhenotypeSimilarityViewFactory;
+        USERMANAGER = userManager;
     }
 
     /**
      * Build a new email object for a list of matches. {@code matches} is expected to be non empty, and one of the
-     * patients in every match should have same id as {@code subjectPatientId}.
+     * patients in every match should have same id and server id as {@code subjectPatientId}.
      *
-     * @param subjectPatientId id of patient who is the subject of this email (always local)
+     * @param subjectPatientId id of patient who is the subject of this email
+     * @param subjectServerId id of the server that holds the subjectPatientId
      * @param matches list of matches that the email notifies of.
+     * @param customEmailText (optional) custom text to be used for the email
      */
-    public DefaultPatientMatchEmail(String subjectPatientId, Collection<PatientMatch> matches)
+    public AbstractPatientMatchEmail(String subjectPatientId, String subjectServerId, Collection<PatientMatch> matches,
+            String customEmailText)
     {
         this.matches = matches;
+        this.customEmailText = customEmailText;
 
-        PatientMatch anyMatch = this.matches.iterator().next();
-        if (anyMatch.isReference(subjectPatientId, null)) {
-            this.subjectPatient = anyMatch.getReference();
-        } else {
-            this.subjectPatient = anyMatch.getMatched();
-        }
+        this.init(subjectPatientId, subjectServerId);
+
         this.createMimeMessage();
     }
 
-    private void createMimeMessage()
+    protected abstract String getEmailTemplate();
+
+    /**
+     * Creates a variables map specific to the selected email template.
+     *
+     * @return a map of key-value pairs to be used by the selected template
+     */
+    protected abstract Map<String, Object> createVelocityVariablesMap();
+
+    /**
+     * Having a separate init method allows derived classes to initialize their own variables
+     * which are used in createMimeMessage().
+     * @param subjectPatientId same as cobstructor
+     * @param subjectServerId same as cobstructor
+     */
+    protected void init(String subjectPatientId, String subjectServerId)
     {
-        DocumentReference templateReference = REFERENCE_RESOLVER.resolve(EMAIL_TEMPLATE, PatientMatch.DATA_SPACE);
-        this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, this.createEmailParameters());
+        String useServerId = StringUtils.isBlank(subjectServerId) ? null : subjectServerId;
+
+        PatientMatch anyMatch = this.matches.iterator().next();
+
+        if (anyMatch.isReference(subjectPatientId, useServerId)) {
+            this.subjectPatient = anyMatch.getReference();
+        } else if (anyMatch.isMatched(subjectPatientId, useServerId)) {
+            this.subjectPatient = anyMatch.getMatched();
+        } else {
+            throw new UnsupportedOperationException("A match does not contain subject patient");
+        }
+    }
+
+    protected void createMimeMessage()
+    {
+        if (this.customEmailText == null) {
+            DocumentReference templateReference = REFERENCE_RESOLVER.resolve(
+                    getEmailTemplate(), PatientMatch.DATA_SPACE);
+            this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, this.createEmailParameters());
+
+            if (this.mimeMessage == null) {
+                LOGGER.error("Error while populating email template: [{}]",
+                        MAIL_SERVICE.getLastError().getMessage(), MAIL_SERVICE.getLastError());
+            }
+        } else {
+            this.mimeMessage = MAIL_SERVICE.createMessage();
+            try {
+                this.mimeMessage.setContent(this.customEmailText, "text/plain");
+            } catch (Exception ex) {
+                LOGGER.error("Error while populating email with custom text [{}]: [{}]", this.customEmailText,
+                        MAIL_SERVICE.getLastError().getMessage(), MAIL_SERVICE.getLastError());
+            }
+        }
 
         this.setFrom();
         this.setTo();
@@ -164,41 +219,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         return emailParameters;
     }
 
-    private Map<String, Object> createVelocityVariablesMap()
-    {
-        Map<String, Object> velocityVariables = new HashMap<>();
-        velocityVariables.put("subjectPatient", this.subjectPatient);
-
-        List<Map<String, Object>> matchesForEmail = new ArrayList<>(this.matches.size());
-        for (PatientMatch match : this.matches) {
-            Map<String, Object> matchMap = new HashMap<>();
-
-            // Feature matching
-            JSONArray featureMatchesJSON = getFeatureMatchesJSON(match);
-            if (featureMatchesJSON.length() > 0) {
-                matchMap.put("featureMatches", featureMatchesJSON);
-            }
-            PatientInMatch otherPatient;
-            if (match.isReference(this.subjectPatient.getPatientId(), null)) {
-                otherPatient = match.getMatched();
-            } else {
-                otherPatient = match.getReference();
-            }
-            // NOTE: "subjectMatchedPatient" can be reference or match patient inside the match!
-            // Here  "subjectPatient" means the patient this email will be about,
-            //       "subjectMatchedPatient" is one of found matches to the "subjectPatient"
-            matchMap.put("subjectMatchedPatient", otherPatient);
-            matchMap.put("subjectMatchedPatientEmails", otherPatient.getEmails());
-            matchMap.put("match", match);
-
-            matchesForEmail.add(matchMap);
-        }
-        velocityVariables.put("matches", matchesForEmail);
-
-        return velocityVariables;
-    }
-
-    private void setFrom()
+    protected void setFrom()
     {
         String serverName = CONTEXT_PROVIDER.get().getRequest().getServerName();
         if (StringUtils.isNotEmpty(serverName)) {
@@ -208,9 +229,10 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         }
     }
 
-    private void setTo()
+    protected void setTo()
     {
         Collection<String> emails = this.subjectPatient.getEmails();
+        LOGGER.error("Setting To emails to {}", emails.toString());
         for (String emailAddress : emails) {
             InternetAddress to = new InternetAddress();
             to.setAddress(emailAddress);
@@ -263,7 +285,7 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
         return this.subjectPatient.getPatientId();
     }
 
-    private JSONArray getFeatureMatchesJSON(PatientMatch match)
+    protected JSONArray getFeatureMatchesJSON(PatientMatch match)
     {
         // we reconstruct features from corresponding details saved with match
         // because there features are already Reordered via DefaultPhenotypesMap
@@ -340,15 +362,36 @@ public class DefaultPatientMatchEmail implements PatientMatchEmail
 
         result.put(EMAIL_CONTENT_TYPE_KEY, EMAIL_PREFERRED_CONTENT_TYPE);
 
-        JSONArray recipients = new JSONArray();
+        JSONArray to = new JSONArray();
+        JSONArray cc = new JSONArray();
+        String from = null;
         try {
             for (Address address : this.mimeMessage.getRecipients(Message.RecipientType.TO)) {
-                recipients.put(address.toString());
+                to.put(address.toString());
             }
         } catch (Exception ex) {
-            LOGGER.error("Error getting email recipients: [{}]", ex.getMessage(), ex);
-            recipients.put("");
+            LOGGER.error("Error getting email TO recipients: [{}]", ex.getMessage());
         }
+        try {
+            for (Address address : this.mimeMessage.getRecipients(Message.RecipientType.CC)) {
+                cc.put(address.toString());
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email CC recipients: [{}]", ex.getMessage());
+        }
+        try {
+            for (Address address : this.mimeMessage.getReplyTo()) {
+                from = (from == null) ? address.toString() : (from + ", " + address.toString());
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error getting email FROM recipients: [{}]", ex.getMessage());
+            from = "";
+        }
+
+        JSONObject recipients = new JSONObject();
+        recipients.put(EMAIL_RECIPIENTS_TO, to);
+        recipients.put(EMAIL_RECIPIENTS_CC, cc);
+        recipients.put(EMAIL_RECIPIENTS_FROM, from);
         result.put(EMAIL_RECIPIENTS_KEY, recipients);
 
         try {

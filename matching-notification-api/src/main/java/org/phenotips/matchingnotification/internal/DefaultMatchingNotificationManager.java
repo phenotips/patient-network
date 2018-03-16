@@ -29,13 +29,12 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -72,18 +71,18 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     private MatchStorageManager matchStorageManager;
 
     @Override
-    public List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> matchesIds)
+    public List<PatientMatchNotificationResponse> sendAdminNotificationsToLocalUsers(Map<Long, List<String>> matchesIds)
     {
         if (matchesIds == null || matchesIds.size() == 0) {
             return Collections.emptyList();
         }
 
         List<PatientMatch> matches =
-            this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
+            this.matchStorageManager.loadMatchesByIds(matchesIds.keySet());
 
         filterNonUsersMatches(matches);
 
-        List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
+        List<PatientMatchEmail> emails = this.notifier.createAdminEmailsToLocalUsers(matches, matchesIds);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         for (PatientMatchEmail email : emails) {
@@ -101,6 +100,27 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return responses;
     }
 
+    @Override
+    public PatientMatchNotificationResponse sendUserNotification(Long matchId,
+            String subjectPatientId, String subjectServerId, String customEmailtext)
+    {
+        List<PatientMatch> matches =
+                this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
+
+        PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
+                subjectPatientId, subjectServerId, customEmailtext);
+
+        List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
+
+        List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
+
+        if (!this.matchStorageManager.markNotified(successfulMatches)) {
+            this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
+        }
+
+        return notificationResults.get(0);
+    }
+
     private List<PatientMatch> getSuccessfulNotifications(List<PatientMatchNotificationResponse> notificationResults)
     {
         List<PatientMatch> successfulMatches = new LinkedList<>();
@@ -116,20 +136,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public JSONObject getEmailContent(Long matchId, String patientId)
+    public JSONObject getUserEmailContent(Long matchId, String subjectPatientId, String subjectServerId)
     {
-        Map<Long, List<String>> matchesIds = new HashMap<>();
-
-        List<String> patientIdList = new LinkedList<>();
-        patientIdList.add(patientId);
-        matchesIds.put(matchId, patientIdList);
-
         List<PatientMatch> matches =
-                this.matchStorageManager.loadMatchesByIds(new ArrayList<>(matchesIds.keySet()));
+                this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
-        List<PatientMatchEmail> emails = this.notifier.createEmails(matches, matchesIds);
+        PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
+                subjectPatientId, subjectServerId, null);
 
-        return emails.get(0).getEmail();
+        return email.getEmail();
     }
 
     @Override
@@ -147,7 +162,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean setStatus(List<Long> matchesIds, String status)
+    public boolean setStatus(Set<Long> matchesIds, String status)
     {
         boolean successful = false;
         try {

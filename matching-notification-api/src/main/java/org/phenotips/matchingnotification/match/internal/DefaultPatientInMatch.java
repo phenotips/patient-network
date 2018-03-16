@@ -43,6 +43,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -241,7 +242,14 @@ public class DefaultPatientInMatch implements PatientInMatch
             emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.patient));
         } else {
             if (StringUtils.isNotEmpty(this.href)) {
-                emails.add(this.href);
+                // TODO: discuss what better algorithm/package can be use to split emails
+                // MME emails may be of the form "mailto:email1,email2", need ot parse that
+                if (this.href.startsWith("mailto:")) {
+                    String emailList = this.href.replace("mailto:", "");
+                    emails.addAll(Arrays.asList(emailList.split(",")));
+                } else {
+                    emails.add(this.href);
+                }
             }
         }
         return emails;

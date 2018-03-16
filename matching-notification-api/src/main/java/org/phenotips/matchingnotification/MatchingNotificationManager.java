@@ -24,6 +24,7 @@ import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -39,25 +40,43 @@ public interface MatchingNotificationManager
      * @param idsList map of ids of matches to patients Ids to be notified
      * @return a list of PatientmatchNotificationResponse
      */
-    List<PatientMatchNotificationResponse> sendNotifications(Map<Long, List<String>> idsList);
-
+    List<PatientMatchNotificationResponse> sendAdminNotificationsToLocalUsers(Map<Long, List<String>> idsList);
 
     /**
-     * Returns the contents of the email that wil be send as a nbotification for match with the given id.
+     * Sends notification to the owner of the suvbjectpatientId about the given match.
      *
      * @param matchId match id
-     * @param patientId the id of the patient that is the subject of the email (can be either of
-     *                  the two patients involved in the specified match)
+     * @param subjectPatientId the id of the patient that is the subject of the email (can be either of
+     *                         the two patients involved in the specified match)
+     * @param subjectServerId the id of the server that holds the given patient. Is only needed to distinguish two
+     *                        patients with the same ID
+     * @param customEmailText (optional) email text to be used
+     *
+     * @return status of the notification as PatientMatchNotificationResponse
+     */
+    PatientMatchNotificationResponse sendUserNotification(Long matchId,
+            String subjectPatientId, String subjectServerId, String customEmailText);
+
+    /**
+     * Returns the contents of the email that will be send as a notification for match with the given id,
+     * with the recepient being the owner of the given patient on the given server.
+     *
+     * @param matchId match id
+     * @param subjectPatientId the id of the patient that is the subject of the email (can be either of
+     *                         the two patients involved in the specified match)
+     * @param subjectServerId the id of the server that holds the given patient. Is only needed to distinguish two
+     *                        patients with the same ID
+     *
      * @return a response containing a JSON object, in the following format:
      *     <pre>
      *      { "emailContent": text,
-     *        "recipients": [listof email addresses as strings],
+     *        "recipients": { "to": list_of_email_addresses_as_strings, "from": list, "cc": list },
      *        "contentType": type,
      *        "subject": text }
      *     </pre>
      *     where text is a string, and type the type of content as string (e.g. "text/plain")
      */
-    JSONObject getEmailContent(Long matchId, String patientId);
+    JSONObject getUserEmailContent(Long matchId, String subjectPatientId, String subjectServerId);
 
     /**
      * Saves a list of matches that were found by a remote incoming request.
@@ -90,5 +109,5 @@ public interface MatchingNotificationManager
      * @param status whether matches should be set as saved, rejected or uncategorized
      * @return true if successful
      */
-    boolean setStatus(List<Long> matchesIds, String status);
+    boolean setStatus(Set<Long> matchesIds, String status);
 }

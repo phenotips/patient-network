@@ -261,7 +261,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public List<PatientMatch> loadMatchesByIds(List<Long> matchesIds)
+    public List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds)
     {
         if (matchesIds != null && matchesIds.size() > 0) {
             return this.loadMatchesByCriteria(

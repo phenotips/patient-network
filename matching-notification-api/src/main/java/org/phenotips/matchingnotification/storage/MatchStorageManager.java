@@ -24,6 +24,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @version $Id$
@@ -49,7 +50,7 @@ public interface MatchStorageManager
      * @param matchesIds list of ids of matches to load
      * @return list of matches
      */
-    List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
+    List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds);
 
     /**
      * Load all matches where reference/matched patient ID is same as one of parameters.

@@ -17,7 +17,7 @@
  */
 package org.phenotips.matchingnotification.rest;
 
-import org.phenotips.data.rest.PatientResource;
+import org.phenotips.data.rest.PatientsResource;
 import org.phenotips.rest.ParentResource;
 import org.phenotips.rest.Relation;
 
@@ -43,7 +43,7 @@ import javax.ws.rs.core.Response;
 @Unstable("New API introduced in 1.1")
 @Path("/patients/matching-notification")
 @Relation("https://phenotips.org/rel/matchingNotification")
-@ParentResource(PatientResource.class)
+@ParentResource(PatientsResource.class)
 public interface MatchingNotificationResource
 {
     /**
@@ -91,8 +91,10 @@ public interface MatchingNotificationResource
         @FormParam("onlyNotified") @DefaultValue("false") boolean onlyNotified);
 
     /**
-     * Sends email notifications for each match. Example:
+     * Sends email notifications for each match using the "admin" email emplate.
+     * All patient IDs are assumed ot be local IDs, and all recepients must/will be local users.
      *
+     * Example:
      * <pre>
      *  Input JSON: {"ids": [{'matchId' : 58, 'patientId' : P000067}, {'matchId' : 7, 'patientId' : P000035}]}
      *  Output JSON: {"results": {"success":[a list of match ids], "failed": [a list of match ids]}}
@@ -107,8 +109,27 @@ public interface MatchingNotificationResource
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/send-notifications")
-    Response sendNotifications();
+    @Path("/send-admin-local-notifications")
+    Response sendAdminNotificationsToLocalUsers();
+
+    /**
+     * Sends a email notification for a given match using the "user" email emplate.
+     * The target patient/user may be either local or remote (MME).
+     *
+     * @param matchId the id of the match that the other user shoulbe notified about
+     * @param patientId the id of the patient that is the subject of the email
+     * @param serverId the server that hosts the patient
+     * @param emailText (optional) custom text edited/created by the user
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/send-user-notifications")
+    Response sendUserNotification(@FormParam("matchId") String matchId,
+        @FormParam("subjectPatientId") String patientId,
+        @FormParam("subjectServerId") String serverId,
+        @FormParam("emailText") @DefaultValue("") String emailText);
 
     /**
      * Returns the content of email to be sent when a user hits "contact this match" button.
@@ -116,22 +137,24 @@ public interface MatchingNotificationResource
      * @param matchId the id of the match that should be used to generate the email
      * @param patientId the id of the patient that is the subject of the email (can be either of
      *                  the two patients involved in the specified match)
+     * @param serverId the server that hosts the patient
      * @return a response containing a JSON object, in the following format:
      *     <pre>
      *      { "emailContent": text,
-     *        "recipients": [listof email addresses as strings],
+     *        "recipients": { "to": list_of_email_addresses_as_strings, "from": list, "cc": list },
      *        "contentType": type,
      *        "subject": text }
      *     </pre>
-     *     where text is a string, and type is the type of content as string (e.g. "text/plain")
-     *     TODO: check what other types we may be returning
+     *     where text is a string, and type is the type of content as string (for now only
+     *     "text/plain" is supported) TODO: support text/html as well
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/preview-match-email")
+    @Path("/preview-user-match-email")
     Response getEmailToBeSent(@FormParam("matchId") String matchId,
-            @FormParam("subjectPatientId") String patientId);
+        @FormParam("subjectPatientId") String patientId,
+        @FormParam("subjectServerId") String serverId);
 
     /**
      * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:

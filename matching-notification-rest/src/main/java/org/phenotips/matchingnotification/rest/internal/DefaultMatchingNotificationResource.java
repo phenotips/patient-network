@@ -155,7 +155,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response sendNotifications()
+    public Response sendAdminNotificationsToLocalUsers()
     {
         final Request request = this.container.getRequest();
         final String ids = (String) request.getProperty(IDS_STRING);
@@ -167,7 +167,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
         Map<Long, List<String>> idsList = this.jsonToIdsMap(ids);
         List<PatientMatchNotificationResponse> notificationResults =
-            this.matchingNotificationManager.sendNotifications(idsList);
+            this.matchingNotificationManager.sendAdminNotificationsToLocalUsers(idsList);
 
         // create result JSON. The successfullyNotified list is used to take care of a case
         // where there is match that was supposed to be notified but no response was received on it.
@@ -184,13 +184,42 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response getEmailToBeSent(String matchId, String patientId)
+    public Response sendUserNotification(String matchId, String patientId, String serverId, String emailText)
     {
         try {
             Long numericMatchId = Long.parseLong(matchId);
 
-            // TODO: this is a work-in-progress stub to allow testing UI while back-end is being developed
-            JSONObject result = this.matchingNotificationManager.getEmailContent(numericMatchId, patientId);
+            PatientMatchNotificationResponse notificationResults =
+                    this.matchingNotificationManager.sendUserNotification(
+                            numericMatchId, patientId, serverId, StringUtils.isBlank(emailText) ? null : emailText);
+
+            JSONObject result;
+            if (notificationResults.isSuccessul()) {
+                result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
+                        Collections.singletonList(numericMatchId));
+            } else {
+                result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
+                        Collections.<Long>emptyList());
+            }
+            return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
+        } catch (NumberFormatException ex) {
+            this.logger.error("Match id is not valid: [{}]", matchId);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (Exception ex) {
+            this.logger.error("Could not send user notifications for match with id=[{}]: [{}]",
+                    matchId, ex.getMessage(), ex);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response getEmailToBeSent(String matchId, String patientId, String serverId)
+    {
+        try {
+            Long numericMatchId = Long.parseLong(matchId);
+
+            JSONObject result = this.matchingNotificationManager.getUserEmailContent(
+                    numericMatchId, patientId, serverId);
 
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (NumberFormatException ex) {
@@ -215,9 +244,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        List<Long> idsList = new ArrayList<Long>(matchesIds);
-        boolean success = this.matchingNotificationManager.setStatus(idsList, status);
-        JSONObject result = this.successfulIdsToJSON(idsList, success ? idsList
+        boolean success = this.matchingNotificationManager.setStatus(matchesIds, status);
+        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
             : Collections.<Long>emptyList());
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
@@ -269,7 +297,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
     }
 
-    private JSONObject successfulIdsToJSON(List<Long> allIds, List<Long> successfulIds)
+    private JSONObject successfulIdsToJSON(Collection<Long> allIds, Collection<Long> successfulIds)
     {
         JSONObject result = new JSONObject();
         result.put("success", successfulIds);

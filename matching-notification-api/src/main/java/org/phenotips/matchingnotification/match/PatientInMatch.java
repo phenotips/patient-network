@@ -54,7 +54,7 @@ import org.json.JSONObject;
  * }
  * </pre>
  *
- * See {@link org.phenotips.matchingnotification.notification.internal.DefaultPatientMatchEmail} for some actual usage
+ * See {@link org.phenotips.matchingnotification.notification.internal.DefaultAdminPatientMatchEmail} for some actual usage
  * examples.
  * <p>
  * Comment: getMatchedGenes()/getReferenceGenes() do not exist - the code serves as an example why it's not a good idea.

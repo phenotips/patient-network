@@ -589,6 +589,61 @@
               <method>org.json.JSONObject getEmail()</method>
               <justification>New helper method</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>org.json.JSONObject getUserEmailContent(java.lang.Long, java.lang.String, java.lang.String)</method>
+              <justification>Added to enable preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List sendAdminNotificationsToLocalUsers(java.util.Map)</method>
+              <justification>Added to enable preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List sendNotifications(java.util.List)</method>
+              <justification>Removed in refactoring user notification.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse sendUserNotification(java.lang.Long, java.lang.String, java.lang.String, java.lang.String)</method>
+              <justification>Added to implement preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setStatus(java.util.Set, java.lang.String)</method>
+              <justification>Added to implement preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/notification/PatientMatchNotifier</className>
+              <differenceType>7012</differenceType>
+              <method>java.util.List createAdminEmailsToLocalUsers(java.util.List, java.util.Map)</method>
+              <justification>Added to implement preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/notification/PatientMatchNotifier</className>
+              <differenceType>7002</differenceType>
+              <method>java.util.List createEmails(java.util.List)</method>
+              <justification>Removed in refactoring user notification.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/notification/PatientMatchNotifier</className>
+              <differenceType>7012</differenceType>
+              <method>org.phenotips.matchingnotification.notification.PatientMatchEmail createUserEmail(org.phenotips.matchingnotification.match.PatientMatch, java.lang.String, java.lang.String, java.lang.String)</method>
+              <justification>Added to implement preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7005</differenceType>
+              <method>java.util.List loadMatchesByIds(java.util.List)</method>
+              <to>java.util.List loadMatchesByIds(java.util.Set)</to>
+              <justification>Changed to implement preview for notification emails before sending.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>
