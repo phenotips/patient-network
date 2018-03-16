@@ -211,7 +211,7 @@ var PhenoTips = (function (PhenoTips) {
              || match.reference.serverId.toLowerCase().includes(this._filterValues.globalFilter)
              || match.phenotypes.toString().toLowerCase().includes(this._filterValues.globalFilter)
              || this._filterValues.serverIds[match.reference.serverId]
-             || this._filterValues.serverIds[match.matched.serverId] 
+             || this._filterValues.serverIds[match.matched.serverId]
              || (match.isLocal && this._filterValues.serverIds["local"]))
              && this._advancedFilter(match);
         }.bind(this);
@@ -912,16 +912,12 @@ var PhenoTips = (function (PhenoTips) {
 
     _launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
     {
-        var matchIdToNotify = matchId;
-        var patientId = subjectPatientId;
-        var serverId = subjectServerId;
-
-        new Ajax.Request(this._ajaxURL + 'preview-match-email', {
+        new Ajax.Request(this._ajaxURL + 'preview-user-match-email', {
             contentType:'application/json',
             parameters : {
                   'matchId': matchId,
-                  'subjectPatientId' : patientId,
-                  'serverId' : serverId
+                  'subjectPatientId' : subjectPatientId,
+                  'subjectServerId' : subjectServerId
             },
             onCreate : function() {
                 this._contactContainer.down('textarea[name="message"]').update('');
@@ -940,10 +936,9 @@ var PhenoTips = (function (PhenoTips) {
                 this._contactDialog.showDialog();
                 // attach listener for "Send" notification button
                 this._contactContainer.down('input[name="send"]').on('click', function(event) {
-                    var ids = [];
-                    ids.push({'matchId' : matchIdToNotify, 'patientId' : patientId});
-                    this._notifier._notifyMatchByIDs(ids);
                     this._contactDialog.closeDialog();
+                    this._notifier.notifyUserMatch(matchId, subjectPatientId, subjectServerId,
+                            this._contactContainer.down('textarea[name="message"]').value);
                 }.bind(this));
             }.bind(this),
             onFailure : function(response) {

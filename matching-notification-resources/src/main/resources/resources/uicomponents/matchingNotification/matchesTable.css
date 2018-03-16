@@ -221,7 +221,8 @@ a.contact-button {
   font-size: 100%;
 }
 .anonymous-contact .button {
-  width: 5em;
+  width: 6em;
+  text-align: center;
 }
 .anonymous-contact textarea:disabled {
   opacity: .9;
@@ -235,4 +236,11 @@ a.contact-button {
 }
 input.mme {
   margin-left: 15px!important;
+}
+#checkbox-server-filters {
+  margin-top: 5px;
+}
+.across-mme {
+  margin-top: 5px;
+  margin-left: 1em;
 }

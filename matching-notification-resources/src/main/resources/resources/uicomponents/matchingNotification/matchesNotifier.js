@@ -24,11 +24,31 @@ define(["matchingNotification/utils"], function(utils)
             this._notifyMatchByIDs(ids);
         },
 
+        notifyUserMatch: function(matchID, subjectPatientId, subjectServerId, emailText)
+        {
+            new Ajax.Request(this._ajaxURL + 'send-user-notifications', {
+                contentType : 'application/json',
+                parameters : {'matchId': matchID,
+                              'subjectPatientId': subjectPatientId,
+                              'subjectServerId': subjectServerId,
+                              'emailText': emailText},
+                onCreate : function (response) {
+                    this._utils.showSent('send-notifications-messages');
+                }.bind(this),
+                onSuccess : function (response) {
+                    this._onSuccessSendNotification(response);
+                }.bind(this),
+                onFailure : function (response) {
+                    this._utils.showFailure('show-matches-messages');
+                }.bind(this)
+            });
+        },
+
         _notifyMatchByIDs  : function(matchIDs)
         {
             // console.log("Sending " + idsToNotify);
             var idsToNotify = JSON.stringify({ ids: matchIDs});
-            new Ajax.Request(this._ajaxURL + 'send-notifications', {
+            new Ajax.Request(this._ajaxURL + 'send-admin-local-notifications', {
                 parameters : {'ids' : idsToNotify},
                 onCreate : function (response) {
                     this._utils.showSent('send-notifications-messages');
