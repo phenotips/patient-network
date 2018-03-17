@@ -73,7 +73,7 @@ public interface MatchedPatientClusterView
      *
      * @param fromIndex the starting position (zero-based)
      * @param maxResults maximum number of results to return (if there are less items left starting from fromIndex
-     *         then all will be returned, if there are >= than maxResults results, then maxResults will be returned)
+     *         then all will be returned, if there are &gt;= than maxResults results, then maxResults will be returned)
      * @return a {@link JSONObject} containing the requested subset of data from the {@link #getReference() reference
      *         patient} and its {@link #getMatches() matches}
      * @throws IndexOutOfBoundsException if
