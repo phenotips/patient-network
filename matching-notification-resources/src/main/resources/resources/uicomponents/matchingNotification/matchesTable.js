@@ -291,7 +291,7 @@ var PhenoTips = (function (PhenoTips) {
         container.insert(new Element('dd').insert(new Element('input', {'name' : 'cc', 'type' : 'text', 'disabled' : true})));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_SUBJECT)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'subject', 'type' : 'text', 'disabled' : true})));
+        container.insert(new Element('dd').insert(new Element('input', {'name' : 'subject', 'type' : 'text'})));
 
         container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_MESSAGE)));
         var text = new Element('textarea', {'name' : 'message'});
@@ -954,6 +954,8 @@ var PhenoTips = (function (PhenoTips) {
                 this._contactContainer.down('textarea[name="message"]').update('');
                 this._contactContainer.down('input[name="subject"]').value = '';
                 this._contactContainer.down('input[name="to"]').value = '';
+                this._contactContainer.down('input[name="cc"]').value = '';
+                this._contactContainer.down('input[name="from"]').value = '';
 
                 // FIXME: this is a quick fix, need to find a better solution:
                 // clone send button to remove all accumulated event handlers
