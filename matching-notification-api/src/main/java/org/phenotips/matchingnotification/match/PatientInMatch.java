@@ -144,7 +144,7 @@ public interface PatientInMatch
 
     /**
      * @return status of genes (solved or candidate) stored in PatientGenotype class,
-     *         or null if patient does not have genotype.
+     *         or null if patient does not have genotype or genotype status is unknown.
      */
     String getGenesStatus();
 }
