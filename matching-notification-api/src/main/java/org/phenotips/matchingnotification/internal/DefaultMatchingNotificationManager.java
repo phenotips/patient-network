@@ -107,10 +107,19 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<PatientMatch> matches =
                 this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
+        if (matches.size() == 0) {
+            throw new IllegalArgumentException("MatchId " + matchId + " is not a valid match id");
+        }
+
         PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
                 subjectPatientId, subjectServerId, customEmailtext);
 
         List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
+
+        if (notificationResults.size() == 0) {
+            this.logger.error("No notification result when sending user email");
+            return null;
+        }
 
         List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
 

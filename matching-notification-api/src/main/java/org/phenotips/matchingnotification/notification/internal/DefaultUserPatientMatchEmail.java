@@ -101,8 +101,6 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
     @Override
     protected Map<String, Object> createVelocityVariablesMap()
     {
-        LOGGER.error("My patient: {}", this.myPatient);
-
         // TODO: use the seme set of variables that DefaultAdminPatientMatchEmail uses
         //       to be able to draw a nice HTML table with matches
         Map<String, Object> velocityVariables = new HashMap<>();

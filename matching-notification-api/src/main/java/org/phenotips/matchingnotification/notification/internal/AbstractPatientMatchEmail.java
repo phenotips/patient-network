@@ -29,10 +29,11 @@ import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.mail.MailListener;
+import org.xwiki.mail.MailSender;
 import org.xwiki.mail.MailStatus;
-import org.xwiki.mail.MailStatusResult;
+import org.xwiki.mail.internal.SessionFactory;
 import org.xwiki.mail.script.MailSenderScriptService;
-import org.xwiki.mail.script.ScriptMailResult;
 import org.xwiki.mail.script.ScriptMimeMessage;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -40,9 +41,9 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.users.UserManager;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +52,7 @@ import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
+import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 
@@ -91,7 +93,17 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 
     private static final String EMAIL_PREFERRED_CONTENT_TYPE = "text/plain";
 
-    private static final MailSenderScriptService MAIL_SERVICE;
+    /** This service is used for generating email content from an XML template. */
+    private static final MailSenderScriptService MAIL_GENERATOR_SERVICE;
+
+    /**
+     * This service is used for sending emails. The service above can do that as well,
+     * but it does permission checks and non-admin users can not send mail using that service.
+     */
+    private static final MailSender MAIL_SENDER_SERVICE;
+
+    /** Needed for use by MAIL_SENDER_SERVICE. */
+    private static final SessionFactory MAIL_SESSION_FACTORY;
 
     private static final DocumentReferenceResolver<String> REFERENCE_RESOLVER;
 
@@ -110,23 +122,29 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     protected MailStatus mailStatus;
 
     static {
-        MailSenderScriptService mailService = null;
+        MailSender mailSenderService = null;
+        SessionFactory mailSessionFactory = null;
+        MailSenderScriptService mailGeneratorService = null;
         Provider<XWikiContext> contextProvider = null;
         DocumentReferenceResolver<String> referenceResolver = null;
         PatientPhenotypeSimilarityViewFactory patientPhenotypeSimilarityViewFactory = null;
         UserManager userManager = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-            mailService = ccm.getInstance(ScriptService.class, "mailsender");
+            mailGeneratorService = ccm.getInstance(ScriptService.class, "mailsender");
+            mailSenderService = ccm.getInstance(org.xwiki.mail.MailSender.class);
             contextProvider = ccm.getInstance(XWikiContext.TYPE_PROVIDER);
             referenceResolver = ccm.getInstance(DocumentReferenceResolver.TYPE_STRING, "current");
             patientPhenotypeSimilarityViewFactory = ccm.getInstance(PatientPhenotypeSimilarityViewFactory.class,
                 "restricted");
             userManager = ccm.getInstance(UserManager.class);
+            mailSessionFactory = ccm.getInstance(SessionFactory.class);
         } catch (ComponentLookupException e) {
             LOGGER.error("Error initializing mailService", e);
         }
-        MAIL_SERVICE = mailService;
+        MAIL_SENDER_SERVICE = mailSenderService;
+        MAIL_SESSION_FACTORY = mailSessionFactory;
+        MAIL_GENERATOR_SERVICE = mailGeneratorService;
         CONTEXT_PROVIDER = contextProvider;
         REFERENCE_RESOLVER = referenceResolver;
         PHENOTYPE_SIMILARITY_VIEW_FACTORY = patientPhenotypeSimilarityViewFactory;
@@ -179,7 +197,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         } else if (anyMatch.isMatched(subjectPatientId, useServerId)) {
             this.subjectPatient = anyMatch.getMatched();
         } else {
-            throw new UnsupportedOperationException("A match does not contain subject patient");
+            throw new IllegalArgumentException("A match does not contain subject patient");
         }
     }
 
@@ -188,19 +206,21 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         if (this.customEmailText == null) {
             DocumentReference templateReference = REFERENCE_RESOLVER.resolve(
                     getEmailTemplate(), PatientMatch.DATA_SPACE);
-            this.mimeMessage = MAIL_SERVICE.createMessage("template", templateReference, this.createEmailParameters());
+
+            this.mimeMessage = MAIL_GENERATOR_SERVICE.
+                    createMessage("template", templateReference, this.createEmailParameters());
 
             if (this.mimeMessage == null) {
                 LOGGER.error("Error while populating email template: [{}]",
-                        MAIL_SERVICE.getLastError().getMessage(), MAIL_SERVICE.getLastError());
+                        MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
             }
         } else {
-            this.mimeMessage = MAIL_SERVICE.createMessage();
+            this.mimeMessage = MAIL_GENERATOR_SERVICE.createMessage();
             try {
                 this.mimeMessage.setContent(this.customEmailText, "text/plain");
             } catch (Exception ex) {
                 LOGGER.error("Error while populating email with custom text [{}]: [{}]", this.customEmailText,
-                        MAIL_SERVICE.getLastError().getMessage(), MAIL_SERVICE.getLastError());
+                        MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
             }
         }
 
@@ -232,7 +252,6 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     protected void setTo()
     {
         Collection<String> emails = this.subjectPatient.getEmails();
-        LOGGER.error("Setting To emails to {}", emails.toString());
         for (String emailAddress : emails) {
             InternetAddress to = new InternetAddress();
             to.setAddress(emailAddress);
@@ -268,15 +287,32 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     @Override
     public void send()
     {
-        ScriptMailResult mailResult = MAIL_SERVICE.send(this.mimeMessage);
-        this.sent = true;
+        try {
+            this.sent = false;
 
-        this.mailStatus = null;
-        MailStatusResult mailStatusResult = mailResult.getStatusResult();
-        Iterator<MailStatus> allResults = mailStatusResult.getAll();
-        if (allResults.hasNext()) {
-            this.mailStatus = allResults.next();
+            // parts of the code below are copied from MailSenderScriptService
+            // including the "memory" value for MailListener (taken from MailSenderScriptService.getListener())
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            MailListener listener = ccm.getInstance(MailListener.class, "memory");
+            Session session = MAIL_SESSION_FACTORY.create(Collections.<String, String>emptyMap());
+
+            MAIL_SENDER_SERVICE.sendAsynchronously(Collections.singleton(this.mimeMessage), session, listener);
+
+            listener.getMailStatusResult().waitTillProcessed(10000);
+
+            if (listener.getMailStatusResult().getAllErrors().hasNext()) {
+                this.mailStatus = listener.getMailStatusResult().getAllErrors().next();
+                LOGGER.error("Error sending email: [{}] [{}]",
+                        this.mailStatus.getErrorDescription(), this.mailStatus.getErrorSummary());
+                return;
+            }
+
+            this.sent = true;
+            this.mailStatus = listener.getMailStatusResult().getAll().next();
+        } catch (Exception ex) {
+            LOGGER.error("Error sending email: [{}]", ex.getMessage(), ex);
         }
+
     }
 
     @Override
