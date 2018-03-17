@@ -120,6 +120,7 @@ public interface MatchingNotificationResource
      * @param patientId the id of the patient that is the subject of the email
      * @param serverId the server that hosts the patient
      * @param emailText (optional) custom text edited/created by the user
+     * @param emailSubject (optional) custom subject edited/created by the user
      * @return result JSON
      */
     @POST
@@ -129,7 +130,8 @@ public interface MatchingNotificationResource
     Response sendUserNotification(@FormParam("matchId") String matchId,
         @FormParam("subjectPatientId") String patientId,
         @FormParam("subjectServerId") String serverId,
-        @FormParam("emailText") @DefaultValue("") String emailText);
+        @FormParam("emailText") @DefaultValue("") String emailText,
+        @FormParam("emailSubject") @DefaultValue("") String emailSubject);
 
     /**
      * Returns the content of email to be sent when a user hits "contact this match" button.

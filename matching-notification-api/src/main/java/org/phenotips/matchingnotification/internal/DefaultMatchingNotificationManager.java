@@ -102,7 +102,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
     @Override
     public PatientMatchNotificationResponse sendUserNotification(Long matchId,
-            String subjectPatientId, String subjectServerId, String customEmailtext)
+            String subjectPatientId, String subjectServerId, String customEmailtext, String customEmailSubject)
     {
         List<PatientMatch> matches =
                 this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
@@ -112,7 +112,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
-                subjectPatientId, subjectServerId, customEmailtext);
+                subjectPatientId, subjectServerId, customEmailtext, customEmailSubject);
 
         List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
 
@@ -151,7 +151,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
         PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
-                subjectPatientId, subjectServerId, null);
+                subjectPatientId, subjectServerId, null, null);
 
         return email.getEmail();
     }

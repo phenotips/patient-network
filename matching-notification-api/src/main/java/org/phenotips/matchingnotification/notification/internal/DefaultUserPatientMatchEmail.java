@@ -60,7 +60,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
      */
     public DefaultUserPatientMatchEmail(PatientMatch match, String subjectPatientId, String subjectServerId)
     {
-        super(subjectPatientId, subjectServerId, Collections.singletonList(match), null);
+        super(subjectPatientId, subjectServerId, Collections.singletonList(match), null, null);
     }
 
     /**
@@ -70,12 +70,14 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
      * @param subjectPatientId id of patient who is the subject of this email.
      *                         Owner of this patient will be notified
      * @param subjectServerId id of the server that holds the subjectPatientId
-     * @param customEmailText custom text
+     * @param customEmailText (optional) custom text to be used for the email
+     * @param customEmailSubject (optional) custom subject to be used for the email
      */
     public DefaultUserPatientMatchEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText)
+            String customEmailText, String customEmailSubject)
     {
-        super(subjectPatientId, subjectServerId, Collections.singletonList(match), customEmailText);
+        super(subjectPatientId, subjectServerId, Collections.singletonList(match),
+                customEmailText, customEmailSubject);
     }
 
     @Override

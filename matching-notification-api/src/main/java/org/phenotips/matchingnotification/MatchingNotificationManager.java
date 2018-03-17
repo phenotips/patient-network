@@ -51,11 +51,12 @@ public interface MatchingNotificationManager
      * @param subjectServerId the id of the server that holds the given patient. Is only needed to distinguish two
      *                        patients with the same ID
      * @param customEmailText (optional) email text to be used
+     * @param customEmailSubject (optional) emial subject to be used
      *
      * @return status of the notification as PatientMatchNotificationResponse
      */
     PatientMatchNotificationResponse sendUserNotification(Long matchId,
-            String subjectPatientId, String subjectServerId, String customEmailText);
+            String subjectPatientId, String subjectServerId, String customEmailText, String customEmailSubject);
 
     /**
      * Returns the contents of the email that will be send as a notification for match with the given id,

@@ -188,14 +188,16 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response sendUserNotification(String matchId, String patientId, String serverId, String emailText)
+    public Response sendUserNotification(String matchId, String patientId, String serverId,
+            String emailText, String emailSubject)
     {
         try {
             Long numericMatchId = Long.parseLong(matchId);
 
             PatientMatchNotificationResponse notificationResult =
-                    this.matchingNotificationManager.sendUserNotification(
-                            numericMatchId, patientId, serverId, StringUtils.isBlank(emailText) ? null : emailText);
+                    this.matchingNotificationManager.sendUserNotification(numericMatchId, patientId, serverId,
+                            StringUtils.isBlank(emailText) ? null : emailText,
+                            StringUtils.isBlank(emailSubject) ? null : emailSubject);
 
             if (notificationResult == null) {
                 // unable to send mail, but not because input is wrong

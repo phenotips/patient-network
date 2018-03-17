@@ -119,6 +119,8 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 
     protected String customEmailText;
 
+    protected String customEmailSubject;
+
     protected MailStatus mailStatus;
 
     static {
@@ -159,12 +161,14 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
      * @param subjectServerId id of the server that holds the subjectPatientId
      * @param matches list of matches that the email notifies of.
      * @param customEmailText (optional) custom text to be used for the email
+     * @param customEmailSubject (optional) custom subject to be used for the email
      */
     public AbstractPatientMatchEmail(String subjectPatientId, String subjectServerId, Collection<PatientMatch> matches,
-            String customEmailText)
+            String customEmailText, String customEmailSubject)
     {
         this.matches = matches;
         this.customEmailText = customEmailText;
+        this.customEmailSubject = customEmailSubject;
 
         this.init(subjectPatientId, subjectServerId);
 
@@ -222,6 +226,10 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
                 LOGGER.error("Error while populating email with custom text [{}]: [{}]", this.customEmailText,
                         MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
             }
+        }
+
+        if (this.customEmailSubject != null) {
+            this.mimeMessage.setSubject(this.customEmailSubject);
         }
 
         this.setFrom();

@@ -975,7 +975,8 @@ var PhenoTips = (function (PhenoTips) {
                 this._contactContainer.down('input[name="send"]').on('click', function(event) {
                     this._contactDialog.closeDialog();
                     this._notifier.notifyUserMatch(matchId, subjectPatientId, subjectServerId,
-                            this._contactContainer.down('textarea[name="message"]').value);
+                            this._contactContainer.down('textarea[name="message"]').value,
+                            this._contactContainer.down('input[name="subject"]').value);
                 }.bind(this));
             }.bind(this),
             onFailure : function(response) {

@@ -47,7 +47,7 @@ public class DefaultAdminPatientMatchEmail extends AbstractPatientMatchEmail
      */
     public DefaultAdminPatientMatchEmail(String subjectPatientId, Collection<PatientMatch> matches)
     {
-        super(subjectPatientId, null, matches, null);
+        super(subjectPatientId, null, matches, null, null);
     }
 
     @Override

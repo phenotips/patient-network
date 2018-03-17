@@ -83,10 +83,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
     @Override
     public PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText)
+            String customEmailText, String customEmailSubject)
     {
         return new DefaultUserPatientMatchEmail(
-                    match, subjectPatientId, subjectServerId, customEmailText);
+                    match, subjectPatientId, subjectServerId, customEmailText, customEmailSubject);
     }
 
     @Override

@@ -55,10 +55,11 @@ public interface PatientMatchNotifier
      * @param subjectServerId the server that holds subjectpatientId. it is needed to distinguish the case when match
      *                        is between patients with the same id but on different servers.
      * @param customEmailText (optional) email text to be used
+     * @param customEmailSubject (optional) email subject to be used
      * @return the generated email
      */
     PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText);
+            String customEmailText, String customEmailSubject);
 
     /**
      * Sends notification for an email.

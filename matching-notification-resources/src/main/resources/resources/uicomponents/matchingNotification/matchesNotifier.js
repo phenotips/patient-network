@@ -24,14 +24,15 @@ define(["matchingNotification/utils"], function(utils)
             this._notifyMatchByIDs(ids);
         },
 
-        notifyUserMatch: function(matchID, subjectPatientId, subjectServerId, emailText)
+        notifyUserMatch: function(matchID, subjectPatientId, subjectServerId, emailText, emailSubject)
         {
             new Ajax.Request(this._ajaxURL + 'send-user-notifications', {
                 contentType : 'application/json',
                 parameters : {'matchId': matchID,
                               'subjectPatientId': subjectPatientId,
                               'subjectServerId': subjectServerId,
-                              'emailText': emailText},
+                              'emailText': emailText,
+                              'emailSubject': emailSubject},
                 onCreate : function (response) {
                     this._utils.showSent('send-notifications-messages');
                 }.bind(this),
