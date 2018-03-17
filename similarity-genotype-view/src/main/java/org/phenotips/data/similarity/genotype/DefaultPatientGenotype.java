@@ -96,7 +96,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
             this.exome = exomeManager.getExome(patient);
         }
         this.genesStatus = STATUS_SOLVED;
-        this.candidateGenes = new HashSet<String>();
+        this.candidateGenes = new HashSet<>();
         this.candidateGenes.addAll(getManualGeneNames(patient));
 
         // Score all genes
@@ -115,8 +115,8 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     {
         PatientData<Map<String, String>> allGenes = patient.getData("genes");
         if (allGenes != null && allGenes.isIndexed()) {
-            Set<String> geneCandidateNames = new HashSet<String>();
-            Set<String> geneSolvedNames = new HashSet<String>();
+            Set<String> geneCandidateNames = new HashSet<>();
+            Set<String> geneSolvedNames = new HashSet<>();
             for (Map<String, String> gene : allGenes) {
                 String geneName = gene.get("gene");
                 if (StringUtils.isBlank(geneName)) {
@@ -161,7 +161,7 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     @Override
     public Set<String> getGenes()
     {
-        Set<String> genes = new HashSet<String>();
+        Set<String> genes = new HashSet<>();
         if (this.exome != null) {
             genes.addAll(this.exome.getGenes());
         }
@@ -174,10 +174,10 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
     @Override
     public List<Variant> getTopVariants(String gene, int k)
     {
-        //TODO add manually entered variants
+        // TODO add manually entered variants
         List<Variant> variants;
         if (this.exome == null) {
-            variants = new ArrayList<Variant>();
+            variants = new ArrayList<>();
         } else {
             variants = this.exome.getTopVariants(gene, k);
         }

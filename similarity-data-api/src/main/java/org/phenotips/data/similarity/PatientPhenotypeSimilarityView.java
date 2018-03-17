@@ -25,7 +25,7 @@ import org.json.JSONArray;
  * View of the relationship between a collection of features in each of two patients.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.1
  */
 @Unstable
 public interface PatientPhenotypeSimilarityView

@@ -20,7 +20,7 @@
 
 <xwikidoc version="1.1">
   <web>MatchingNotification</web>
-  <name>PatientMatchNotificationEmailTemplate</name>
+  <name>AdminMatchNotificationEmailTemplate</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -39,7 +39,7 @@
   <hidden>false</hidden>
   <content/>
   <object>
-    <name>MatchingNotification.PatientMatchNotificationEmailTemplate</name>
+    <name>MatchingNotification.AdminMatchNotificationEmailTemplate</name>
     <number>0</number>
     <className>XWiki.Mail</className>
     <guid>bfa66698-2404-4fdc-84cf-394b41f602a8</guid>
@@ -308,18 +308,18 @@ $!services.localization.render('phenotips.matchingNotifications.email.signature'
 
 $services.localization.render('phenotips.matchingNotifications.email.introduction', [$matches.size()])
 
-$services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label'): $!subjectPatient.patientId $!subjectPatient.externalId
+$services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label') $!subjectPatient.patientId $!subjectPatient.externalId
 
-$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label')
 #foreach ($item in $!subjectPatient.modeOfInheritance)
 * $!item
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!subjectPatient.ageOfOnset
-$services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label') $!subjectPatient.ageOfOnset
+$services.localization.render('phenotips.matchingNotifications.email.table.genes.label')
 #foreach ($gene in $!subjectPatient.candidateGenes)
 * $!gene
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label')
 #foreach ($!phenotype in $!subjectPatient.phenotypes.predefined)
 #if ($!phenotype.observed == 'no')
 * $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
@@ -341,19 +341,19 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 #foreach ($match in $matches)
 #set($config = $preferenceDoc.getObject("PhenomeCentral.RemoteMatchingServiceConfiguration", 'serverId', $!match.subjectMatchedPatient.serverId, false))
 #set($matchedPatientServerName = $config.getValue('humanReadableName'))
-$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label'): $!match.subjectMatchedPatient.patientId#if("$!{matchedPatientServerName}" != "") $!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0') $!{escapetool.xml($matchedPatientServerName)}#end
+$services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.label') $!match.subjectMatchedPatient.patientId#if("$!{matchedPatientServerName}" != "") $!services.localization.render('phenotips.matchingNotifications.email.table.matchPatient.remoteServerName', 'xhtml/1.0') $!{escapetool.xml($matchedPatientServerName)}#end
 
 
-$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label')
 #foreach ($item in $match.subjectMatchedPatient.modeOfInheritance)
 * $!item
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'): $!match.subjectMatchedPatient.ageOfOnset
-$services.localization.render('phenotips.matchingNotifications.email.table.genes.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label') $!match.subjectMatchedPatient.ageOfOnset
+$services.localization.render('phenotips.matchingNotifications.email.table.genes.label')
 #foreach ($gene in $match.subjectMatchedPatient.candidateGenes)
 * $!gene
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label')
 #foreach ($!phenotype in $match.subjectMatchedPatient.phenotypes.predefined)
 #if ($!phenotype.observed == 'no')
 * $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.negativePhenotype', [$!phenotype.name])
@@ -368,7 +368,7 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 * $!phenotype.name
 #end
 #end
-$services.localization.render('phenotips.matchingNotifications.email.table.contact.label'):
+$services.localization.render('phenotips.matchingNotifications.email.table.contact.label')
 #foreach ($email in $match.subjectMatchedPatientEmails)
 * $!email
 #end

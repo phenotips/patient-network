@@ -152,13 +152,11 @@ public class DefaultActionManager implements ActionManager
     public int grantAccess(Connection connection)
     {
         if (!this.permissionsManager.getPatientAccess(connection.getTargetPatient()).addCollaborator(
-            connection.getInitiatingUser(), this.defaultAccess))
-        {
+            connection.getInitiatingUser(), this.defaultAccess)) {
             return 1;
         }
         if (!this.permissionsManager.getPatientAccess(connection.getReferencePatient()).addCollaborator(
-            connection.getContactedUser(), this.defaultAccess))
-        {
+            connection.getContactedUser(), this.defaultAccess)) {
             return 2;
         }
         return 0;
@@ -168,7 +166,7 @@ public class DefaultActionManager implements ActionManager
     public int sendSuccessMail(Connection connection)
     {
         try {
-            Map<String, Object> options = new HashMap<String, Object>();
+            Map<String, Object> options = new HashMap<>();
             XWikiContext context = Utils.getContext();
             XWiki xwiki = context.getWiki();
             MailSenderPlugin mailsender = (MailSenderPlugin) xwiki.getPlugin(MAIL_SENDER, context);
@@ -214,8 +212,8 @@ public class DefaultActionManager implements ActionManager
     }
 
     /**
-     * When a user contacts another user regarding a match using the Similar Patients UI,
-     * mark that match as 'notified' in the match table in the administration.
+     * When a user contacts another user regarding a match using the Similar Patients UI, mark that match as 'notified'
+     * in the match table in the administration.
      *
      * @param patientId reference patientID
      * @param serverId id of the server that hosts patientId

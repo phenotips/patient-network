@@ -42,7 +42,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -59,7 +58,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.slf4j.Logger;
 
-
 /**
  * Implementation for {@link SimilarPatientsFinder} based on Solr indexing of existing patients.
  *
@@ -72,9 +70,6 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 {
     /** The number of records to fully score. */
     private static final int SEED_QUERY_SIZE = 50;
-
-    /** The number of records to return after full scoring. */
-    private static final int MAX_RESPONSE_SIZE = 10;
 
     /** Logging helper object. */
     @Inject
@@ -146,7 +141,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return Collections.emptyList();
         }
         SolrDocumentList docs = search(query);
-        List<PatientSimilarityView> results = new ArrayList<PatientSimilarityView>(docs.size());
+        List<PatientSimilarityView> results = new ArrayList<>(docs.size());
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.get(name);
@@ -167,35 +162,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
 
-        return getTopResults(results, MAX_RESPONSE_SIZE);
-    }
-
-    private List<PatientSimilarityView> getTopResults(List<PatientSimilarityView> allResults, int k)
-    {
-        if (allResults.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Select top k via PriorityQueue
-        PriorityQueue<PatientSimilarityView> pq =
-            new PriorityQueue<PatientSimilarityView>(allResults.size(), new Comparator<PatientSimilarityView>()
+        // Sort by score
+        Collections.sort(results, new Comparator<PatientSimilarityView>()
+        {
+            @Override
+            public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
             {
-                @Override
-                public int compare(PatientSimilarityView o1, PatientSimilarityView o2)
-                {
-                    return (int) Math.signum(o2.getScore() - o1.getScore());
-                }
-            });
-        pq.addAll(allResults);
-
-        List<PatientSimilarityView> topResults = new ArrayList<PatientSimilarityView>(k);
-        for (int i = 0; i < k; i++) {
-            PatientSimilarityView item = pq.poll();
-            if (item != null) {
-                topResults.add(item);
+                double score1 = o1.getScore();
+                double score2 = o2.getScore();
+                return (int) Math.signum(score2 - score1);
             }
-        }
-        return topResults;
+        });
+
+        return results;
     }
 
     /**
@@ -232,7 +211,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     /**
      * Performs a search in the Solr index, returning the matched documents.
      *
-     * @param query the query prepared with {@link #generateQuery(Patient)}
+     * @param query the query prepared with {@link #generateQuery(Patient, boolean)}
      * @return the documents matched by the query, if any
      */
     private SolrDocumentList search(SolrQuery query)
@@ -249,7 +228,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     /**
      * Performs a search in the Solr index, returning only the total number of matches found.
      *
-     * @param query the query prepared with {@link #generateQuery(Patient)}
+     * @param query the query prepared with {@link #generateQuery(Patient, boolean)}
      * @return the total number of document matched by the query, {@code 0} if none match
      */
     private long count(SolrQuery query)
@@ -283,7 +262,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
     {
-        Collection<String> genesToSearch = new ArrayList<String>();
+        Collection<String> genesToSearch = new ArrayList<>();
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
             for (Map<String, String> gene : allGenes) {
                 String geneName = gene.get("gene");

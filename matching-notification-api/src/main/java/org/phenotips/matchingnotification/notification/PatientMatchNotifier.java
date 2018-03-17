@@ -36,13 +36,30 @@ public interface PatientMatchNotifier
 {
     /**
      * Build a list of emails based on the given matches. One email is created for all matches with same reference
-     * patient.
+     * patient. Can only be used to create emails for local users.
      *
      * @param matches list of matches to build emails from
      * @param matchesIds map of ids of matches to patients Ids to be notified
      * @return list of emails
      */
-    List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, List<String>> matchesIds);
+    List<PatientMatchEmail> createAdminEmailsToLocalUsers(List<PatientMatch> matches,
+            Map<Long, List<String>> matchesIds);
+
+
+    /**
+     * Generates a email to be sent from the current user to the owner of the subjectPatientId on subjectServerId
+     * describing the given match.
+     *
+     * @param match a match to base email text upon
+     * @param subjectPatientId the patient who's owner should receive the email
+     * @param subjectServerId the server that holds subjectpatientId. it is needed to distinguish the case when match
+     *                        is between patients with the same id but on different servers.
+     * @param customEmailText (optional) email text to be used
+     * @param customEmailSubject (optional) email subject to be used
+     * @return the generated email
+     */
+    PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
+            String customEmailText, String customEmailSubject);
 
     /**
      * Sends notification for an email.

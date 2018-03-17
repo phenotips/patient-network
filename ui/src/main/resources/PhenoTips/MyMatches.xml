@@ -39,14 +39,13 @@
   <hidden>false</hidden>
   <content>{{velocity wiki='true'}}
 $xwiki.ssx.use('PhenoTips.MyMatches')##
-$xwiki.jsx.use('PhenoTips.MyMatches', {'minify' : false})##
 $xwiki.jsx.use('PhenoTips.TouchscreenEvents')##
 $xwiki.ssx.use('PhenoTips.FontAwesomeIcons')##
 {{html}}
 &lt;div class='box infomessage my-matches-info'&gt;$escapetool.xml($services.localization.render('phenotips.myMatches.gadgetDescription'))&lt;/div&gt;
 &lt;div class="xform my-matches-form box"&gt;
   &lt;div class='form-section button-section'&gt;
-    &lt;span class="buttonwrapper"&gt;&lt;a class='button' href="$xwiki.getURL('data.MyMatchesResults', 'view', 'type=unnotified')"&gt;
+    &lt;span class="buttonwrapper"&gt;&lt;a class='button' href="$xwiki.getURL('MatchingNotification.MatchesTable', 'view')"&gt;
        $!{escapetool.xml($services.localization.render('phenotips.myMatches.showButton'))}
     &lt;/a&gt;&lt;/span&gt;
   &lt;/div&gt;

@@ -76,7 +76,7 @@ $xwiki.ssx.use($displayDocumentName)
     #set($completed = '-')
     #set($completedCSS = '')
   #end
-  (% class="extradata-list select-server-row" %)|(% class="server-name" %)$escapetool.xml($serverName)|(% class="begin-time" %)$beginTime|(% class="end-time" %)$endTime|(% class="last-run-status $completedCSS" %)$completed|(% class="select-for-update" %){{html clean="false" wiki="false"}}&lt;input type="checkbox" value="$serverID"&gt;{{/html}}
+  (% class="extradata-list select-server-row" %)|(% class="server-name" %)$escapetool.xml($serverName)|(% class="begin-time" %)$!{beginTime}|(% class="end-time" %)$!{endTime}|(% class="last-run-status $completedCSS" %)$completed|(% class="select-for-update" %){{html clean="false" wiki="false"}}&lt;input type="checkbox" value="$serverID"&gt;{{/html}}
 #end
 ##
 == $services.localization.render('phenotips.findMatches.refreshMatches.label') ==

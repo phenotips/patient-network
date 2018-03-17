@@ -28,15 +28,15 @@ import java.util.Set;
 public interface MatchFinderManager
 {
     /**
-     * Finds matches for all local patients for selected servers. For each patient each matcher used will check if the
-     * patient can be matched using the matcher
+     * Finds matches for all local patients on the selected servers.
+     * For each patient each matcher used will check if the patient can be matched using the matcher
      * (e.g. patient is "matchable", or a "matchable" consent is granted, etc.).
      *
      * As a side effect, all matches that are found will be stored in the matching notification table.
      *
      * @param serverIds a list of servers to be used for matches search indicated by their ids.
      * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
-     *            patients which have been modified since that matcher was run
+     *            patients which have been modified after the last time that matcher was run
      */
     void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun);
 }

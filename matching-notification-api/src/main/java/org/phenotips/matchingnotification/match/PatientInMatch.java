@@ -54,7 +54,7 @@ import org.json.JSONObject;
  * }
  * </pre>
  *
- * See {@link org.phenotips.matchingnotification.notification.internal.DefaultPatientMatchEmail} for some actual usage
+ * See {@link org.phenotips.matchingnotification.notification.internal.DefaultAdminPatientMatchEmail} for some actual usage
  * examples.
  * <p>
  * Comment: getMatchedGenes()/getReferenceGenes() do not exist - the code serves as an example why it's not a good idea.
@@ -141,4 +141,10 @@ public interface PatientInMatch
      * @return What type of access does the user have to this patient profile.
      */
     AccessLevel getAccess();
+
+    /**
+     * @return status of genes (solved or candidate) stored in PatientGenotype class,
+     *         or null if patient does not have genotype or genotype status is unknown.
+     */
+    String getGenesStatus();
 }

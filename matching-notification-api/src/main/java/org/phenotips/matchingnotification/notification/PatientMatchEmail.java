@@ -23,6 +23,8 @@ import org.xwiki.mail.MailStatus;
 
 import java.util.Collection;
 
+import org.json.JSONObject;
+
 /**
  * @version $Id$
  */
@@ -52,4 +54,18 @@ public interface PatientMatchEmail
      * Send the email.
      */
     void send();
+
+    /**
+     * Get email data (body, subject, recipients) in a JSON format.
+     *
+     * @return JSONObject in the
+     *     <pre>
+     *      { "emailContent": text,
+     *        "recipients": [listof email addresses as strings],
+     *        "contentType": type,
+     *        "subject": text }
+     *     </pre>
+     * format.
+     */
+    JSONObject getEmail();
 }

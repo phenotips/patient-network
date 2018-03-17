@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+-->
+
+<xwikidoc version="1.1">
+  <web>MatchingNotification</web>
+  <name>MatchesTable</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1458756494000</creationDate>
+  <parent>PhenoTips.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1467919930000</date>
+  <contentUpdateDate>1467835100000</contentUpdateDate>
+  <version>1.1</version>
+  <title>My Matches</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+$xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
+$xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/matchesTable.js', true)##
+$xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
+$xwiki.ssx.use('PhenoTips.Widgets')##
+$xwiki.jsx.use('PhenoTips.Widgets')##
+
+{{html clean='false' wiki='true'}}
+#if($hasAdmin)&lt;input type="hidden" id="isAdmin"&gt;#end
+##--FILTERS--
+&lt;div id="matches-directory" class="entity-directory"&gt;
+  &lt;div class="xwiki-livetable-container"&gt;
+## --FILTERS-TAB
+    &lt;div class="tipfilters"&gt;
+      &lt;div class="xwiki-livetable-topfilters-tip" id="matching-filters"&gt;
+        &lt;div class="xwiki-livetable-topfilters-container"&gt;
+          &lt;div class="xform"&gt;
+            &lt;span class='buttonwrapper'&gt;
+              &lt;a class='button toggle-filters' href='#' id="toggle-filters-button"&gt;{{icon name='search' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.matchingNotifications.table.matchesSearch.heading')&lt;/span&gt;{{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}&lt;/a&gt;
+            &lt;/span&gt;
+            &lt;ul class="filters xform"&gt;
+              &lt;li&gt;
+                &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-score" type="text"&gt;&lt;br&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-phen-score" type="text"&gt;&lt;br&gt;
+                &lt;div class="score-label"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;input id="show-matches-gen-score" type="text"&gt;
+                &lt;div id="score-validation-message"&gt;&lt;/div&gt;
+              &lt;/li&gt;
+              &lt;div&gt;
+                &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="show-matches-button" href="#"&gt;&lt;span class="fa fa-refresh"&gt; &lt;/span&gt;&lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.search.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/ul&gt;
+            &lt;span id="advanced-filters-header" class='buttonwrapper'&gt;
+              &lt;a class='button toggle-filters secondary-filters' href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt;&lt;/a&gt;
+            &lt;/span&gt;
+            &lt;ul class="filters xform"&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputGene'))
+                &lt;input type="text" id="gene-symbol-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputPhenotype'))
+                &lt;input type="text" id="phenotype-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputEmail'))
+                &lt;input type="text" id="email-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputID'))
+                &lt;input type="text" id="external-id-filter"&gt;
+              &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notifiedStatusFilter'))&lt;br&gt;
+                &lt;label&gt;
+                  &lt;input name="notified-filter" type="checkbox" value="notified" #if(!$hasAdmin) checked #end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notified'))&lt;br&gt;
+                &lt;/label&gt;&lt;label&gt;
+                  &lt;input name="notified-filter" type="checkbox" value="unnotified" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.unnotified'))&lt;/label&gt;&lt;br&gt;
+              &lt;/li&gt;
+              &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
+                &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;/label&gt;&lt;br&gt;
+                &lt;div class="across-mme"&gt;$escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;:&lt;/div&gt;
+                #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
+                #set ($allRemotes = $preferenceDoc.getObjects("PhenomeCentral.RemoteMatchingServiceConfiguration"))
+                #foreach ($config in $allRemotes)
+                  #if ($config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('humanReadableName').getValue() != "")
+                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt; $escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/label&gt;&lt;br&gt;
+                  #end
+                #end
+              &lt;/li&gt;
+              &lt;li #if(!$hasAdmin)class="hidden"#end&gt;
+                &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
+                &lt;input class="score-filter" type="text" name="score" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))"&gt;
+                &lt;input class="score-filter" type="text" name="phenotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))"&gt;
+                &lt;input class="score-filter" type="text" name="genotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))"&gt;
+                 &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
+              &lt;/li&gt;
+              &lt;li #if(!$hasAdmin)class="hidden"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
+                &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="rejected" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
+              &lt;/li&gt;
+              &lt;li #if(!$hasAdmin)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
+                &lt;select id="gene-status-filter"&gt;
+                  &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
+                  &lt;option value="solved_solved" &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedSolved'))&lt;/option&gt;
+                  &lt;option value="solved_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterSolvedCandidate'))&lt;/option&gt;
+                  &lt;option value="candidate_candidate"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterCandidateCandidate'))&lt;/option&gt;
+                  &lt;option value="has_exome"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;/option&gt;
+                &lt;/select&gt;
+              &lt;/li&gt;
+              &lt;li class="hidden"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.accessFilter'))&lt;br&gt;
+                &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="owner" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owner'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="view" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.view'))&lt;/label&gt;
+              &lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="expandall"&gt;
+      &lt;input type="checkbox" id="expand_all"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))
+    &lt;/div&gt;
+##--TABLE--
+    &lt;div id="table-container"&gt;
+## Pagination
+    &lt;div class="xwiki-livetable-pagination" id="pagination-info"&gt;
+      &lt;span id="panels-livetable-limits" class="xwiki-livetable-limits"&gt;&lt;/span&gt;
+      &lt;span id="panels-livetable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$services.localization.render('platform.livetable.loading')" /&gt;$services.localization.render('platform.livetable.loading')&lt;/span&gt;
+## ERROR MESSAGE CONTAINER
+      &lt;div id="show-matches-messages"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+## Global search
+    &lt;div class="hidden" id="global-search"&gt;&lt;input type="text" id="global-search-input" placeholder="$services.localization.render('phenotips.matchingNotifications.table.globalSearch.placeholder')"&gt;&lt;/div&gt;
+## TABLE--BODY
+    &lt;table id="matchesTable" class="matches-table"&gt;
+      &lt;thead&gt;
+        &lt;tr class="first-header-row"&gt;
+          #if($hasAdmin)&lt;th colspan="1" &gt;&lt;/th&gt;#end
+          &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.patDetails'))&lt;/th&gt;
+          &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
+          &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.emails'))&lt;/th&gt;
+          &lt;th colspan="1"&gt;&lt;/th&gt;
+        &lt;/tr&gt;
+        &lt;tr class="second-header-row"&gt;
+        &lt;th data-column="status" #if(!$hasAdmin)class="hidden"#end title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
+        &lt;th data-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
+        &lt;th data-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;/th&gt;
+        &lt;th data-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.averageScore'))&lt;/th&gt;
+        &lt;th data-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))&lt;/th&gt;
+        &lt;th data-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))&lt;/th&gt;
+        &lt;th data-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
+        &lt;th data-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
+        &lt;th data-column="notified" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notified'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notified'))&lt;/th&gt;
+      &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+
+## Pagination
+    &lt;div class="xwiki-livetable-pagination" id="pagination-matching-notifications"&gt;
+      &lt;span class="controlPagination"&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+      &lt;/span&gt;
+      &lt;span class="pagination"&gt;
+        &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+        &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+      &lt;/span&gt;
+    &lt;/div&gt;
+##--SEND NOTIFICATION BUTTON
+    &lt;br/&gt;
+    &lt;div #if(!$hasAdmin)class="hidden"#end&gt;
+      &lt;span class="buttonwrapper"&gt;
+        &lt;a class="button" id="send-notifications-button" href="#"&gt;&lt;span class="fa fa-envelope" &gt;&lt;/span&gt;
+          &lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/span&gt;
+        &lt;/a&gt;
+      &lt;/span&gt;
+      &lt;div id="send-notifications-messages"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;##--closing table div id="table-container"
+  &lt;/div&gt;
+&lt;/div&gt;
+{{/html}}
+{{/velocity}}</content>
+  <object>
+    <name>MatchingNotification.MatchesTable</name>
+    <number>0</number>
+    <className>XWiki.ConfigurableClass</className>
+    <guid>cbae75c7-77e2-4667-9a83-327cc8885abf</guid>
+    <class>
+      <name>XWiki.ConfigurableClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <advancedOnly>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>advancedOnly</name>
+        <number>5</number>
+        <prettyName>advancedOnly</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </advancedOnly>
+      <categoryPriority>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>categoryPriority</name>
+        <number>2</number>
+        <numberType>integer</numberType>
+        <prettyName>categoryPriority</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </categoryPriority>
+      <codeToExecute>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>codeToExecute</name>
+        <number>11</number>
+        <picker>0</picker>
+        <prettyName>codeToExecute</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </codeToExecute>
+      <configurationClass>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>configurationClass</name>
+        <number>7</number>
+        <picker>0</picker>
+        <prettyName>configurationClass</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </configurationClass>
+      <configureGlobally>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <name>configureGlobally</name>
+        <number>8</number>
+        <prettyName>configureGlobally</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </configureGlobally>
+      <displayInCategory>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>displayInCategory</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>displayInCategory</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </displayInCategory>
+      <displayInSection>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>displayInSection</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>displayInSection</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </displayInSection>
+      <heading>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>heading</name>
+        <number>6</number>
+        <picker>0</picker>
+        <prettyName>heading</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </heading>
+      <iconAttachment>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>iconAttachment</name>
+        <number>12</number>
+        <picker>0</picker>
+        <prettyName>iconAttachment</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </iconAttachment>
+      <linkPrefix>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>linkPrefix</name>
+        <number>9</number>
+        <picker>0</picker>
+        <prettyName>linkPrefix</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </linkPrefix>
+      <propertiesToShow>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>propertiesToShow</name>
+        <number>10</number>
+        <picker>0</picker>
+        <prettyName>propertiesToShow</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>20</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values/>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </propertiesToShow>
+      <sectionPriority>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>sectionPriority</name>
+        <number>4</number>
+        <numberType>integer</numberType>
+        <prettyName>sectionPriority</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </sectionPriority>
+    </class>
+    <property>
+      <advancedOnly/>
+    </property>
+    <property>
+      <categoryPriority>0</categoryPriority>
+    </property>
+    <property>
+      <codeToExecute>{{include reference="MatchingNotification.MatchesTable" /}}</codeToExecute>
+    </property>
+    <property>
+      <configurationClass/>
+    </property>
+    <property>
+      <configureGlobally>1</configureGlobally>
+    </property>
+    <property>
+      <displayInCategory>phenotips</displayInCategory>
+    </property>
+    <property>
+      <displayInSection>Matching Notification</displayInSection>
+    </property>
+    <property>
+      <iconAttachment/>
+    </property>
+    <property>
+      <linkPrefix/>
+    </property>
+    <property>
+      <propertiesToShow/>
+    </property>
+    <property>
+      <sectionPriority>7000</sectionPriority>
+    </property>
+  </object>
+</xwikidoc>

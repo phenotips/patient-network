@@ -55,7 +55,8 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     private Logger logger = LoggerFactory.getLogger(PatientMatchEmailNotifier.class);
 
     @Override
-    public List<PatientMatchEmail> createEmails(List<PatientMatch> matches, Map<Long, List<String>> matchesIds)
+    public List<PatientMatchEmail> createAdminEmailsToLocalUsers(List<PatientMatch> matches,
+            Map<Long, List<String>> matchesIds)
     {
         MatchesByPatient mbp = new MatchesByPatient(matches);
         List<PatientMatchEmail> emails = new LinkedList<>();
@@ -73,11 +74,19 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
                     matchesForPatient.remove(match);
                 }
             }
-            PatientMatchEmail email = new DefaultPatientMatchEmail(subjectPatientId, matchesForPatient);
+            PatientMatchEmail email = new DefaultAdminPatientMatchEmail(subjectPatientId, matchesForPatient);
             emails.add(email);
         }
 
         return emails;
+    }
+
+    @Override
+    public PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
+            String customEmailText, String customEmailSubject)
+    {
+        return new DefaultUserPatientMatchEmail(
+                    match, subjectPatientId, subjectServerId, customEmailText, customEmailSubject);
     }
 
     @Override

@@ -37,31 +37,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output=false}}
-  #set ($patient = $services.patients.get("$!{request.query}"))
-  #set ($matches = $services.similarPatients.findSimilarPatients($patient))
-  #if ("$!matches" == '')
-    #set ($matches = [])
-  #else
-    $services.matchingNotification.saveLocalMatches($matches, $patient.getId())
-  #end
-{{/velocity}}
-
-{{velocity}}
-#if ($xcontext.action == 'get')
-  $response.setContentType('application/json')
-#end
-{
-  "query": $patient.toJSON(),
-  "resultsCount" : $matches.size(),
-  "results" : [
-#foreach ($p in $matches)
-  $p.toJSON()#if ($foreach.hasNext()),
-  #end
-#end
-  ]
-}
-{{/velocity}}</content>
+  <content/>
   <class>
     <name>PhenoTips.SimilarCases</name>
     <customClass/>
@@ -195,17 +171,14 @@
       <code>var PhenoTips = (function (PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.Matcher = Class.create({
-    matchServiceURL : "${xwiki.getURL('PhenoTips.SimilarCases', 'get')}",
+    matchServiceURL : XWiki.contextPath + "/rest/patients/___patient_id___/similar-cases",
     matchContactURL : "${xwiki.getURL('PhenoTips.MatchContact', 'get')}",
     _UNKNOWN_INFO_MARKER : "unknown",
-    _UNKNOWN_INFO_TEXT : "Undisclosed information",
     _RESULTS_TABLE_MARKER : "similarity-results",
     _SUMMARY_MARKER : "summary",
     _METADATA_MARKER : "metadata",
     _NEGATIVE_MARKER : "negative",
     _NOMATCH_MARKER : "no-match",
-    _NOMATCH_TEXT : "No match",
-    _DEFAULT_REFRESH_BUTTON_TEXT : "Refresh Matches",
     _MAX_RESULTS_DISPLAYED : 10,
     DISEASE_DB_LINKS : {
       "MIM:" : "http://www.omim.org/entry/",
@@ -215,20 +188,21 @@
     initialize : function(query, resultsContainer, options) {
       if (!query || !resultsContainer) {return;}
       this.query = query;
+      this.matchServiceURL = this.matchServiceURL.replace(/___patient_id___/i, this.query);
       this.container = resultsContainer;
 
       this.buttonContainer = new Element('div',{'class':'similarity-results-button-container'});
       this.container.insert({before: this.buttonContainer});
       if (options) {
         if (options.enableRefresh) {
-          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert(this._DEFAULT_REFRESH_BUTTON_TEXT);
+          var buttonLabel = new Element('span',{'class':'refresh-matches-button'}).insert("$escapetool.javascript($services.localization.render('phenotips.similarCases.refreshMatches'))");
           this.refreshButton = new Element('span', {'class' : 'buttonwrapper similarity-results-refresh'}).insert(new Element('a', {'class' : 'button', 'href' : '#'}).insert(this.Utils.generateIcon('refresh')).insert(buttonLabel));
           this.buttonContainer.insert({top: this.refreshButton});
           this.launchSearchRefresh = this.launchSearchRefresh.bindAsEventListener(this);
           this.refreshButton.observe('click', this.launchSearchRefresh);
         }
         this.matchServiceURL = options.serviceURL || this.matchServiceURL;
-        this._maxResults = options.maxResults || '';
+        this._maxResults = options.maxResults || this._MAX_RESULTS_DISPLAYED;
         this._minScore = options.minScore || '';
         this._mmeServer = options.mmeServer || "";
         this._mmeMode = (this._mmeServer != "");
@@ -242,11 +216,16 @@
           this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
+        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), this._maxResults);
+        var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
+        this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
+        this.page = 1;
+        this.pagination = $('pagination-similar-cases' + serverSuffix);
       }
       this.launchSearchExisting();
 
       this._contactContainer = new Element('div', {'class' : 'anonymous-contact'});
-      this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': 'Contact case owner', 'verticalPosition': 'top', 'removeOnClose': false});
+      this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactDialogTitle'))", 'verticalPosition': 'top', 'removeOnClose': false});
     },
 
     launchSearchRefresh: function(event) {
@@ -274,12 +253,14 @@
             'server' : this._mmeServer,
             'maxResults' : this._maxResults,
             'minScore' : this._minScore,
-            'sendNewRequest' : refresh ? "true" : "false"
+            'sendNewRequest' : refresh ? "true" : "false",
+            'offset' : (_this.page - 1) * _this._maxResults + 1
           } : {
             'query' : this.query,
             'outputSyntax' : "plain",
             'maxResults' : this._maxResults,
-            'minScore' : this._minScore
+            'minScore' : this._minScore,
+            'offset' : (_this.page - 1) * _this._maxResults + 1
           };
       this.activeSearch = new Ajax.Request(
         this.matchServiceURL,
@@ -288,10 +269,19 @@
           method: "post",
           onCreate : function() {
             _this.container.addClassName('loading');
-            _this.container.update('');
           },
-          onSuccess: function(response) {
+          on204 : function(response) {
+            data = {};
+            data.nodata = true;
+            _this.displayResults(data);
+          },
+          onSuccess : function(response) {
             _this.displayResults(response.responseJSON);
+          },
+          onFailure : function(response) {
+            var data = {};
+            data.error = _this._generateFailureReason(response.status);
+            _this.displayResults(data);
           },
           onComplete : function() {
             _this.container.removeClassName('loading');
@@ -299,6 +289,50 @@
           }
         }
       );
+    },
+
+    _generateFailureReason: function(status) {
+    	var response;
+
+    	switch(status) {
+    	  case 401:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
+    	    break;
+    	  case 400:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
+    	    break;
+          case 204:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.neverSentMME'))";
+            break;
+          case 409:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantSendThisPatientOverMME'))";
+            break;
+          case 503:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantConnectMME'))";
+            break;
+          case 403:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthorizedMME'))";
+            break;
+          case 415:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unsupportedProtocolMME'))";
+            break;
+          case 406:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.invalidRequestMME'))";
+            break;
+    	  case 500:
+    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+    	    break;
+    	  default:
+          response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+    	}
+    	return response;
+    },
+
+    changePageSize: function(newLimit) {
+      this._MAX_RESULTS_DISPLAYED = newLimit;
+      this._maxResults = this._MAX_RESULTS_DISPLAYED;
+      this.page = 1;
+      this.launchSearchExisting();
     },
 
     displayResults : function(data) {
@@ -309,38 +343,61 @@
 
       // Show result summary
       if (!data || data.nodata || data.error) {
-        this.refreshButton.down('.refresh-matches-button').innerHTML = 'Find Matches';
+        this.pagination.addClassName('hidden');
+        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.findMatchesText'))";
         this.refreshButton.down('span').removeClassName('fa-refresh');
         this.refreshButton.down('span').addClassName('fa-search');
         if (!data || data.nodata) {
-          this.displaySummary("Match request was never sent.");
+          this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noMatchRequest'))");
         } else {
-          this.displaySummary("Error sending request: " + data.error);
+          this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.errorSendingRequest')) " + data.error);
         }
         return;
       } else {
+        this.pagination.removeClassName('hidden');
         this.refreshButton.down('span').removeClassName('fa-search');
         this.refreshButton.down('span').addClassName('fa-refresh');
-        this.refreshButton.down('.refresh-matches-button').innerHTML = this._DEFAULT_REFRESH_BUTTON_TEXT;
+        this.refreshButton.down('.refresh-matches-button').innerHTML = "$escapetool.javascript($services.localization.render('phenotips.similarCases.refreshMatches'))";
       }
-
-      if (!data || data.resultsCount &lt;= 0) {
-        this.displaySummary("No similar cases found.");
+      if (data.resultsCount &lt;= 0) {
+        this.pagination.addClassName('hidden');
+        this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noSimilarCases'))");
         return;
       }
+      this.totalResultsCount = data.resultsCount;
       // Make sure the results are for this query
       if (!data.query || !data.query.id || data.query.id != this.query) {
-        this.displaySummary("Can't display results (no query reported).");
+        this.pagination.addClassName('hidden');
+        this.displaySummary("$escapetool.javascript($services.localization.render('phenotips.similarCases.noqueryReported'))");
         return;
       }
       data.featuresCount = data.query.features ? data.query.features.size() : 0;
-      data.resultsCount = Math.min(data.resultsCount, this._MAX_RESULTS_DISPLAYED);
-      data.results = data.results.slice(0, data.resultsCount);
-
-      this.displaySummary("Showing " + data.resultsCount + " similar case" + (data.resultsCount == 1 ? '' : 's') + (data.totalMatchesCount ? ". Total matches: " + data.totalMatchesCount + "." : ""));
+      var resultsCount = this._data.returnedCount || Math.min(this.totalResultsCount, this._MAX_RESULTS_DISPLAYED);
+      this.displaySummary(("$escapetool.javascript($services.localization.render('phenotips.similarCases.showingSimilar'))".replace("__numberOfCases__", resultsCount))
+                          + (data.totalMatchesCount ? ". $escapetool.javascript($services.localization.render('phenotips.similarCases.totalMatches')) "
+                          + data.totalMatchesCount : ""));
 
       // Process features
       this._queryFeatures = this._createFeatureIndex(data.query.features);
+
+      this.renderResults();
+    },
+
+    renderResults : function() {
+      this.container.update('');
+      var begin = 0;
+      var end = Math.min(this.totalResultsCount, this._MAX_RESULTS_DISPLAYED);
+
+      if (this.page) {
+        this.totalPages = Math.ceil(this.totalResultsCount/this._MAX_RESULTS_DISPLAYED);
+        begin = this._data.offset - 1;
+        end = begin + this._data.returnedCount;
+        this.paginator.refreshPagination();
+      }
+
+      var firstItemRangeNo = begin + 1;
+      var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + end).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
+      this.displaySummary(tableSummary, null, true);
 
       // Process results
       var _this = this;
@@ -355,47 +412,52 @@
            enabled : !this._mmeMode
         },
         "id"       : {
-           title   : this._mmeMode ? "Remote Case ID" : "Case ID",
+           title   : this._mmeMode ? "$escapetool.javascript($services.localization.render('phenotips.similarCases.remoteCaseID'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.caseID'))",
            display : _this._displayResultIdentifier.bind(_this),
            field   : "id",
            enabled : true
         },
         "diagnosis": {
-           title   : this._omimPrototypeMode ? "Diagnosis" : "Potential diagnosis",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))",
            display : _this._displayResultDiagnosis.bind(_this),
            field   : "disorders",
            enabled : true
         },
         "contact"  : {
-           title   : "Contact",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contact'))",
            display : this._mmeMode ? _this._displayRemoteContactInfo.bind(_this) : _this._displayResultContactInfo.bind(_this),
            field   : this._mmeMode ? "contact" : "owner",
            enabled : true
         },
         "score"    : {
-           title   : "Relevance",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.relevance'))",
            display : _this._displayResultRelevance.bind(_this),
-           field   : (this._mmeMode ? "remoteScore" : "score"),
+           field   : "score",
            enabled : true
         },
         "details"  : {
-           title   : "Details",
+           title   : "$escapetool.javascript($services.localization.render('phenotips.similarCases.details'))",
            display : _this._displayResultDetails.bind(_this),
            enabled : true
         }
       };
 
       this._displayTableHeader(columns, resultsTable);
-      data.results.each(function(r) {
+      this._data.results.each(function(r) {
         _this._displayResultRow(r, columns, resultsTable);
       });
-      delete this._queryFeatures;
-      delete this._data;
     },
 
-    displaySummary : function (message, container) {
+    displaySummary : function (message, container, isHeader) {
       var c = container || this.container;
-      var summary = new Element("p", {class: this._SUMMARY_MARKER}).update(message);
+      var summary = new Element("p", {class: this._SUMMARY_MARKER});
+      if (isHeader &amp;&amp; this.page) {
+        summary.update(message);
+        new PhenoTips.widgets.MatcherPageSizer(this, summary, null, this._maxResults)
+      } else {
+        summary.update(message);
+      }
+
       c.insert(summary);
       return summary;
     },
@@ -460,13 +522,13 @@
       if (this._mmeMode) {
         return (r.id ? r.id : "");
       } else {
-        return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "Undisclosed identifier");
+        return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedIdentifier'))");
       }
     },
 
     _displayResultDiagnosis : function (r) {
       if (!r.disorders || !r.disorders.length) {
-        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("Undiagnosed");
+        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))");
       } else {
         var dList = new Element('ul');
         var LINKS = this.DISEASE_DB_LINKS;
@@ -486,18 +548,18 @@
 
     _displayResultContactInfo : function (r) {
       var contactType = (r.myCase || r.myGroupsCase) ? "none" : (r.access == "public" ? "open" : "restricted");
-      var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "Contact owner for further information") : this.Utils.generateIcon('group');
+      var icon = (contactType == 'restricted') ? this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.restrictedContactSuggestion'))") : this.Utils.generateIcon('group');
       var contactInfo;
       if (contactType == "none") {
-        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case belongs to one of your consortia)"));
+        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoText'))"));
       } else if (contactType == "open") {
-        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("(this case is public)"));
+        contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.publicCase'))"));
       } else {
         contactInfo = new Element("a", {
           "href"  : "?sheet=PhenoTips.MatchContact&amp;token=" + r.token + "&amp;owner=" + r.owner.id || "",
-          "title" : "Contact owner for further information",
+          "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfoTitle'))",
           "class" : "owner-info "/* + contactType*/
-        }).update(r.owner.name || r.owner.id || "Undisclosed owner. Initiate anonymous contact");
+        }).update(r.owner.name || r.owner.id || "$escapetool.javascript($services.localization.render('phenotips.similarCases.anonymousContact'))");
         var _this = this;
         contactInfo.observe('click', function (event) {
           event.stop();
@@ -509,7 +571,7 @@
 
     _displayRemoteContactInfo : function (r) {
       if (!r.hasOwnProperty("owner") || !r.owner.hasOwnProperty("url") || !r.owner.url) {
-        return "No contact info";
+        return "$escapetool.javascript($services.localization.render('phenotips.similarCases.noContactInfo'))";
       }
       var contactName = r.owner.name;
       // Handle GeneMatcher returning "None" as name for organization contacts e.g. GeneDx
@@ -535,7 +597,7 @@
       }
       var contactInfo = new Element("a", {
         "href"  : r.owner.url,
-        "title" : "Contact owner for further information",
+        "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))",
         "class" : "owner-info "
       }).update(contactLabel);
       return contactInfo.insert({top: " "});
@@ -578,10 +640,10 @@
              new Ajax.Request(form.action, {
                parameters : form.serialize({'hash': true, 'submit': 'send'}),
                onSuccess : function (response) {
-                 _this._contactContainer.update('Your email has been successfully sent.');
+                 _this._contactContainer.update("$escapetool.javascript($services.localization.render('phenotips.similarCases.emailSent'))");
                },
                onFailure : function (response) {
-                 _this._contactContainer.update('There was an error processing your email. Please contact support at support@phenomecentral.org and try again later.');
+                 _this._contactContainer.update("$escapetool.javascript($services.localization.render('phenotips.similarCases.emailError'))");
                }
              });
            });
@@ -591,7 +653,7 @@
           if (response.statusText == '' /* No response */ || response.status == 12031 /* In IE */) {
              failureReason = 'Server not responding';
           }
-          _this._messages.update(new Element('div', {'class' : 'errormessage'}).update('Failed to retrieve contact dialog. ' + failureReason));
+          _this._messages.update(new Element('div', {'class' : 'errormessage'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.failedContactDialog')) " + failureReason));
         },
         on0 : function (response) {
           response.request.options.onFailure(response);
@@ -607,9 +669,10 @@
       var details = new Element("div");
 
       // Provide access to the actual matching details
-
-      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.show'))");
-      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.details.hide'))");
+      var showIcon = '&lt;span class="fa fa-plus-square-o fa-lg"&gt;&lt;/span&gt;';
+      var hideIcon = '&lt;span class="fa fa-minus-square-o fa-lg"&gt;&lt;/span&gt;';
+      var showDetails = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update(showIcon+" $escapetool.javascript($services.localization.render('phenotips.similarCases.details.show'))");
+      var hideDetails = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update(hideIcon+" $escapetool.javascript($services.localization.render('phenotips.similarCases.details.hide'))");
       var matchSummary = this.displaySummary("", details).insert(new Element('span', {"class" : "buttonwrapper"}).insert(showDetails).insert(hideDetails));
 
       // Generate the feature/variant comparison table
@@ -656,7 +719,7 @@
     _displayAgeOfOnset : function(r) {
       var container = new Element('div', {'class' : 'match-type age-of-onset'});
       container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))"));
-      var formatAgeOfOnset = function(age) {return age ? age : 'Unknown';};
+      var formatAgeOfOnset = function(age) {return age ? age : "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknown'))";};
       var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
       container.insert(ageOfOnsetTable);
 
@@ -679,7 +742,7 @@
 
       var row = this._getEmptyTableRow(modeOfInheritanceTable);
 
-      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ['-'];};
+      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["$escapetool.javascript($services.localization.render('phenotips.similarCases.unknown'))"];};
 
       var referenceElement = new Element('td', {'class' : 'table-data query'});
       row.insert(referenceElement);
@@ -700,28 +763,23 @@
       var container = new Element('div', {'class' : 'match-type features'});
       container.insert(new Element('h3').update("$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))"));
       if (!r.featureMatches) {
-        container.insert(new Element('p', {'class' : 'hint'}).update('No phenotype information available'));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
         return container;
       }
       var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
       var _this = this;
-      var columns = {
-        query : {
-          title : this._getDisplayedQueryId()
-        },
-        result : {
-          title : this._getDisplayedResultId(r)
-        }
-      };
+
+      var titlesTable = new Element('table', {'class' : 'phenotype-matches-titles'});
+      container.insert(titlesTable);
+      this._createTableSectionTitle(titlesTable, r);
+
       var resultFeatures = _this._createFeatureIndex(r.features);
       r.featureMatches.each(function (featureMatch) {
            var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category &amp;&amp; featureMatch.category.name || "Unknown pehnotype category"));
-           categoryRow.insert(new Element('th', {'class' : 'phenotype-category-score'}).update(featureMatch.score &amp;&amp; _this.Utils.generateSegmentedBar(5, featureMatch.score) || ''));
-
-           var labelsRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           labelsRow.insert(new Element('th', {'class' : 'hint query'}).update(columns.query.title));
-           labelsRow.insert(new Element('th', {'class' : 'hint result'}).update(columns.result.title));
+           categoryRow.insert(new Element('th', {'class' : 'phenotype-category'}).update(featureMatch.category
+                                                                                         &amp;&amp; featureMatch.category.name
+                                                                                         || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownCategory'))"));
+           categoryRow.insert(new Element('th'));
            var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
            var crtPFeatures = new Element('td', {'class' : 'table-data query'});
            var otherPFeatures = new Element('td', {'class' : 'table-data result'});
@@ -743,7 +801,9 @@
                }
              });
              if (undisclosedCount &gt; 0) {
-               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER}).update(undisclosedCount + ' undisclosed feature' + (undisclosedCount &gt; 1 ? 's' : '')));
+               otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER})
+                                                .update(undisclosedCount
+                                                + " $escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedFeature'))"));
              }
            } else {
              otherPFeatures.insert("-");
@@ -765,7 +825,7 @@
       var name = new Element("span", {
          "title" : (f.id || "") + " " + (f.label || ""),
          "class" : cssModifier
-      }).insert(f.label &amp;&amp; prefix + f.label || this._UNKNOWN_INFO_TEXT);
+      }).insert(f.label &amp;&amp; prefix + f.label || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
         //.insert(f.type &amp;&amp; new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
       container.insert(name);
       if (f.metadata) {
@@ -773,7 +833,7 @@
         container.insert(metadata);
         f.metadata.each(function(m) {
           if (m.label) {
-            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || this._UNKNOWN_INFO_TEXT);
+            var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
             metadata.insert(entry);
           }
         });
@@ -787,10 +847,10 @@
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genetic information available'));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
       } else if (r.genes.length == 0) {
         // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
-        container.insert(new Element('p', {'class' : 'hint'}).update('No genotype matches found'));
+        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
       } else {
         // Display genotype matches
         var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
@@ -799,19 +859,26 @@
           titleRow.insert(new Element('th', {'class' : 'gene'})
                                .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
-                               .insert(geneInfo.score &amp;&amp; _this.Utils.generateSegmentedBar(5, geneInfo.score) || '')
                                 /* The genename service should populate this with links if the input is present*/
           ).insert(new Element('th', {'class' : 'variants-toggle'}));
           if (geneInfo.reference || geneInfo.match) {
             if (geneInfo.reference &amp;&amp; geneInfo.reference.variants || geneInfo.match &amp;&amp; geneInfo.match.variants) {
-              var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("Show variants...");
-              var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("Hide variants...");
+              var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.showVariants'))");
+              var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.hideVariants'))");
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
               titleRow.down('th.variants-toggle').insert(variantToggle);
               var variantsRow = _this._getEmptyTableRow(genotypeMatchTable, 'variants-row');
-              variantsRow.insert(new Element('td', {'class' : 'query'}).insert(geneInfo.reference &amp;&amp; geneInfo.reference.variants &amp;&amp; _this._displayVariants(geneInfo.reference.variants) || 'No variant information available'));
-              variantsRow.insert(new Element('td', {'class' : 'result'}).insert(geneInfo.match &amp;&amp; geneInfo.match.variants &amp;&amp; _this._displayVariants(geneInfo.match.variants) || 'No variant information available'));
+              variantsRow.insert(new Element('td', {'class' : 'query'})
+                                     .insert(geneInfo.reference
+                                             &amp;&amp; geneInfo.reference.variants
+                                             &amp;&amp; _this._displayVariants(geneInfo.reference.variants)
+                                             || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
+              variantsRow.insert(new Element('td', {'class' : 'result'})
+                                     .insert(geneInfo.match
+                                             &amp;&amp; geneInfo.match.variants
+                                             &amp;&amp; _this._displayVariants(geneInfo.match.variants)
+                                             || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
 
               // Add behavior for showing/hiding the variants
               variantsRow.hide();
@@ -838,16 +905,14 @@
 
    _displayVariants : function (variants) {
       if (!variants || variants.length == 0) {
-        return new Element('span', {'class' : 'hint'}).update('No variant information');
+        return new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))");
       }
       var result = new Element('table', {'class' : 'variants-data'});
       var _this = this;
       var hRow = _this._getEmptyTableRow(result);
-      hRow.insert(new Element('th').update('Variant'));
-      hRow.insert(new Element('th').update('Estimated harmfulness'));
       variants.each(function (v) {
          var vRow = _this._getEmptyTableRow(result);
-         var position = new Element('span', {'class' : 'hint'}).update("Undisclosed position");
+         var position = new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedPosition'))");
          var change = "";
          if (v.chrom &amp;&amp; (v.position || (v.start_position &amp;&amp; v.end_position))) {
             var start = v.position || v.start_position;
@@ -859,7 +924,7 @@
                  'href' : 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=' + assembly + '&amp;position=' + encodeURIComponent(positionURLFragment),
                  'class' : 'button secondary',
                  'target' : '__blank',
-                 'title' : 'Visualize in the UCSC Genome Browser'
+                 'title' : "$escapetool.javascript($services.localization.render('phenotips.similarCases.UCSCGenomeBrowser'))"
             }).update(position).wrap('span', {'class' : 'buttonwrapper'});
             if (v.ref &amp;&amp; v.alt) {
               var displayedRef = v.ref.length &lt;= 15 ? v.ref : (v.ref.substring(0, 9) + "..." + v.ref[v.ref.length - 1]);
@@ -867,7 +932,7 @@
               change = "&lt;span class='dna-fragment ref'&gt;" + displayedRef + "&lt;/span&gt; → &lt;span class='dna-fragment alt'&gt;" + displayedAlt + "&lt;/span&gt;";
             }
          }
-         vRow.insert(new Element('td').update(position)
+         vRow.insert(new Element('td').insert(position)
                                       .insert(new Element('div')
                                                      .insert(new Element('strong').update(change))
                                                      .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
@@ -1164,6 +1229,337 @@
   </object>
   <object>
     <name>PhenoTips.SimilarCases</name>
+    <number>3</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>6245ccba-6efe-4b3a-8f64-3de27980546f</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function(PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.MatcherPaginator = Class.create({
+    initialize: function(table, domNode, max) {
+      var _this = this;
+      this.table = table;
+      this.max = max;
+      this.pagesNode = domNode.down(".xwiki-livetable-pagination-content");
+      var prevPagination = domNode.down(".prevPagination");
+      var nextPagination = domNode.down(".nextPagination");
+      prevPagination &amp;&amp; prevPagination.observe("click", function(ev) {
+        _this.gotoPrevPage(ev);
+      });
+      nextPagination &amp;&amp; nextPagination.observe("click", function(ev) {
+        _this.gotoNextPage(ev);
+      });
+    },
+    refreshPagination: function() {
+      var _this = this;
+      this.pagesNode.innerHTML = "";
+      var pages = this.table.totalPages;
+      var currentMax = (!this.max) ? pages : this.max;
+      var currentPage = this.table.page;
+      var startPage = Math.floor(currentPage / currentMax) * currentMax - 1;
+
+      // always display the first page
+      if (startPage&gt;1) {
+         this.pagesNode.insert(_this.createPageLink(1, false));
+         if (startPage&gt;2) {
+            this.pagesNode.insert(" ... ");
+         }
+      }
+      // display pages
+      for (var i=(startPage&lt;=0) ? 1 : startPage;i&lt;=Math.min(startPage + currentMax + 1, pages);i++) {
+         var selected = (currentPage == i);
+         this.pagesNode.insert(_this.createPageLink(i, selected));
+         this.pagesNode.insert(" ");
+      }
+      // always display the last page.
+      if (i&lt;pages) {
+        if (i+1 &lt;= pages) {
+          this.pagesNode.insert(" ... ");
+        }
+        this.pagesNode.insert(_this.createPageLink(pages, false));
+      }
+
+      this._updateArrowsState(currentPage, pages);
+    },
+    createPageLink: function(page, selected) {
+        var pageSpan = new Element("a", {'class':'pagenumber', 'href':'#'}).update(page);
+        if (selected) {
+           pageSpan.addClassName("selected");
+        }
+        var _this = this;
+        pageSpan.observe("click", function(ev){
+            ev.stop();
+            _this.gotoPage(ev.element().innerHTML);
+        });
+        return pageSpan;
+    },
+    gotoPage: function(page)
+    {
+      this.table.page = parseInt(page);
+      this.table.launchSearchExisting();
+    },
+    gotoPrevPage: function(ev) {
+      ev.stop();
+      var prevPage = this.table.page - 1;
+      if (prevPage &gt; 0) {
+        this.table.page--;
+        this.table.launchSearchExisting();
+      }
+    },
+    gotoNextPage: function(ev) {
+      ev.stop();
+      var pages = this.table.totalPages;
+      var nextPage = this.table.page + 1;
+      if (nextPage &lt;= pages) {
+        this.table.page++;
+        this.table.launchSearchExisting();
+      }
+    },
+    _updateArrowsState: function(currentPage, pages) {
+      if (currentPage &lt;= 1) {
+        this._switchClassName('noPrevPagination', 'prevPagination');
+      } else {
+        this._switchClassName('prevPagination', 'noPrevPagination');
+      }
+      if (currentPage &gt;= pages) {
+        this._switchClassName('noNextPagination', 'nextPagination');
+      } else {
+        this._switchClassName('nextPagination', 'noNextPagination');
+      }
+    },
+    _switchClassName: function(addName, removeName) {
+      if (!this.pagesNode.up().previous('.controlPagination')) {
+        return;
+      }
+      var page = this.pagesNode.up().previous('.controlPagination').down('.' + removeName);
+      page &amp;&amp; page.addClassName(addName).removeClassName(removeName);
+    }
+  });
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>Similar cases pagination code</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>4</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>4c92006b-b9ff-4c94-a49d-121de24ba212</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>var PhenoTips = (function(PhenoTips) {
+  var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
+  widgets.MatcherPageSizer = Class.create({
+    initialize: function(table, domNode, pageSizeBounds, currentPageSize) {
+      this.table = table;
+      this.currentValue = currentPageSize;
+      var bounds = pageSizeBounds || [10, 100, 10];
+      this.startValue = bounds[0];
+      this.step = bounds[2];
+      this.maxValue = bounds[1];
+      domNode.insert(this.createPageSizeSelectControl());
+    },
+    /**
+     * Create the page size control using a select node and returns it
+     * @return an Element containing the select
+     **/
+    createPageSizeSelectControl: function() {
+      var select = new Element('select', {'class':'pagesizeselect'});
+      for (var i=this.startValue; i&lt;=this.maxValue; i += this.step) {
+        var attrs = {'value':i, 'text':i};
+        if (i == this.currentValue) {
+          attrs.selected = true;
+        } else {
+          var prevStep = i - this.step;
+          if (this.currentValue > prevStep &amp;&amp; this.currentValue &lt; i) {
+            select.appendChild(new Element('option', {'value':this.currentValue, 'text':this.currentValue, selected:true}).update(this.currentValue));
+          }
+        }
+        select.appendChild(new Element('option', attrs).update(i));
+      }
+      select.observe("change", this.changePageSize.bind(this));
+      return select;
+    },
+
+    /**
+     * Change the page size of the table
+     **/
+    changePageSize: function(event) {
+      event.stop();
+      var newLimit =  parseInt($F(Event.element(event)));
+      this.table.changePageSize(newLimit);
+    }
+  });
+  return PhenoTips;
+}(PhenoTips || {}));</code>
+    </property>
+    <property>
+      <name>Similar cases page sizer code</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>PhenoTips.SimilarCases</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>314a760a-1ec1-46d2-a262-b728dd8e61f9</guid>
@@ -1259,7 +1655,7 @@
   float: right;
 }
 .chapter.similarity-info .similar-cases-category {
-  margin-top: 3.5em;
+  margin-top: 1em;
 }
 .chapter.similarity-info h3 {
   border: 0 none;
@@ -1415,6 +1811,16 @@
 .similarity-info .refresh-matches-button {
   margin-left: 5px;
   white-space: nowrap;
+}
+.similarity-info .pagesizeselect {
+  margin-left: 5px;
+}
+.similarity-info a.pagenumber {
+  margin-left: 5px;
+}
+.match-type .block {
+  display: inline-block;
+  width: 100%;
 }</code>
     </property>
     <property>
@@ -1510,23 +1916,20 @@
       <code>#template("colorThemeInit.vm")
 
 .match-details table.gene-matches&gt;tr.gene-row,
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+1) {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n+1) {
   background-color: $theme.menuLinkColor;
   background-color: $theme.menuBackgroundColor;
   color: $theme.menuLinkColor;
   text-shadow: none;
 }
 .match-details table.gene-matches&gt;tr.variants-row,
-.match-details table.phenotype-matches&gt;tr:nth-child(3n){
+.match-details table.phenotype-matches&gt;tr:nth-child(2n){
   background-color: transparent;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+2) {
-  background-color: transparent;
-}
-.match-details table.phenotype-matches&gt;tr:nth-child(3n+2)&gt;td {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
   padding-bottom: 0;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(3n)&gt;td {
+.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
   padding-top: 0;
 }
 
@@ -1590,7 +1993,7 @@
   text-align: left;
 }
 .match-details table .table-data {
-  padding-left: 2em !important;
+  padding-left: 1em !important;
 }</code>
     </property>
     <property>
@@ -1691,11 +2094,23 @@
       #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
-      == Similar cases ==
+      == $escapetool.xml($services.localization.render('phenotips.similarCases.title')) ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
       (% class="similar-cases-category similar-cases-local" %)(((
-      === Matches with patient profiles deposited in this database ===
-      (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+      === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
+      (% class="similarity-results-container-local" %)(((
+        (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+        ## Pagination
+        $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
+        {{html clean=false}}&lt;span class="xwiki-livetable-pagination" id="pagination-similar-cases"&gt;&lt;span class="controlPagination"&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+          &lt;/span&gt;
+          &lt;span class="pagination"&gt;
+            &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+            &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+          &lt;/span&gt;&lt;/span&gt;
+        {{/html}})))##
       )))
       ## Allow to plug in other data sources
       #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))

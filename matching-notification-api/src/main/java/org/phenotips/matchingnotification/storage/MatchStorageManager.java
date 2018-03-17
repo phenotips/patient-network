@@ -21,8 +21,10 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @version $Id$
@@ -36,10 +38,11 @@ public interface MatchStorageManager
      * @param score threshold for matches
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
-     * @param notified whether the matches were notified of
+     * @param onlyNotified when true only matches that has been notified will be returned
+     *        FIXME: this parameter is now deprecated, to be removed when new UI that doe snot need it is accepted
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean notified);
+    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyNotified);
 
     /**
      * Load all matches with ids in {@code matchesIds}.
@@ -47,7 +50,7 @@ public interface MatchStorageManager
      * @param matchesIds list of ids of matches to load
      * @return list of matches
      */
-    List<PatientMatch> loadMatchesByIds(List<Long> matchesIds);
+    List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds);
 
     /**
      * Load all matches where reference/matched patient ID is same as one of parameters.
@@ -88,6 +91,20 @@ public interface MatchStorageManager
     boolean deleteMatchesForLocalPatient(String patientId);
 
     /**
+     * Converts a list of local  SimilarityViews into a list of PatientMatches, keeping only those matches
+     * which should be saved into the notification table (i.e. filters out self-matches).
+     *
+     * FIXME: this method should be part of saveLocalMatches(), however a larger refactoring is needed
+     *        for that, since one of the two codepaths that use saveLocalMatches() needs a filtered list of
+     *        matches (while another one does not). We should unify both codepaths.
+     *
+     * @param matches a list of matches assumed ot be matches between local patients
+     * @return a list of PatientMatches
+     */
+    @Unstable
+    List<PatientMatch> getMatchesToBePlacedIntoNotificationTable(List<PatientSimilarityView> matches);
+
+    /**
      * Saves a list of local matches.
      *
      * @param matches list of similarity views
@@ -95,15 +112,6 @@ public interface MatchStorageManager
      * @return true if successful
      */
     boolean saveLocalMatches(List<PatientMatch> matches, String patientId);
-
-    /**
-     * Saves a list of local matches.
-     *
-     * @param similarityViews list of similarity views
-     * @param patientId local patient ID for whom to save matches
-     * @return true if successful
-     */
-    boolean saveLocalMatchesViews(List<PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote outgoing/incoming request.

@@ -24,6 +24,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -38,7 +39,11 @@ import org.phenotips.vocabulary.VocabularyTerm;
 import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -69,6 +74,10 @@ public class DefaultPatientInMatch implements PatientInMatch
     private static final VocabularyManager VOCABULARY_MANAGER;
 
     private static final PermissionsManager PERMISSIONS_MANAGER;
+
+    private static final PatientAccessHelper ACCESS_HELPER;
+
+    private static final UserManager USER_MANAGER;
 
     private static final String GENES = "genes";
 
@@ -105,6 +114,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
         PermissionsManager pm = null;
+        PatientAccessHelper pa = null;
+        UserManager um = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
@@ -112,6 +123,8 @@ public class DefaultPatientInMatch implements PatientInMatch
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
             pm = ccm.getInstance(PermissionsManager.class);
+            pa = ccm.getInstance(PatientAccessHelper.class);
+            um = ccm.getInstance(UserManager.class);
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -120,6 +133,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         PATIENT_REPOSITORY = patientRepository;
         VOCABULARY_MANAGER = vm;
         PERMISSIONS_MANAGER = pm;
+        ACCESS_HELPER = pa;
+        USER_MANAGER = um;
     }
 
     /**
@@ -170,8 +185,13 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
         if (this.access != null) {
-            json.put("access", this.access.getName());
+            // FIXME: workaround for incorrect access-setting code in this.setAccess()
+            //        This JSON goes to the UI, which needs to know correct access level
+            if (this.isLocal() && this.patient != null) {
+                json.put("access", this.access.getName());
+            }
         }
+        json.put("isOwner", isUserOwner());
 
         // Merge in all items from details column
         JSONObject detailsColumn = this.getDetailsColumnJSON();
@@ -222,7 +242,14 @@ public class DefaultPatientInMatch implements PatientInMatch
             emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.patient));
         } else {
             if (StringUtils.isNotEmpty(this.href)) {
-                emails.add(this.href);
+                // TODO: discuss what better algorithm/package can be use to split emails
+                // MME emails may be of the form "mailto:email1,email2", need ot parse that
+                if (this.href.startsWith("mailto:")) {
+                    String emailList = this.href.replace("mailto:", "");
+                    emails.addAll(Arrays.asList(emailList.split(",")));
+                } else {
+                    emails.add(this.href);
+                }
             }
         }
         return emails;
@@ -296,6 +323,19 @@ public class DefaultPatientInMatch implements PatientInMatch
     public AccessLevel getAccess()
     {
         return this.access;
+    }
+
+    @Override
+    public String getGenesStatus()
+    {
+        // if the patient is remote, we return false for now
+        if (this.patient == null) {
+            return null;
+        }
+        if (this.genotype == null) {
+            return null;
+        }
+        return this.genotype.getGenesStatus();
     }
 
     /*
@@ -410,6 +450,13 @@ public class DefaultPatientInMatch implements PatientInMatch
     private void setAccess()
     {
         if (!this.isLocal() || this.patient == null) {
+            //
+            // FIXME: this is wrong, while server code has "view" access to the in-memory
+            //        copy of the remote patient, from the UI's point of view current user
+            //        does NOT have access to the patient. So need to investigate why this
+            //        fix was needed and do a proper fix. Maybe we no longer need this after
+            //        match obfuscation was removed.
+
             // Remote patient, assume we have access
             this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
         } else if (this.patient instanceof PatientSimilarityView) {
@@ -417,5 +464,18 @@ public class DefaultPatientInMatch implements PatientInMatch
         } else {
             this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
         }
+    }
+
+    /**
+     * Checks if current user is owner of one patient.
+     */
+    private boolean isUserOwner()
+    {
+        User user = USER_MANAGER.getCurrentUser();
+        DocumentReference userRef = user.getProfileDocument();
+        if (this.patient != null && userRef.equals(ACCESS_HELPER.getOwner(this.patient).getUser())) {
+            return true;
+        }
+        return false;
     }
 }

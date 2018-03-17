@@ -48,7 +48,7 @@ public class ExomiserVariant extends AbstractVariant
         setGenotype(values[2], values[3], values[6]);
 
         // Parse into annotation map
-        this.annotations = new HashMap<String, String>();
+        this.annotations = new HashMap<>();
         for (int i = 0; i < Math.min(columns.size(), values.length); i++) {
             this.annotations.put(columns.get(i), values[i]);
         }

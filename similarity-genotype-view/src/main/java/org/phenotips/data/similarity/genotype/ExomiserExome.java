@@ -91,7 +91,7 @@ public class ExomiserExome extends AbstractExome implements Exome
             // Add variant to gene without sorting (save sorting for end)
             List<Variant> geneMutations = this.variants.get(gene);
             if (geneMutations == null) {
-                geneMutations = new ArrayList<Variant>();
+                geneMutations = new ArrayList<>();
                 this.variants.put(gene, geneMutations);
             }
 
