@@ -44,9 +44,9 @@ var PhenoTips = (function (PhenoTips) {
         $('show-matches-phen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
         $('show-matches-gen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
 
-        $('show-matches-score').on('change', function() {this._utils.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message');}.bind(this));
-        $('show-matches-phen-score').on('change', function() {this._utils.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message');}.bind(this));
-        $('show-matches-gen-score').on('change', function() {this._utils.validateScore($('show-matches-gen-score').value, 'show-matches-phen-score', 'score-validation-message');}.bind(this));
+        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message');}.bind(this));
+        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message');}.bind(this));
+        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message');}.bind(this));
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -99,8 +99,39 @@ var PhenoTips = (function (PhenoTips) {
         document.observe("notified:failed", this._handleNotifiedUpdate.bind(this));
 
         if (!this._isAdmin) {
+            // set initial scores
+            $('show-matches-score').value = 0.5;
+            $('show-matches-phen-score').value = 0;
+            $('show-matches-gen-score').value = 0.1;
+
             this._showMatches();
         }
+    },
+
+    validateScore : function(score, className, messagesFieldName) {
+        // minimum allowed scores: can be less than initial, but no less than some values
+        if (!this._isAdmin) {
+            var minAllowedValue = { 'show-matches-score': 0.4,
+                                    'show-matches-phen-score': 0,
+                                    'show-matches-gen-score': 0 };
+        } else {
+            var minAllowedValue = { 'show-matches-score': 0.1,
+                                    'show-matches-phen-score': 0,
+                                    'show-matches-gen-score': 0 };
+        }
+
+        if (score == undefined || score == "" || Number(score) < minAllowedValue[className]) {
+            if (className == 'show-matches-score') {
+                this._utils.showHint(messagesFieldName, "For performance reasons currently only matches with overall score of at least " + minAllowedValue[className] + " can be retrieved", "invalid");
+            }
+
+            $(className).value = minAllowedValue[className];
+            return minAllowedValue[className];
+        } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
+            this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
+            return undefined;
+        }
+        return score;
     },
 
     _initiateFilters : function()
@@ -156,7 +187,7 @@ var PhenoTips = (function (PhenoTips) {
 
         $$('input[class="score-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
-                var score = this._utils.validateScore(event.currentTarget.value, event.currentTarget.id, 'score-filter-validation-message');
+                var score = this.validateScore(event.currentTarget.value, event.currentTarget.id, 'score-filter-validation-message');
                 if (score == undefined) {
                     return;
                 }
@@ -278,7 +309,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _sendNotification : function()
     {
-        this._notifier._sendNotification(this._matches);
+        this._notifier.sendNotification(this._matches);
     },
 
     _toggleFilters : function (filtersElt, forceHide) {
@@ -359,9 +390,9 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score = this._utils.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages');
-        var phenScore = this._utils.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages');
-        var genScore = this._utils.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages');
+        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages');
+        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages');
+        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages');
         if (score == undefined || phenScore == undefined || genScore == undefined) {
             return;
         }
@@ -923,6 +954,12 @@ var PhenoTips = (function (PhenoTips) {
                 this._contactContainer.down('textarea[name="message"]').update('');
                 this._contactContainer.down('input[name="subject"]').value = '';
                 this._contactContainer.down('input[name="to"]').value = '';
+
+                // FIXME: this is a quick fix, need to find a better solution:
+                // clone send button to remove all accumulated event handlers
+                var sendButton = this._contactContainer.down('input[name="send"]');
+                var new_sendButton = sendButton.cloneNode(true);
+                sendButton.parentNode.replaceChild(new_sendButton, sendButton);
             }.bind(this),
             onSuccess : function(response) {
                 if (!(response && response.responseJSON)) {
@@ -1020,7 +1057,14 @@ var PhenoTips = (function (PhenoTips) {
         matchesToSet.each( function(match, index) {
             if (properties.hasOwnProperty('notified')) {
                 match.notified = properties.notified;
-                this._tableElement.down('input[data-matchid="' + match.id +'"][type=checkbox][class="notify"]').checked=false;
+
+                // un-check notification checkbox for admins
+                var contactCheckbox = this._tableElement.down('input[data-matchid="' + match.id +'"][type=checkbox][class="notify"]');
+                contactCheckbox && (contactCheckbox.checked=false);
+
+                // replace the envelope with "contacted" text for regular users
+                var envelopeElement = this._tableElement.down('a.contact-button[data-matchid="' + match.id +'"]');
+                envelopeElement && (envelopeElement.up().update(this._CONTACTED_LABEL));
             }
             if (properties.hasOwnProperty('status')) {
                 match.status = properties.status;
@@ -1030,6 +1074,8 @@ var PhenoTips = (function (PhenoTips) {
             }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this))
+
+        $('send-notifications-button').addClassName("disabled");
     },
 
 //--SET MATCH STATUS BLOCK --

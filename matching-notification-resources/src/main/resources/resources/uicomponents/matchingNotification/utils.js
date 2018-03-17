@@ -30,25 +30,6 @@ define([], function()
             messages.update(new Element('div', {'class' : cssClass}).update(message));
         },
 
-        validateScore : function(score, className, messagesFieldName) {
-            if (score == undefined || score == "") {
-                if (className == 'show-matches-score') {
-                    $(className).value = 0.5;
-                    return 0.5;
-                } else if (className ==  'show-matches-gen-score') {
-                    $(className).value = 0.1;
-                    return 0.1;
-                } else {
-                    $(className).value = 0;
-                    return 0;
-                }
-            } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
-                this.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
-                return undefined;
-            }
-            return score;
-        },
-
         _roundScore : function(score)
         {
             return Math.floor(Number(score) * 100) / 100;

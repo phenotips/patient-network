@@ -12,7 +12,7 @@ define(["matchingNotification/utils"], function(utils)
             this._utils = new utils(this._tableElement);
         },
 
-        _sendNotification : function(matches)
+        sendNotification : function(matches)
         {
             this._matches = matches;
             var ids = this._getMarkedToNotify();
@@ -36,7 +36,7 @@ define(["matchingNotification/utils"], function(utils)
                     this._utils.showSent('send-notifications-messages');
                 }.bind(this),
                 onSuccess : function (response) {
-                    this._onSuccessSendNotification(response);
+                    this._onSuccessSendNotification(response, false);
                 }.bind(this),
                 onFailure : function (response) {
                     this._utils.showFailure('show-matches-messages');
@@ -54,7 +54,7 @@ define(["matchingNotification/utils"], function(utils)
                     this._utils.showSent('send-notifications-messages');
                 }.bind(this),
                 onSuccess : function (response) {
-                    this._onSuccessSendNotification(response);
+                    this._onSuccessSendNotification(response, true);
                 }.bind(this),
                 onFailure : function (response) {
                     this._utils.showFailure('show-matches-messages');
@@ -62,7 +62,7 @@ define(["matchingNotification/utils"], function(utils)
             });
         },
 
-        _onSuccessSendNotification : function(ajaxResponse)
+        _onSuccessSendNotification : function(ajaxResponse, isAdminNotification)
         {
             this._utils.showReplyReceived('send-notifications-messages');
 
@@ -74,12 +74,14 @@ define(["matchingNotification/utils"], function(utils)
 
                 // Update table state
                 if (results.success && results.success.length > 0 ) {
-                    var event = { 'matchIds' : results.success, 'properties' : {'notified': true, 'state': 'success'} };
+                    var event = { 'matchIds' : results.success,
+                                  'properties' : {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification} };
                     document.fire("notified:success", event);
                 }
                 if (results.failed && results.failed.length > 0) {
                     alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + results.failed);
-                    var event = { 'matchIds' : results.failed, 'properties' : {'state': 'failure'} };
+                    var event = { 'matchIds' : results.failed,
+                                  'properties' : {'state': 'failure', 'isAdminNotification': isAdminNotification} };
                     document.fire("notified:failed", event);
                 }
             } else {
