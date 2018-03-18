@@ -98,12 +98,12 @@ var PhenoTips = (function (PhenoTips) {
         document.observe("notified:success", this._handleNotifiedUpdate.bind(this));
         document.observe("notified:failed", this._handleNotifiedUpdate.bind(this));
 
-        if (!this._isAdmin) {
-            // set initial scores
-            $('show-matches-score').value = 0.5;
-            $('show-matches-phen-score').value = 0;
-            $('show-matches-gen-score').value = 0.1;
+        // set initial scores
+        $('show-matches-score').value = 0.5;
+        $('show-matches-phen-score').value = 0;
+        $('show-matches-gen-score').value = 0.1;
 
+        if (!this._isAdmin) {
             this._showMatches();
         }
     },
@@ -584,7 +584,8 @@ var PhenoTips = (function (PhenoTips) {
                 if (emails[i].startsWith('mailto:')) {
                     emails[i] = emails[i].replace('mailto:', '');
                 }
-                var splitted = emails[i].split(',');
+                // do not split URLs, but split multiple emails
+                var splitted = (emails[i].indexOf("://") > -1) ? [ emails[i] ] : emails[i].split(',');
                 formattedEmails = formattedEmails.concat(splitted);
             }
             return formattedEmails;
@@ -795,12 +796,13 @@ var PhenoTips = (function (PhenoTips) {
             if (email.indexOf("://") > -1) {
                 email = email.split('/')[2];
                 email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
+            } else {
+                // insert a 0-width space after the @, so that a long email can be split into two lines
+                email = email.replace(/@/g,"@&#8203;");
+                // insert a "preferred-no-split <span> around emails, to make sure lines are first split on ",",
+                // and only after that on "@"
+                email = email.replace(/([^, ]+?@[^ ]+)/g,"<span class='avoidwrap'>$1</span> ")
             }
-            // insert a 0-width space after the @, so that a long email can be split into two lines
-            email = email.replace(/@/g,"@&#8203;");
-            // insert a "preferred-no-split <span> around emails, to make sure lines are first split on ",",
-            // and only after that on "@"
-            email = email.replace(/([^, ]+?@[^ ]+)/g,"<span class='avoidwrap'>$1</span> ")
             td += '<div name="notification-email-long">' + email + '</div>';
         }
         td += '<div name="notification-email-short">' + emails[0].substring(0, 9) + '...' + '</div>';
