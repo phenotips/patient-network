@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -374,7 +375,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     private boolean isMatchCollaborator(User user, Patient matched, Patient ref)
     {
         // check if the user is a collaborator to one of the matched patients
-        Collection<Collaborator> unitedCollaborators = this.accessManager.getCollaborators(matched);
+        Collection<Collaborator> unitedCollaborators = new HashSet<>(this.accessManager.getCollaborators(matched));
         unitedCollaborators.addAll(this.accessManager.getCollaborators(ref));
 
         if (unitedCollaborators.isEmpty()) {
