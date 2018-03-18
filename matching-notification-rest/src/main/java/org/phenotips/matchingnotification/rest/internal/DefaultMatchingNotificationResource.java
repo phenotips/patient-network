@@ -303,10 +303,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
             if (isNonexistingOrSelfMatch(match)) {
                 iterator.remove();
+                continue;
             }
 
             if (!isCurrentUserAdmin() && isNonUsersMatch(match)) {
                 iterator.remove();
+                continue;
             }
         }
     }
