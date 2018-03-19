@@ -4,7 +4,39 @@ define([], function()
 
         initialize : function (tableElement)
         {
+            this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
+            this._CLOSE_BUTTON_NAME = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.closeButton.name'))";
+
             this._tableElement = tableElement;
+
+            this._errorContactDialogContainer = this._createErrorDialogContainer();
+            this._errorContactDialog = new PhenoTips.widgets.ModalPopup(this._errorContactDialogContainer, false, {'title': this._CONTACT_ERROR_DIALOG_TITLE});
+        },
+
+        _createErrorDialogContainer : function() {
+            var container = new Element('div', {'class' : 'contact-dialog xform'});
+            header = new Element("h2");
+            container.insert(header);
+
+            message = new Element('div', {'class' : 'contact-dialog-error-message'});
+            container.insert(message);
+
+            var closeButton = new Element('span', {"class" : "buttonwrapper"}).insert(new Element('input', {'name' : 'close', 'value' : this._CLOSE_BUTTON_NAME, 'class' : 'button secondary'}));
+            closeButton.on('click', function(event) {
+                this._errorContactDialog.closeDialog();
+            }.bind(this));
+
+            var buttons = new Element('div', {'class' : 'buttons'});
+            buttons.insert(closeButton);
+            container.insert(buttons);
+
+            return container;
+        },
+
+        showContactError : function(header, message) {
+            this._errorContactDialogContainer.down('h2').update(header || '');
+            this._errorContactDialogContainer.down('.contact-dialog-error-message').update(message || '');
+            this._errorContactDialog.showDialog();
         },
 
         showSent : function(messagesFieldName) {

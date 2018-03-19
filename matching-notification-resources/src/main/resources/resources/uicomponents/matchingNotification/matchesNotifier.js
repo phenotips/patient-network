@@ -10,6 +10,9 @@ define(["matchingNotification/utils"], function(utils)
             this._tableElement = tableElement;
             this._ajaxURL = ajaxURL;
             this._utils = new utils(this._tableElement);
+
+            this._CONTACT_SEND_ERROR_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.send.error.header'))";
+            this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         },
 
         sendNotification : function(matches)
@@ -40,7 +43,7 @@ define(["matchingNotification/utils"], function(utils)
                     this._onSuccessSendNotification(response, false);
                 }.bind(this),
                 onFailure : function (response) {
-                    this._utils.showFailure('show-matches-messages');
+                    this._utils.showContactError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                 }.bind(this)
             });
         },
@@ -58,7 +61,7 @@ define(["matchingNotification/utils"], function(utils)
                     this._onSuccessSendNotification(response, true);
                 }.bind(this),
                 onFailure : function (response) {
-                    this._utils.showFailure('show-matches-messages');
+                    this._utils.showContactError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                 }.bind(this)
             });
         },
@@ -80,14 +83,15 @@ define(["matchingNotification/utils"], function(utils)
                     document.fire("notified:success", event);
                 }
                 if (results.failed && results.failed.length > 0) {
-                    alert("$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + results.failed);
+                    var message = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + this._getAllEmailsForMatchIds(results.failed);
+                    this._utils.showContactError(this._CONTACT_SEND_ERROR_HEADER, message);
                     var event = { 'matchIds' : results.failed,
                                   'properties' : {'state': 'failure', 'isAdminNotification': isAdminNotification} };
                     document.fire("notified:failed", event);
                 }
             } else {
                 if (!ajaxResponse.responseJSON || !ajaxResponse.responseJSON.results) {
-                    this._utils.showFailure('send-notifications-messages');
+                    this._utils.showContactError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                 }
             }
         },
@@ -103,6 +107,17 @@ define(["matchingNotification/utils"], function(utils)
                 }
             });
             return ids;
+        },
+
+        _getAllEmailsForMatchIds : function(matchIds)
+        {
+            var emails = [];
+            matchIds.each(function (matchId) {
+                var notifyCheckbox = this._tableElement.down('input[data-matchid="'+matchId+'"');
+                var emailsArray = notifyCheckbox.dataset.emails && notifyCheckbox.dataset.emails.split(',');
+                emails = emails.concat(emailsArray);
+            }.bind(this));
+            return emails;
         }
 
     });
