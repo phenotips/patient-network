@@ -119,7 +119,9 @@ table#matchesTable {
 #pagination-info {
   display: inline-block;
 }
-
+#pagination-matching-notifications {
+  margin-top: 10px;
+}
 .matches-table .first-header-row {
   text-align: -webkit-center;
 }

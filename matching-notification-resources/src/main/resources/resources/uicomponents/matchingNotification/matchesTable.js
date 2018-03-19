@@ -26,6 +26,7 @@ var PhenoTips = (function (PhenoTips) {
         this._minScore = 0;
         this._page = 1;
         this.pagination = $('pagination-matching-notifications');
+        this.pagination && this.pagination.hide();
         this.resultsSummary = $('panels-livetable-limits');
         this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.pagination, this._maxResults);
 
@@ -1078,9 +1079,12 @@ var PhenoTips = (function (PhenoTips) {
                 // replace the envelope with "contacted" text for regular users
                 var envelopeElement = this._tableElement.down('a.contact-button[data-matchid="' + match.id +'"]');
                 envelopeElement && (envelopeElement.up().update(this._CONTACTED_LABEL));
+                this._matches[this._matches.indexOf(match)].notified = true;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].notified = true;
             }
             if (properties.hasOwnProperty('status')) {
-                match.status = properties.status;
+                this._matches[this._matches.indexOf(match)].status = properties.status;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].status = properties.status;
             }
             if (properties.hasOwnProperty('state')) {
                 this._tableElement.down('[data-matchid="' + match.id +'"]').addClassName(properties.state);
