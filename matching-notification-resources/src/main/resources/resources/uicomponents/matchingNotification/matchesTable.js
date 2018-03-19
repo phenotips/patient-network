@@ -512,11 +512,24 @@ var PhenoTips = (function (PhenoTips) {
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
 
+            // collect server IDs that are present in the match data
+            // to show/hide corresponding filter checkboxes diring  after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
+            this._presentServerIds = [];
             if (match.matched.serverId != '') {
-                this._presentServerIds.push(match.matched.serverName);
+                if (!this._filterValues.serverIds.hasOwnProperty(match.matched.serverId)) {
+                    // do not show matches that have server ID that is not pre-generated in velocity,
+                    // i.e. are not in the valid (enabled) list of servers
+                    this._filterValues.serverIds[match.matched.serverId] = false;
+                } else {
+                    this._presentServerIds.push(match.matched.serverId);
+                }
             }
             if (match.reference.serverId != '') {
-                this._presentServerIds.push(match.reference.serverName);
+                if (!this._filterValues.serverIds.hasOwnProperty(match.reference.serverId)) {
+                    this._filterValues.serverIds[match.reference.serverId] = false;
+                } else {
+                    this._presentServerIds.push(match.reference.serverId);
+                }
             }
 
             // scores
