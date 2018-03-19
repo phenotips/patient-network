@@ -166,6 +166,8 @@ $services.localization.render('phenotips.matchingNotifications.email.table.ageOf
 
 -----------
 
+$services.localization.render('phenotips.matchingNotifications.email.contact')
+
 Regards,
 $xwiki.getUserName($xcontext.user, false)
 
