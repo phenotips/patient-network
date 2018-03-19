@@ -1655,7 +1655,7 @@
   float: right;
 }
 .chapter.similarity-info .similar-cases-category {
-  margin-top: 1em;
+  margin-top: 3.5em;
 }
 .chapter.similarity-info h3 {
   border: 0 none;
