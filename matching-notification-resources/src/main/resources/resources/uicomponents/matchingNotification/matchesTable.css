@@ -70,7 +70,7 @@ table#matchesTable {
 }
 
 .matches-table td {
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .matches-table .collapse-gp-tool {
