@@ -676,7 +676,7 @@
       var matchSummary = this.displaySummary("", details).insert(new Element('span', {"class" : "buttonwrapper"}).insert(showDetails).insert(hideDetails));
 
       // Generate the feature/variant comparison table
-      var matchBreakdown = this._displayMatchData(this._data.query, r);
+      var matchBreakdown = this._displayMatchData(r);
       details.insert(matchBreakdown);
 
       // Add behavior for showing/hiding the comparison table
@@ -701,7 +701,7 @@
       return details;
     },
 
-    _displayMatchData : function(query, r) {
+    _displayMatchData : function(r) {
       var result = new Element("div", {"class" : "match-details"});
       result.insert(this._displayAgeOfOnset(r));
       result.insert(this._displayModeOfInheritance(r));
@@ -817,7 +817,7 @@
    _displayFeature : function(f) {
       if (!f) { return ''; }
       var prefix = "", cssModifier = !f.label &amp;&amp; this._UNKNOWN_INFO_MARKER || "";
-      if (f.isPresent === false) {
+      if (f.observed === false) {
         prefix = "NO ";
         cssModifier += " " + this._NEGATIVE_MARKER;
       }
@@ -1785,6 +1785,7 @@
   border-bottom: 1px solid $theme.borderColor !important;
   font-size: 0.8em;
   text-transform: uppercase;
+  font-weight: 700;
 }
 .similarity-results .details table td {
   border: 0 none !important;
