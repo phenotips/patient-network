@@ -39,9 +39,11 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 $xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
+$xwiki.ssfx.use('uicomponents/matchingNotification/contactDialog.css')##
 $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/matchesTable.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/errorDialog.js', true)##
 $xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
 $xwiki.ssx.use('PhenoTips.Widgets')##
 $xwiki.jsx.use('PhenoTips.Widgets')##
