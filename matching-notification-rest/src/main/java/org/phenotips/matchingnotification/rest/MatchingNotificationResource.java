@@ -64,8 +64,8 @@ public interface MatchingNotificationResource
     @Path("/refresh-matches")
     void refreshMatches(
         @FormParam("serverIds") Set<String> serverIds,
-        @FormParam("onlyCheckPatientsUpdatedAfterLastRun") @DefaultValue("false")
-        boolean onlyCheckPatientsUpdatedAfterLastRun);
+        @FormParam("onlyCheckPatientsUpdatedAfterLastRun") @DefaultValue("false") boolean
+        onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
      * Returns a JSON object containing all matches or matches owned by logged user (if not admin), filtered by
@@ -175,4 +175,22 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/set-status")
     Response setStatus(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("status") String status);
+
+    /**
+     * Returns a JSON object containing all matches where reference/matched patient ID is same as one of parameters.
+     *
+     * @param referencePatientId id of reference patient to load matches for
+     * @param referenceServerId id of the server that hosts reference patient
+     * @param matchedPatientId id of matched patient to load matches for
+     * @param matchedServerId id of the server that hosts matched patient
+     * @return a single matchID
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/get-matchid")
+    Response getMatches(@FormParam("referencePatientId") String referencePatientId,
+        @FormParam("referenceServerId") String referenceServerId,
+        @FormParam("matchedPatientId") String matchedPatientId,
+        @FormParam("matchedServerId") String matchedServerId);
 }

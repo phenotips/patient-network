@@ -43,6 +43,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -190,15 +191,15 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Override
     public Response sendUserNotification(String matchId, String patientId, String serverId,
-            String emailText, String emailSubject)
+        String emailText, String emailSubject)
     {
         try {
             Long numericMatchId = Long.parseLong(matchId);
 
             PatientMatchNotificationResponse notificationResult =
-                    this.matchingNotificationManager.sendUserNotification(numericMatchId, patientId, serverId,
-                            StringUtils.isBlank(emailText) ? null : emailText,
-                            StringUtils.isBlank(emailSubject) ? null : emailSubject);
+                this.matchingNotificationManager.sendUserNotification(numericMatchId, patientId, serverId,
+                    StringUtils.isBlank(emailText) ? null : emailText,
+                    StringUtils.isBlank(emailSubject) ? null : emailSubject);
 
             if (notificationResult == null) {
                 // unable to send mail, but not because input is wrong
@@ -209,10 +210,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             JSONObject result;
             if (notificationResult.isSuccessul()) {
                 result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
-                        Collections.singletonList(numericMatchId));
+                    Collections.singletonList(numericMatchId));
             } else {
                 result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
-                        Collections.<Long>emptyList());
+                    Collections.<Long>emptyList());
             }
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (IllegalArgumentException ex) {
@@ -221,7 +222,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (Exception ex) {
             this.logger.error("Could not send user notifications for match with id=[{}]: [{}]",
-                    matchId, ex.getMessage(), ex);
+                matchId, ex.getMessage(), ex);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -233,7 +234,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             Long numericMatchId = Long.parseLong(matchId);
 
             JSONObject result = this.matchingNotificationManager.getUserEmailContent(
-                    numericMatchId, patientId, serverId);
+                numericMatchId, patientId, serverId);
 
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (NumberFormatException ex) {
@@ -454,5 +455,38 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
 
         return false;
+    }
+
+    @Override
+    public Response getMatches(String referencePatientId, String referenceServerId, String matchedPatientId,
+        String matchedServerId)
+    {
+        if (StringUtils.isBlank(referencePatientId) || StringUtils.isBlank(matchedPatientId)) {
+            this.logger.error("One of the requested patient ids parameter is blank and thus not a valid input JSON");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        List<PatientMatch> matches = this.matchStorageManager.loadMatchesBetweenPatients(
+            referencePatientId, referenceServerId, matchedPatientId, matchedServerId);
+
+        JSONObject matchIDJson = new JSONObject();
+
+        if (!matches.isEmpty()) {
+            matchIDJson.put(MATCHID_STRING, getLastOutgoingMatchId(matches));
+        }
+        return Response.ok(matchIDJson, MediaType.APPLICATION_JSON_TYPE).build();
+    }
+
+    private Long getLastOutgoingMatchId(List<PatientMatch> matches)
+    {
+        Long id = null;
+        Timestamp lastTime = null;
+        for (PatientMatch match : matches) {
+            if (match.isOutgoing() && (lastTime == null || lastTime.before(match.getFoundTimestamp()))) {
+                id = match.getId();
+                lastTime = match.getFoundTimestamp();
+            }
+        }
+        return id;
     }
 }
