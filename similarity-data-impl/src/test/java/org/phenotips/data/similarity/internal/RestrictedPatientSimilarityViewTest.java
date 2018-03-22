@@ -36,8 +36,6 @@ import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 import org.phenotips.data.similarity.internal.mocks.MockVocabularyTerm;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
-import org.phenotips.messaging.Connection;
-import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.vocabulary.Vocabulary;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
@@ -94,9 +92,6 @@ public class RestrictedPatientSimilarityViewTest
 
     /** The name of the owner of the matched patient. */
     private static final String OWNER_1_ID = "ownerId";
-
-    /** The contact token. */
-    private static final String CONTACT_TOKEN = "1234567890123456";
 
     private AccessType open;
 
@@ -307,16 +302,6 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
         Assert.assertSame(mockReference, o.getReference());
-    }
-
-    /** The token is always disclosed. */
-    @Test
-    public void testGetToken()
-    {
-        Patient mockMatch = mock(Patient.class);
-        Patient mockReference = mock(Patient.class);
-        PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertSame(CONTACT_TOKEN, o.getContactToken());
     }
 
     /** Get simple match patient. */
@@ -571,7 +556,6 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(o.getContactToken(), result.getString("token"));
         JSONArray clusters = result.getJSONArray("featureMatches");
         Assert.assertTrue(clusters.length() == 1);
         for (int i = 0; i < clusters.length(); i++) {
@@ -603,7 +587,6 @@ public class RestrictedPatientSimilarityViewTest
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
 
         JSONObject result = o.toJSON();
-        Assert.assertEquals(o.getContactToken(), result.getString("token"));
         JSONArray clusters = result.getJSONArray("featureMatches");
         Assert.assertTrue(clusters.length() == 1);
         for (int i = 0; i < clusters.length(); i++) {
@@ -676,13 +659,6 @@ public class RestrictedPatientSimilarityViewTest
         Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Matchers.anyString());
-
-        // Mock up the contact token
-        ConnectionManager connManager = mock(ConnectionManager.class);
-        when(componentManager.getInstance(ConnectionManager.class)).thenReturn(connManager);
-        Connection c = mock(Connection.class);
-        when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(c);
-        when(c.getToken()).thenReturn(CONTACT_TOKEN);
 
         // Wire up mocked genetics
         PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();

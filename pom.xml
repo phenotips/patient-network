@@ -79,7 +79,6 @@
     <module>similarity-phenotype-view</module>
     <module>similarity-data-rest</module>
     <module>similarity-search</module>
-    <module>communication</module>
     <module>ui</module>
     <module>matching-notification-resources</module>
     <module>matching-notification-ui</module>
@@ -643,6 +642,12 @@
               <method>java.util.List loadMatchesByIds(java.util.List)</method>
               <to>java.util.List loadMatchesByIds(java.util.Set)</to>
               <justification>Changed to implement preview for notification emails before sending.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/data/similarity/PatientSimilarityView</className>
+              <differenceType>7002</differenceType>
+              <method>java.lang.String getContactToken()</method>
+              <justification>Removing anonimus communication component.</justification>
             </difference>
           </ignored>
           <excludes>

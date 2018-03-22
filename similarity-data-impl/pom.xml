@@ -50,11 +50,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>anonymous-communication</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>component-registry</artifactId>
       <version>${phenotips.version}</version>
     </dependency>

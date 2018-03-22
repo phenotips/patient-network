@@ -31,8 +31,6 @@ import org.phenotips.data.similarity.internal.mocks.MockDisorder;
 import org.phenotips.data.similarity.internal.mocks.MockFeature;
 import org.phenotips.data.similarity.internal.mocks.MockFeatureMetadatum;
 import org.phenotips.data.similarity.internal.mocks.MockVocabularyTerm;
-import org.phenotips.messaging.Connection;
-import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
@@ -82,9 +80,6 @@ public class RestrictedPatientSimilarityViewFactoryTest
     /** The alternative user used as the referrer of the reference patient for matchable or private access. */
     private static final DocumentReference USER_2 = new DocumentReference("xwiki", "XWiki", "hmccoy");
 
-    /** The contact token. */
-    private static final String CONTACT_TOKEN = "1234567890123456";
-
     @Rule
     public final MockitoComponentMockingRule<PatientSimilarityViewFactory> mocker =
         new MockitoComponentMockingRule<PatientSimilarityViewFactory>(RestrictedPatientSimilarityViewFactory.class);
@@ -109,7 +104,6 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Assert.assertNotNull(result);
         Assert.assertSame(PATIENT_1, result.getDocument());
         Assert.assertSame(mockReference, result.getReference());
-        Assert.assertEquals(CONTACT_TOKEN, result.getContactToken());
     }
 
     /** Pairing with a matchable patient does indeed restrict access to private information. */
@@ -210,12 +204,6 @@ public class RestrictedPatientSimilarityViewFactoryTest
         Cache<PatientSimilarityView> cache = mock(Cache.class);
         doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
         doReturn(null).when(cache).get(Matchers.anyString());
-
-        // Mock up the contact token
-        ConnectionManager connManager = this.mocker.registerMockComponent(ConnectionManager.class);
-        Connection conn = mock(Connection.class);
-        when(connManager.getConnection(Matchers.any(PatientSimilarityView.class))).thenReturn(conn);
-        when(conn.getToken()).thenReturn(CONTACT_TOKEN);
 
         // Setup the vocabulary manager
         VocabularyManager vocabularyManager = mock(VocabularyManager.class);

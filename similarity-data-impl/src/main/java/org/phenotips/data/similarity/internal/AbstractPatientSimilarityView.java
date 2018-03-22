@@ -25,10 +25,8 @@ import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.users.User;
@@ -81,9 +79,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** The access level the user has to this patient. */
     protected final AccessType access;
-
-    /** The token for contacting the owner of a patient. */
-    protected String contactToken;
 
     static {
         PatientAccessHelper pa = null;
@@ -171,26 +166,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return this.match.getData(name);
     }
 
-    @Override
-    public String getContactToken()
-    {
-        if (this.contactToken == null) {
-            String token = "";
-            try {
-                ConnectionManager cm =
-                    ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
-                token = cm.getConnection(this).getToken();
-            } catch (ComponentLookupException e) {
-                // This should not happen
-            } catch (Exception ex) {
-                // FIXME: this happens when an attempt to establish a connection between
-                // a local and remote patient owners is made
-            }
-            this.contactToken = token;
-        }
-        return this.contactToken;
-    }
-
     private String getAgeOfOnset(PatientData<List<VocabularyTerm>> globalControllers)
     {
         if (globalControllers != null) {
@@ -227,8 +202,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
-     * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()},
-     * {@link #getContactToken()}, etc.
+     * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()}, etc.
      *
      * @see org.phenotips.data.Patient#toJSON()
      */
@@ -238,7 +212,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         JSONObject result = new JSONObject();
 
         result.put(ID_KEY, getId());
-        result.put("token", getContactToken());
         result.put(OWNER_JSON_KEY, getOwnerJSON());
         if (this.access != null) {
             result.put("access", this.access.toString());
