@@ -124,7 +124,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     /**
      * Returns the JSON representation matching patients for {@code patient}.
      *
-     * @param patient the reference patient obeject
+     * @param patient the reference patient object
      * @param offset the offset for the returned match results
      * @param limit the limit for the number of matches to return
      * @param reqNo the request number
