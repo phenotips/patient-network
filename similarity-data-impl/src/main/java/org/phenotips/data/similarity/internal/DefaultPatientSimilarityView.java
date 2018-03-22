@@ -17,10 +17,12 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
@@ -30,7 +32,9 @@ import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarity
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.users.UserManager;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +56,20 @@ import org.json.JSONArray;
  */
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {
+    static {
+        PatientAccessHelper pa = null;
+        UserManager um = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            pa = ccm.getInstance(PatientAccessHelper.class);
+            um = ccm.getInstance(UserManager.class);
+        } catch (Exception e) {
+            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        accessHelper = pa;
+        userManager = um;
+    }
+
     /** Pre-computed term information content (-logp), for each node t (i.e. t.inf). */
     private static Map<VocabularyTerm, Double> termICs;
 
@@ -249,8 +267,9 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     private PatientPhenotypeSimilarityView getMatchedFeatures()
     {
         if (this.matchedFeatures == null) {
-            this.matchedFeatures = createPhenotypeSimilarityView(this.match.getFeatures(), this.reference.getFeatures(),
-                this.access);
+            this.matchedFeatures =
+                createPhenotypeSimilarityView(this.match.getFeatures(), this.reference.getFeatures(),
+                    this.access);
         }
         return this.matchedFeatures;
     }
@@ -447,8 +466,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         }
         return disordersJSON;
     }
-
-
 
     @Override
     public JSONArray getFeatureMatchesJSON()

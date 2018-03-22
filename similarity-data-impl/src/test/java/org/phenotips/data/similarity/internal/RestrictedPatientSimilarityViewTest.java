@@ -25,6 +25,8 @@ import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.permissions.Owner;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -49,6 +51,8 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +74,7 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -637,6 +642,18 @@ public class RestrictedPatientSimilarityViewTest
         ReflectionUtils.setFieldValue(registry, "cmProvider", mockProvider);
         when(mockProvider.get()).thenReturn(componentManager);
         when(ComponentManagerRegistry.getContextComponentManager()).thenReturn(componentManager);
+
+        PatientAccessHelper pa = mock(PatientAccessHelper.class);
+        UserManager um = mock(UserManager.class);
+        when(componentManager.getInstance(PatientAccessHelper.class)).thenReturn(pa);
+        when(componentManager.getInstance(UserManager.class)).thenReturn(um);
+        User user = mock(User.class);
+        when(um.getCurrentUser()).thenReturn(user);
+        DocumentReference userRef = mock(DocumentReference.class);
+        when(user.getProfileDocument()).thenReturn(userRef);
+        Owner owner = mock(Owner.class);
+        when(pa.getOwner(any(Patient.class))).thenReturn(owner);
+        when(owner.getUser()).thenReturn(userRef);
 
         VocabularyManager vocabularyManager = mock(VocabularyManager.class);
         Vocabulary hpo = mock(Vocabulary.class);

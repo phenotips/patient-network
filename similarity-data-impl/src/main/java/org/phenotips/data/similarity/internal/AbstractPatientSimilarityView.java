@@ -17,7 +17,6 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
@@ -27,7 +26,6 @@ import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.vocabulary.VocabularyTerm;
 
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
@@ -51,7 +49,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientSimilarityView.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientSimilarityView.class);
+
+    protected static PatientAccessHelper accessHelper;
+
+    protected static UserManager userManager;
 
     private static final String MATCHED_GLOBAL_MODE_OF_INHERITANCE = "matched_global_mode_of_inheritance";
 
@@ -67,10 +69,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private static final String OWNER_JSON_KEY = "owner";
 
-    private static final PatientAccessHelper ACCESS_HELPER;
-
-    private static final UserManager USER_MANAGER;
-
     /** The matched patient to represent. */
     protected final Patient match;
 
@@ -79,20 +77,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** The access level the user has to this patient. */
     protected final AccessType access;
-
-    static {
-        PatientAccessHelper pa = null;
-        UserManager um = null;
-        try {
-            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-            pa = ccm.getInstance(PatientAccessHelper.class);
-            um = ccm.getInstance(UserManager.class);
-        } catch (Exception e) {
-            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
-        }
-        ACCESS_HELPER = pa;
-        USER_MANAGER = um;
-    }
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -284,10 +268,10 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
      */
     private boolean isUserOwner(Patient patient)
     {
-        User user = USER_MANAGER.getCurrentUser();
+        User user = userManager.getCurrentUser();
         DocumentReference userRef = user.getProfileDocument();
-        if (patient != null && ACCESS_HELPER.getOwner(patient) != null
-            && userRef.equals(ACCESS_HELPER.getOwner(patient).getUser())) {
+        if (patient != null && accessHelper.getOwner(patient) != null
+            && userRef.equals(accessHelper.getOwner(patient).getUser())) {
             return true;
         }
         return false;
