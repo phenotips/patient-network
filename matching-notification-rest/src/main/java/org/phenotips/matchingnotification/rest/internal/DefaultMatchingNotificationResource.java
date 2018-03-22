@@ -482,7 +482,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         Long id = null;
         Timestamp lastTime = null;
         for (PatientMatch match : matches) {
-            if (match.isOutgoing() && (lastTime == null || lastTime.before(match.getFoundTimestamp()))) {
+            if ((match.isOutgoing() || match.isLocal())
+                && (lastTime == null || lastTime.before(match.getFoundTimestamp()))) {
                 id = match.getId();
                 lastTime = match.getFoundTimestamp();
             }

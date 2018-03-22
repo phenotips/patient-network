@@ -22,23 +22,28 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -48,6 +53,8 @@ import org.json.JSONObject;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientSimilarityView.class);
+
     private static final String MATCHED_GLOBAL_MODE_OF_INHERITANCE = "matched_global_mode_of_inheritance";
 
     private static final String MATCHED_GLOBAL_AGE_OF_ONSET = "matched_global_age_of_onset";
@@ -62,6 +69,10 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private static final String OWNER_JSON_KEY = "owner";
 
+    private static final PatientAccessHelper ACCESS_HELPER;
+
+    private static final UserManager USER_MANAGER;
+
     /** The matched patient to represent. */
     protected final Patient match;
 
@@ -73,6 +84,20 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** The token for contacting the owner of a patient. */
     protected String contactToken;
+
+    static {
+        PatientAccessHelper pa = null;
+        UserManager um = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            pa = ccm.getInstance(PatientAccessHelper.class);
+            um = ccm.getInstance(UserManager.class);
+        } catch (Exception e) {
+            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        ACCESS_HELPER = pa;
+        USER_MANAGER = um;
+    }
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -91,8 +116,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.match = match;
         this.reference = reference;
         this.access = access;
-
-        // Lazily load contact token.
     }
 
     /**
@@ -220,7 +243,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         if (this.access != null) {
             result.put("access", this.access.toString());
         }
-        result.put("myCase", Objects.equals(this.reference.getReporter(), getReporter()));
+        result.put("myCase", isUserOwner(this.match));
         result.put("score", getScore());
         result.put("featuresCount", getFeatures().size());
         // Features visible in the match
@@ -281,5 +304,19 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             }
         }
         return null;
+    }
+
+    /**
+     * Checks if current user is owner of one patient.
+     */
+    private boolean isUserOwner(Patient patient)
+    {
+        User user = USER_MANAGER.getCurrentUser();
+        DocumentReference userRef = user.getProfileDocument();
+        if (patient != null && ACCESS_HELPER.getOwner(patient) != null
+            && userRef.equals(ACCESS_HELPER.getOwner(patient).getUser())) {
+            return true;
+        }
+        return false;
     }
 }
