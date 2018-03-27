@@ -408,6 +408,10 @@ var PhenoTips = (function (PhenoTips) {
 
     _formatMatches : function()
     {
+        // collect server IDs that are present in the match data
+        // to show/hide corresponding filter checkboxes diring  after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
+        this._presentServerIds = ["local" : false];
+
         this._cachedMatches.each( function (match, index) {
             // add field for match row index
             match.rowIndex = index;
@@ -423,10 +427,8 @@ var PhenoTips = (function (PhenoTips) {
             match.reference.access = match.reference.access || '';
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
+            this._presentServerIds.local = this._presentServerIds.local || match.isLocal;
 
-            // collect server IDs that are present in the match data
-            // to show/hide corresponding filter checkboxes diring  after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
-            this._presentServerIds = [];
             if (match.matched.serverId != '') {
                 if (!this._filterValues.serverIds.hasOwnProperty(match.matched.serverId)) {
                     // do not show matches that have server ID that is not pre-generated in velocity,
@@ -844,7 +846,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         if (this._presentServerIds.length > 1) {
             $('checkbox-server-filters').show();
-            this._tableElement.select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
+            $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
                 (this._presentServerIds.indexOf(selectEl.value) > 0) ? selectEl.show() : selectEl.hide();
             }.bind(this));
         } else {
