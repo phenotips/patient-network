@@ -43,9 +43,9 @@ var PhenoTips = (function (PhenoTips) {
         $('show-matches-phen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
         $('show-matches-gen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
 
-        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message');}.bind(this));
-        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message');}.bind(this));
-        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message');}.bind(this));
+        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message', true);}.bind(this));
+        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message', true);}.bind(this));
+        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message', true);}.bind(this));
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -96,7 +96,7 @@ var PhenoTips = (function (PhenoTips) {
         }
     },
 
-    validateScore : function(score, className, messagesFieldName) {
+    validateScore : function(score, className, messagesFieldName, applyMinScore) {
         // minimum allowed scores: can be less than initial, but no less than some values
         if (!this._isAdmin) {
             var minAllowedValue = { 'show-matches-score': 0.4,
@@ -113,8 +113,10 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showHint(messagesFieldName, "For performance reasons currently only matches with overall score of at least " + minAllowedValue[className] + " can be retrieved", "invalid");
             }
 
-            $(className).value = minAllowedValue[className];
-            return minAllowedValue[className];
+            if (applyMinScore) {
+                $(className).value = minAllowedValue[className];
+                return minAllowedValue[className];
+            }
         } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
             this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
             return undefined;
@@ -340,9 +342,9 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages');
-        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages');
-        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages');
+        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages', true);
+        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages', true);
+        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages', true);
         if (score == undefined || phenScore == undefined || genScore == undefined) {
             return;
         }
@@ -658,7 +660,7 @@ var PhenoTips = (function (PhenoTips) {
         // Collapsible div
         td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData);
         td += this._getPhenotypesDiv(patient.phenotypes);
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
@@ -670,7 +672,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getGenesDiv : function(genes, hasExomeData, genesStatus)
+    _getGenesDiv : function(genes, hasExomeData)
     {
         var td = '<div class="genes-div">';
         var genesTitle = this._GENES;
