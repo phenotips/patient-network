@@ -662,10 +662,10 @@ var PhenoTips = (function (PhenoTips) {
         // Collapsible div
         td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData);
-        td += this._getPhenotypesDiv(patient.phenotypes);
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData);
+        td += this._getPhenotypesDiv(patient.phenotypes);
 
         // End collapsible div
         td += '</div>';
