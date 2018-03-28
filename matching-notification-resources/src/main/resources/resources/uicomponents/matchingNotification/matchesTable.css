@@ -223,7 +223,8 @@ input.mme {
   margin-top: 5px;
   margin-left: 1em;
 }
-p.gene-subtitle {
+.exome-subtitle {
+  font-weight: 400;
+  text-transform: none;
   font-style: italic;
-  font-weight: normal;
 }

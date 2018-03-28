@@ -681,10 +681,11 @@ var PhenoTips = (function (PhenoTips) {
         if (genes.size() == 0) {
             genesTitle += ' -';
         }
-        td += '<p class="subtitle">' + genesTitle + '</p>';
+        td += '<p class="subtitle">' + genesTitle;
         if (hasExomeData) {
-            td += '<p class="gene-subtitle"> (' + this._HAS_EXOME_DATA + ')</p>';
+            td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
         }
+        td += '</p>';
         if (genes.size() != 0) {
             td += '<ul>';
             for (var i = 0 ; i < genes.size() ; i++) {
