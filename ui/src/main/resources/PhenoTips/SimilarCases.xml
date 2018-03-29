@@ -681,83 +681,66 @@
 
     _displayMatchData : function(r) {
       var result = new Element("div", {"class" : "match-details"});
-      result.insert(this._displayAgeOfOnset(r));
-      result.insert(this._displayModeOfInheritance(r));
-      result.insert(this._displayFeatureMatches(r));
-      result.insert(this._displayGeneMatches(r));
+      var table = new Element('table');
+      this._createTableSectionTitle(table, r);
+      this._displayAgeOfOnset(table, r);
+      this._displayModeOfInheritance(table, r);
+      this._displayFeatureMatches(table, r);
+      this._displayGeneMatches(table, r);
+      result.insert(table);
       return result;
     },
 
-    _createTableSectionTitle : function(table,r ) {
+    _createTableSectionTitle : function(table, r) {
       var row = this._getEmptyTableRow(table);
       row.insert(new Element('th', {'class' : 'hint query'}).update(this._getDisplayedQueryId()));
       row.insert(new Element('th', {'class' : 'hint result'}).update(this._getDisplayedResultId(r)));
     },
 
-    _displayAgeOfOnset : function(r) {
-      var container = new Element('div', {'class' : 'match-type age-of-onset'});
-      container.insert(new Element('div', {'class' : 'match-category-header'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))"));
-      var formatAgeOfOnset = function(age) {return age ? age : "-";};
-      var ageOfOnsetTable = new Element('table', {'class' : 'age-of-onset'});
-      container.insert(ageOfOnsetTable);
-
-      this._createTableSectionTitle(ageOfOnsetTable, r);
-
-      var row = this._getEmptyTableRow(ageOfOnsetTable);
-      row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
-      row.insert(new Element('td', {'class' : 'table-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
-
-      return container;
+    _createTableCategoryHeader : function(table, cssClass, title) {
+      var categoryRow = this._getEmptyTableRow(table);
+      categoryRow.insert(new Element('th', {'class' : cssClass, 'colspan' : '2'}).update(title));
     },
 
-    _displayModeOfInheritance : function(r) {
-      var container = new Element('div', {'class' : 'match-type mode-of-inheritance'});
-      container.insert(new Element('div', {'class' : 'match-category-header'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))"));
-      var modeOfInheritanceTable = new Element('table', {'class' : 'mode-of-inheritance'});
-      container.insert(modeOfInheritanceTable);
+    _displayAgeOfOnset : function(table, r) {
+      this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))");
+      var formatAgeOfOnset = function(age) {return age ? age : "-";};
+      var row = this._getEmptyTableRow(table);
+      row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
+      row.insert(new Element('td', {'class' : 'table-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
+    },
 
-      this._createTableSectionTitle(modeOfInheritanceTable, r);
-
-      var row = this._getEmptyTableRow(modeOfInheritanceTable);
-
+    _displayModeOfInheritance : function(table, r) {
+      this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))");
+      var row = this._getEmptyTableRow(table);
       var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["-"];};
-
       var referenceElement = new Element('td', {'class' : 'table-data query'});
       row.insert(referenceElement);
       handleEmptyArray(r.global_mode_of_inheritance).each(function (item) {
           referenceElement.insert(new Element('div').update(item));
       });
-
       var matchedElement = new Element('td', {'class' : 'table-data result'});
       row.insert(matchedElement);
       handleEmptyArray(r.matched_global_mode_of_inheritance).each(function (item) {
           matchedElement.insert(new Element('div').update(item));
       });
-
-      return container;
     },
 
-    _displayFeatureMatches : function (r) {
-      var container = new Element('div', {'class' : 'match-type features'});
-      container.insert(new Element('div', {'class' : 'match-category-header'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))"));
+    _displayFeatureMatches : function (table, r) {
+      this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))");
       if (!r.featureMatches) {
-        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
-        return container;
+        var row = _this._getEmptyTableRow(table);
+        row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
+        return;
       }
-      var phenotypeMatchTable = new Element('table', {'class' : 'phenotype-matches'});
       var _this = this;
-
-      var titlesTable = new Element('table', {'class' : 'phenotype-matches-titles'});
-      container.insert(titlesTable);
-      this._createTableSectionTitle(titlesTable, r);
 
       var resultFeatures = _this._createFeatureIndex(r.features);
       r.featureMatches.each(function (featureMatch) {
-           var categoryRow = _this._getEmptyTableRow(phenotypeMatchTable);
-           categoryRow.insert(new Element('th', {'class' : 'phenotype-category', 'colspan' : '2'}).update(featureMatch.category
-                                                                                         &amp;&amp; featureMatch.category.name
-                                                                                         || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownCategory'))"));
-           var phenotypeRow = _this._getEmptyTableRow(phenotypeMatchTable);
+           var title = featureMatch.category &amp;&amp; featureMatch.category.name || "$escapetool.javascript($services.localization.render('phenotips.similarCases.unknownCategory'))";
+           _this._createTableCategoryHeader(table, 'phenotype-category', title);
+
+           var phenotypeRow = _this._getEmptyTableRow(table);
            var crtPFeatures = new Element('td', {'class' : 'table-data query'});
            var otherPFeatures = new Element('td', {'class' : 'table-data result'});
            phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
@@ -786,9 +769,6 @@
              otherPFeatures.insert("-");
            }
       });
-
-      container.insert(phenotypeMatchTable);
-      return container;
     },
 
    _displayFeature : function(f) {
@@ -818,21 +798,21 @@
       return container;
     },
 
-    _displayGeneMatches : function(r) {
-      var container = new Element('div', {'class' : 'match-type genes'});
-      container.insert(new Element('div', {'class' : 'match-category-header'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.geneMatchingBreakdown'))"));
+    _displayGeneMatches : function(table, r) {
+      this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.geneMatchingBreakdown'))");
       var _this = this;
       if (!r.genes) {
         // The 'genes' field is absent when there is no genetic information in one of the two patients
-        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
+        var row = _this._getEmptyTableRow(table);
+        row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
       } else if (r.genes.length == 0) {
         // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
-        container.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
+        var row = _this._getEmptyTableRow(table);
+        row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
       } else {
         // Display genotype matches
-        var genotypeMatchTable = new Element('table', {'class' : 'gene-matches'});
         r.genes.each(function (geneInfo) {
-          var titleRow = _this._getEmptyTableRow(genotypeMatchTable, 'gene-row');
+          var titleRow = _this._getEmptyTableRow(table, 'gene-row');
           titleRow.insert(new Element('th', {'class' : 'gene'})
                                .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
@@ -845,7 +825,7 @@
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
               titleRow.down('th.variants-toggle').insert(variantToggle);
-              var variantsRow = _this._getEmptyTableRow(genotypeMatchTable, 'variants-row');
+              var variantsRow = _this._getEmptyTableRow(table, 'variants-row');
               variantsRow.insert(new Element('td', {'class' : 'query'})
                                      .insert(geneInfo.reference
                                              &amp;&amp; geneInfo.reference.variants
@@ -875,9 +855,7 @@
             }
           }
         });
-        container.insert(genotypeMatchTable);
       }
-      return container;
     },
 
    _displayVariants : function (variants) {
@@ -1370,6 +1348,9 @@
   padding-right: 3px;
   text-align: center;
 }
+.similarity-results .details th.hint.result, .similarity-results .details th.hint.query {
+  text-align: center;
+}
 .similarity-results .details .summary {
   text-align: right;
 }
@@ -1387,7 +1368,7 @@
   position: relative;
   z-index: 100;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
-  width: 50%;
+  width: 60%;
   float: right;
 }
 .similarity-results .details .match-details:before, .similarity-results .details .match-details:after {
@@ -1422,25 +1403,28 @@
   margin-bottom: 10px;
   min-width: 100%;
 }
-.similarity-results .match-category-header {
+.similarity-results .details th.match-category-header {
   font-size: 1em;
   text-transform: uppercase;
   text-align: center;
-  margin: 0.5em 0;
-}
-.similarity-results .details table tr:nth-child(2n) {
-  background-color: #F9F9F9;
+  padding: 1.2em 0 .5em 0;
+  background-color: white;
+  font-weight: normal;
 }
 .similarity-results .details table th {
   border-bottom: 1px solid $theme.borderColor !important;
   font-size: 0.8em;
   text-transform: uppercase;
   font-weight: 700;
+  background-color: #F6F8F9;
 }
 .similarity-results .details table td {
   border: 0 none !important;
   vertical-align: baseline !important;
   padding: .5em;
+}
+.similarity-results .details table th.phenotype-category {
+  text-align: center;
 }
 .similarity-results .details .negative {
   color: $theme.notificationErrorColor;

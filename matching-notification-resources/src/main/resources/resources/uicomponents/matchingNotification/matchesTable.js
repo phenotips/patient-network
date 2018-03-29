@@ -138,7 +138,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues.geneSymbol  = "";
         this._filterValues.phenotype   = "";
 
-        this._filterValues.serverIds   = [];
+        this._filterValues.serverIds   = [{"local" : true}];
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
             this._filterValues.serverIds[checkbox.value] = checkbox.checked;
         }.bind(this));
@@ -410,7 +410,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         // collect server IDs that are present in the match data
         // to show/hide corresponding filter checkboxes diring  after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
-        this._presentServerIds = ["local" : false];
+        this._presentServerIds = [];
 
         this._cachedMatches.each( function (match, index) {
             // add field for match row index
@@ -427,7 +427,7 @@ var PhenoTips = (function (PhenoTips) {
             match.reference.access = match.reference.access || '';
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
-            this._presentServerIds.local = this._presentServerIds.local || match.isLocal;
+            match.isLocal && this._presentServerIds.push("local");
 
             if (match.matched.serverId != '') {
                 if (!this._filterValues.serverIds.hasOwnProperty(match.matched.serverId)) {
@@ -848,7 +848,7 @@ var PhenoTips = (function (PhenoTips) {
         if (this._presentServerIds.length > 1) {
             $('checkbox-server-filters').show();
             $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-                (this._presentServerIds.indexOf(selectEl.value) > 0) ? selectEl.show() : selectEl.hide();
+                (this._presentServerIds.indexOf(selectEl.value) >= 0) ? selectEl.up().show() : selectEl.up().hide();
             }.bind(this));
         } else {
             $('checkbox-server-filters').hide();
