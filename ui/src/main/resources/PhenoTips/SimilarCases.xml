@@ -505,7 +505,7 @@
       for (var c in columns) {
         columns[c].enabled &amp;&amp;
         row.insert(new Element("td", {
-           "class" : c + (columns[c].field &amp;&amp; !result[columns[c].field] ? " " + this._UNKNOWN_INFO_MARKER : ""),
+           "class" : c,
            "title" : columns[c].title
         }).update(columns[c].display(result, columns[c].field)));
       }
@@ -548,6 +548,18 @@
     },
 
     _displayResultContactInfo : function (r) {
+      // if case is solved - show link to pubmed article
+      if (r.solved__pubmed_id &amp;&amp; r.solved__pubmed_id.length > 1) {
+         var icon = this.Utils.generateIcon('leanpub');
+         var contactInfo = new Element("a", {
+          "href"  : "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + r.solved__pubmed_id.trim(),
+          "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))",
+          "class" : "owner-info",
+          "target" : "_blank"
+         }).update('PMID: ' + r.solved__pubmed_id);
+        contactInfo.insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))"));
+        return contactInfo.insert({top: " "}).insert({top: icon});
+      }
       var icon = this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))");
       if (r.myCase) {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}));
@@ -556,7 +568,7 @@
         var contactInfo = new Element("a", {
           "href"  : "#",
           "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))",
-          "class" : "owner-info "/* + contactType*/
+          "class" : "owner-info"
         }).update(r.owner.name || r.owner.id || "$escapetool.javascript($services.localization.render('phenotips.similarCases.anonymousContact'))");
         if (r.owner.institution &amp;&amp; r.owner.institution != "") {
           contactInfo.insert(new Element("span", {"class" : this._METADATA_MARKER}).update(r.owner.institution));

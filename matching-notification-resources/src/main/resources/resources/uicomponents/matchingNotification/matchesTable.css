@@ -228,3 +228,10 @@ input.mme {
   text-transform: none;
   font-style: italic;
 }
+.owner-info .metadata {
+  display: block;
+  opacity: .4;
+  padding-left: 1.6em;
+  font-size: .8em;
+  font-style: italic;
+}

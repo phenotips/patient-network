@@ -61,6 +61,8 @@ var PhenoTips = (function (PhenoTips) {
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
+        this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
+        this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
 
         this._initiateFilters();
 
@@ -607,10 +609,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner, record.reference.pubmedId);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner, record.matched.pubmedId);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -773,9 +775,15 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner, pubmedID)
     {
         var td = '<td name="' + cellName + '">';
+        // if case is solved and has a Pubmed ID - display a link to it onstead of emails
+        if (!this._utils.isBlank(pubmedID)) {
+            var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedID.trim();
+            td += '<a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedID + '<span class="metadata">' + this._SOLVED_CASE + '</span></a></td>';
+            return td;
+        }
         for (var i=0; i < emails.length; i++) {
             var email = emails[i]
             if (email.indexOf("://") > -1) {

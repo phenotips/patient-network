@@ -65,6 +65,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private static final String GLOBAL_QUALIFIERS = "global-qualifiers";
 
+    private static final String PUBMED_ID = "solved__pubmed_id";
+
     private static final String ID_KEY = "id";
 
     private static final String OWNER_JSON_KEY = "owner";
@@ -235,6 +237,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
         result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
+        result.put(PUBMED_ID, this.getPubmedId());
+
         return result;
     }
 
@@ -259,6 +263,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             if (contact != null) {
                 return contact.toJSON();
             }
+        }
+        return null;
+    }
+
+    private String getPubmedId()
+    {
+        PatientData<String> data = this.match.getData("solved");
+        if (data != null && data.size() > 0) {
+            return data.get("solved__pubmed_id");
         }
         return null;
     }
