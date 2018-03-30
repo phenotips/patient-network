@@ -666,7 +666,7 @@ var PhenoTips = (function (PhenoTips) {
 
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
         td += this._getPhenotypesDiv(patient.phenotypes);
 
         // End collapsible div
@@ -676,7 +676,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getGenesDiv : function(genes, hasExomeData)
+    _getGenesDiv : function(genes, hasExomeData, genesStatus)
     {
         var td = '<div class="genes-div">';
         var genesTitle = this._GENES;
@@ -684,6 +684,9 @@ var PhenoTips = (function (PhenoTips) {
             genesTitle += ' -';
         }
         td += '<p class="subtitle">' + genesTitle;
+        if (genesStatus && genesStatus.length > 0) {
+            td += '(' + genesStatus + ')';
+        }
         if (hasExomeData) {
             td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
         }
