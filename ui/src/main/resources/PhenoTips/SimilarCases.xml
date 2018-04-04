@@ -825,18 +825,18 @@
         // Display genotype matches
         r.genes.each(function (geneInfo) {
           var titleRow = _this._getEmptyTableRow(table, 'gene-row');
-          titleRow.insert(new Element('th', {'class' : 'gene'})
+          titleRow.insert(new Element('th', {'class' : 'gene', 'colspan' : 2})
                                .insert(geneInfo.symbol || geneInfo.gene)
                                .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
-                                /* The genename service should populate this with links if the input is present*/
-          ).insert(new Element('th', {'class' : 'variants-toggle'}));
+                               .insert(new Element('span', {'class' : 'variants-toggle'}))
+                                /* The genename service should populate this with links if the input is present*/);
           if (geneInfo.reference || geneInfo.match) {
             if (geneInfo.reference &amp;&amp; geneInfo.reference.variants || geneInfo.match &amp;&amp; geneInfo.match.variants) {
               var showVariants = new Element("a", {"href" : "#", "class" : "button secondary tool show"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.showVariants'))");
               var hideVariants = new Element("a", {"href" : "#", "class" : "button secondary tool hide"}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.hideVariants'))");
               var variantToggle = new Element('span', {"class" : "buttonwrapper"}).insert(showVariants).insert(hideVariants);
 
-              titleRow.down('th.variants-toggle').insert(variantToggle);
+              titleRow.down('span.variants-toggle').insert(variantToggle);
               var variantsRow = _this._getEmptyTableRow(table, 'variants-row');
               variantsRow.insert(new Element('td', {'class' : 'query'})
                                      .insert(geneInfo.reference
@@ -905,7 +905,6 @@
                                                      .insert(v.type &amp;&amp; new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
                                        )
          );
-         vRow.insert(new Element('td').update(_this.Utils.generateSegmentedBar(5, v.score) || 'Unknown harmfulness'));
       });
       return result;
    },
@@ -1435,7 +1434,7 @@
   vertical-align: baseline !important;
   padding: .5em;
 }
-.similarity-results .details table th.phenotype-category {
+.similarity-results .details table th.phenotype-category, .similarity-results .details table th.gene {
   text-align: center;
 }
 .similarity-results .details .negative {
