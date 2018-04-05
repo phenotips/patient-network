@@ -38,11 +38,10 @@ public interface MatchStorageManager
      * @param score threshold for matches
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
-     * @param onlyNotified when true only matches that has been notified will be returned
-     *        FIXME: this parameter is now deprecated, to be removed when new UI that doe snot need it is accepted
+     * @param onlyCurrentUserAccessible when true only matches that current user has access to are returned
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyNotified);
+    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible);
 
     /**
      * Load all matches with ids in {@code matchesIds}.

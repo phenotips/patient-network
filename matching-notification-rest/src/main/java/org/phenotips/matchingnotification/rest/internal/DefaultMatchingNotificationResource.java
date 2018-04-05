@@ -17,12 +17,7 @@
  */
 package org.phenotips.matchingnotification.rest.internal;
 
-import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.Collaborator;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
-import org.phenotips.groups.Group;
-import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
@@ -36,11 +31,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
 import org.xwiki.container.Request;
 import org.xwiki.model.EntityType;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.rest.XWikiResource;
 import org.xwiki.security.authorization.Right;
-import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.sql.Timestamp;
@@ -48,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -121,13 +113,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Inject
     private EntityReferenceResolver<String> resolver;
-
-    @Inject
-    private PatientAccessHelper accessManager;
-
-    /** Used for getting the list of groups a user belongs to. */
-    @Inject
-    private GroupManager groupManager;
 
     /** Needed for checking if a given access level provides read access to patients. */
     @Inject
@@ -268,9 +253,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
         @Nullable final double genScore, final boolean onlyNotified, final int reqNo)
     {
-        List<PatientMatch> matches = this.matchStorageManager.loadMatches(score, phenScore, genScore, onlyNotified);
+        boolean loadOnlyUserMatches = !isCurrentUserAdmin();
 
-        filterIrrelevantMatches(matches);
+        List<PatientMatch> matches = this.matchStorageManager.loadMatches(
+                score, phenScore, genScore, loadOnlyUserMatches);
+
+        filterSelfMatches(matches);
 
         JSONObject matchesJson = new JSONObject();
 
@@ -296,20 +284,17 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length());
     }
 
-    private void filterIrrelevantMatches(List<PatientMatch> matches)
+    private void filterSelfMatches(List<PatientMatch> matches)
     {
         ListIterator<PatientMatch> iterator = matches.listIterator();
         while (iterator.hasNext()) {
             PatientMatch match = iterator.next();
 
-            if (isNonexistingOrSelfMatch(match)) {
+            if (match.getReference().getEmails().size() != 0 && CollectionUtils.isEqualCollection(
+                match.getReference().getEmails(), match.getMatched().getEmails())) {
+                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to same owner(s)",
+                    match.getReferencePatientId(), match.getMatchedPatientId());
                 iterator.remove();
-                continue;
-            }
-
-            if (!isCurrentUserAdmin() && isNonUsersMatch(match)) {
-                iterator.remove();
-                continue;
             }
         }
     }
@@ -357,104 +342,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     {
         return this.auth.hasAccess(this.users.getCurrentUser(), Right.ADMIN,
             this.resolver.resolve("", EntityType.WIKI));
-    }
-
-    /**
-     * Checks if user is owner of one of the local patients in match.
-     */
-    private boolean isMatchOwner(User user, Patient matched, Patient ref)
-    {
-        DocumentReference userRef = user.getProfileDocument();
-        if ((matched != null && userRef.equals(this.accessManager.getOwner(matched).getUser()))
-            || (ref != null && userRef.equals(this.accessManager.getOwner(ref).getUser()))) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Checks if user is a collaborator to one of the local patients in match.
-     */
-    private boolean isMatchCollaborator(User user, Patient matched, Patient ref)
-    {
-        // check if the user is a collaborator to one of the matched patients
-        Collection<Collaborator> unitedCollaborators = new HashSet<>(this.accessManager.getCollaborators(matched));
-        unitedCollaborators.addAll(this.accessManager.getCollaborators(ref));
-
-        if (unitedCollaborators.isEmpty()) {
-            return false;
-        }
-
-        for (Collaborator c : unitedCollaborators) {
-            if (user.equals(c.getUser())) {
-                return true;
-            }
-        }
-
-        // check if any of the groups that user is member of is a collaborator to one of the matched patients
-        Set<Group> userGroups = this.groupManager.getGroupsForUser(user);
-        for (Group g : userGroups) {
-            for (Collaborator c : unitedCollaborators) {
-                if (c.isGroup() && g.getReference().equals(c.getUser())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Filters out matches that user does not own or is not a collaborator to any of matched patients.
-     */
-    private boolean isNonUsersMatch(PatientMatch match)
-    {
-        Patient matched = match.getMatched().getPatient();
-        Patient ref = match.getReference().getPatient();
-        User user = this.users.getCurrentUser();
-
-        // just in case
-        if (matched == null && ref == null) {
-            return true;
-        }
-
-        // if currently logged user is owner of one of the local patients in match, do not remove the match
-        if (isMatchOwner(user, matched, ref)) {
-            return false;
-        }
-
-        // if currently logged user is a collaborator to one of the local patients in match, do not remove the match
-        if (isMatchCollaborator(user, matched, ref)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Filters out matches that contain non-existing local patients or self-matches. TODO: - After the introduction of
-     * "on-delete" listeners which remove all matches for the deleted patient there should be no more "null matches". -
-     * After latest updates to LocalMatchFinder the only way a "self-match" may end up in matching notification is
-     * through match finding on the patient page. => once storage manager is updated to ignore those matches and we
-     * verify that everything works as expected and this filter never filters out any matches this method should be
-     * removed.
-     */
-    private boolean isNonexistingOrSelfMatch(PatientMatch match)
-    {
-        if ((match.getReference().isLocal() && match.getReference().getPatient() == null)
-            || (match.getMatched().isLocal() && match.getMatched().getPatient() == null)) {
-            this.logger.error("Filtered out match for reference=[{}], match=[{}] due to null patient",
-                match.getReferencePatientId(), match.getMatchedPatientId());
-            return true;
-        }
-
-        if (CollectionUtils.isEqualCollection(match.getReference().getEmails(),
-            match.getMatched().getEmails())) {
-            this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to same owner(s)",
-                match.getReferencePatientId(), match.getMatchedPatientId());
-            return true;
-        }
-
-        return false;
     }
 
     @Override
