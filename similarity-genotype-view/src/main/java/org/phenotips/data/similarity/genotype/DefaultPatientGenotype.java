@@ -118,12 +118,12 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
             Set<String> geneCandidateNames = new HashSet<>();
             Set<String> geneSolvedNames = new HashSet<>();
             for (Map<String, String> gene : allGenes) {
-                String geneName = gene.get("gene");
+                String geneName = StringUtils.trim(gene.get("gene"));
                 if (StringUtils.isBlank(geneName)) {
                     continue;
                 }
 
-                geneName = getGeneSymbol(geneName.trim());
+                geneName = getGeneSymbol(geneName);
                 String status = gene.get("status");
                 if (StringUtils.isBlank(status) || STATUS_CANDIDATE.equals(status)) {
                     geneCandidateNames.add(geneName);
