@@ -651,7 +651,7 @@ var PhenoTips = (function (PhenoTips) {
         var td = '<td id="' + tdId + '">';
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
-        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
+        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '"></div>';
         if (patient.serverId == '') { // local patient
             var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
@@ -659,7 +659,6 @@ var PhenoTips = (function (PhenoTips) {
             // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
             td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
         }
-        td += '</div>';
 
         // Collapsible div
         td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
