@@ -91,12 +91,12 @@ table#matchesTable {
   vertical-align: top;
 }
 
-#score-validation-message {
+#score-validation-message, #score-filter-validation-message {
   font-size: 83%;
   float: left;
 }
 
-#show-matches-messages .invalid, #score-validation-message .invalid {
+#show-matches-messages .invalid, #score-validation-message .invalid, #score-filter-validation-message .invalid {
   color: #CC3333;
 }
 
@@ -228,9 +228,12 @@ input.mme {
   text-transform: none;
   font-style: italic;
 }
-.owner-info .metadata {
+.fa.fa-leanpub {
+  padding-right: 4px;
+}
+.metadata {
   display: block;
-  opacity: .4;
+  opacity: .7;
   padding-left: 1.6em;
   font-size: .8em;
   font-style: italic;

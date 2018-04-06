@@ -177,8 +177,13 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
         }.bind(this));
 
-        $$('input[class="score-filter"]').each(function (checkbox) {
-            checkbox.on('click', function(event) {
+        $$('input[class="score-filter"]').each(function (input) {
+            input.on('input', function(event) {
+                this._utils.clearHint('score-filter-validation-message');
+            }.bind(this));
+        }.bind(this));
+        $$('input[class="score-filter"]').each(function (input) {
+            input.on('change', function(event) {
                 var score = this.validateScore(event.currentTarget.value, event.currentTarget.id, 'score-filter-validation-message');
                 if (score == undefined) {
                     return;
