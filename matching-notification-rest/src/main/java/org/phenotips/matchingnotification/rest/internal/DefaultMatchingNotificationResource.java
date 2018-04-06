@@ -458,7 +458,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response getMatches(String referencePatientId, String referenceServerId, String matchedPatientId,
+    public Response getLastOutgoingMatchId(String referencePatientId, String referenceServerId, String matchedPatientId,
         String matchedServerId)
     {
         if (StringUtils.isBlank(referencePatientId) || StringUtils.isBlank(matchedPatientId)) {
