@@ -792,6 +792,9 @@ var PhenoTips = (function (PhenoTips) {
                 email = email.split('/')[2];
                 email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
             } else {
+                if (i != emails.length - 1) {
+                    email += ", ";
+                }
                 // insert a 0-width space after the @, so that a long email can be split into two lines
                 email = email.replace(/@/g,"@&#8203;");
                 // insert a "preferred-no-split <span> around emails, to make sure lines are first split on ",",

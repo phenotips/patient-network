@@ -235,3 +235,8 @@ input.mme {
   font-size: .8em;
   font-style: italic;
 }
+.filter-mme-server-name {
+  display: inline-block;
+  max-width: 180px; /* based on the width of filters column, defined to be 240px in DBWebHomeSheet */
+  vertical-align: top;
+}
