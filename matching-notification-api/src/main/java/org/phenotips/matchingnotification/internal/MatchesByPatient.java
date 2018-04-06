@@ -367,11 +367,13 @@ public class MatchesByPatient extends AbstractCollection<PatientMatch>
         List<PatientMatch> list = new LinkedList<>();
 
         Map<String, Set<PatientMatch>> matchesForPatient = this.internalMap.get(localPatientId);
-        for (Set<PatientMatch> set : matchesForPatient.values()) {
-            if (filterEquivalents) {
-                list.addAll(this.filterEquivalents(set));
-            } else {
-                list.addAll(set);
+        if (matchesForPatient != null) {
+            for (Set<PatientMatch> set : matchesForPatient.values()) {
+                if (filterEquivalents) {
+                    list.addAll(this.filterEquivalents(set));
+                } else {
+                    list.addAll(set);
+                }
             }
         }
         return list;
