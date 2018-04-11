@@ -1335,11 +1335,11 @@
   padding-top: 0;
 }
 .similarity-results .unknown, .similarity-results .no-match , .similarity-results .metadata, .similarity-results .tool {
-  font-size: .8em;
+  font-size: .9em;
   font-style: italic;
 }
 .similarity-results .unknown {
-  opacity: .4;
+  opacity: .6;
 }
 .similarity-results .no-match {
   color: $theme.notificationErrorColor;
@@ -1358,7 +1358,7 @@
 }
 .similarity-results td.contact .owner-info .metadata {
   display: block;
-  opacity: .4;
+  opacity: .6;
   padding-left: 1.6em;
 }
 .similarity-results td.diagnosis ul {
