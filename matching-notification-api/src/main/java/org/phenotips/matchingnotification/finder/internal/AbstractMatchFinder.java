@@ -173,6 +173,15 @@ public abstract class AbstractMatchFinder implements MatchFinder
         return false;
     }
 
+    protected boolean patientIsSolved(Patient patient)
+    {
+        PatientData<String> data = patient.getData("solved");
+        if (data != null && data.size() > 0) {
+            return "1".equals(data.get("solved"));
+        }
+        return false;
+    }
+
     protected Patient getPatientIfShouldBeUsed(String patientId, boolean onlyUpdatedAfterLastRun, Date lastRunTime)
     {
         Patient patient = this.patientRepository.get(patientId);
@@ -186,6 +195,10 @@ public abstract class AbstractMatchFinder implements MatchFinder
         }
 
         if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterGivenTime(patient, lastRunTime)) {
+            return null;
+        }
+
+        if (this.patientIsSolved(patient)) {
             return null;
         }
 
