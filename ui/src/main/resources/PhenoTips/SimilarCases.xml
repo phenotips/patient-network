@@ -602,21 +602,32 @@
       } else {
         contactLabel = "$escapetool.javascript($services.localization.render('phenotips.similarCases.anonymousContact'))";
       }
+
+      var url = "#";
       var icon = this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))");
+      if (r.owner.url.indexOf("://") &gt; -1) {
+        // the remote contact does not have a valid email address, displaying as link with URL address
+        url = r.owner.url;
+        icon = '';
+      }
       var contactInfo = new Element("a", {
-          "href"  : "#",
+          "href"  : url,
           "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))",
-          "class" : "owner-info"
+          "class" : "owner-info",
+          "target": "_blank"
       }).update(contactLabel);
       if (r.owner.institution &amp;&amp; r.owner.institution != "") {
         contactInfo.insert(new Element("span", {"class" : this._METADATA_MARKER}).update(r.owner.institution));
       }
 
       var _this = this;
-      contactInfo.observe('click', function (event) {
-        event.stop();
-        _this._getMatchId(r.id);
-      });
+      if (r.owner.url.indexOf("://") &lt; 0) {
+        contactInfo.observe('click', function (event) {
+          event.stop();
+          _this._getMatchId(r.id);
+        });
+      }
+
       return contactInfo.insert({top: " "}).insert({top: icon});
     },
 
