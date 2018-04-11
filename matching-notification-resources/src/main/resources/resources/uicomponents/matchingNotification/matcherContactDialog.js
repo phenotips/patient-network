@@ -26,7 +26,7 @@ var PhenoTips = (function(PhenoTips) {
         this.subjectPatientId = '';
         this.subjectServerId = '';
 
-        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_DIALOG_TITLE);
+        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
     	this._contactContainer = this._createContactDialogContainer();
         this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': this._CONTACT_DIALOG_TITLE, 'verticalPosition': 'top'});

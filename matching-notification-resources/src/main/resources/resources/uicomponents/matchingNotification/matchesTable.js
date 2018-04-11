@@ -63,10 +63,12 @@ var PhenoTips = (function (PhenoTips) {
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
+        this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
 
         this._initiateFilters();
 
         this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
+        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
         // memorise filers open/close state
         var filtersButton = $('toggle-filters-button');
@@ -1002,17 +1004,20 @@ var PhenoTips = (function (PhenoTips) {
         new Ajax.Request(this._ajaxURL + 'send-admin-local-notifications', {
             parameters : {'ids' : idsToNotify},
             onCreate : function (response) {
-
+                // console.log("Notification request sent");
             }.bind(this),
             onSuccess : function (response) {
-            if (!ajaxResponse.responseJSON || !ajaxResponse.responseJSON.results) {
+                if (!response.responseJSON || !response.responseJSON.results) {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                     return;
-            }
-            this._updateTableState(results, true)
+                }
+                this._updateTableState(response.responseJSON.results, true);
             }.bind(this),
             onFailure : function (response) {
                 this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+            }.bind(this),
+            onComplete : function () {
+                this._utils.clearHint('send-notifications-messages');
             }.bind(this)
         });
     },
@@ -1125,6 +1130,10 @@ var PhenoTips = (function (PhenoTips) {
                           'status'        : status
             },
             onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._utils.showFailure('show-matches-messages');
+                    return;
+                }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
                     this._setState(results.success, { 'status': status, 'state': 'success' });

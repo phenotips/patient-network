@@ -27,7 +27,7 @@ define([], function()
         showHint : function(messagesFieldName, message, cssClass)
         {
             var messages = $(messagesFieldName);
-            messages.update(new Element('div', {'class' : cssClass}).update(message));
+            messages.update(new Element('div', {'class' : cssClass || ''}).update(message));
         },
 
         roundScore : function(score)
