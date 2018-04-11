@@ -154,11 +154,16 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     public <T> PatientData<T> getData(String name)
     {
         if (this.access.isOpenAccess()
-            || (this.access.isLimitedAccess() && ("contact".equals(name) || "genes".equals(name)))) {
-            return this.match.getData(name);
+            || (this.access.isLimitedAccess() && this.isLimitedAccessibleField(name))) {
+            return super.getData(name);
         }
 
         return null;
+    }
+
+    private boolean isLimitedAccessibleField(String fieldName) {
+        return ("contact".equals(fieldName) || "genes".equals(fieldName)
+            || "solved".equals(fieldName) || "solved__pubmed_id".equals(fieldName));
     }
 
     @Override
