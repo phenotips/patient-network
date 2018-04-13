@@ -810,10 +810,11 @@ var PhenoTips = (function (PhenoTips) {
             }
             td += '<div name="notification-email-long">' + email + '</div>';
         }
-        td += '<div name="notification-email-short">' + emails[0].substring(0, 9) + '...' + '</div>';
+        var shortEmail = (emails.length > 0) ? (emails[0].substring(0, 9) + "...") :  "";
+        td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
-        if (this._isAdmin && serverId == '' && !isOwner) {
+        if (this._isAdmin && serverId == '' && !isOwner && emails.length > 0) {
             td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'" data-emails="'+ emails.toString() +'">';
         }
         td += '</td>';
