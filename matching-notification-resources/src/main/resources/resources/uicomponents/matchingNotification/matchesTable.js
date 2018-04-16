@@ -413,12 +413,12 @@ var PhenoTips = (function (PhenoTips) {
         return summary;
     },
 
-// FORMATTING MATHCHES BEFORE TABLE BUILD
+// FORMATTING MATCHES BEFORE TABLE BUILD
 
     _formatMatches : function()
     {
         // collect server IDs that are present in the match data
-        // to show/hide corresponding filter checkboxes diring  after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
+        // to show/hide corresponding filter checkboxes after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
         this._presentServerIds = [];
 
         this._cachedMatches.each( function (match, index) {
