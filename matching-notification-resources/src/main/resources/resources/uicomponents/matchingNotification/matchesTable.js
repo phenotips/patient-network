@@ -690,8 +690,8 @@ var PhenoTips = (function (PhenoTips) {
             genesTitle += ' -';
         }
         td += '<p class="subtitle">' + genesTitle;
-        if (genesStatus && genesStatus.length > 0) {
-            td += '(' + genesStatus + ')';
+        if (genesStatus && genesStatus.length > 0 && genes.size() > 0) {
+            td += ' (' + genesStatus + ')';
         }
         if (hasExomeData) {
             td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
