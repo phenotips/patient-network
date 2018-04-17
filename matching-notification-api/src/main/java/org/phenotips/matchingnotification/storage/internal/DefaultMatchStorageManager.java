@@ -299,7 +299,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             // notification table, it will be shown as long as the user has access to the patient.
             //
             org.xwiki.query.Query q = this.qm.createQuery(
-                "select doc.fullName from Document as doc, "
+                "select doc.name from Document as doc, "
                 + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
                 + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
                 + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
@@ -311,11 +311,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                 org.xwiki.query.Query.XWQL);
             List<String> rawDocNames = q.execute();
 
-            Set<String> patientNames = new HashSet<>();
-            for (String wikiDocName : rawDocNames) {
-                // remove the space prefix, as it is not recorded as part of a match
-                patientNames.add(wikiDocName.replaceFirst("^[^.]+\\.", ""));
-            }
+            Set<String> patientNames = new HashSet<>(rawDocNames);
 
             // FIXME: to be removed after testing is complete. In some cases it is easier to spot errors in this
             //        list than to find incorrect behaviors of higher-level code which requires a specific match
@@ -374,11 +370,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             return "";
         }
         return serverId;
-    }
-
-    private Criterion notifiedRestriction(boolean notified)
-    {
-        return Restrictions.eq("notified", notified);
     }
 
     private Criterion patientIsReference(String patientId, String serverId)
