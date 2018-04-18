@@ -824,7 +824,7 @@ var PhenoTips = (function (PhenoTips) {
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center">';
-        if (!this._isAdmin && (record.matched.isOwner || record.reference.isOwner)) {
+        if (!this._isAdmin && (record.matched.isOwner || record.reference.isOwner) && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
