@@ -98,6 +98,8 @@ var PhenoTips = (function (PhenoTips) {
         if (!this._isAdmin) {
             this._showMatches();
         }
+
+        Event.observe(window, 'resize', this._buildTable.bind(this));
     },
 
     validateScore : function(score, className, messagesFieldName, applyMinScore) {
