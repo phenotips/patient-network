@@ -75,6 +75,7 @@ table#matchesTable {
 
 .matches-table .collapse-gp-tool {
   white-space: nowrap;
+  color: #404040;
 }
 
 #send-notifications-messages, #show-matches-messages {
