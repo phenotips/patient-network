@@ -48,14 +48,6 @@ public interface PatientSimilarityView extends Patient
     AccessLevel getAccess();
 
     /**
-     * For matchable patients, the owner isn't listed, instead an anonymous email contact can be initiated using this
-     * token as an identifier for the pair (reference patient&lt;-&gt;matched patient).
-     *
-     * @return a token which can be used for identifying the anonymous email session
-     */
-    String getContactToken();
-
-    /**
      * How similar is this patient to the reference.
      *
      * @return a similarity score, between {@code -1} for opposite patient descriptions and {@code 1} for an exact

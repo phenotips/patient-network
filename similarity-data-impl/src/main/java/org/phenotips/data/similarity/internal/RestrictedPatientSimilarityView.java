@@ -17,10 +17,12 @@
  */
 package org.phenotips.data.similarity.internal;
 
+import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
@@ -28,7 +30,9 @@ import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.data.similarity.genotype.RestrictedPatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.phenotype.RestrictedPatientPhenotypeSimilarityView;
 
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.UserManager;
 
 import java.util.Collections;
 import java.util.Set;
@@ -45,6 +49,22 @@ import org.json.JSONObject;
  */
 public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityView
 {
+    static {
+        if (accessHelper == null && userManager == null) {
+            PatientAccessHelper pa = null;
+            UserManager um = null;
+            try {
+                ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+                pa = ccm.getInstance(PatientAccessHelper.class);
+                um = ccm.getInstance(UserManager.class);
+            } catch (Exception e) {
+                LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+            }
+            accessHelper = pa;
+            userManager = um;
+        }
+    }
+
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
      *
@@ -134,11 +154,16 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     public <T> PatientData<T> getData(String name)
     {
         if (this.access.isOpenAccess()
-            || (this.access.isLimitedAccess() && ("contact".equals(name) || "genes".equals(name)))) {
-            return this.match.getData(name);
+            || (this.access.isLimitedAccess() && this.isLimitedAccessibleField(name))) {
+            return super.getData(name);
         }
 
         return null;
+    }
+
+    private boolean isLimitedAccessibleField(String fieldName) {
+        return ("contact".equals(fieldName) || "genes".equals(fieldName)
+            || "solved".equals(fieldName) || "solved__pubmed_id".equals(fieldName));
     }
 
     @Override

@@ -17,28 +17,29 @@
  */
 package org.phenotips.data.similarity.internal;
 
-import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.messaging.ConnectionManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for implementing {@link PatientSimilarityView}.
@@ -48,6 +49,12 @@ import org.json.JSONObject;
  */
 public abstract class AbstractPatientSimilarityView implements PatientSimilarityView
 {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientSimilarityView.class);
+
+    protected static PatientAccessHelper accessHelper;
+
+    protected static UserManager userManager;
+
     private static final String MATCHED_GLOBAL_MODE_OF_INHERITANCE = "matched_global_mode_of_inheritance";
 
     private static final String MATCHED_GLOBAL_AGE_OF_ONSET = "matched_global_age_of_onset";
@@ -57,6 +64,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     private static final String GLOBAL_AGE_OF_ONSET = "global_age_of_onset";
 
     private static final String GLOBAL_QUALIFIERS = "global-qualifiers";
+
+    private static final String PUBMED_ID = "solved__pubmed_id";
 
     private static final String ID_KEY = "id";
 
@@ -70,9 +79,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     /** The access level the user has to this patient. */
     protected final AccessType access;
-
-    /** The token for contacting the owner of a patient. */
-    protected String contactToken;
 
     /**
      * Simple constructor passing both {@link #match the patient} and the {@link #reference reference patient}.
@@ -91,8 +97,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         this.match = match;
         this.reference = reference;
         this.access = access;
-
-        // Lazily load contact token.
     }
 
     /**
@@ -148,26 +152,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return this.match.getData(name);
     }
 
-    @Override
-    public String getContactToken()
-    {
-        if (this.contactToken == null) {
-            String token = "";
-            try {
-                ConnectionManager cm =
-                    ComponentManagerRegistry.getContextComponentManager().getInstance(ConnectionManager.class);
-                token = cm.getConnection(this).getToken();
-            } catch (ComponentLookupException e) {
-                // This should not happen
-            } catch (Exception ex) {
-                // FIXME: this happens when an attempt to establish a connection between
-                // a local and remote patient owners is made
-            }
-            this.contactToken = token;
-        }
-        return this.contactToken;
-    }
-
     private String getAgeOfOnset(PatientData<List<VocabularyTerm>> globalControllers)
     {
         if (globalControllers != null) {
@@ -204,8 +188,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     /**
-     * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()},
-     * {@link #getContactToken()}, etc.
+     * {@inheritDoc} Adds data using access-level-aware getters: {@link #getId()}, {@link #getAccess()}, etc.
      *
      * @see org.phenotips.data.Patient#toJSON()
      */
@@ -215,12 +198,11 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         JSONObject result = new JSONObject();
 
         result.put(ID_KEY, getId());
-        result.put("token", getContactToken());
         result.put(OWNER_JSON_KEY, getOwnerJSON());
         if (this.access != null) {
             result.put("access", this.access.toString());
         }
-        result.put("myCase", Objects.equals(this.reference.getReporter(), getReporter()));
+        result.put("myCase", isUserOwner(this.match));
         result.put("score", getScore());
         result.put("featuresCount", getFeatures().size());
         // Features visible in the match
@@ -255,6 +237,8 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
         result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
+        result.put(PUBMED_ID, this.getPubmedId());
+
         return result;
     }
 
@@ -281,5 +265,28 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             }
         }
         return null;
+    }
+
+    private String getPubmedId()
+    {
+        PatientData<String> data = this.match.getData("solved");
+        if (data != null && data.size() > 0) {
+            return data.get("solved__pubmed_id");
+        }
+        return null;
+    }
+
+    /**
+     * Checks if current user is owner of one patient.
+     */
+    private boolean isUserOwner(Patient patient)
+    {
+        User user = userManager.getCurrentUser();
+        DocumentReference userRef = user.getProfileDocument();
+        if (patient != null && accessHelper.getOwner(patient) != null
+            && userRef.equals(accessHelper.getOwner(patient).getUser())) {
+            return true;
+        }
+        return false;
     }
 }

@@ -5,9 +5,9 @@ var PhenoTips = (function(PhenoTips) {
       var _this = this;
       this.table = table;
       this.max = max;
-      this.pagesNode = domNode.select(".xwiki-livetable-pagination-content")[0];
-      var prevPagination = domNode.select(".prevPagination")[0];
-      var nextPagination = domNode.select(".nextPagination")[0];
+      this.pagesNode = domNode.down(".xwiki-livetable-pagination-content");
+      var prevPagination = domNode.down(".prevPagination");
+      var nextPagination = domNode.down(".nextPagination");
       prevPagination && prevPagination.observe("click", function(ev) {
         _this.gotoPrevPage(ev);
       });
@@ -20,9 +20,9 @@ var PhenoTips = (function(PhenoTips) {
       this.pagesNode.innerHTML = "";
       var pages = this.table.totalPages;
       var currentMax = (maxResults) ? maxResults : this.max;
-      var currentPage = this.table._page;
+      var currentPage = this.table.page;
       var startPage = Math.floor(currentPage / currentMax) * currentMax - 1;
-      
+
       // always display the first page
       if (startPage>1) {
          this.pagesNode.insert(_this.createPageLink(1, false));
@@ -60,24 +60,24 @@ var PhenoTips = (function(PhenoTips) {
     },
     gotoPage: function(page)
     {
-      this.table._page = parseInt(page);
-      this.table._buildTable();
+      this.table.page = parseInt(page);
+      this.table.launchSearchExisting();
     },
     gotoPrevPage: function(ev) {
       ev.stop();
-      var prevPage = this.table._page - 1;
+      var prevPage = this.table.page - 1;
       if (prevPage > 0) {
-        this.table._page--;
-        this.table._buildTable();
+        this.table.page--;
+        this.table.launchSearchExisting();
       }
     },
     gotoNextPage: function(ev) {
       ev.stop();
       var pages = this.table.totalPages;
-      var nextPage = this.table._page + 1;
+      var nextPage = this.table.page + 1;
       if (nextPage <= pages) {
-        this.table._page++;
-        this.table._buildTable();
+        this.table.page++;
+        this.table.launchSearchExisting();
       }
     },
     _updateArrowsState: function(currentPage, pages) {

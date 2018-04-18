@@ -18,17 +18,23 @@
 package org.phenotips.matchingnotification.storage.internal;
 
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.groups.Group;
+import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.query.QueryManager;
+import org.xwiki.users.User;
+import org.xwiki.users.UserManager;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -97,20 +103,30 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             + "  and m.referenceServerId = m2.matchedServerId)"
             + ")";
 
-    /** A query to find all matches with a score greater than given (score == minScore).
+    /**
+     * A query to find all matches with a score greater than given (score == minScore).
      *
      * One complication is that for notified matches there may be both a notified and an un-notified versions
      * of the match, so need to show only one of them (the notified one).
      * */
     private static final String HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE =
             "from DefaultPatientMatch as m where"
-            + " score >= :minScore and phenotypeScore >= :phenScore"
-            + " and genotypeScore >= :genScore and"
+            + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore and"
             + " (m.notified = true or (not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")))";
 
     /** Handles persistence. */
     @Inject
     private HibernateSessionFactory sessionFactory;
+
+    /** Runs queries for finding patients for filtering. */
+    @Inject
+    private QueryManager qm;
+
+    @Inject
+    private UserManager users;
+
+    @Inject
+    private GroupManager groupManager;
 
     /** Logging helper object. */
     private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
@@ -221,17 +237,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyNotified)
+    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
+            boolean onlyCurrentUserAccessible)
     {
-        if (onlyNotified) {
-            // this is simple, just return all matches with the given score which have been notified
-            return this.loadMatchesByCriteria(
-                    new Criterion[] { Restrictions.ge("score", score), Restrictions.ge("phenotypeScore", phenScore),
-                        Restrictions.ge("genotypeScore", genScore), this.notifiedRestriction(true) });
-        }
-
         // ...else it is more complicated: need to return all matches, but
-        // also exclude matches that have a similar match that have been notified
+        // also exclude un-notified matches that have a similar match that have been notified
         //
         // This is because if owners of a match were notified, the notified version of the match
         // will be stored as-is in the database, but new verisons of the match will still keep being
@@ -248,8 +258,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
             List<PatientMatch> result = query.list();
 
-            this.logger.debug("Retrieved [{}] un-notified matches with score > [{}], phenotypical score > [{}],"
+            this.logger.debug("Retrieved [{}] matches with score > [{}], phenotypical score > [{}],"
                 + " genotypical score > [{}]", result.size(), score, phenScore, genScore);
+
+            if (onlyCurrentUserAccessible) {
+                this.filterMatchesForCurrentUser(result);
+            }
 
             return result;
         } catch (Exception ex) {
@@ -257,6 +271,68 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             return Collections.emptyList();
         } finally {
             session.close();
+        }
+    }
+
+    private void filterMatchesForCurrentUser(List<PatientMatch> matches)
+    {
+        User currentUser = this.users.getCurrentUser();
+        String userName = currentUser.getProfileDocument().toString();
+        String userEntityListForSQL = "'" + userName + "'";
+
+        Set<Group> userGroups = this.groupManager.getGroupsForUser(currentUser);
+        for (Group g : userGroups) {
+            userEntityListForSQL += ",'" + g.getReference().toString() + "'";
+        }
+
+        try {
+            //
+            // for performance reasons, using various AccessManager-s is too slow when
+            // checking permissions for potentially 100s of patients at once. So the query below
+            // (adapted from LiveTableMacros.xml's "generateentitypermissions" macro)
+            // retrieves names of all patient documents that current user has access to, either directly
+            // or by being a collaborator, or a member of a group that is a collaborator.
+            //
+            // Since it is only used for filtering the list of matches, it does not need to do extra checks
+            // (e.g. doc.name != PatientTemplate), since those patients will never be part of a match.
+            // Similarly, no check for "matchable" or alike is done, since if a match is in the matching
+            // notification table, it will be shown as long as the user has access to the patient.
+            //
+            org.xwiki.query.Query q = this.qm.createQuery(
+                "select doc.name from Document as doc, "
+                + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
+                + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
+                + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
+                + "((accessObj.className = 'PhenoTips.OwnerClass' and accessProp.value in "
+                + "(" + userEntityListForSQL + ")) "
+                + "or (accessObj.className = 'PhenoTips.CollaboratorClass' and accessProp.value in "
+                + "(" + userEntityListForSQL + ")) "
+                + "or (accessObj.className = 'PhenoTips.VisibilityClass' and accessProp.value in ('public', 'open')))",
+                org.xwiki.query.Query.XWQL);
+            List<String> rawDocNames = q.execute();
+
+            Set<String> patientNames = new HashSet<>(rawDocNames);
+
+            // FIXME: to be removed after testing is complete. In some cases it is easier to spot errors in this
+            //        list than to find incorrect behaviors of higher-level code which requires a specific match
+            //        to appear or disappear from the list
+            this.logger.error("List of patients current user has access to: [{}]", String.join(", ", patientNames));
+
+            ListIterator<PatientMatch> iterator = matches.listIterator();
+            while (iterator.hasNext()) {
+                PatientMatch match = iterator.next();
+                if (match.getMatched().isLocal() && patientNames.contains(match.getMatched().getPatientId())) {
+                    continue;
+                }
+                if (match.getReference().isLocal() && patientNames.contains(match.getReference().getPatientId())) {
+                    continue;
+                }
+                // neither of the patients is a local patient that current user has access to => exclude
+                iterator.remove();
+            }
+        } catch (Exception ex) {
+            this.logger.error("Failed to query all patients that current user has access to [{}]: {}",
+                    ex.getMessage());
         }
     }
 
@@ -294,11 +370,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             return "";
         }
         return serverId;
-    }
-
-    private Criterion notifiedRestriction(boolean notified)
-    {
-        return Restrictions.eq("notified", notified);
     }
 
     private Criterion patientIsReference(String patientId, String serverId)

@@ -27,28 +27,28 @@ define([], function()
         showHint : function(messagesFieldName, message, cssClass)
         {
             var messages = $(messagesFieldName);
-            messages.update(new Element('div', {'class' : cssClass}).update(message));
+            messages.update(new Element('div', {'class' : cssClass || ''}).update(message));
         },
 
-        _roundScore : function(score)
+        roundScore : function(score)
         {
             return Math.floor(Number(score) * 100) / 100;
         },
 
-        _getCookieKey : function (tableId) {
+        getCookieKey : function (tableId) {
             var userHash = $$('#' + tableId + ' .toggle-filters input[name="user-hash"]')[0];
             userHash = userHash && userHash.value;
             return userHash + '_' + tableId + '_filters_state';
         },
 
         // checking if a string is blank or contains only white-space
-        _isBlank : function(str)
+        isBlank : function(str)
         {
             return (!str || !str.trim());
         },
 
         // Return true if all elements of the first list are found in the second
-        _listIsSubset : function(first, second)
+        listIsSubset : function(first, second)
         {
             for (var i = 0; i < first.length; i++) {
                 if (second.indexOf(first[i]) === -1) {
@@ -58,7 +58,7 @@ define([], function()
             return true;
         },
 
-        _validateEmail: function (email)
+        validateEmail: function (email)
         {
             var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(String(email).toLowerCase());

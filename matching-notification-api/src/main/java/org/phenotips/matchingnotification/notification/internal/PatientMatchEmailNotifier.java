@@ -68,6 +68,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
         for (String subjectPatientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
+            if (matchesForPatient.size() == 0) {
+                this.logger.error("No matches found for patient [{}] when composing admin notification emails",
+                        subjectPatientId);
+            }
             // filter matchesForPatient by matchesIds to contain only matches with ids as a key for subjectPatientId
             for (PatientMatch match : matchesForPatient) {
                 if (!matchesIds.get(match.getId()).contains(subjectPatientId)) {

@@ -38,7 +38,7 @@ var PhenoTips = (function(PhenoTips) {
     changePageSize: function(event) {
       event.stop();
       var newLimit =  parseInt($F(Event.element(event)));
-      this.table._changePageSize(newLimit);
+      this.table.changePageSize(newLimit);
     }
   });
   return PhenoTips;

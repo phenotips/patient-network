@@ -50,11 +50,6 @@
       <artifactId>patient-similarity-search</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>anonymous-communication</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

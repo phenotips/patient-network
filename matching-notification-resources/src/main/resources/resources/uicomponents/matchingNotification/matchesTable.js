@@ -1,21 +1,20 @@
-require(["matchingNotification/matchesNotifier",
-         "matchingNotification/utils",
+require(["matchingNotification/utils",
          "matchingNotification/matcherPaginator",
-         "matchingNotification/matcherPageSizer"],
-        function(notifier, utils)
-{
-    var loadMNM = function(notifier, utils) {
-        new PhenoTips.widgets.MatchesTable(notifier, utils);
-    };
+         "matchingNotification/matcherPageSizer",
+         "matchingNotification/matcherContactDialog"],
+        function(utils) {
+            var loadMNM = function(utils) {
+            new PhenoTips.widgets.MatchesTable(utils);
+        };
 
-    (XWiki.domIsLoaded && loadMNM(notifier, utils)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, notifier, utils));
+    (XWiki.domIsLoaded && loadMNM(utils)) || document.observe("xwiki:dom:loaded", loadMNM.bind(this, utils));
 });
 
 var PhenoTips = (function (PhenoTips) {
     var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
     widgets.MatchesTable = Class.create({
 
-    initialize : function (notifier, utils)
+    initialize : function (utils)
     {
         this._tableElement = $('matchesTable');
         this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/";
@@ -24,8 +23,9 @@ var PhenoTips = (function (PhenoTips) {
         this._offset = 1;
         this._maxResults = 50;
         this._minScore = 0;
-        this._page = 1;
+        this.page = 1;
         this.pagination = $('pagination-matching-notifications');
+        this.pagination && this.pagination.hide();
         this.resultsSummary = $('panels-livetable-limits');
         this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.pagination, this._maxResults);
 
@@ -33,7 +33,6 @@ var PhenoTips = (function (PhenoTips) {
         this._presentServerIds = [];
 
         this._utils = new utils(this._tableElement);
-        this._notifier = new notifier(this._tableElement, this._ajaxURL);
 
         $('show-matches-button').on('click', this._showMatches.bind(this));
         $('send-notifications-button').addClassName("disabled");
@@ -44,9 +43,9 @@ var PhenoTips = (function (PhenoTips) {
         $('show-matches-phen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
         $('show-matches-gen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
 
-        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message');}.bind(this));
-        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message');}.bind(this));
-        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message');}.bind(this));
+        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message', true);}.bind(this));
+        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message', true);}.bind(this));
+        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message', true);}.bind(this));
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -61,25 +60,19 @@ var PhenoTips = (function (PhenoTips) {
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
-        this._CONTACT_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.title'))";
-        this._CONTACT_DIALOG_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.header'))";
-        this._SEND = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.send'))";
-        this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
-        this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
-        this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
-        this._EMAIL_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
-        this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
-        this._EMAIL_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.message.label'))";
+        this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
+        this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
+        this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
 
         this._initiateFilters();
 
-        this._contactContainer = this._generateContactDialogContainer();
-        this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': this._CONTACT_DIALOG_TITLE, 'verticalPosition': 'top', 'removeOnClose': false});
+        this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
+        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
-        // Memorise Advanced filers open/close state
+        // memorise filers open/close state
         var filtersButton = $('toggle-filters-button');
-        var key = this._utils._getCookieKey(filtersButton.up('.entity-directory').id);
+        var key = this._utils.getCookieKey(filtersButton.up('.entity-directory').id);
         this._toggleFilters(filtersButton.up('.xwiki-livetable-topfilters-tip'), (XWiki.cookies.read(key) == 'hidden'));
         filtersButton.observe('click', function(event) {
             event.stop();
@@ -89,14 +82,13 @@ var PhenoTips = (function (PhenoTips) {
         // set behaviour for hide/show email columns triggers
         this._initiateEmailColumnsBehaviur();
 
-        $("panels-livetable-ajax-loader" ).hide();
+        $("panels-livetable-ajax-loader").hide();
         $('checkbox-server-filters').hide();
 
         $('contentmenu') && $('contentmenu').hide();
         $('hierarchy') && $('hierarchy').hide();
 
-        document.observe("notified:success", this._handleNotifiedUpdate.bind(this));
-        document.observe("notified:failed", this._handleNotifiedUpdate.bind(this));
+        document.observe("notified", this._handleNotifiedUpdate.bind(this));
 
         // set initial scores
         $('show-matches-score').value = 0.5;
@@ -108,7 +100,7 @@ var PhenoTips = (function (PhenoTips) {
         }
     },
 
-    validateScore : function(score, className, messagesFieldName) {
+    validateScore : function(score, className, messagesFieldName, applyMinScore) {
         // minimum allowed scores: can be less than initial, but no less than some values
         if (!this._isAdmin) {
             var minAllowedValue = { 'show-matches-score': 0.4,
@@ -125,8 +117,10 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showHint(messagesFieldName, "For performance reasons currently only matches with overall score of at least " + minAllowedValue[className] + " can be retrieved", "invalid");
             }
 
-            $(className).value = minAllowedValue[className];
-            return minAllowedValue[className];
+            if (applyMinScore) {
+                $(className).value = minAllowedValue[className];
+                return minAllowedValue[className];
+            }
         } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
             this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
             return undefined;
@@ -148,7 +142,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues.geneSymbol  = "";
         this._filterValues.phenotype   = "";
 
-        this._filterValues.serverIds   = [];
+        this._filterValues.serverIds   = [{"local" : true}];
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
             this._filterValues.serverIds[checkbox.value] = checkbox.checked;
         }.bind(this));
@@ -185,8 +179,13 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
         }.bind(this));
 
-        $$('input[class="score-filter"]').each(function (checkbox) {
-            checkbox.on('click', function(event) {
+        $$('input[class="score-filter"]').each(function (input) {
+            input.on('input', function(event) {
+                this._utils.clearHint('score-filter-validation-message');
+            }.bind(this));
+        }.bind(this));
+        $$('input[class="score-filter"]').each(function (input) {
+            input.on('change', function(event) {
                 var score = this.validateScore(event.currentTarget.value, event.currentTarget.id, 'score-filter-validation-message');
                 if (score == undefined) {
                     return;
@@ -276,47 +275,11 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this);
     },
 
-    _generateContactDialogContainer : function()
-    {
-        var container = new Element('div', {'class' : 'anonymous-contact xform'});
-        container.insert(new Element("h2").update(this._CONTACT_DIALOG_HEADER));
-
-        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_FROM)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'from', 'type' : 'text', 'disabled' : true})));
-
-        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_TO)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'to', 'type' : 'text', 'disabled' : true})));
-
-        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_CC)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'cc', 'type' : 'text', 'disabled' : true})));
-
-        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_SUBJECT)));
-        container.insert(new Element('dd').insert(new Element('input', {'name' : 'subject', 'type' : 'text'})));
-
-        container.insert(new Element('dt').insert(new Element('label').update(this._EMAIL_MESSAGE)));
-        var text = new Element('textarea', {'name' : 'message'});
-        container.insert(new Element('dd').insert(text));
-        var buttons = new Element('div', {'class' : 'buttons'});
-        buttons.insert(new Element('span', {"class" : "buttonwrapper"}).insert(new Element('input', {'name' : 'send', 'value' : this._SEND, 'class' : 'button'})));
-        var cancelButton = new Element('span', {"class" : "buttonwrapper"}).insert(new Element('input', {'name' : 'cancel', 'value' : this._CANCEL, 'class' : 'button secondary'}));
-        cancelButton.on('click', function(event) {
-            this._contactDialog.closeDialog();
-        }.bind(this));
-        buttons.insert(cancelButton);
-        container.insert(buttons);
-        return container;
-    },
-
-    _sendNotification : function()
-    {
-        this._notifier.sendNotification(this._matches);
-    },
-
     _toggleFilters : function (filtersElt, forceHide) {
         if (filtersElt) {
             filtersElt.toggleClassName('collapsed', forceHide);
             filtersElt.up('.xwiki-livetable-container').toggleClassName('hidden-filters', forceHide);
-            var key = this._utils._getCookieKey(filtersElt.up('.entity-directory').id);
+            var key = this._utils.getCookieKey(filtersElt.up('.entity-directory').id);
             if (filtersElt.hasClassName('collapsed')) {
                 XWiki.cookies.create(key, 'hidden', '');
                 $('advanced-filters-header').hide();
@@ -360,11 +323,9 @@ var PhenoTips = (function (PhenoTips) {
         new Ajax.Request(this._ajaxURL + 'show-matches', {
             contentType:'application/json',
             parameters : options,
-            onCreate : function () { $("panels-livetable-ajax-loader" ).show(); },
+            onCreate : function () { $("panels-livetable-ajax-loader").show(); },
             onSuccess : function (response) {
                 if (response.responseJSON) {
-                    //this._utils.showReplyReceived('show-matches-messages');
-
                     console.log("Show matches response JSON (min scores: " + options.score + "/" + options.phenScore + "/" + options.genScore + "):");
                     console.log(response.responseJSON);
 
@@ -381,7 +342,7 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showFailure('show-matches-messages');
             }.bind(this),
             onComplete : function () {
-                $("panels-livetable-ajax-loader" ).hide();
+                $("panels-livetable-ajax-loader").hide();
                 this._update(this._advancedFilter);
             }.bind(this)
         });
@@ -390,9 +351,9 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages');
-        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages');
-        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages');
+        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages', true);
+        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages', true);
+        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages', true);
         if (score == undefined || phenScore == undefined || genScore == undefined) {
             return;
         }
@@ -425,43 +386,23 @@ var PhenoTips = (function (PhenoTips) {
 
             this.totalResultsCount = this._matches.length;
             this.totalPages = Math.ceil(this.totalResultsCount/this._maxResults);
-            this._page = 1;
+            this.page = 1;
 
             this._buildTable();
         }
     },
 
-    _buildTable : function()
-    {
-        var tableBody = this._tableElement.down('tbody');
-        tableBody.update('');
-
-        if (!this._matches) {
-            return;
-        }
-
-        var begin = this._maxResults*(this._page - 1);
-        var end = Math.min(this._page*this._maxResults, this.totalResultsCount);
-        var matchesForPage = this._matches.slice(begin, end);
-        this.paginator.refreshPagination(this._maxResults);
-
-        var firstItemRangeNo = begin + 1;
-        var lastItemRangeNo = end;
-        var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + lastItemRangeNo).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
-        this._displaySummary(tableSummary, $('panels-livetable-limits'), true);
-
-        matchesForPage.each( function (match, index) {
-            var tr = this._rowWriter(index, match, this._tableElement.select('.second-header-row th'), this._simpleCellWriter);
-            tableBody.insert(tr);
-        }.bind(this));
-
-        this._afterProcessTable();
+    changePageSize: function(newLimit) {
+        this._maxResults = newLimit;
+        this.totalPages = Math.ceil(this.totalResultsCount/this._maxResults);
+        this.page = 1;
+        this._buildTable();
     },
 
     _displaySummary : function (message, container, isHeader) {
         var c = container || this._tableElement;
         var summary = new Element("p", {"class" : "summary"});
-        if (isHeader && this._page) {
+        if (isHeader && this.page) {
           summary.update(message);
           new PhenoTips.widgets.MatcherPageSizer(this, summary, null, this._maxResults)
         } else {
@@ -472,8 +413,14 @@ var PhenoTips = (function (PhenoTips) {
         return summary;
     },
 
+// FORMATTING MATCHES BEFORE TABLE BUILD
+
     _formatMatches : function()
     {
+        // collect server IDs that are present in the match data
+        // to show/hide corresponding filter checkboxes after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
+        this._presentServerIds = [];
+
         this._cachedMatches.each( function (match, index) {
             // add field for match row index
             match.rowIndex = index;
@@ -489,18 +436,29 @@ var PhenoTips = (function (PhenoTips) {
             match.reference.access = match.reference.access || '';
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
+            match.isLocal && this._presentServerIds.push("local");
 
             if (match.matched.serverId != '') {
-                this._presentServerIds.push(match.matched.serverName);
+                if (!this._filterValues.serverIds.hasOwnProperty(match.matched.serverId)) {
+                    // do not show matches that have server ID that is not pre-generated in velocity,
+                    // i.e. are not in the valid (enabled) list of servers
+                    this._filterValues.serverIds[match.matched.serverId] = false;
+                } else {
+                    this._presentServerIds.push(match.matched.serverId);
+                }
             }
             if (match.reference.serverId != '') {
-                this._presentServerIds.push(match.reference.serverName);
+                if (!this._filterValues.serverIds.hasOwnProperty(match.reference.serverId)) {
+                    this._filterValues.serverIds[match.reference.serverId] = false;
+                } else {
+                    this._presentServerIds.push(match.reference.serverId);
+                }
             }
 
             // scores
-            match.score = this._utils._roundScore(match.score);
-            match.phenotypicScore = this._utils._roundScore(match.phenotypicScore);
-            match.genotypicScore = this._utils._roundScore(match.genotypicScore);
+            match.score = this._utils.roundScore(match.score);
+            match.phenotypicScore = this._utils.roundScore(match.phenotypicScore);
+            match.genotypicScore = this._utils.roundScore(match.genotypicScore);
 
             // emails
             match.reference.emails = this._formatEmails(match.reference.emails);
@@ -598,12 +556,47 @@ var PhenoTips = (function (PhenoTips) {
         } else {
             var validatedEmails = []
             for (var i=0; i < emails.length; i++) {
-                if (this._utils._validateEmail(emails[i])) {
+                if (this._utils.validateEmail(emails[i])) {
                     validatedEmails.push(emails[i]);
                 }
             }
             return validatedEmails;
         }
+    },
+
+// GENERATE TABLE
+
+    // this is for MatcherPaginator to work
+    launchSearchExisting : function()
+    {
+        this._buildTable();
+    },
+
+    _buildTable : function()
+    {
+        var tableBody = this._tableElement.down('tbody');
+        tableBody.update('');
+
+        if (!this._matches) {
+            return;
+        }
+
+        var begin = this._maxResults*(this.page - 1);
+        var end = Math.min(this.page*this._maxResults, this.totalResultsCount);
+        var matchesForPage = this._matches.slice(begin, end);
+        this.paginator.refreshPagination(this._maxResults);
+
+        var firstItemRangeNo = begin + 1;
+        var lastItemRangeNo = end;
+        var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + lastItemRangeNo).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
+        this._displaySummary(tableSummary, $('panels-livetable-limits'), true);
+
+        matchesForPage.each( function (match, index) {
+            var tr = this._rowWriter(index, match, this._tableElement.select('.second-header-row th'), this._simpleCellWriter);
+            tableBody.insert(tr);
+        }.bind(this));
+
+        this._afterProcessTable();
     },
 
     _rowWriter : function(rowIndex, record, columns, cellWriter)
@@ -623,10 +616,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner, record.reference.pubmedId);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner, record.matched.pubmedId);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -663,9 +656,9 @@ var PhenoTips = (function (PhenoTips) {
     _getPatientDetailsTd : function(patient, tdId, matchId)
     {
         var td = '<td id="' + tdId + '">';
-        var externalId = (!this._utils._isBlank(patient.externalId)) ? " : " + patient.externalId : '';
+        var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
-        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '">';
+        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '"></div>';
         if (patient.serverId == '') { // local patient
             var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
@@ -673,15 +666,14 @@ var PhenoTips = (function (PhenoTips) {
             // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
             td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
         }
-        td += '</div>';
 
         // Collapsible div
         td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
 
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
-        td += this._getPhenotypesDiv(patient.phenotypes);
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
+        td += this._getPhenotypesDiv(patient.phenotypes);
 
         // End collapsible div
         td += '</div>';
@@ -697,10 +689,14 @@ var PhenoTips = (function (PhenoTips) {
         if (genes.size() == 0) {
             genesTitle += ' -';
         }
-        td += '<p class="subtitle">' + genesTitle + '</p>';
-        if (hasExomeData) {
-            td += '<p class="subtitle">* ' + this._HAS_EXOME_DATA + '</p>';
+        td += '<p class="subtitle">' + genesTitle;
+        if (genesStatus && genesStatus.length > 0 && genes.size() > 0) {
+            td += ' (' + genesStatus + ')';
         }
+        if (hasExomeData) {
+            td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
+        }
+        td += '</p>';
         if (genes.size() != 0) {
             td += '<ul>';
             for (var i = 0 ; i < genes.size() ; i++) {
@@ -788,15 +784,24 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner, pubmedID)
     {
         var td = '<td name="' + cellName + '">';
+        // if case is solved and has a Pubmed ID - display a link to it onstead of emails
+        if (!this._utils.isBlank(pubmedID)) {
+            var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedID.trim();
+            td += '<a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedID + '<span class="metadata">' + this._SOLVED_CASE + '</span></a></td>';
+            return td;
+        }
         for (var i=0; i < emails.length; i++) {
             var email = emails[i]
             if (email.indexOf("://") > -1) {
                 email = email.split('/')[2];
                 email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
             } else {
+                if (i != emails.length - 1) {
+                    email += ", ";
+                }
                 // insert a 0-width space after the @, so that a long email can be split into two lines
                 email = email.replace(/@/g,"@&#8203;");
                 // insert a "preferred-no-split <span> around emails, to make sure lines are first split on ",",
@@ -805,10 +810,11 @@ var PhenoTips = (function (PhenoTips) {
             }
             td += '<div name="notification-email-long">' + email + '</div>';
         }
-        td += '<div name="notification-email-short">' + emails[0].substring(0, 9) + '...' + '</div>';
+        var shortEmail = (emails.length > 0) ? (emails[0].substring(0, 9) + "...") :  "";
+        td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
-        if (this._isAdmin && serverId == '' && !isOwner) {
+        if (this._isAdmin && serverId == '' && !isOwner && emails.length > 0) {
             td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'" data-emails="'+ emails.toString() +'">';
         }
         td += '</td>';
@@ -846,14 +852,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _changePageSize: function(newLimit) {
-      this._maxResults = newLimit;
-      this.totalPages = Math.ceil(this.totalResultsCount/this._maxResults);
-      this._page = 1;
-      this._buildTable();
-    },
-
- // -- AFTER PROCESS TABLE
+// -- AFTER PROCESS TABLE
 
     _afterProcessTable : function()
     {
@@ -869,8 +868,8 @@ var PhenoTips = (function (PhenoTips) {
     {
         if (this._presentServerIds.length > 1) {
             $('checkbox-server-filters').show();
-            this._tableElement.select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-                (this._presentServerIds.indexOf(selectEl.value) > 0) ? selectEl.show() : selectEl.hide();
+            $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
+                (this._presentServerIds.indexOf(selectEl.value) >= 0) ? selectEl.up().show() : selectEl.up().hide();
             }.bind(this));
         } else {
             $('checkbox-server-filters').hide();
@@ -927,7 +926,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         $$('input[type=checkbox][class="notify"]').each(function (elm) {
             elm.on('click', function(event) {
-                if (this._notifier._getMarkedToNotify().length > 0) {
+                if (this._getMarkedToNotify().length > 0) {
                     $('send-notifications-button').removeClassName("disabled");
                 } else {
                     $('send-notifications-button').addClassName("disabled");
@@ -938,64 +937,9 @@ var PhenoTips = (function (PhenoTips) {
         $$('a[class="contact-button"]').each(function (elm) {
             elm.on('click', function(event) {
                 event.stop();
-                this._launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
+                this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
             }.bind(this));
         }.bind(this));
-    },
-
-    _launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
-    {
-        new Ajax.Request(this._ajaxURL + 'preview-user-match-email', {
-            contentType:'application/json',
-            parameters : {
-                  'matchId': matchId,
-                  'subjectPatientId' : subjectPatientId,
-                  'subjectServerId' : subjectServerId
-            },
-            onCreate : function() {
-                this._contactContainer.down('textarea[name="message"]').update('');
-                this._contactContainer.down('input[name="subject"]').value = '';
-                this._contactContainer.down('input[name="to"]').value = '';
-                this._contactContainer.down('input[name="cc"]').value = '';
-                this._contactContainer.down('input[name="from"]').value = '';
-
-                // FIXME: this is a quick fix, need to find a better solution:
-                // clone send button to remove all accumulated event handlers
-                var sendButton = this._contactContainer.down('input[name="send"]');
-                var new_sendButton = sendButton.cloneNode(true);
-                sendButton.parentNode.replaceChild(new_sendButton, sendButton);
-            }.bind(this),
-            onSuccess : function(response) {
-                if (!(response && response.responseJSON)) {
-                    return;
-                }
-                this._contactContainer.down('textarea[name="message"]').update(response.responseJSON.emailContent);
-                this._contactContainer.down('input[name="subject"]').value = response.responseJSON.subject;
-                this._contactContainer.down('input[name="to"]').value = response.responseJSON.recipients.to.toString();
-                this._contactContainer.down('input[name="cc"]').value = response.responseJSON.recipients.cc.toString();
-                this._contactContainer.down('input[name="from"]').value = response.responseJSON.recipients.from.toString();
-                this._contactDialog.showDialog();
-                // attach listener for "Send" notification button
-                this._contactContainer.down('input[name="send"]').on('click', function(event) {
-                    this._contactDialog.closeDialog();
-                    this._notifier.notifyUserMatch(matchId, subjectPatientId, subjectServerId,
-                            this._contactContainer.down('textarea[name="message"]').value,
-                            this._contactContainer.down('input[name="subject"]').value);
-                }.bind(this));
-            }.bind(this),
-            onFailure : function(response) {
-                var failureReason = response.statusText || response.responseText;
-                if (response.statusText == '' /* No response */ || response.status == 12031 /* In IE */) {
-                   failureReason = this._SERVER_ERROR_MESSAGE;
-                }
-                alert(failureReason);
-                this._contactDialog.closeDialog();
-            }.bind(this),
-            on0 : function (response) {
-                alert(this._SERVER_ERROR_MESSAGE);
-                this._contactDialog.closeDialog();
-            }.bind(this)
-        });
     },
 
     _makeSameHeight : function(td1, td2, div_class)
@@ -1041,10 +985,95 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+//-- NOTIFICATION
+
+    _sendNotification : function()
+    {
+        this._utils.showSent('send-notifications-messages');
+        var ids = this._getMarkedToNotify();
+        if (ids.length == 0) {
+            this._utils.showFailure('show-matches-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
+            return;
+        }
+        this._notifyMatchByIDs(ids);
+    },
+
+    _notifyMatchByIDs  : function(matchIDs)
+    {
+        // console.log("Sending " + idsToNotify);
+        var idsToNotify = JSON.stringify({ ids: matchIDs});
+        new Ajax.Request(this._ajaxURL + 'send-admin-local-notifications', {
+            parameters : {'ids' : idsToNotify},
+            onCreate : function (response) {
+                // console.log("Notification request sent");
+            }.bind(this),
+            onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+                    return;
+                }
+                this._updateTableState(response.responseJSON.results, true);
+            }.bind(this),
+            onFailure : function (response) {
+                this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+            }.bind(this),
+            onComplete : function () {
+                this._utils.clearHint('send-notifications-messages');
+            }.bind(this)
+        });
+    },
+
+    _getMarkedToNotify : function()
+    {
+        var ids = [];
+        var checkedElms = this._tableElement.select('input[data-patientid]:checked');
+
+        checkedElms.each(function (elm, index) {
+            if (elm.dataset.matchid && elm.dataset.patientid) {
+                ids.push({'matchId' : elm.dataset.matchid, 'patientId' : elm.dataset.patientid});
+            }
+        });
+        return ids;
+    },
+
 //--POST_PROCESS NOTIFICATION
     _handleNotifiedUpdate: function(event)
     {
-        this._setState(event.memo.matchIds, event.memo.properties);
+        if (!event || !event.memo || !event.memo.results) {
+            return;
+        }
+        console.log("Send notification - reply received:");
+        console.log(event.memo.results);
+
+        this._utils.showReplyReceived('send-notifications-messages');
+
+        var results = event.memo.results;
+
+        this._updateTableState(results, false)
+    },
+
+    _updateTableState : function (results, isAdminNotification) {
+        if (results.success && results.success.length > 0 ) {
+            var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
+            this._setState(results.success, properties);
+        }
+        if (results.failed && results.failed.length > 0) {
+            var message = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + this._getAllEmailsForMatchIds(results.failed);
+            this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, message);
+            var properties = {'state': 'failure', 'isAdminNotification': isAdminNotification};
+            this._setState(results.failed, properties);
+        }
+    },
+
+    _getAllEmailsForMatchIds : function(matchIds)
+    {
+        var emails = [];
+        matchIds.each(function (matchId) {
+            var notifyCheckbox = this._tableElement.down('input[data-matchid="'+matchId+'"');
+            var emailsArray = notifyCheckbox.dataset.emails && notifyCheckbox.dataset.emails.split(',');
+            emails = emails.concat(emailsArray);
+        }.bind(this));
+        return emails;
     },
 
     _setState : function(matchIds, properties)
@@ -1053,29 +1082,31 @@ var PhenoTips = (function (PhenoTips) {
         var matchesToSet = [];
         this._matches.each( function(match) {
             var curIds = String(match.id).split(",");
-            if ( (strMatchIds.length < curIds.length && this._utils._listIsSubset(strMatchIds, curIds))
-                || (strMatchIds.length >= curIds.length && this._utils._listIsSubset(curIds, strMatchIds)) ){
+            if ( (strMatchIds.length < curIds.length && this._utils.listIsSubset(strMatchIds, curIds))
+                || (strMatchIds.length >= curIds.length && this._utils.listIsSubset(curIds, strMatchIds)) ){
                     matchesToSet.push(match);
                 }
         }.bind(this));
 
         matchesToSet.each( function(match, index) {
-            if (properties.hasOwnProperty('notified')) {
-                match.notified = properties.notified;
-
+            if (properties.hasOwnProperty('isAdminNotification')) {
                 // un-check notification checkbox for admins
                 var contactCheckbox = this._tableElement.down('input[data-matchid="' + match.id +'"][type=checkbox][class="notify"]');
                 contactCheckbox && (contactCheckbox.checked=false);
-
+            }
+            if (properties.hasOwnProperty('notified')) {
                 // replace the envelope with "contacted" text for regular users
                 var envelopeElement = this._tableElement.down('a.contact-button[data-matchid="' + match.id +'"]');
                 envelopeElement && (envelopeElement.up().update(this._CONTACTED_LABEL));
+                this._matches[this._matches.indexOf(match)].notified = true;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].notified = true;
             }
             if (properties.hasOwnProperty('status')) {
-                match.status = properties.status;
+                this._matches[this._matches.indexOf(match)].status = properties.status;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].status = properties.status;
             }
             if (properties.hasOwnProperty('state')) {
-                this._tableElement.down('[data-matchid="' + match.id +'"]').addClassName(properties.state);
+                this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
             }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this))
@@ -1095,11 +1126,15 @@ var PhenoTips = (function (PhenoTips) {
         var ids = matchId.split(",");
 
         new Ajax.Request(this._ajaxURL + 'set-status', {
-            contentType:'application/json',
+            contentType : 'application/json',
             parameters : {'matchesIds'    : ids,
                           'status'        : status
             },
             onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._utils.showFailure('show-matches-messages');
+                    return;
+                }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
                     this._setState(results.success, { 'status': status, 'state': 'success' });
@@ -1113,7 +1148,6 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this)
         });
     }
-
-   });
+    });
     return PhenoTips;
 }(PhenoTips || {}));

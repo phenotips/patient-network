@@ -70,11 +70,12 @@ table#matchesTable {
 }
 
 .matches-table td {
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .matches-table .collapse-gp-tool {
   white-space: nowrap;
+  color: #404040;
 }
 
 #send-notifications-messages, #show-matches-messages {
@@ -91,12 +92,12 @@ table#matchesTable {
   vertical-align: top;
 }
 
-#score-validation-message {
+#score-validation-message, #score-filter-validation-message {
   font-size: 83%;
   float: left;
 }
 
-#show-matches-messages .invalid, #score-validation-message .invalid {
+#show-matches-messages .invalid, #score-validation-message .invalid, #score-filter-validation-message .invalid {
   color: #CC3333;
 }
 
@@ -119,7 +120,9 @@ table#matchesTable {
 #pagination-info {
   display: inline-block;
 }
-
+#pagination-matching-notifications {
+  margin-top: 10px;
+}
 .matches-table .first-header-row {
   text-align: -webkit-center;
 }
@@ -204,29 +207,6 @@ a.button.toggle-filters.secondary-filters {
   margin-top: 2em !important;
   cursor: default !important;
 }
-a.contact-button {
-  background: transparent none left top no-repeat;
-}
-.contact-button  .fa.fa-envelope {
-  vertical-align: baseline;
-  margin-right: 3px;
-}
-.anonymous-contact {
-  overflow: hidden;
-}
-.anonymous-contact textarea[name="message"] {
-  height: 380px;
-  resize: none;
-  overflow-y: scroll;
-  font-size: 100%;
-}
-.anonymous-contact .button {
-  width: 6em;
-  text-align: center;
-}
-.anonymous-contact textarea:disabled {
-  opacity: .9;
-}
 .score-label {
   float: left;
   margin-top: 8px;
@@ -243,4 +223,24 @@ input.mme {
 .across-mme {
   margin-top: 5px;
   margin-left: 1em;
+}
+.exome-subtitle {
+  font-weight: 400;
+  text-transform: none;
+  font-style: italic;
+}
+.fa.fa-leanpub {
+  padding-right: 4px;
+}
+.metadata {
+  display: block;
+  opacity: .7;
+  padding-left: 1.6em;
+  font-size: .8em;
+  font-style: italic;
+}
+.filter-mme-server-name {
+  display: inline-block;
+  max-width: 180px; /* based on the width of filters column, defined to be 240px in DBWebHomeSheet */
+  vertical-align: top;
 }

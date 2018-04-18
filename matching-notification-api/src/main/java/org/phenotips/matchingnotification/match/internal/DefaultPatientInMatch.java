@@ -184,9 +184,10 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("externalId", this.getExternalId());
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
+        json.put("pubmedId", this.getPubmedId());
         if (this.access != null) {
             // FIXME: workaround for incorrect access-setting code in this.setAccess()
-            //        This JSON goes to the UI, which needs to know correct access level
+            // This JSON goes to the UI, which needs to know correct access level
             if (this.isLocal() && this.patient != null) {
                 json.put("access", this.access.getName());
             }
@@ -421,6 +422,19 @@ public class DefaultPatientInMatch implements PatientInMatch
         return "";
     }
 
+    private String getPubmedId()
+    {
+        // if the patient is remote
+        if (this.patient == null) {
+            return null;
+        }
+        PatientData<String> data = this.patient.getData("solved");
+        if (data != null && data.size() > 0) {
+            return data.get("solved__pubmed_id");
+        }
+        return null;
+    }
+
     private Patient getLocalPatient()
     {
         if (this.isLocal()) {
@@ -452,10 +466,10 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (!this.isLocal() || this.patient == null) {
             //
             // FIXME: this is wrong, while server code has "view" access to the in-memory
-            //        copy of the remote patient, from the UI's point of view current user
-            //        does NOT have access to the patient. So need to investigate why this
-            //        fix was needed and do a proper fix. Maybe we no longer need this after
-            //        match obfuscation was removed.
+            // copy of the remote patient, from the UI's point of view current user
+            // does NOT have access to the patient. So need to investigate why this
+            // fix was needed and do a proper fix. Maybe we no longer need this after
+            // match obfuscation was removed.
 
             // Remote patient, assume we have access
             this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");

@@ -39,9 +39,11 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 $xwiki.ssfx.use('uicomponents/matchingNotification/matchesTable.css')##
+$xwiki.ssfx.use('uicomponents/matchingNotification/contactDialog.css')##
 $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/matchesTable.js', true)##
+$xwiki.jsfx.use('uicomponents/matchingNotification/errorDialog.js', true)##
 $xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
 $xwiki.ssx.use('PhenoTips.Widgets')##
 $xwiki.jsx.use('PhenoTips.Widgets')##
@@ -106,13 +108,17 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                   &lt;input name="notified-filter" type="checkbox" value="unnotified" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.unnotified'))&lt;/label&gt;&lt;br&gt;
               &lt;/li&gt;
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
-                &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;br&gt;
+                &lt;/label&gt;
                 &lt;div class="across-mme"&gt;$escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;:&lt;/div&gt;
                 #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
                 #set ($allRemotes = $preferenceDoc.getObjects("PhenomeCentral.RemoteMatchingServiceConfiguration"))
                 #foreach ($config in $allRemotes)
-                  #if ($config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('humanReadableName').getValue() != "")
-                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt; $escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/label&gt;&lt;br&gt;
+                  #if ($config.getProperty('serverId').getValue() != "" &amp;&amp; $config.getProperty('humanReadableName').getValue() != "" &amp;&amp; $config.getValue('includeInUI') == 1)
+                    &lt;label&gt;&lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="$config.getProperty('serverId').getValue()" checked&gt;
+                      &lt;div class="filter-mme-server-name"&gt;$escapetool.xml($config.getProperty('humanReadableName').getValue())&lt;/div&gt;&lt;br&gt;
+                    &lt;/label&gt;
                   #end
                 #end
               &lt;/li&gt;
