@@ -323,7 +323,12 @@ var PhenoTips = (function (PhenoTips) {
         new Ajax.Request(this._ajaxURL + 'show-matches', {
             contentType:'application/json',
             parameters : options,
-            onCreate : function () { $("panels-livetable-ajax-loader").show(); },
+            onCreate : function () {
+                $("panels-livetable-ajax-loader").show();
+                this._utils.clearHint('score-validation-message');
+                this._utils.clearHint('send-notifications-messages');
+                $('send-notifications-button').addClassName("disabled");
+            }.bind(this),
             onSuccess : function (response) {
                 if (response.responseJSON) {
                     console.log("Show matches response JSON (min scores: " + options.score + "/" + options.phenScore + "/" + options.genScore + "):");
@@ -823,7 +828,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _getNotified : function(record)
     {
-        var td = '<td style="text-align: center">';
+        var td = '<td style="text-align: center" name="contacted">';
         if (!this._isAdmin && (record.matched.isOwner || record.reference.isOwner) && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
@@ -989,7 +994,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _sendNotification : function()
     {
-        this._utils.showSent('send-notifications-messages');
         var ids = this._getMarkedToNotify();
         if (ids.length == 0) {
             this._utils.showFailure('show-matches-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
@@ -1006,6 +1010,7 @@ var PhenoTips = (function (PhenoTips) {
             parameters : {'ids' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");
+                this._utils.showSent('send-notifications-messages');
             }.bind(this),
             onSuccess : function (response) {
                 if (!response.responseJSON || !response.responseJSON.results) {
@@ -1049,10 +1054,19 @@ var PhenoTips = (function (PhenoTips) {
 
         var results = event.memo.results;
 
-        this._updateTableState(results, false)
+        this._updateTableState(results, false);
     },
 
     _updateTableState : function (results, isAdminNotification) {
+        // un-check all notification checkboxes, only admin sees them
+        if (isAdminNotification) {
+            this._tableElement.select('input[type=checkbox][class="notify"]').each(function (contactCheckbox) {
+                contactCheckbox.checked = false;
+            });
+        }
+
+        contactCheckbox && (contactCheckbox.checked=false);
+
         if (results.success && results.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
             this._setState(results.success, properties);
@@ -1089,15 +1103,11 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         matchesToSet.each( function(match, index) {
-            if (properties.hasOwnProperty('isAdminNotification')) {
-                // un-check notification checkbox for admins
-                var contactCheckbox = this._tableElement.down('input[data-matchid="' + match.id +'"][type=checkbox][class="notify"]');
-                contactCheckbox && (contactCheckbox.checked=false);
-            }
             if (properties.hasOwnProperty('notified')) {
-                // replace the envelope with "contacted" text for regular users
-                var envelopeElement = this._tableElement.down('a.contact-button[data-matchid="' + match.id +'"]');
-                envelopeElement && (envelopeElement.up().update(this._CONTACTED_LABEL));
+                // updating Contacted column
+                var contactedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"][name="contacted"]');
+                contactedTd && contactedTd.update(this._CONTACTED_LABEL);
+
                 this._matches[this._matches.indexOf(match)].notified = true;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].notified = true;
             }
