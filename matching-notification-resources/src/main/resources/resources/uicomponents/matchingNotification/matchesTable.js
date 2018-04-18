@@ -839,10 +839,10 @@ var PhenoTips = (function (PhenoTips) {
                     td += this._CONTACTED_LABEL;
                 }
             } else {
-                    if (record.notified == true) {
-                        td += this._CONTACTED_LABEL;
-                    }
+                if (record.notified == true) {
+                    td += this._CONTACTED_LABEL;
                 }
+            }
         } else {
             if (record.notified == true) {
                 td += this._CONTACTED_LABEL;

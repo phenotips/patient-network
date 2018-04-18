@@ -30,6 +30,8 @@ import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
 import org.phenotips.data.similarity.phenotype.PhenotypesMap;
+import org.phenotips.groups.Group;
+import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
@@ -40,6 +42,7 @@ import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
@@ -79,6 +82,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final UserManager USER_MANAGER;
 
+    private static final GroupManager GROUP_MANAGER;
+
     private static final String GENES = "genes";
 
     private static final String PHENOTYPES = "phenotypes";
@@ -116,6 +121,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         PermissionsManager pm = null;
         PatientAccessHelper pa = null;
         UserManager um = null;
+        GroupManager gm = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
@@ -125,6 +131,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             pm = ccm.getInstance(PermissionsManager.class);
             pa = ccm.getInstance(PatientAccessHelper.class);
             um = ccm.getInstance(UserManager.class);
+            gm = ccm.getInstance(GroupManager.class);
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -135,6 +142,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         PERMISSIONS_MANAGER = pm;
         ACCESS_HELPER = pa;
         USER_MANAGER = um;
+        GROUP_MANAGER = gm;
     }
 
     /**
@@ -481,14 +489,25 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /**
-     * Checks if current user is owner of one patient.
+     * Checks if current user or one of his groups is owner of one patient.
      */
     private boolean isUserOwner()
     {
-        User user = USER_MANAGER.getCurrentUser();
-        DocumentReference userRef = user.getProfileDocument();
-        if (this.patient != null && userRef.equals(ACCESS_HELPER.getOwner(this.patient).getUser())) {
+        if (this.patient == null) {
+            return false;
+        }
+        User currentUser = USER_MANAGER.getCurrentUser();
+        DocumentReference userRef = currentUser.getProfileDocument();
+        EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
+        if (userRef.equals(ownerRef)) {
             return true;
+        }
+        Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
+        for (Group group : userGroups) {
+            DocumentReference groupRef = group.getReference();
+            if (groupRef.equals(ownerRef)) {
+                return true;
+            }
         }
         return false;
     }
