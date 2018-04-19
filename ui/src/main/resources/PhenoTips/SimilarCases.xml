@@ -734,6 +734,12 @@
     },
 
     _displayModeOfInheritance : function(table, r) {
+      //sort made of inheritance: those that matched to be first in alphabetic order
+      if (r.global_mode_of_inheritance &amp;&amp; r.global_mode_of_inheritance.length &gt; 0 &amp;&amp; r.matched_global_mode_of_inheritance &amp;&amp; r.matched_global_mode_of_inheritance.length &gt; 0) {
+        var common = r.global_mode_of_inheritance.intersect(r.matched_global_mode_of_inheritance).sort();
+        r.global_mode_of_inheritance = common.concat(r.global_mode_of_inheritance.sort()).uniq();
+        r.matched_global_mode_of_inheritance = common.concat(r.matched_global_mode_of_inheritance.sort()).uniq();
+      }
       this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))");
       var row = this._getEmptyTableRow(table);
       var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["-"];};

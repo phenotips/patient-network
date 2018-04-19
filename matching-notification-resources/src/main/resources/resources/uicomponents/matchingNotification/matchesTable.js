@@ -486,8 +486,21 @@ var PhenoTips = (function (PhenoTips) {
             // aggregate phenotypes from both reference and matched patients for future faster filtering
             match.phenotypes = this._aggregatePhenotypes(match);
 
+            //sort made of inheritance: those that matched to be first in alphabetic order
+            this._organiseModeOfInheritance(match);
+
             this._organiseGenes(match);
         }.bind(this));
+    },
+
+    _organiseModeOfInheritance : function(match) {
+        //common modes of inheritance
+        if (match.reference.mode_of_inheritance.length == 0 || match.matched.mode_of_inheritance == 0) {
+            return;
+        }
+        var common = match.reference.mode_of_inheritance.intersect(match.matched.mode_of_inheritance).sort();
+        match.reference.mode_of_inheritance = common.concat(match.reference.mode_of_inheritance.sort()).uniq();
+        match.matched.mode_of_inheritance = common.concat(match.matched.mode_of_inheritance.sort()).uniq();
     },
 
     _organiseGenes : function(match)
