@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,15 +69,18 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
         for (String subjectPatientId : patientIds) {
             Collection<PatientMatch> matchesForPatient = mbp.getMatchesForLocalPatientId(subjectPatientId, true);
+            // filter matchesForPatient by matchesIds to contain only matches with ids as a key for subjectPatientId
+            Iterator<PatientMatch> matchIterator = matchesForPatient.iterator();
+            while (matchIterator.hasNext()) {
+                PatientMatch match = matchIterator.next();
+                if (!matchesIds.get(match.getId()).contains(subjectPatientId)) {
+                    matchIterator.remove();
+                }
+            }
             if (matchesForPatient.size() == 0) {
                 this.logger.error("No matches found for patient [{}] when composing admin notification emails",
                         subjectPatientId);
-            }
-            // filter matchesForPatient by matchesIds to contain only matches with ids as a key for subjectPatientId
-            for (PatientMatch match : matchesForPatient) {
-                if (!matchesIds.get(match.getId()).contains(subjectPatientId)) {
-                    matchesForPatient.remove(match);
-                }
+                continue;
             }
             PatientMatchEmail email = new DefaultAdminPatientMatchEmail(subjectPatientId, matchesForPatient);
             emails.add(email);
