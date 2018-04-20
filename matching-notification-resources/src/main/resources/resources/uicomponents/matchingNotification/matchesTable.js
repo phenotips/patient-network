@@ -1080,8 +1080,6 @@ var PhenoTips = (function (PhenoTips) {
             });
         }
 
-        contactCheckbox && (contactCheckbox.checked=false);
-
         if (results.success && results.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
             this._setState(results.success, properties);
