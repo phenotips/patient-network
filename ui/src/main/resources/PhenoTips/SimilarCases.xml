@@ -561,9 +561,11 @@
         return contactInfo.insert({top: " "}).insert({top: icon});
       }
       var icon = this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))");
-      if (r.myCase) {
+      if (r.myCase || !r.owner.email) {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}));
-        contactInfo.insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfo.yourCase.text'))"));
+        if (r.myCase) {
+          contactInfo.insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactInfo.yourCase.text'))"));
+        }
       } else {
         var contactInfo = new Element("a", {
           "href"  : "#",
@@ -583,7 +585,11 @@
           _this._getMatchId(r.id);
         });
       }
-      return contactInfo.insert({top: " "}).insert({top: icon});
+      contactInfo.insert({top: " "});
+      if (r.owner.email) {
+        contactInfo.insert({top: icon})
+      }
+      return contactInfo;
     },
 
     _displayRemoteContactInfo : function (r) {
@@ -734,6 +740,12 @@
     },
 
     _displayModeOfInheritance : function(table, r) {
+      //sort made of inheritance: those that matched to be first in alphabetic order
+      if (r.global_mode_of_inheritance &amp;&amp; r.global_mode_of_inheritance.length &gt; 0 &amp;&amp; r.matched_global_mode_of_inheritance &amp;&amp; r.matched_global_mode_of_inheritance.length &gt; 0) {
+        var common = r.global_mode_of_inheritance.intersect(r.matched_global_mode_of_inheritance).sort();
+        r.global_mode_of_inheritance = common.concat(r.global_mode_of_inheritance.sort()).uniq();
+        r.matched_global_mode_of_inheritance = common.concat(r.matched_global_mode_of_inheritance.sort()).uniq();
+      }
       this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))");
       var row = this._getEmptyTableRow(table);
       var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["-"];};

@@ -29,6 +29,7 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
+import java.security.AccessControlException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,8 +81,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<PatientMatch> matches =
             this.matchStorageManager.loadMatchesByIds(matchesIds.keySet());
 
-        filterNonUsersMatches(matches);
-
         List<PatientMatchEmail> emails = this.notifier.createAdminEmailsToLocalUsers(matches, matchesIds);
         List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
@@ -111,7 +110,13 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             throw new IllegalArgumentException("MatchId " + matchId + " is not a valid match id");
         }
 
-        PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
+        PatientMatch match = matches.get(0);
+
+        if (!this.currentUserHasViewAccess(match)) {
+            throw new AccessControlException("Current user has no rights to notify MatchId " + matchId);
+        }
+
+        PatientMatchEmail email = this.notifier.createUserEmail(match,
                 subjectPatientId, subjectServerId, customEmailtext, customEmailSubject);
 
         List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
@@ -193,12 +198,15 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     {
         ListIterator<PatientMatch> iterator = matches.listIterator();
         while (iterator.hasNext()) {
-            PatientMatch match = iterator.next();
-            boolean hasViewAccess = this.viewAccess.compareTo(match.getReference().getAccess()) <= 0
-                && this.viewAccess.compareTo(match.getMatched().getAccess()) <= 0;
-            if (!hasViewAccess) {
+            if (!currentUserHasViewAccess(iterator.next())) {
                 iterator.remove();
             }
         }
+    }
+
+    private boolean currentUserHasViewAccess(PatientMatch match)
+    {
+        return this.viewAccess.compareTo(match.getReference().getAccess()) <= 0
+            || this.viewAccess.compareTo(match.getMatched().getAccess()) <= 0;
     }
 }
