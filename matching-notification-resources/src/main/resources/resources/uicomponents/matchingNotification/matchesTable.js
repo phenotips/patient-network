@@ -1025,6 +1025,7 @@ var PhenoTips = (function (PhenoTips) {
             parameters : {'ids' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");
+                $('send-notifications-button').addClassName("disabled");
                 this._utils.showSent('send-notifications-messages');
             }.bind(this),
             onSuccess : function (response) {
@@ -1132,9 +1133,7 @@ var PhenoTips = (function (PhenoTips) {
                 this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
             }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
-        }.bind(this))
-
-        $('send-notifications-button').addClassName("disabled");
+        }.bind(this));
     },
 
 //--SET MATCH STATUS BLOCK --
