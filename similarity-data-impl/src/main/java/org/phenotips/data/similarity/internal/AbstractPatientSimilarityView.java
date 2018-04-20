@@ -270,7 +270,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     private String getPubmedId()
     {
         PatientData<String> data = this.match.getData("solved");
-        if (data != null && data.size() > 0) {
+        if (data != null && data.size() > 0 && "solved".equals(data.get("status"))) {
             return data.get("solved__pubmed_id");
         }
         return null;
