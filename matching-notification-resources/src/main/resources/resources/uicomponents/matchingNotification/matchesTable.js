@@ -834,7 +834,7 @@ var PhenoTips = (function (PhenoTips) {
         td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
-        if (this._isAdmin && serverId == '' && !isOwner && emails.length > 0) {
+        if (this._isAdmin && serverId == '' && emails.length > 0) {
             td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'" data-emails="'+ emails.toString() +'">';
         }
         td += '</td>';
