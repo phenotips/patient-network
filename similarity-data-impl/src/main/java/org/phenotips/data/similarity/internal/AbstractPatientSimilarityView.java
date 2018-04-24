@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -270,8 +271,11 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     private String getPubmedId()
     {
         PatientData<String> data = this.match.getData("solved");
-        if (data != null && data.size() > 0 && "solved".equals(data.get("status"))) {
-            return data.get("solved__pubmed_id");
+        if (data != null && data.size() > 0 && "1".equals(data.get("solved"))) {
+            String pubmed = data.get("solved__pubmed_id");
+            if (!StringUtils.isBlank(pubmed)) {
+                return pubmed;
+            }
         }
         return null;
     }
