@@ -19,6 +19,7 @@ var PhenoTips = (function (PhenoTips) {
         this._tableElement = $('matchesTable');
         this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/";
         this._tableCollabsed = true;
+        $("panels-livetable-ajax-loader").hide();
 
         this._offset = 1;
         this._maxResults = 50;
@@ -82,7 +83,6 @@ var PhenoTips = (function (PhenoTips) {
         // set behaviour for hide/show email columns triggers
         this._initiateEmailColumnsBehaviur();
 
-        $("panels-livetable-ajax-loader").hide();
         $('checkbox-server-filters').hide();
 
         $('contentmenu') && $('contentmenu').hide();
@@ -1119,7 +1119,7 @@ var PhenoTips = (function (PhenoTips) {
         matchesToSet.each( function(match, index) {
             if (properties.hasOwnProperty('notified')) {
                 // updating Contacted column
-                var contactedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"][name="contacted"]');
+                var contactedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contacted"]');
                 contactedTd && contactedTd.update(this._CONTACTED_LABEL);
 
                 this._matches[this._matches.indexOf(match)].notified = true;

@@ -437,8 +437,11 @@ public class DefaultPatientInMatch implements PatientInMatch
             return null;
         }
         PatientData<String> data = this.patient.getData("solved");
-        if (data != null && data.size() > 0 && "solved".equals(data.get("status"))) {
-            return data.get("solved__pubmed_id");
+        if (data != null && data.size() > 0 && "1".equals(data.get("solved"))) {
+            String pubmed = data.get("solved__pubmed_id");
+            if (!StringUtils.isBlank(pubmed)) {
+                return pubmed;
+            }
         }
         return null;
     }
