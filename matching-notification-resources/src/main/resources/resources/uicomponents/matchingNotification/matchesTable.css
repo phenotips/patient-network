@@ -228,6 +228,7 @@ input.mme {
   font-weight: 400;
   text-transform: none;
   font-style: italic;
+  display : block;
 }
 .fa.fa-leanpub {
   padding-right: 4px;
