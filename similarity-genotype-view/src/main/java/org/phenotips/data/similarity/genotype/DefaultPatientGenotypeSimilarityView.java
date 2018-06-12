@@ -115,16 +115,16 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
     }
 
     /**
-     * Return the set of candidate genes found in either the match or reference patient.
+     * Return the set of genes found in either the match or reference patient.
      *
      * @return a (potentially-empty) set of gene names
      */
-    private Set<String> getCandidateGeneUnion()
+    private Set<String> getGeneUnion()
     {
         Set<String> sharedGenes = new HashSet<>();
         if (this.matchGenotype != null && this.refGenotype != null) {
-            Set<String> matchGenes = this.matchGenotype.getCandidateGenes();
-            Set<String> refGenes = this.refGenotype.getCandidateGenes();
+            Set<String> matchGenes = this.matchGenotype.getGenes();
+            Set<String> refGenes = this.refGenotype.getGenes();
             sharedGenes.addAll(matchGenes);
             sharedGenes.addAll(refGenes);
         }
@@ -147,8 +147,8 @@ public class DefaultPatientGenotypeSimilarityView extends AbstractPatientGenotyp
      */
     private void matchGenes()
     {
-        // Only consider genes listed as a solved/candidate in at least one of the two patients
-        for (String gene : getCandidateGeneUnion()) {
+        // Consider all genes found in at least one of the two patients
+        for (String gene : getGeneUnion()) {
             // Compute gene score based on the genotype scores for the two patients
             Double refScore = this.refGenotype.getGeneScore(gene);
             Double matchScore = this.matchGenotype.getGeneScore(gene);
