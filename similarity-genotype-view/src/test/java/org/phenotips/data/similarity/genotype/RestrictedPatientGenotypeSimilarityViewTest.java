@@ -541,9 +541,8 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
     }
 
-    /** Candidate genes work even if no existing variants in gene. */
     @Test
-    public void testNoVariantsInCandidateGene()
+    public void testVariantsInCandidateGene()
     {
         Collection<String> matchGenes = new ArrayList<>();
         matchGenes.add("NOTCH2");
@@ -559,13 +558,14 @@ public class RestrictedPatientGenotypeSimilarityViewTest
             new RestrictedPatientGenotypeSimilarityView(this.mockMatch, this.mockReference, open);
 
         // NOTCH2 (candidate vs. exome) should match
-        // SRCAP (exome vs. exome) should *not* match.
+        // SRCAP (exome vs. exome) should also match.
         Set<String> genes = view.getMatchingGenes();
-        Assert.assertEquals(1, genes.size());
+        Assert.assertEquals(2, genes.size());
         Assert.assertTrue(genes.contains("NOTCH2"));
+        Assert.assertTrue(genes.contains("SRCAP"));
 
         JSONArray results = view.toJSON();
-        Assert.assertEquals(1, results.length());
+        Assert.assertEquals(2, results.length());
 
         JSONObject top = results.getJSONObject(0);
         Assert.assertTrue(top.getString("gene").equals("NOTCH2"));
