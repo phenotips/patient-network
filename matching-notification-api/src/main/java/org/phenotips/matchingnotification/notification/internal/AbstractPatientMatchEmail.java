@@ -211,8 +211,8 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
             DocumentReference templateReference = REFERENCE_RESOLVER.resolve(
                     getEmailTemplate(), PatientMatch.DATA_SPACE);
 
-            this.mimeMessage = MAIL_GENERATOR_SERVICE.
-                    createMessage("template", templateReference, this.createEmailParameters());
+            this.mimeMessage = MAIL_GENERATOR_SERVICE
+                    .createMessage("template", templateReference, this.createEmailParameters());
 
             if (this.mimeMessage == null) {
                 LOGGER.error("Error while populating email template: [{}]",

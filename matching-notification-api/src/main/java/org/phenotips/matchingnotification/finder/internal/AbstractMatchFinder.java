@@ -20,7 +20,7 @@ package org.phenotips.matchingnotification.finder.internal;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -81,7 +81,8 @@ public abstract class AbstractMatchFinder implements MatchFinder
     @Inject
     protected MatchStorageManager matchStorageManager;
 
-    protected enum MatchRunStatus { NOT_RUN, OK, ERROR };
+    protected enum MatchRunStatus
+    { NOT_RUN, OK, ERROR };
 
     @Inject
     private Provider<XWikiContext> provider;
@@ -90,7 +91,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
     private PatientRepository patientRepository;
 
     @Inject
-    private PermissionsManager permissionsManager;
+    private EntityPermissionsManager permissionsManager;
 
     @Inject
     @Named("matchable")
@@ -189,7 +190,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
             return null;
         }
 
-        Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
+        Visibility patientVisibility = this.permissionsManager.getEntityAccess(patient).getVisibility();
         if (patientVisibility.compareTo(this.matchableVisibility) < 0) {
             return null;
         }

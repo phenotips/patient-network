@@ -19,7 +19,7 @@ package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.similarity.Exome;
 import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.Variant;
@@ -54,7 +54,7 @@ public class ExomiserViewScriptService implements ScriptService
     private static final int MAXIMUM_UNPRIVILEGED_VARIANTS = 5;
 
     @Inject
-    private PermissionsManager pm;
+    private EntityPermissionsManager pm;
 
     @Inject
     @Named("edit")
@@ -101,7 +101,7 @@ public class ExomiserViewScriptService implements ScriptService
 
         int maxGenes = g;
         int maxVars = v;
-        if (!this.pm.getPatientAccess(patient).hasAccessLevel(this.editAccess)) {
+        if (!this.pm.getEntityAccess(patient).hasAccessLevel(this.editAccess)) {
             maxGenes = Math.min(g, MAXIMUM_UNPRIVILEGED_GENES);
             maxVars = Math.min(v, MAXIMUM_UNPRIVILEGED_VARIANTS);
         }

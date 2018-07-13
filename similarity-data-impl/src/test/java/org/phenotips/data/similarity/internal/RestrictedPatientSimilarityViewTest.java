@@ -26,7 +26,7 @@ import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.Owner;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -169,7 +169,7 @@ public class RestrictedPatientSimilarityViewTest
     private Patient getEmptyMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
 
@@ -189,7 +189,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertSame(PATIENT_1, o.getDocument());
+        Assert.assertSame(PATIENT_1, o.getDocumentReference());
     }
 
     /** The document is not disclosed for matchable patients. */
@@ -620,7 +620,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
 
@@ -643,9 +643,9 @@ public class RestrictedPatientSimilarityViewTest
         when(mockProvider.get()).thenReturn(componentManager);
         when(ComponentManagerRegistry.getContextComponentManager()).thenReturn(componentManager);
 
-        PatientAccessHelper pa = mock(PatientAccessHelper.class);
+        EntityAccessManager pa = mock(EntityAccessManager.class);
         UserManager um = mock(UserManager.class);
-        when(componentManager.getInstance(PatientAccessHelper.class)).thenReturn(pa);
+        when(componentManager.getInstance(EntityAccessManager.class)).thenReturn(pa);
         when(componentManager.getInstance(UserManager.class)).thenReturn(um);
         User user = mock(User.class);
         when(um.getCurrentUser()).thenReturn(user);

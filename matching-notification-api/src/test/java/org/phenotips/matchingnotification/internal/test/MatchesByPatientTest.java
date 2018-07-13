@@ -42,53 +42,64 @@ public class MatchesByPatientTest
 {
     private MatchesByPatient mbp;
 
-    private PatientMatch m1_3, m1_4, m1_5server1, m1server3_4, m1server4_4, m1server5_4,
-        m2_1, m2_3, m2_3server1,
-        m3_1, m3server1_2,
-        m4_1, m4_1server3, m4_2,
-        m5server1_1, m5server1_2;
+    private PatientMatch m13;
+    private PatientMatch m14;
+    private PatientMatch m15server1;
+    private PatientMatch m1server34;
+    private PatientMatch m1server44;
+    private PatientMatch m1server54;
+    private PatientMatch m21;
+    private PatientMatch m23;
+    private PatientMatch m23server1;
+    private PatientMatch m31;
+    private PatientMatch m3server12;
+    private PatientMatch m41;
+    private PatientMatch m41server3;
+    private PatientMatch m42;
+    private PatientMatch m5server11;
+    private PatientMatch m5server12;
 
     @Before
     public void setup()
     {
-        this.m1_3 = newMatch(1, "P1", null, "P3", null);
-        this.m1_4 = newMatch(2, "P1", null, "P4", null);
-        this.m1_5server1 = newMatch(3, "P1", null, "P5", "server1");
-        this.m1server3_4 = newMatch(4, "P1", "server3", "P4", null);
-        this.m1server4_4 = newMatch(5, "P1", "server4", "P4", null);
-        this.m1server5_4 = newMatch(6, "P1", "server5", "P4", null);
+        this.m13 = newMatch(1, "P1", null, "P3", null);
+        this.m14 = newMatch(2, "P1", null, "P4", null);
+        this.m15server1 = newMatch(3, "P1", null, "P5", "server1");
+        this.m1server34 = newMatch(4, "P1", "server3", "P4", null);
+        this.m1server44 = newMatch(5, "P1", "server4", "P4", null);
+        this.m1server54 = newMatch(6, "P1", "server5", "P4", null);
 
-        this.m2_1 = newMatch(7, "P2", null, "P1", null);
-        this.m2_3 = newMatch(8, "P2", null, "P3", null);
-        this.m2_3server1 = newMatch(9, "P2", null, "P3", "server1");
+        this.m21 = newMatch(7, "P2", null, "P1", null);
+        this.m23 = newMatch(8, "P2", null, "P3", null);
+        this.m23server1 = newMatch(9, "P2", null, "P3", "server1");
 
-        this.m3_1 = newMatch(10, "P3", null, "P1", null);
-        this.m3server1_2 = newMatch(11, "P3", "server1", "P2", null);
+        this.m31 = newMatch(10, "P3", null, "P1", null);
+        this.m3server12 = newMatch(11, "P3", "server1", "P2", null);
 
-        this.m4_1 = newMatch(12, "P4", null, "P1", null);
-        this.m4_1server3 = newMatch(13, "P4", null, "P1", "server3");
-        this.m4_2 = newMatch(14, "P4", null, "P2", null);
+        this.m41 = newMatch(12, "P4", null, "P1", null);
+        this.m41server3 = newMatch(13, "P4", null, "P1", "server3");
+        this.m42 = newMatch(14, "P4", null, "P2", null);
 
-        this.m5server1_1 = newMatch(15, "P5", "server1", "P1", null);
-        this.m5server1_2 = newMatch(16, "P5", "server1", "P2", null);
+        this.m5server11 = newMatch(15, "P5", "server1", "P1", null);
+        this.m5server12 = newMatch(16, "P5", "server1", "P2", null);
 
         this.mbp = new MatchesByPatient();
-        this.mbp.add(this.m1_3);
-        this.mbp.add(this.m1_4);
-        this.mbp.add(this.m1_5server1);
-        this.mbp.add(this.m1server3_4);
-        this.mbp.add(this.m1server4_4);
-        this.mbp.add(this.m1server5_4);
-        this.mbp.add(this.m2_1);
-        this.mbp.add(this.m2_3);
-        this.mbp.add(this.m2_3server1);
-        this.mbp.add(this.m3_1);
-        this.mbp.add(this.m3server1_2);
-        this.mbp.add(this.m4_1);
-        this.mbp.add(this.m4_1server3);
-        this.mbp.add(this.m4_2);
-        this.mbp.add(this.m5server1_1);
-        this.mbp.add(this.m5server1_2);
+        this.mbp.add(this.m13);
+        this.mbp.add(this.m14);
+        this.mbp.add(this.m15server1);
+        this.mbp.add(this.m1server34);
+        this.mbp.add(this.m1server44);
+        this.mbp.add(this.m1server54);
+        this.mbp.add(this.m21);
+        this.mbp.add(this.m23);
+        this.mbp.add(this.m23server1);
+        this.mbp.add(this.m31);
+        this.mbp.add(this.m3server12);
+        this.mbp.add(this.m41);
+        this.mbp.add(this.m41server3);
+        this.mbp.add(this.m42);
+        this.mbp.add(this.m5server11);
+        this.mbp.add(this.m5server12);
     }
 
     @Test
@@ -113,13 +124,13 @@ public class MatchesByPatientTest
     {
         Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P1", false);
         Assert.assertEquals(7, matches.size());
-        Assert.assertTrue(matches.contains(this.m1_3));
-        Assert.assertTrue(matches.contains(this.m1_4));
-        Assert.assertTrue(matches.contains(this.m1_5server1));
-        Assert.assertTrue(matches.contains(this.m2_1));
-        Assert.assertTrue(matches.contains(this.m3_1));
-        Assert.assertTrue(matches.contains(this.m4_1));
-        Assert.assertTrue(matches.contains(this.m5server1_1));
+        Assert.assertTrue(matches.contains(this.m13));
+        Assert.assertTrue(matches.contains(this.m14));
+        Assert.assertTrue(matches.contains(this.m15server1));
+        Assert.assertTrue(matches.contains(this.m21));
+        Assert.assertTrue(matches.contains(this.m31));
+        Assert.assertTrue(matches.contains(this.m41));
+        Assert.assertTrue(matches.contains(this.m5server11));
     }
 
     @Test
@@ -127,12 +138,12 @@ public class MatchesByPatientTest
     {
         Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P2", false);
         Assert.assertEquals(6, matches.size());
-        Assert.assertTrue(matches.contains(this.m2_1));
-        Assert.assertTrue(matches.contains(this.m2_3));
-        Assert.assertTrue(matches.contains(this.m2_3server1));
-        Assert.assertTrue(matches.contains(this.m3server1_2));
-        Assert.assertTrue(matches.contains(this.m4_2));
-        Assert.assertTrue(matches.contains(this.m5server1_2));
+        Assert.assertTrue(matches.contains(this.m21));
+        Assert.assertTrue(matches.contains(this.m23));
+        Assert.assertTrue(matches.contains(this.m23server1));
+        Assert.assertTrue(matches.contains(this.m3server12));
+        Assert.assertTrue(matches.contains(this.m42));
+        Assert.assertTrue(matches.contains(this.m5server12));
     }
 
     @Test
@@ -140,9 +151,9 @@ public class MatchesByPatientTest
     {
         Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P3", false);
         Assert.assertEquals(3, matches.size());
-        Assert.assertTrue(matches.contains(this.m1_3));
-        Assert.assertTrue(matches.contains(this.m2_3));
-        Assert.assertTrue(matches.contains(this.m3_1));
+        Assert.assertTrue(matches.contains(this.m13));
+        Assert.assertTrue(matches.contains(this.m23));
+        Assert.assertTrue(matches.contains(this.m31));
     }
 
     @Test
@@ -150,32 +161,32 @@ public class MatchesByPatientTest
     {
         Collection<PatientMatch> matches = this.mbp.getMatchesForLocalPatientId("P4", false);
         Assert.assertEquals(7, matches.size());
-        Assert.assertTrue(matches.contains(this.m1_4));
-        Assert.assertTrue(matches.contains(this.m1server3_4));
-        Assert.assertTrue(matches.contains(this.m1server4_4));
-        Assert.assertTrue(matches.contains(this.m1server5_4));
-        Assert.assertTrue(matches.contains(this.m4_1));
-        Assert.assertTrue(matches.contains(this.m4_1server3));
-        Assert.assertTrue(matches.contains(this.m4_2));
+        Assert.assertTrue(matches.contains(this.m14));
+        Assert.assertTrue(matches.contains(this.m1server34));
+        Assert.assertTrue(matches.contains(this.m1server44));
+        Assert.assertTrue(matches.contains(this.m1server54));
+        Assert.assertTrue(matches.contains(this.m41));
+        Assert.assertTrue(matches.contains(this.m41server3));
+        Assert.assertTrue(matches.contains(this.m42));
     }
 
     @Test
     public void testContainsAndRemove()
     {
         Assert.assertEquals(this.mbp.size(), 16);
-        Assert.assertTrue(this.mbp.contains(this.m1_4));
-        this.mbp.remove(this.m1_4);
-        Assert.assertFalse(this.mbp.contains(this.m1_4));
+        Assert.assertTrue(this.mbp.contains(this.m14));
+        this.mbp.remove(this.m14);
+        Assert.assertFalse(this.mbp.contains(this.m14));
         Assert.assertEquals(this.mbp.size(), 15);
 
-        Assert.assertTrue(this.mbp.contains(this.m1server3_4));
-        this.mbp.remove(this.m1server3_4);
-        Assert.assertFalse(this.mbp.contains(this.m1server3_4));
+        Assert.assertTrue(this.mbp.contains(this.m1server34));
+        this.mbp.remove(this.m1server34);
+        Assert.assertFalse(this.mbp.contains(this.m1server34));
         Assert.assertEquals(this.mbp.size(), 14);
 
-        Assert.assertTrue(this.mbp.contains(this.m2_3server1));
-        this.mbp.remove(this.m2_3server1);
-        Assert.assertFalse(this.mbp.contains(this.m2_3server1));
+        Assert.assertTrue(this.mbp.contains(this.m23server1));
+        this.mbp.remove(this.m23server1);
+        Assert.assertFalse(this.mbp.contains(this.m23server1));
         Assert.assertEquals(this.mbp.size(), 13);
     }
 
@@ -184,35 +195,35 @@ public class MatchesByPatientTest
     {
         MatchesByPatient mbp2 = new MatchesByPatient();
         Assert.assertEquals(mbp2.size(), 0);
-        Assert.assertTrue(mbp2.add(this.m1_3));
+        Assert.assertTrue(mbp2.add(this.m13));
         Assert.assertEquals(mbp2.size(), 1);
-        Assert.assertFalse(mbp2.add(this.m1_3));
+        Assert.assertFalse(mbp2.add(this.m13));
         Assert.assertEquals(mbp2.size(), 1);
-        Assert.assertFalse(mbp2.add(this.m1_3));
+        Assert.assertFalse(mbp2.add(this.m13));
         Assert.assertEquals(mbp2.size(), 1);
 
-        Assert.assertTrue(mbp2.add(this.m2_3));
+        Assert.assertTrue(mbp2.add(this.m23));
         Assert.assertEquals(mbp2.size(), 2);
-        Assert.assertFalse(mbp2.add(this.m2_3));
+        Assert.assertFalse(mbp2.add(this.m23));
         Assert.assertEquals(mbp2.size(), 2);
-        Assert.assertFalse(mbp2.add(this.m2_3));
-        Assert.assertEquals(mbp2.size(), 2);
-
-        Assert.assertFalse(mbp2.add(this.m1_3));
+        Assert.assertFalse(mbp2.add(this.m23));
         Assert.assertEquals(mbp2.size(), 2);
 
-        Assert.assertTrue(mbp2.add(this.m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m13));
+        Assert.assertEquals(mbp2.size(), 2);
+
+        Assert.assertTrue(mbp2.add(this.m15server1));
         Assert.assertEquals(mbp2.size(), 3);
-        Assert.assertFalse(mbp2.add(this.m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m15server1));
         Assert.assertEquals(mbp2.size(), 3);
-        Assert.assertFalse(mbp2.add(this.m1_5server1));
+        Assert.assertFalse(mbp2.add(this.m15server1));
         Assert.assertEquals(mbp2.size(), 3);
 
-        Assert.assertTrue(mbp2.add(this.m1server4_4));
+        Assert.assertTrue(mbp2.add(this.m1server44));
         Assert.assertEquals(mbp2.size(), 4);
-        Assert.assertFalse(mbp2.add(this.m1server4_4));
+        Assert.assertFalse(mbp2.add(this.m1server44));
         Assert.assertEquals(mbp2.size(), 4);
-        Assert.assertFalse(mbp2.add(this.m1server4_4));
+        Assert.assertFalse(mbp2.add(this.m1server44));
         Assert.assertEquals(mbp2.size(), 4);
     }
 
@@ -225,23 +236,23 @@ public class MatchesByPatientTest
     @Test
     public void testIterator2()
     {
-        testIterator(new PatientMatch[] { this.m1_3 });
+        testIterator(new PatientMatch[] { this.m13 });
     }
 
     @Test
     public void testIterator3()
     {
-        testIterator(new PatientMatch[] { this.m1_3, this.m1_4, this.m1_5server1, this.m1server3_4, this.m1server4_4,
-            this.m1server5_4 });
+        testIterator(new PatientMatch[] { this.m13, this.m14, this.m15server1, this.m1server34, this.m1server44,
+            this.m1server54 });
     }
 
     @Test
     public void testIterator4()
     {
-        testIterator(new PatientMatch[] { this.m1_3, this.m1_4, this.m1_5server1, this.m1server3_4, this.m1server4_4,
-            this.m1server5_4, this.m2_1, this.m2_3,
-            this.m2_3server1, this.m3_1, this.m3server1_2, this.m4_1, this.m4_1server3, this.m4_2, this.m5server1_1,
-            this.m5server1_2 });
+        testIterator(new PatientMatch[] { this.m13, this.m14, this.m15server1, this.m1server34, this.m1server44,
+            this.m1server54, this.m21, this.m23,
+            this.m23server1, this.m31, this.m3server12, this.m41, this.m41server3, this.m42, this.m5server11,
+            this.m5server12 });
     }
 
     @Test
@@ -253,62 +264,62 @@ public class MatchesByPatientTest
     @Test
     public void testIterator6()
     {
-        testFilteredIterator(new PatientMatch[] { this.m1_3 });
+        testFilteredIterator(new PatientMatch[] { this.m13 });
     }
 
     @Test
-    public void testIterator6_5()
+    public void testIterator65()
     {
-        PatientMatch n1_2 = newMatch(1, "P1", null, "P2", null);
-        PatientMatch n1_3 = newMatch(2, "P1", null, "P3", null);
-        PatientMatch n2_1 = newMatch(3, "P2", null, "P1", null);
-        PatientMatch n2_3 = newMatch(4, "P2", null, "P3", null);
-        PatientMatch n3_1 = newMatch(5, "P3", null, "P1", null);
-        PatientMatch n3_2 = newMatch(6, "P3", null, "P2", null);
+        PatientMatch n12 = newMatch(1, "P1", null, "P2", null);
+        PatientMatch n13 = newMatch(2, "P1", null, "P3", null);
+        PatientMatch n21 = newMatch(3, "P2", null, "P1", null);
+        PatientMatch n23 = newMatch(4, "P2", null, "P3", null);
+        PatientMatch n31 = newMatch(5, "P3", null, "P1", null);
+        PatientMatch n32 = newMatch(6, "P3", null, "P2", null);
 
-        when(n1_2.isEquivalent(n1_2)).thenReturn(false);
-        when(n1_2.isEquivalent(n1_3)).thenReturn(false);
-        when(n1_2.isEquivalent(n2_1)).thenReturn(true);
-        when(n1_2.isEquivalent(n2_3)).thenReturn(false);
-        when(n1_2.isEquivalent(n3_1)).thenReturn(false);
-        when(n1_2.isEquivalent(n3_2)).thenReturn(false);
+        when(n12.isEquivalent(n12)).thenReturn(false);
+        when(n12.isEquivalent(n13)).thenReturn(false);
+        when(n12.isEquivalent(n21)).thenReturn(true);
+        when(n12.isEquivalent(n23)).thenReturn(false);
+        when(n12.isEquivalent(n31)).thenReturn(false);
+        when(n12.isEquivalent(n32)).thenReturn(false);
 
-        when(n1_3.isEquivalent(n1_2)).thenReturn(false);
-        when(n1_3.isEquivalent(n1_3)).thenReturn(false);
-        when(n1_3.isEquivalent(n2_1)).thenReturn(false);
-        when(n1_3.isEquivalent(n2_3)).thenReturn(false);
-        when(n1_3.isEquivalent(n3_1)).thenReturn(true);
-        when(n1_3.isEquivalent(n3_2)).thenReturn(false);
+        when(n13.isEquivalent(n12)).thenReturn(false);
+        when(n13.isEquivalent(n13)).thenReturn(false);
+        when(n13.isEquivalent(n21)).thenReturn(false);
+        when(n13.isEquivalent(n23)).thenReturn(false);
+        when(n13.isEquivalent(n31)).thenReturn(true);
+        when(n13.isEquivalent(n32)).thenReturn(false);
 
-        when(n2_1.isEquivalent(n1_2)).thenReturn(true);
-        when(n2_1.isEquivalent(n1_3)).thenReturn(false);
-        when(n2_1.isEquivalent(n2_1)).thenReturn(false);
-        when(n2_1.isEquivalent(n2_3)).thenReturn(false);
-        when(n2_1.isEquivalent(n3_1)).thenReturn(false);
-        when(n2_1.isEquivalent(n3_2)).thenReturn(false);
+        when(n21.isEquivalent(n12)).thenReturn(true);
+        when(n21.isEquivalent(n13)).thenReturn(false);
+        when(n21.isEquivalent(n21)).thenReturn(false);
+        when(n21.isEquivalent(n23)).thenReturn(false);
+        when(n21.isEquivalent(n31)).thenReturn(false);
+        when(n21.isEquivalent(n32)).thenReturn(false);
 
-        when(n2_3.isEquivalent(n1_2)).thenReturn(false);
-        when(n2_3.isEquivalent(n1_3)).thenReturn(false);
-        when(n2_3.isEquivalent(n2_1)).thenReturn(false);
-        when(n2_3.isEquivalent(n2_3)).thenReturn(false);
-        when(n2_3.isEquivalent(n3_1)).thenReturn(false);
-        when(n2_3.isEquivalent(n3_2)).thenReturn(true);
+        when(n23.isEquivalent(n12)).thenReturn(false);
+        when(n23.isEquivalent(n13)).thenReturn(false);
+        when(n23.isEquivalent(n21)).thenReturn(false);
+        when(n23.isEquivalent(n23)).thenReturn(false);
+        when(n23.isEquivalent(n31)).thenReturn(false);
+        when(n23.isEquivalent(n32)).thenReturn(true);
 
-        when(n3_1.isEquivalent(n1_2)).thenReturn(false);
-        when(n3_1.isEquivalent(n1_3)).thenReturn(true);
-        when(n3_1.isEquivalent(n2_1)).thenReturn(false);
-        when(n3_1.isEquivalent(n2_3)).thenReturn(false);
-        when(n3_1.isEquivalent(n3_1)).thenReturn(false);
-        when(n3_1.isEquivalent(n3_2)).thenReturn(false);
+        when(n31.isEquivalent(n12)).thenReturn(false);
+        when(n31.isEquivalent(n13)).thenReturn(true);
+        when(n31.isEquivalent(n21)).thenReturn(false);
+        when(n31.isEquivalent(n23)).thenReturn(false);
+        when(n31.isEquivalent(n31)).thenReturn(false);
+        when(n31.isEquivalent(n32)).thenReturn(false);
 
-        when(n3_2.isEquivalent(n1_2)).thenReturn(false);
-        when(n3_2.isEquivalent(n1_3)).thenReturn(false);
-        when(n3_2.isEquivalent(n2_1)).thenReturn(false);
-        when(n3_2.isEquivalent(n2_3)).thenReturn(true);
-        when(n3_2.isEquivalent(n3_1)).thenReturn(false);
-        when(n3_2.isEquivalent(n3_2)).thenReturn(false);
+        when(n32.isEquivalent(n12)).thenReturn(false);
+        when(n32.isEquivalent(n13)).thenReturn(false);
+        when(n32.isEquivalent(n21)).thenReturn(false);
+        when(n32.isEquivalent(n23)).thenReturn(true);
+        when(n32.isEquivalent(n31)).thenReturn(false);
+        when(n32.isEquivalent(n32)).thenReturn(false);
 
-        PatientMatch[] toAdd = new PatientMatch[] { n1_2, n1_3, n2_1, n2_3, n3_1, n3_2 };
+        PatientMatch[] toAdd = new PatientMatch[] { n12, n13, n21, n23, n31, n32 };
         testFilteredIterator(toAdd);
     }
 
@@ -316,12 +327,12 @@ public class MatchesByPatientTest
     public void testRemoveFromIterator1()
     {
         Iterator<PatientMatch> iter = this.mbp.iterator();
-        while (iter.hasNext() && !(iter.next().getId() == this.m1_4.getId())) {
+        while (iter.hasNext() && !(iter.next().getId() == this.m14.getId())) {
             // Just skipping to the right position
         }
         iter.remove();
-        Assert.assertFalse(this.mbp.contains(this.m1_4));
-        Assert.assertTrue(this.mbp.contains(this.m4_1));
+        Assert.assertFalse(this.mbp.contains(this.m14));
+        Assert.assertTrue(this.mbp.contains(this.m41));
         Assert.assertEquals(this.mbp.size(), 15);
 
         while (iter.hasNext()) {
@@ -336,9 +347,9 @@ public class MatchesByPatientTest
     public void testRemoveFromIterator2()
     {
         MatchesByPatient mbp2 = new MatchesByPatient();
-        mbp2.add(this.m1_3);
+        mbp2.add(this.m13);
         Collection<PatientMatch> matches1 = mbp2.getMatchesForLocalPatientId("P3", false);
-        Assert.assertTrue(matches1.contains(this.m1_3));
+        Assert.assertTrue(matches1.contains(this.m13));
 
         Iterator<PatientMatch> iter = mbp2.iterator();
         Assert.assertTrue(iter.hasNext());

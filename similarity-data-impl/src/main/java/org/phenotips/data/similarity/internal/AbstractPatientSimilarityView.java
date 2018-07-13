@@ -21,7 +21,7 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.vocabulary.VocabularyTerm;
@@ -52,7 +52,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 {
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientSimilarityView.class);
 
-    protected static PatientAccessHelper accessHelper;
+    protected static EntityAccessManager accessHelper;
 
     protected static UserManager userManager;
 
@@ -136,9 +136,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     }
 
     @Override
+    public DocumentReference getDocumentReference()
+    {
+        return this.match.getDocumentReference();
+    }
+
+    @Override
     public DocumentReference getDocument()
     {
-        return this.match.getDocument();
+        return this.match.getDocumentReference();
     }
 
     @Override

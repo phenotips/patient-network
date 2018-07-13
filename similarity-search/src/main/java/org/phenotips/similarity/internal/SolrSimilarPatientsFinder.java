@@ -17,7 +17,7 @@
  */
 package org.phenotips.similarity.internal;
 
-import org.phenotips.data.ConsentManager;
+import org.phenotips.consents.ConsentManager;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
@@ -153,7 +153,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private List<PatientSimilarityView> find(Patient referencePatient, String requiredConsentId, boolean prototypes)
     {
         this.logger.debug("Searching for patients similar to [{}] using access level {}",
-            referencePatient.getDocument(), this.accessLevelThreshold.getName());
+            referencePatient.getId(), this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
         if (query == null) {
             return Collections.emptyList();
@@ -252,12 +252,12 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
-        if (referencePatient.getDocument() != null) {
-            q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        if (referencePatient.getDocumentReference() != null) {
+            q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocumentReference().toString()));
         }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
-        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getDocument(),
+        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getId(),
             query.toString());
         return query;
     }

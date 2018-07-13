@@ -65,7 +65,7 @@ public interface PatientMatchEmail
      *        "contentType": type,
      *        "subject": text }
      *     </pre>
-     * format.
+     *     format.
      */
     JSONObject getEmail();
 }
