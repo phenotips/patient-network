@@ -94,7 +94,7 @@ public class ExomiserExomeManager implements ExomeManager, Initializable
     @Override
     public Exome getExome(Patient patient)
     {
-        if (patient.getDocument() == null) {
+        if (patient.getDocumentReference() == null) {
             // this must be a remote patient: such patients never have an exome
             return null;
         }

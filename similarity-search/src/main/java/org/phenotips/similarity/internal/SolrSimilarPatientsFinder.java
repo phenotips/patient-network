@@ -19,6 +19,7 @@ package org.phenotips.similarity.internal;
 
 import org.phenotips.consents.ConsentManager;
 import org.phenotips.data.Feature;
+import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
@@ -47,7 +48,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -247,7 +247,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
         }
 
-        PatientData<Map<String, String>> allGenes = referencePatient.getData("genes");
+        PatientData<Gene> allGenes = referencePatient.getData("genes");
         appendGenesToQuery(allGenes, q);
 
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
@@ -314,18 +314,18 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return termIds;
     }
 
-    private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
+    private void appendGenesToQuery(PatientData<Gene> allGenes, StringBuilder q)
     {
         Collection<String> genesToSearch = new ArrayList<>();
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
-            for (Map<String, String> gene : allGenes) {
-                String geneName = gene.get("gene");
+            for (Gene gene : allGenes) {
+                String geneName = gene.getName();
                 if (StringUtils.isBlank(geneName)) {
                     continue;
                 }
 
                 geneName = geneName.trim();
-                String status = gene.get("status");
+                String status = gene.getStatus();
                 // Treat empty status as candidate
                 if (StringUtils.isBlank(status) || "solved".equals(status) || "candidate".equals(status)) {
                     genesToSearch.add(geneName);

@@ -34,6 +34,7 @@ import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.UserManager;
 
@@ -508,5 +509,17 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     public XWikiDocument getXDocument()
     {
         return this.match.getXDocument();
+    }
+
+    @Override
+    public DocumentReference getDocumentReference()
+    {
+        return this.getDocument();
+    }
+
+    @Override
+    public DocumentReference getDocument()
+    {
+        return this.match.getDocumentReference();
     }
 }

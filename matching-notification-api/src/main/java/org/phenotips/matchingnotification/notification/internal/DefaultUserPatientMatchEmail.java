@@ -74,10 +74,10 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
      * @param customEmailSubject (optional) custom subject to be used for the email
      */
     public DefaultUserPatientMatchEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText, String customEmailSubject)
+        String customEmailText, String customEmailSubject)
     {
         super(subjectPatientId, subjectServerId, Collections.singletonList(match),
-                customEmailText, customEmailSubject);
+            customEmailText, customEmailSubject);
     }
 
     @Override
@@ -103,17 +103,17 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
     @Override
     protected Map<String, Object> createVelocityVariablesMap()
     {
-        // TODO: use the seme set of variables that DefaultAdminPatientMatchEmail uses
-        //       to be able to draw a nice HTML table with matches
+        // TODO: use the same set of variables that DefaultAdminPatientMatchEmail uses
+        // to be able to draw a nice HTML table with matches
         Map<String, Object> velocityVariables = new HashMap<>();
         velocityVariables.put("subjectPatient", this.subjectPatient);
         if (this.subjectPatient.getServerId() == null) {
             // current user may have no access to the other patient, so velocity can't be used
-            // to get the external URl of th eother patient
+            // to get the external URl of the other patient
             try {
                 XWikiContext context = CONTEXT_PROVIDER.get();
                 String linkURL = context.getWiki().getDocument(
-                        this.subjectPatient.getPatient().getDocument(), context).getExternalURL("view", context);
+                    this.subjectPatient.getPatient().getDocumentReference(), context).getExternalURL("view", context);
                 velocityVariables.put("subjectPatientLink", linkURL);
             } catch (Exception ex) {
                 velocityVariables.put("subjectPatientLink", this.subjectPatient.getPatient().getId());
@@ -144,7 +144,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
         try {
             Address userEmails = getUserEmails();
             if (userEmails != null) {
-                Address[] address = {userEmails};
+                Address[] address = { userEmails };
                 this.mimeMessage.setReplyTo(address);
             }
         } catch (Exception ex) {

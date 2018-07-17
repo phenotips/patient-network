@@ -25,6 +25,7 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
@@ -43,6 +44,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.users.UserManager;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,6 +85,10 @@ public class RestrictedPatientSimilarityViewFactoryTest
     @Rule
     public final MockitoComponentMockingRule<PatientSimilarityViewFactory> mocker =
         new MockitoComponentMockingRule<PatientSimilarityViewFactory>(RestrictedPatientSimilarityViewFactory.class);
+
+    private EntityAccessManager helper;
+
+    private UserManager um;
 
     /** Basic tests for makeSimilarPatient. */
     @Test
@@ -167,7 +173,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
         Assert.assertSame(mockReference, result.getReference());
-        Assert.assertEquals(PATIENT_1, result.getDocumentReference());
+        Assert.assertNull(result.getDocumentReference());
         Assert.assertEquals(4, result.getFeatures().size());
         Assert.assertEquals(2, result.getDisorders().size());
     }
@@ -196,6 +202,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
         when(mockProvider.get()).thenReturn(componentManager);
 
+        this.helper = this.mocker.registerMockComponent(EntityAccessManager.class);
+        this.um = this.mocker.registerMockComponent(UserManager.class);
         CacheManager cacheManager = this.mocker.registerMockComponent(CacheManager.class);
 
         CacheFactory cacheFactory = mock(CacheFactory.class);

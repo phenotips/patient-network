@@ -27,7 +27,7 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.60</coverage.instructionRatio>
+    <coverage.instructionRatio>0.59</coverage.instructionRatio>
   </properties>
 
   <artifactId>patient-similarity-data-impl</artifactId>
@@ -71,6 +71,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-contacts</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>patient-data-default-impl</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -133,7 +138,6 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
-      <version>3.0.1u2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

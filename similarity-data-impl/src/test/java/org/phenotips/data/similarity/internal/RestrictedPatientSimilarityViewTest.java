@@ -22,9 +22,11 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.Gene;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.internal.PhenoTipsGene;
 import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
@@ -59,6 +61,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,7 +203,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertNull(o.getDocument());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The document is not disclosed for private patients. */
@@ -211,7 +214,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertNull(o.getDocument());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The reporter is disclosed for public patients. */
@@ -475,20 +478,16 @@ public class RestrictedPatientSimilarityViewTest
      */
     private void setPatientCandidateGenes(Patient mockPatient, Collection<String> geneNames)
     {
-        List<Map<String, String>> fakeGenes = new ArrayList<>();
+        List<Gene> fakeGenes = new LinkedList<>();
 
         if (geneNames != null) {
             for (String gene : geneNames) {
-                Map<String, String> fakeGene = new HashMap<>();
-                fakeGene.put("gene", gene);
-                fakeGene.put("status", "solved");
+                Gene fakeGene = new PhenoTipsGene("", gene, "solved", null, null);
                 fakeGenes.add(fakeGene);
             }
         }
 
-        PatientData<Map<String, String>> fakeGeneData =
-            new IndexedPatientData<>("genes", fakeGenes);
-
+        PatientData<Gene> fakeGeneData = new IndexedPatientData<>("genes", fakeGenes);
         doReturn(fakeGeneData).when(mockPatient).getData("genes");
     }
 

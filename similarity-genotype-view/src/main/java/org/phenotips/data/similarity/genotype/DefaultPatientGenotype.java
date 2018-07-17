@@ -18,6 +18,7 @@
 package org.phenotips.data.similarity.genotype;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.similarity.Exome;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -113,18 +113,18 @@ public class DefaultPatientGenotype extends AbstractExome implements PatientGeno
      */
     private Set<String> getManualGeneNames(Patient patient)
     {
-        PatientData<Map<String, String>> allGenes = patient.getData("genes");
+        PatientData<Gene> allGenes = patient.getData("genes");
         if (allGenes != null && allGenes.isIndexed()) {
             Set<String> geneCandidateNames = new HashSet<>();
             Set<String> geneSolvedNames = new HashSet<>();
-            for (Map<String, String> gene : allGenes) {
-                String geneName = StringUtils.trim(gene.get("gene"));
+            for (Gene gene : allGenes) {
+                String geneName = StringUtils.trim(gene.getName());
                 if (StringUtils.isBlank(geneName)) {
                     continue;
                 }
 
                 geneName = getGeneSymbol(geneName);
-                String status = gene.get("status");
+                String status = gene.getStatus();
                 if (StringUtils.isBlank(status) || STATUS_CANDIDATE.equals(status)) {
                     geneCandidateNames.add(geneName);
                 } else if (STATUS_SOLVED.equals(status)) {
