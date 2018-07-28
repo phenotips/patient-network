@@ -67,6 +67,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /** Computes the real access level for a patient. */
     @Inject
+    @Named("secure")
     protected EntityPermissionsManager permissions;
 
     /** Needed by {@link DefaultAccessType} for checking if a given access level provides read access to patients. */

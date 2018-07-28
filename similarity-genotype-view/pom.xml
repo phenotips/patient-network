@@ -27,7 +27,7 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.33</coverage.instructionRatio>
+    <coverage.instructionRatio>0.00</coverage.instructionRatio>
   </properties>
 
   <artifactId>similarity-genotype-view</artifactId>

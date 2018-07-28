@@ -319,7 +319,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         Collection<String> genesToSearch = new ArrayList<>();
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
             for (Gene gene : allGenes) {
-                String geneName = gene.getName();
+                String geneName = gene.getId();
                 if (StringUtils.isBlank(geneName)) {
                     continue;
                 }

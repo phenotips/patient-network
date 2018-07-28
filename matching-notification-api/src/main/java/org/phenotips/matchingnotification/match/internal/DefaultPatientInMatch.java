@@ -128,7 +128,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
-            pm = ccm.getInstance(EntityPermissionsManager.class);
+            pm = ccm.getInstance(EntityPermissionsManager.class, "secure");
             pa = ccm.getInstance(EntityAccessManager.class);
             um = ccm.getInstance(UserManager.class);
             gm = ccm.getInstance(GroupManager.class);
@@ -474,20 +474,24 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private void setAccess()
     {
-        if (!this.isLocal() || this.patient == null) {
-            //
-            // FIXME: this is wrong, while server code has "view" access to the in-memory
-            // copy of the remote patient, from the UI's point of view current user
-            // does NOT have access to the patient. So need to investigate why this
-            // fix was needed and do a proper fix. Maybe we no longer need this after
-            // match obfuscation was removed.
+        try {
+            if (!this.isLocal() || this.patient == null) {
+                //
+                // FIXME: this is wrong, while server code has "view" access to the in-memory
+                // copy of the remote patient, from the UI's point of view current user
+                // does NOT have access to the patient. So need to investigate why this
+                // fix was needed and do a proper fix. Maybe we no longer need this after
+                // match obfuscation was removed.
 
-            // Remote patient, assume we have access
-            this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
-        } else if (this.patient instanceof PatientSimilarityView) {
-            this.access = ((PatientSimilarityView) this.patient).getAccess();
-        } else {
-            this.access = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getAccessLevel();
+                // Remote patient, assume we have access
+                this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
+            } else if (this.patient instanceof PatientSimilarityView) {
+                this.access = ((PatientSimilarityView) this.patient).getAccess();
+            } else {
+                this.access = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getAccessLevel();
+            }
+        } catch (Exception e) {
+            this.access = PERMISSIONS_MANAGER.resolveAccessLevel("none");
         }
     }
 
@@ -496,22 +500,26 @@ public class DefaultPatientInMatch implements PatientInMatch
      */
     private boolean isUserOwner()
     {
-        if (this.patient == null) {
-            return false;
-        }
-        User currentUser = USER_MANAGER.getCurrentUser();
-        DocumentReference userRef = currentUser.getProfileDocument();
-        EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
-        if (userRef.equals(ownerRef)) {
-            return true;
-        }
-        Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
-        for (Group group : userGroups) {
-            DocumentReference groupRef = group.getReference();
-            if (groupRef.equals(ownerRef)) {
+        try {
+            if (this.patient == null) {
+                return false;
+            }
+            User currentUser = USER_MANAGER.getCurrentUser();
+            DocumentReference userRef = currentUser.getProfileDocument();
+            EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
+            if (userRef.equals(ownerRef)) {
                 return true;
             }
+            Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
+            for (Group group : userGroups) {
+                DocumentReference groupRef = group.getReference();
+                if (groupRef.equals(ownerRef)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 }

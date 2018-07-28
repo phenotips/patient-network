@@ -101,7 +101,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_1);
 
-        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class);
+        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class, "secure");
         EntityAccess pa = mock(EntityAccess.class);
         when(pm.getEntityAccess(mockMatch)).thenReturn(pa);
         when(pa.getAccessLevel()).thenReturn(this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view"));
@@ -123,7 +123,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_2);
 
-        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class);
+        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class, "secure");
         EntityAccess pa = mock(EntityAccess.class);
         when(pm.getEntityAccess(mockMatch)).thenReturn(pa);
         AccessLevel match = this.mocker.getInstance(AccessLevel.class, "match");

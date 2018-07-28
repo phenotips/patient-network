@@ -514,9 +514,15 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     @Override
     public DocumentReference getDocumentReference()
     {
-        return this.getDocument();
+        return this.match.getDocumentReference();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated use {@link #getDocumentReference()} instead
+     */
+    @Deprecated
     @Override
     public DocumentReference getDocument()
     {

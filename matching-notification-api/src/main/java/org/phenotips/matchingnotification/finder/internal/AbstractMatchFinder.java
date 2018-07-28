@@ -91,6 +91,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
     private PatientRepository patientRepository;
 
     @Inject
+    @Named("secure")
     private EntityPermissionsManager permissionsManager;
 
     @Inject

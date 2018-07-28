@@ -54,6 +54,7 @@ public class ExomiserViewScriptService implements ScriptService
     private static final int MAXIMUM_UNPRIVILEGED_VARIANTS = 5;
 
     @Inject
+    @Named("secure")
     private EntityPermissionsManager pm;
 
     @Inject
