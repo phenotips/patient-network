@@ -171,6 +171,15 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
                         patientId, refPatientID);
                 }
+
+                // if the same un-notified match already exists, we have to keep the original date the match was found
+                List<PatientMatch> sameExistingMatches = this.loadMatchesBetweenPatients(match.getReferencePatientId(),
+                    match.getReferenceServerId(), match.getMatchedPatientId(), match.getMatchedServerId());
+                for (PatientMatch existingMatch : sameExistingMatches) {
+                    if (!existingMatch.isNotified()) {
+                        match.setFoundTimestamp(existingMatch.getFoundTimestamp());
+                    }
+                }
             }
 
             for (String ptId : refPatients) {
