@@ -99,7 +99,40 @@ var PhenoTips = (function (PhenoTips) {
             this._showMatches();
         }
 
+        // defines sorting order for UI column sorting elements events listeners,
+        // values: 1 if descending, -1 if ascending
+        this._scoreSortingOrder = 1;
+        this._genotypicScoreSortingOrder = 1;
+        this._phenotypicScoreSortingOrder = 1;
+        this._foundTimestampSortingOrder = 1;
+        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'score');}.bind(this));
+        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'genotypicScore');}.bind(this));
+        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'phenotypicScore');}.bind(this));
+        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'foundTimestamp');}.bind(this));
+
         Event.observe(window, 'resize', this._buildTable.bind(this));
+    },
+
+    _sortByColumn : function(element, propName) {
+    	var orderPropName = "_" + propName + "SortingOrder";
+    	this[orderPropName] = this[orderPropName] * -1;
+    	var el = (element && element.down('.fa')) ? element.down('.fa') : element;
+    	if (el) {
+    		if (el.hasClassName('fa-sort')) {
+    			el.removeClassName('fa-sort');
+    			(this[orderPropName] == -1) && el.addClassName('fa-sort-down');
+    			(this[orderPropName] == 1) && el.addClassName('fa-sort-up');
+    		} else {
+    		    el.toggleClassName('fa-sort-up');
+    		    el.toggleClassName('fa-sort-down');
+    		}
+    	}
+        this._cachedMatches.sort( function(a, b) {
+            if(a[propName] < b[propName]) return -1 * this[orderPropName];
+            if(a[propName] > b[propName]) return 1 * this[orderPropName];
+            return 0;
+        }.bind(this));
+        this._update();
     },
 
     validateScore : function(score, className, messagesFieldName, applyMinScore) {
@@ -153,7 +186,7 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[name="status-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.matchStatus[event.currentTarget.value] = event.currentTarget.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
@@ -166,7 +199,7 @@ var PhenoTips = (function (PhenoTips) {
 
         $('gene-status-filter').on('change', function(event) {
             this._filterValues.geneStatus = event.currentTarget.value;
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $$('input[name="access-filter"]').each(function (checkbox) {
@@ -178,14 +211,14 @@ var PhenoTips = (function (PhenoTips) {
                     this._filterValues.matchAccess["manage"] = event.currentTarget.checked;
                     this._filterValues.matchAccess["view"]   = event.currentTarget.checked;
                 }
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $$('input[name="notified-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.notified[event.currentTarget.value] = event.currentTarget.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
@@ -201,35 +234,35 @@ var PhenoTips = (function (PhenoTips) {
                     return;
                 }
                 this._filterValues.score[event.currentTarget.name] = event.currentTarget.value;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.serverIds[checkbox.value] = checkbox.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $('external-id-filter').on('input', function(event) {
             this._filterValues.externalId = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('email-filter').on('input', function(event) {
             this._filterValues.email = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('gene-symbol-filter').on('input', function(event) {
             this._filterValues.geneSymbol = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('phenotype-filter').on('input', function(event) {
             this._filterValues.phenotype = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('global-search-input').on('input', function(event) {
@@ -375,7 +408,7 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this),
             onComplete : function () {
                 $("panels-livetable-ajax-loader").hide();
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this)
         });
     },
@@ -516,6 +549,9 @@ var PhenoTips = (function (PhenoTips) {
 
             this._organiseGenes(match);
         }.bind(this));
+
+        // sort by match found timestamp in descending order
+        this._sortByColumn(false, 'foundTimestamp');
     },
 
     _organiseModeOfInheritance : function(match) {
