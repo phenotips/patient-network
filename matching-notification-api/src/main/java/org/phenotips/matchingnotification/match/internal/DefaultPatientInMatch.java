@@ -201,7 +201,12 @@ public class DefaultPatientInMatch implements PatientInMatch
                 json.put("access", this.access.getName());
             }
         }
-        json.put("isOwner", isUserOwner());
+
+        JSONObject ownershipDetails = this.getOwnership();
+        json.put("ownership", ownershipDetails);
+
+        json.put("isOwner",
+            ownershipDetails.getBoolean("userIsOwner") || ownershipDetails.getBoolean("userGroupIsOwner"));
 
         // Merge in all items from details column
         JSONObject detailsColumn = this.getDetailsColumnJSON();
@@ -499,28 +504,39 @@ public class DefaultPatientInMatch implements PatientInMatch
     /**
      * Checks if current user or one of his groups is owner of one patient.
      */
-    private boolean isUserOwner()
+    private JSONObject getOwnership()
     {
-        try {
-            if (this.patient == null) {
-                return false;
-            }
+        boolean userIsOwner = false;
+        boolean userGroupIsOwner = false;
+        boolean isPublic = false;
+
+        if (this.patient != null) {
             User currentUser = USER_MANAGER.getCurrentUser();
             DocumentReference userRef = currentUser.getProfileDocument();
             EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
             if (userRef.equals(ownerRef)) {
-                return true;
-            }
-            Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
-            for (Group group : userGroups) {
-                DocumentReference groupRef = group.getReference();
-                if (groupRef.equals(ownerRef)) {
-                    return true;
+                userIsOwner = true;
+            } else {
+                Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
+                for (Group group : userGroups) {
+                    DocumentReference groupRef = group.getReference();
+                    if (groupRef.equals(ownerRef)) {
+                        userGroupIsOwner = true;
+                    }
                 }
             }
-            return false;
-        } catch (Exception e) {
-            return false;
+
+            // check open/public status
+            String visibility = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getVisibility().getName();
+            if ("open".equals(visibility) || "public".equals(visibility)) {
+                isPublic = true;
+            }
         }
+
+        JSONObject ownershipJSON = new JSONObject();
+        ownershipJSON.put("userIsOwner", userIsOwner);
+        ownershipJSON.put("userGroupIsOwner", userGroupIsOwner);
+        ownershipJSON.put("publicRecord", isPublic);
+        return ownershipJSON;
     }
 }
