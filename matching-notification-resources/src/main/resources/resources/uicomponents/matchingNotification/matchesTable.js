@@ -275,10 +275,16 @@ var PhenoTips = (function (PhenoTips) {
             var hasGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
-            var hasOwnershipMatch = (this._filterValues.ownerStatus["me"] && (match.reference.ownership.userIsOwner || match.matched.ownership.userIsOwner))
-                                    || (this._filterValues.ownerStatus["group"] && (match.reference.ownership.userGroupIsOwner || match.matched.ownership.userGroupIsOwner))
-                                    || (this._filterValues.ownerStatus["public"] && (match.reference.ownership.publicRecord || match.matched.ownership.publicRecord))
-                                    || this._filterValues.ownerStatus["others"];
+
+            var recordOwnershipMatch = function(record) {
+                                         return (this._filterValues.ownerStatus["me"] && record.ownership.userIsOwner)
+                                             || (this._filterValues.ownerStatus["group"] && record.ownership.userGroupIsOwner)
+                                             || (this._filterValues.ownerStatus["public"] && record.ownership.publicRecord)
+                                       };
+            var referenceRecordMatch = match.reference.serverid == "local" && recordOwnershipMatch(match.reference);
+            var matchedRecordMatch = match.matched.serverid == "local" && recordOwnershipMatch(match.matched);
+            var hasOwnershipMatch = referenceRecordMatch || matchedRecordMatch || this._filterValues.ownerStatus["others"];
+
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
             var hasScoreMatch = match.score >= this._filterValues.score.score
