@@ -550,6 +550,9 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseGenes(match);
         }.bind(this));
 
+        // leave only uniq server ids in the array, remove duplicates
+        this._presentServerIds = this._presentServerIds.uniq();
+
         // sort by match found timestamp in descending order
         this._sortByColumn(false, 'foundTimestamp');
     },
