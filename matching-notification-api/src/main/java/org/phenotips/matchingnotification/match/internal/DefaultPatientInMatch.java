@@ -41,6 +41,7 @@ import org.phenotips.vocabulary.VocabularyTerm;
 import org.phenotips.vocabulary.internal.solr.SolrVocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.User;
@@ -55,18 +56,32 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Provider;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+
 /**
  * @version $Id$
  */
 public class DefaultPatientInMatch implements PatientInMatch
 {
+    /** The XClass used for defining groups in XWiki. */
+    private static final EntityReference GROUP_CLASS_REFERENCE = new EntityReference("XWikiGroups",
+        EntityType.DOCUMENT, new EntityReference(XWiki.SYSTEM_SPACE, EntityType.SPACE));
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientInMatch.class);
+
+    private static final Provider<XWikiContext> CONTEXT_PROVIDER;
 
     private static final PatientMatchNotifier NOTIFIER;
 
@@ -122,6 +137,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientAccessHelper pa = null;
         UserManager um = null;
         GroupManager gm = null;
+        Provider<XWikiContext> contextProvider = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             notifier = ccm.getInstance(PatientMatchNotifier.class);
@@ -132,6 +148,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             pa = ccm.getInstance(PatientAccessHelper.class);
             um = ccm.getInstance(UserManager.class);
             gm = ccm.getInstance(GroupManager.class);
+            contextProvider = ccm.getInstance(XWikiContext.TYPE_PROVIDER);
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -143,6 +160,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         ACCESS_HELPER = pa;
         USER_MANAGER = um;
         GROUP_MANAGER = gm;
+        CONTEXT_PROVIDER = contextProvider;
     }
 
     /**
@@ -200,7 +218,7 @@ public class DefaultPatientInMatch implements PatientInMatch
                 json.put("access", this.access.getName());
             }
         }
-        json.put("isOwner", isUserOwner());
+        json.put("isOwnerOrGroupManager", isUserOwnerOrGroupManager());
 
         // Merge in all items from details column
         JSONObject detailsColumn = this.getDetailsColumnJSON();
@@ -492,9 +510,9 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /**
-     * Checks if current user or one of his groups is owner of one patient.
+     * Checks if current user or one of his groups is owner of one patient or the manager of one of users groups.
      */
-    private boolean isUserOwner()
+    private boolean isUserOwnerOrGroupManager()
     {
         if (this.patient == null) {
             return false;
@@ -505,11 +523,33 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (userRef.equals(ownerRef)) {
             return true;
         }
+
         Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
+        XWikiContext context = CONTEXT_PROVIDER.get();
         for (Group group : userGroups) {
             DocumentReference groupRef = group.getReference();
             if (groupRef.equals(ownerRef)) {
                 return true;
+            }
+
+            try {
+                Group managersGroup = GROUP_MANAGER.getGroup(groupRef.toString() + " Administrators");
+                XWikiDocument document = context.getWiki().getDocument(managersGroup.getReference(), context);
+                List<BaseObject> objects = document.getXObjects(GROUP_CLASS_REFERENCE);
+                if (CollectionUtils.isEmpty(objects)) {
+                    continue;
+                }
+
+                for (BaseObject obj : objects) {
+                    if (obj == null) {
+                        continue;
+                    }
+                    if (ownerRef.toString().equals(obj.getStringValue("member"))) {
+                        return true;
+                    }
+                }
+            } catch (Exception ex) {
+                // do nothing
             }
         }
         return false;

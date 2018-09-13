@@ -636,10 +636,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner, record.reference.pubmedId);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.pubmedId);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner, record.matched.pubmedId);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.pubmedId);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -804,7 +804,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner, pubmedID)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, pubmedID)
     {
         var td = '<td name="' + cellName + '">';
         // if case is solved and has a Pubmed ID - display a link to it onstead of emails
@@ -844,11 +844,12 @@ var PhenoTips = (function (PhenoTips) {
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center" name="contacted">';
-        if (!this._isAdmin && (record.matched.isOwner || record.reference.isOwner) && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
+        if (!this._isAdmin && (record.matched.isOwnerOrGroupManager || record.reference.isOwnerOrGroupManager) 
+                           && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
             var matchId = record.id[0] ? record.id[0] : record.id;
-            var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
-            var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
-            var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
+            var patientID = (record.matched.isOwnerOrGroupManager) ? record.reference.patientId : record.matched.patientId;
+            var serverId = (record.matched.isOwnerOrGroupManager) ? record.reference.serverId : record.matched.serverId;
+            var validatedEmails = (record.matched.isOwnerOrGroupManager) ? record.reference.validatedEmails : record.matched.validatedEmails;
             if (validatedEmails.length > 0) {
                 if (record.notified == false) {
                     td += '<a class="contact-button" data-matchid="'
