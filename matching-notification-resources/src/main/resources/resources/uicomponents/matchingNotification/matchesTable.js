@@ -135,6 +135,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues = {};
         this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
         this._filterValues.matchStatus = {"rejected" : true, "saved" : true, "uncategorized" : true};
+        this._filterValues.ownerStatus = {"me" : true, "group" : true, "public" : false, "others": false};
         this._filterValues.notified  = {"notified" : $$('input[name="notified-filter"][value="notified"]')[0].checked,
                                         "unnotified" : $$('input[name="notified-filter"][value="unnotified"]')[0].checked};
         this._filterValues.score  = {"score" : 0, "phenotypicScore" : 0, "genotypicScore" : 0};
@@ -152,6 +153,13 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[name="status-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.matchStatus[event.currentTarget.value] = event.currentTarget.checked;
+                this._update(this._advancedFilter);
+            }.bind(this));
+        }.bind(this));
+
+        $$('input[name="ownership-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.ownerStatus[event.currentTarget.value] = event.currentTarget.checked;
                 this._update(this._advancedFilter);
             }.bind(this));
         }.bind(this));
@@ -267,12 +275,28 @@ var PhenoTips = (function (PhenoTips) {
             var hasGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
+
+            var recordOwnershipMatch = function(record) {
+                                         return (this._filterValues.ownerStatus["me"] && record.ownership.userIsOwner)
+                                             || (this._filterValues.ownerStatus["group"] && record.ownership.userGroupIsOwner)
+                                             || (this._filterValues.ownerStatus["public"] && record.ownership.publicRecord)
+                                       }.bind(this);
+            var recordOwnershipOther = function(record) {
+                                         return this._filterValues.ownerStatus["me"]
+                                                || this._filterValues.ownerStatus["group"]
+                                                || this._filterValues.ownerStatus["public"]
+                                       }.bind(this);
+            var referenceRecordMatch = match.reference.serverId == "" && recordOwnershipMatch(match.reference);
+            var matchedRecordMatch = match.matched.serverId == "" && recordOwnershipMatch(match.matched);
+            var hasOwnershipMatch = referenceRecordMatch || matchedRecordMatch
+                                    || (recordOwnershipOther && this._filterValues.ownerStatus["others"]);
+
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
                              && match.genotypicScore >= this._filterValues.score.genotypicScore;
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch
                        && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },

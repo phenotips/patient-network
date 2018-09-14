@@ -134,6 +134,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
               &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.ownershipFilter'))&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="me" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_me'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="group" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_group'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="public" &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_public'))&lt;/label&gt;
+                &lt;label #if(!$hasAdmin)class="hidden"#end&gt;&lt;input name="ownership-filter" type="checkbox" value="others" &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_other'))&lt;/label&gt;
+              &lt;/li&gt;
               &lt;li #if(!$hasAdmin)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
                 &lt;select id="gene-status-filter"&gt;
                   &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
