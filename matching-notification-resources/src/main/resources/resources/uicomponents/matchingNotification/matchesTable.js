@@ -280,10 +280,17 @@ var PhenoTips = (function (PhenoTips) {
                                          return (this._filterValues.ownerStatus["me"] && record.ownership.userIsOwner)
                                              || (this._filterValues.ownerStatus["group"] && record.ownership.userGroupIsOwner)
                                              || (this._filterValues.ownerStatus["public"] && record.ownership.publicRecord)
-                                       };
-            var referenceRecordMatch = match.reference.serverid == "local" && recordOwnershipMatch(match.reference);
-            var matchedRecordMatch = match.matched.serverid == "local" && recordOwnershipMatch(match.matched);
-            var hasOwnershipMatch = referenceRecordMatch || matchedRecordMatch || this._filterValues.ownerStatus["others"];
+                                       }.bind(this);
+            var recordOwnershipOther = function(record) {
+                                         return record.serverId == ""
+                                                && !record.ownership.userIsOwner
+                                                && !record.ownership.userGroupIsOwner
+                                                && !record.ownership.publicRecord
+                                       }.bind(this);
+            var referenceRecordMatch = match.reference.serverId == "" && recordOwnershipMatch(match.reference);
+            var matchedRecordMatch = match.matched.serverId == "" && recordOwnershipMatch(match.matched);
+            var hasOwnershipMatch = referenceRecordMatch || matchedRecordMatch
+                                    || ((recordOwnershipOther(match.reference) || recordOwnershipOther(match.matched)) && this._filterValues.ownerStatus["others"]);
 
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
