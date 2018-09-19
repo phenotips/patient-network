@@ -116,7 +116,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     /** A query used to get the number of all remote matches. */
     private static final String HQL_QUERY_REMOTE_MATCHES =
-        "select count(*) from DefaultPatientMatch as m where m.referenceServerId = '' or m.matchedServerId =''";
+        "select count(*) from DefaultPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
 
     /** Handles persistence. */
     @Inject
@@ -573,5 +573,20 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         for (PatientMatch match : matches) {
             session.save(match);
         }
+    }
+
+    @Override
+    public Long getNumberOfRemoteMatches()
+    {
+        Session session = this.beginTransaction();
+        try {
+            Query query = session.createQuery(HQL_QUERY_REMOTE_MATCHES);
+            return (Long) query.uniqueResult();
+        } catch (Exception ex) {
+            this.logger.error("Error geting remote matches: [{}]", ex.getMessage(), ex);
+        } finally {
+            session.close();
+        }
+        return null;
     }
 }

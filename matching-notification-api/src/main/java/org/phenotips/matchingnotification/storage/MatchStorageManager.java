@@ -61,7 +61,7 @@ public interface MatchStorageManager
      * @return list of matches
      */
     List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
-            String patientId2, String serverId2);
+        String patientId2, String serverId2);
 
     /**
      * Marks all matches in {@code matches} as notified.
@@ -123,4 +123,12 @@ public interface MatchStorageManager
      */
     boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId, String serverId,
         boolean isIncoming);
+
+    /**
+     * Calculates the number of matches that were found by all remote outgoing/incoming requests where at least one
+     *  patient in the match is remote.
+     *
+     * @return the total number of remote matches in matches database
+     */
+    Long getNumberOfRemoteMatches();
 }
