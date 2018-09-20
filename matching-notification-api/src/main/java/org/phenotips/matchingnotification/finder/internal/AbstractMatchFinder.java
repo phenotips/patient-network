@@ -38,7 +38,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -81,7 +80,12 @@ public abstract class AbstractMatchFinder implements MatchFinder
     @Inject
     protected MatchStorageManager matchStorageManager;
 
-    protected enum MatchRunStatus { NOT_RUN, OK, ERROR };
+    protected enum MatchRunStatus
+    {
+        NOT_RUN,
+        OK,
+        ERROR
+    };
 
     @Inject
     private Provider<XWikiContext> provider;
@@ -101,11 +105,10 @@ public abstract class AbstractMatchFinder implements MatchFinder
     protected abstract Set<String> getSupportedServerIdList();
 
     protected abstract MatchRunStatus specificFindMatches(Patient patient, String serverId,
-            List<PatientMatch> matchesList);
+        List<PatientMatch> matchesList);
 
     @Override
-    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds,
-            boolean onlyUpdatedAfterLastRun)
+    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds)
     {
         List<PatientMatch> patientMatches = new LinkedList<>();
 
@@ -125,8 +128,14 @@ public abstract class AbstractMatchFinder implements MatchFinder
                 long totalRunTime = 0;
 
                 for (String patientId : patientIds) {
-                    Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
+                    Patient patient = this.patientRepository.get(patientId);
                     if (patient == null) {
+                        continue;
+                    }
+
+                    // exclude patients with any visibility less than "matchable"
+                    Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
+                    if (patientVisibility.compareTo(this.matchableVisibility) < 0) {
                         continue;
                     }
 
@@ -147,30 +156,13 @@ public abstract class AbstractMatchFinder implements MatchFinder
                 }
 
                 this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches,
-                        numErrors, totalMatchesFound, totalRunTime);
+                    numErrors, totalMatchesFound, totalRunTime);
             } catch (Exception ex) {
                 this.logger.error("Error finding matches using server [{}]: [{}]", serverId, ex.getMessage(), ex);
             }
         }
 
         return patientMatches;
-    }
-
-    /*
-     * TODO: possibly make this "public" to be able to query which patients will be updated when the matcher
-     *       is run before actually running it. But need to rework when `previousStartedTime` is obtained for that
-     */
-    protected boolean isPatientUpdatedAfterGivenTime(Patient patient, Date time)
-    {
-        if (time != null) {
-            PatientData<String> patientData = patient.<String>getData("metadata");
-            DateTime lastModificationDate = this.dateFormatter.parseDateTime(patientData.get("date"));
-
-            if (lastModificationDate.isBefore(new DateTime(time))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     protected boolean patientIsSolved(Patient patient)
@@ -180,29 +172,6 @@ public abstract class AbstractMatchFinder implements MatchFinder
             return "1".equals(data.get("solved"));
         }
         return false;
-    }
-
-    protected Patient getPatientIfShouldBeUsed(String patientId, boolean onlyUpdatedAfterLastRun, Date lastRunTime)
-    {
-        Patient patient = this.patientRepository.get(patientId);
-        if (patient == null) {
-            return null;
-        }
-
-        Visibility patientVisibility = this.permissionsManager.getPatientAccess(patient).getVisibility();
-        if (patientVisibility.compareTo(this.matchableVisibility) < 0) {
-            return null;
-        }
-
-        if (onlyUpdatedAfterLastRun && this.isPatientUpdatedAfterGivenTime(patient, lastRunTime)) {
-            return null;
-        }
-
-        if (this.patientIsSolved(patient)) {
-            return null;
-        }
-
-        return patient;
     }
 
     protected Date recordStartMatchesSearch(String serverId)
@@ -216,12 +185,12 @@ public abstract class AbstractMatchFinder implements MatchFinder
     }
 
     protected void recordEndMatchesSearch(String serverId, int numPatientsTestedForMatches,
-            int numErrors, int totalMatchesFound, long totalRunTime)
+        int numErrors, int totalMatchesFound, long totalRunTime)
     {
         this.logger.error("Finished running [{}] match finder", serverId);
 
         this.recordMatchFinderStatus(serverId, RUN_INFO_DOCUMENT_ENDTIME, numPatientsTestedForMatches,
-                numErrors, totalMatchesFound, totalRunTime);
+            numErrors, totalMatchesFound, totalRunTime);
     }
 
     /*
@@ -231,7 +200,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
      * @return the start time of the previous run of the same matcher for the same server
      */
     private Date recordMatchFinderStatus(String serverId, String timePropertyName, int numPatientsTestedForMatches,
-            int numErrors, int totalMatchesFound, long totalRunTime)
+        int numErrors, int totalMatchesFound, long totalRunTime)
     {
         try {
             XWikiDocument runInfoDoc = getMatchingRunInfoDoc();
@@ -244,7 +213,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
             Date previousRunStartedTime = null;
 
             BaseObject object = runInfoDoc.getXObject(MATCHING_RUN_INFO_CLASS, RUN_INFO_DOCUMENT_SERVERNAME,
-                    serverId, false);
+                serverId, false);
             if (object == null) {
                 object = runInfoDoc.newXObject(MATCHING_RUN_INFO_CLASS, context);
                 object.setStringValue(RUN_INFO_DOCUMENT_SERVERNAME, serverId);
@@ -256,7 +225,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
             object.setIntValue(RUN_INFO_DOCUMENT_TOTALMATCHES, totalMatchesFound);
 
             Double averageTimePerPatient = (numPatientsTestedForMatches == 0) ? 0
-                    : Math.round((double) totalRunTime / (10 * (double) numPatientsTestedForMatches)) / 100.0;
+                : Math.round((double) totalRunTime / (10 * (double) numPatientsTestedForMatches)) / 100.0;
             object.setDoubleValue(RUN_INFO_DOCUMENT_AVG_TIME_PER_PATIENT, averageTimePerPatient);
 
             object.setDateValue(timePropertyName, new Date());

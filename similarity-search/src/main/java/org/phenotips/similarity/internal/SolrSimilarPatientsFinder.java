@@ -23,9 +23,13 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.Visibility;
+import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
+import org.phenotips.studies.family.Family;
+import org.phenotips.studies.family.FamilyRepository;
 import org.phenotips.vocabulary.SolrCoreContainerHandler;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
@@ -33,6 +37,7 @@ import org.phenotips.vocabulary.VocabularyTerm;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.model.reference.EntityReference;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,10 +84,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Inject
     private PatientRepository patients;
 
+    /** Provides access to patients families data. */
+    @Inject
+    private FamilyRepository familyRepository;
+
     /** The minimal access level needed for including a patient in the result. */
     @Inject
     @Named("match")
     private AccessLevel accessLevelThreshold;
+
+    /** The minimal visibility level needed for including a patient in the result. */
+    @Inject
+    @Named("matchable")
+    private Visibility visibilityLevelThreshold;
 
     /** Allows to make a secure pair of patients. */
     @Inject
@@ -97,6 +111,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     @Inject
     private ConsentManager consentManager;
+
+    @Inject
+    private PatientAccessHelper accessHelper;
 
     /** The Solr server instance used. */
     private SolrClient server;
@@ -142,22 +159,22 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
+        Family family = this.familyRepository.getFamilyForPatient(referencePatient);
+        EntityReference refOwner = this.accessHelper.getOwner(referencePatient).getUser();
+
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.get(name);
-            if (matchPatient == null) {
-                // Leftover patient in the index, should be removed
+
+            if (filterPatient(matchPatient, family, refOwner, requiredConsentId)) {
                 continue;
             }
-            // check consents, if required
-            if (requiredConsentId != null && !consentManager.hasConsent(matchPatient, requiredConsentId)) {
-                continue;
-            }
+
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
             this.logger.debug("Found match: [{}] with score: {}, accessLevel: {}, accessCompare: {}",
                 name, result.getScore(), result.getAccess().getName(),
                 this.accessLevelThreshold.compareTo(result.getAccess()));
-            if (this.accessLevelThreshold.compareTo(result.getAccess()) <= 0 && result.getScore() > 0) {
+            if (result.getScore() > 0) {
                 results.add(result);
             }
         }
@@ -175,6 +192,39 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         });
 
         return results;
+    }
+
+    private boolean filterPatient(Patient matchPatient, Family family, EntityReference refOwner,
+        String requiredConsentId)
+    {
+        if (matchPatient == null) {
+            // Leftover patient in the index, should be removed
+            return true;
+        }
+        // filter out patients from the same family
+        if (family != null && family.isMember(matchPatient)) {
+            return true;
+        }
+        // filter out patients of the same owner
+        if (refOwner.equals(this.accessHelper.getOwner(matchPatient).getUser())) {
+            return true;
+        }
+        // check consents, if required
+        if (requiredConsentId != null && !this.consentManager.hasConsent(matchPatient, requiredConsentId)) {
+            return true;
+        }
+        // filter out patients with access level less than defined access level threshold
+        AccessLevel patientAccessLevel =
+            this.accessHelper.getAccessLevel(matchPatient, this.accessHelper.getCurrentUser());
+        if (this.accessLevelThreshold.compareTo(patientAccessLevel) > 0) {
+            return true;
+        }
+        // filter out patients with visibility level less than defined visibility level threshold
+        Visibility patientVisibility = this.accessHelper.getVisibility(matchPatient);
+        if (this.visibilityLevelThreshold.compareTo(patientVisibility) > 0) {
+            return true;
+        }
+        return false;
     }
 
     /**

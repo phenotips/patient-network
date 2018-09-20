@@ -44,7 +44,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,7 +54,6 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONArray;
@@ -265,9 +263,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
 
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(
-                score, phenScore, genScore, loadOnlyUserMatches);
-
-        filterSelfMatches(matches);
+            score, phenScore, genScore, loadOnlyUserMatches);
 
         JSONObject matchesJson = new JSONObject();
 
@@ -291,21 +287,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         return new JSONObject()
             .put(RESULTS_LABEL, matchesJson.optJSONArray("matches"))
             .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length());
-    }
-
-    private void filterSelfMatches(List<PatientMatch> matches)
-    {
-        ListIterator<PatientMatch> iterator = matches.listIterator();
-        while (iterator.hasNext()) {
-            PatientMatch match = iterator.next();
-
-            if (match.getReference().getEmails().size() != 0 && CollectionUtils.isEqualCollection(
-                match.getReference().getEmails(), match.getMatched().getEmails())) {
-                this.logger.debug("Filtered out match for reference=[{}], match=[{}] due to same owner(s)",
-                    match.getReferencePatientId(), match.getMatchedPatientId());
-                iterator.remove();
-            }
-        }
     }
 
     private JSONObject successfulIdsToJSON(Collection<Long> allIds, Collection<Long> successfulIds)
@@ -354,8 +335,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response getLastOutgoingMatchId(String referencePatientId, String referenceServerId, String matchedPatientId,
-        String matchedServerId)
+    public Response getLastOutgoingMatchId(String referencePatientId, String referenceServerId,
+        String matchedPatientId, String matchedServerId)
     {
         if (StringUtils.isBlank(referencePatientId) || StringUtils.isBlank(matchedPatientId)) {
             this.logger.error("One of the requested patient ids parameter is blank and thus not a valid input JSON");

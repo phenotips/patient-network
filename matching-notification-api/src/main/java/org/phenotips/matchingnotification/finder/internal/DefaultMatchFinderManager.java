@@ -60,20 +60,20 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     public void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
         this.logger.error("Finding matches for all patients for servers [{}] (only updated patients: [{}])",
-                serverIds.toString(), onlyCheckPatientsUpdatedAfterLastRun);
+            serverIds.toString(), onlyCheckPatientsUpdatedAfterLastRun);
 
-        List<String> patients = this.getPatientsList();
+        List<String> patients = this.getPatientsList(onlyCheckPatientsUpdatedAfterLastRun);
 
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
             this.logger.debug("Starting matchFinder with priority = [{}]", matchFinder.getPriority());
-            matchFinder.findMatches(patients, serverIds, onlyCheckPatientsUpdatedAfterLastRun);
+            matchFinder.findMatches(patients, serverIds);
         }
     }
 
     /**
      * Returns a list of patient Ids.
      */
-    private List<String> getPatientsList()
+    private List<String> getPatientsList(boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
         List<String> patients = new LinkedList<>();
 
@@ -81,9 +81,20 @@ public class DefaultMatchFinderManager implements MatchFinderManager
             Query q = this.qm.createQuery(
                 "select doc.name "
                     + "from Document doc, "
-                    + "doc.object(PhenoTips.PatientClass) as patient "
-                    + "where patient.identifier is not null order by patient.identifier desc",
+                    + "doc.object(PhenoTips.PatientClass) as patient, "
+                    + "doc.object(PhenoTips.VisibilityClass) as visibility "
+                    + "where patient.identifier is not null and "
+                    // exclude solved patients
+                    + "patient.solved <> '1' and "
+                    // filter by last update date
+                    + "doc.contentUpdateDate > :startTime and "
+                    + "order by patient.identifier desc",
                 Query.XWQL);
+            if (onlyCheckPatientsUpdatedAfterLastRun) {
+                q.bindValue("startTime", System.currentTimeMillis());
+            } else {
+                q.bindValue("startTime", 0);
+            }
             patients = q.execute();
         } catch (Exception e) {
             this.logger.error("Error retrieving a list of patients for matching: {}", e);
