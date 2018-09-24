@@ -522,6 +522,7 @@ public class DefaultPatientInMatch implements PatientInMatch
                     DocumentReference groupRef = group.getReference();
                     if (groupRef.equals(ownerRef)) {
                         userGroupIsOwner = true;
+                        break;
                     }
                 }
             }
