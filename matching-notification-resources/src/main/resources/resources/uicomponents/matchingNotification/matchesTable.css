@@ -248,6 +248,13 @@ input.mme {
 .matches-table .fa.fa-sort, .matches-table .fa.fa-sort-up, .matches-table .fa.fa-sort-down {
   padding-left: 10px;
   float : right;
+  cursor: pointer;
+}
+.matches-table .fa.fa-sort {
+  color: #999;
+}
+.matches-table .fa.fa-sort:hover {
+  color: #000;
 }
 .sortable {
   cursor: pointer;
