@@ -99,37 +99,64 @@ var PhenoTips = (function (PhenoTips) {
             this._showMatches();
         }
 
-        // defines sorting order for UI column sorting elements events listeners,
-        // values: 1 if descending, -1 if ascending
-        this._scoreSortingOrder = 1;
-        this._genotypicScoreSortingOrder = 1;
-        this._phenotypicScoreSortingOrder = 1;
-        this._foundTimestampSortingOrder = 1;
-        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'score');}.bind(this));
-        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'genotypicScore');}.bind(this));
-        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'phenotypicScore');}.bind(this));
-        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn(event.element(), 'foundTimestamp');}.bind(this));
+        // defines current/default sorting order for various columns
+        this._sortingOrder = { "score": "descending",
+                               "genotypicScore": "descending",
+                               "phenotypicScore": "descending",
+                               "foundTimestamp": "descending" };
+        // current sorting order
+        this._currentSortingOrder = "none";
+
+        // event listeners for sorting icon clicks
+        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn('score');}.bind(this));
+        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn('genotypicScore');}.bind(this));
+        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn('phenotypicScore');}.bind(this));
+        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
 
         Event.observe(window, 'resize', this._buildTable.bind(this));
     },
 
-    _sortByColumn : function(element, propName) {
-    	var orderPropName = "_" + propName + "SortingOrder";
-    	this[orderPropName] = this[orderPropName] * -1;
-    	var el = (element && element.down('.fa')) ? element.down('.fa') : element;
-    	if (el) {
-    		if (el.hasClassName('fa-sort')) {
-    			el.removeClassName('fa-sort');
-    			(this[orderPropName] == -1) && el.addClassName('fa-sort-down');
-    			(this[orderPropName] == 1) && el.addClassName('fa-sort-up');
-    		} else {
-    		    el.toggleClassName('fa-sort-up');
-    		    el.toggleClassName('fa-sort-down');
-    		}
-    	}
+    _sortByColumn : function(propName) {
+        if (!this._sortingOrder.hasOwnProperty(propName)) {
+            console.log("Unsupported sorting column");
+            return;
+        }
+
+        if (this._currentSortingOrder == propName) {
+            // reverse sorting order if already sorting by this parameter...
+            this._sortingOrder[propName] = (this._sortingOrder[propName] == "ascending") ? "descending" : "ascending";
+        } else {
+            // ...but use curent/default sorting order if currently sorting by other column
+            this._currentSortingOrder = propName;
+        }
+
+        var getIconElementForProperty = function(propertyName) {
+            var element = $$('th[data-column="' + propertyName + '"]')[0];
+            return element.down('.fa') ? element.down('.fa') : element;
+        }
+
+        // update sorting icons for all columns
+        for (var column in this._sortingOrder) {
+            if (this._sortingOrder.hasOwnProperty(column)) {
+                var faElement = getIconElementForProperty(column);
+                if (faElement) {
+                    faElement.removeClassName('fa-sort-down');
+                    faElement.removeClassName('fa-sort-up');
+                    if (column == this._currentSortingOrder) {
+                        // for current column
+                        faElement.removeClassName('fa-sort');
+                        (this._sortingOrder[column] == "descending") ? faElement.addClassName('fa-sort-down') : faElement.addClassName('fa-sort-up');
+                    } else {
+                        // for all other columns
+                        faElement.addClassName('fa-sort');
+                    }
+                }
+            }
+        }
+
         this._cachedMatches.sort( function(a, b) {
-            if(a[propName] < b[propName]) return -1 * this[orderPropName];
-            if(a[propName] > b[propName]) return 1 * this[orderPropName];
+            if(a[propName] < b[propName]) return (this._sortingOrder[propName] == "ascending") ? -1 : +1;
+            if(a[propName] > b[propName]) return (this._sortingOrder[propName] == "ascending") ? +1 : -1;
             return 0;
         }.bind(this));
         this._update();
@@ -554,7 +581,7 @@ var PhenoTips = (function (PhenoTips) {
         this._presentServerIds = this._presentServerIds.uniq();
 
         // sort by match found timestamp in descending order
-        this._sortByColumn(false, 'foundTimestamp');
+        this._sortByColumn('foundTimestamp');
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -1240,3 +1267,4 @@ var PhenoTips = (function (PhenoTips) {
     });
     return PhenoTips;
 }(PhenoTips || {}));
+
