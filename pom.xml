@@ -649,6 +649,12 @@
               <method>java.lang.String getContactToken()</method>
               <justification>Removing anonimus communication component.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.Long getNumberOfRemoteMatches()</method>
+              <justification>Added to implement MME metrics endpoint.</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

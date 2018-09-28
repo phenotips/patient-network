@@ -63,33 +63,33 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 {
     /** A query used to delete all local matches for the given local patient (ID == localId). */
     private static final String HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT =
-            "delete DefaultPatientMatch where referenceServerId = '' and matchedServerId =''"
+        "delete DefaultPatientMatch where referenceServerId = '' and matchedServerId =''"
             + " and (referencePatientId = :localId or matchedPatientId = :localId)";
 
     /** A query used to delete all matches (including MME) for the given local patient (ID == localId). */
     private static final String HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT =
-            "delete DefaultPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
+        "delete DefaultPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
             + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
     /** A query used to delete all outgoing MME matches for the given local patient (ID == localId)
      *  and givenremote server (ID == remoteServerId). */
     private static final String HQL_DELETE_ALL_OUTGOING_MATCHES_FOR_LOCAL_PATIENT =
-            "delete DefaultPatientMatch where notified = false and status != 'rejected'"
-                    + " and referenceServerId = '' and referencePatientId = :localId"
-                    + " and matchedServerId = :remoteServerId";
+        "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+            + " and referenceServerId = '' and referencePatientId = :localId"
+            + " and matchedServerId = :remoteServerId";
 
     /** A query used to delete all incoming MME matches for the given remote patient (ID == remoteId)
      *  and givenremote server (ID == remoteServerId). */
     private static final String HQL_DELETE_ALL_INCOMING_MATCHES_FOR_REMOTE_PATIENT =
-            "delete DefaultPatientMatch where notified = false and status != 'rejected'"
-                    + " and referenceServerId = :remoteServerId and referencePatientId = :remoteId";
+        "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+            + " and referenceServerId = :remoteServerId and referencePatientId = :remoteId";
 
     /**
      *  A sub-query for the query below, to find matches similar to the given match, but that has been notified.
      *  A special case is when there is a similar local match, but where matched and reference patients are reversed.
      */
     private static final String HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED =
-            "from DefaultPatientMatch as m2 where m2.notified = true"
+        "from DefaultPatientMatch as m2 where m2.notified = true"
             + " and ("
             + " ("
             + "  m.referencePatientId = m2.referencePatientId"
@@ -110,9 +110,13 @@ public class DefaultMatchStorageManager implements MatchStorageManager
      * of the match, so need to show only one of them (the notified one).
      * */
     private static final String HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE =
-            "from DefaultPatientMatch as m where"
+        "from DefaultPatientMatch as m where"
             + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore and"
             + " (m.notified = true or (not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")))";
+
+    /** A query used to get the number of all remote matches. */
+    private static final String HQL_QUERY_REMOTE_MATCHES =
+        "select count(*) from DefaultPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
 
     /** Handles persistence. */
     @Inject
@@ -141,7 +145,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
             // and they break match count calculation if they are included
             if (match.getReference().getEmails().size() > 0 && CollectionUtils.isEqualCollection(
-                    match.getReference().getEmails(), match.getMatched().getEmails())) {
+                match.getReference().getEmails(), match.getMatched().getEmails())) {
                 continue;
             }
 
@@ -165,7 +169,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                 if (!patientId.equals(refPatientID)) {
                     refPatients.add(refPatientID);
                     this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
-                                      patientId, refPatientID);
+                        patientId, refPatientID);
                 }
             }
 
@@ -209,7 +213,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     }
                 }
                 PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, "")
-                                : new DefaultPatientMatch(similarityView, "", serverId);
+                    : new DefaultPatientMatch(similarityView, "", serverId);
                 matchesToSave.add(match);
             }
 
@@ -226,7 +230,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = true;
 
             this.logger.debug("Saved {} new MME matches (server: [{}], incoming: [{}])",
-                    matchesToSave.size(), serverId, isIncoming);
+                matchesToSave.size(), serverId, isIncoming);
         } catch (Exception ex) {
             this.logger.error("Error saving remote matches: [{}]", ex.getMessage(), ex);
         } finally {
@@ -238,7 +242,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     @SuppressWarnings("unchecked")
     public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
-            boolean onlyCurrentUserAccessible)
+        boolean onlyCurrentUserAccessible)
     {
         // ...else it is more complicated: need to return all matches, but
         // also exclude un-notified matches that have a similar match that have been notified
@@ -246,8 +250,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         // This is because if owners of a match were notified, the notified version of the match
         // will be stored as-is in the database, but new verisons of the match will still keep being
         // placed in the DB, resulting in two similar matche sin the DB:
-        //  first:   patientA - patientB - notified     - <data at the moment of notification>
-        //  second:  patientA - patientB - NOT notified - <data as of last match check>
+        // first: patientA - patientB - notified - <data at the moment of notification>
+        // second: patientA - patientB - NOT notified - <data as of last match check>
 
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
@@ -300,22 +304,27 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             //
             org.xwiki.query.Query q = this.qm.createQuery(
                 "select doc.name from Document as doc, "
-                + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
-                + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
-                + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
-                + "((accessObj.className = 'PhenoTips.OwnerClass' and accessProp.value in "
-                + "(" + userEntityListForSQL + ")) "
-                + "or (accessObj.className = 'PhenoTips.CollaboratorClass' and accessProp.value in "
-                + "(" + userEntityListForSQL + ")) "
-                + "or (accessObj.className = 'PhenoTips.VisibilityClass' and accessProp.value in ('public', 'open')))",
+                    + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
+                    + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
+                    + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
+                    + "((accessObj.className = 'PhenoTips.OwnerClass' and accessProp.value in "
+                    + "("
+                    + userEntityListForSQL
+                    + ")) "
+                    + "or (accessObj.className = 'PhenoTips.CollaboratorClass' and accessProp.value in "
+                    + "("
+                    + userEntityListForSQL
+                    + ")) "
+                    + "or (accessObj.className = 'PhenoTips.VisibilityClass' and "
+                    + "accessProp.value in ('public', 'open')))",
                 org.xwiki.query.Query.XWQL);
             List<String> rawDocNames = q.execute();
 
             Set<String> patientNames = new HashSet<>(rawDocNames);
 
             // FIXME: to be removed after testing is complete. In some cases it is easier to spot errors in this
-            //        list than to find incorrect behaviors of higher-level code which requires a specific match
-            //        to appear or disappear from the list
+            // list than to find incorrect behaviors of higher-level code which requires a specific match
+            // to appear or disappear from the list
             this.logger.error("List of patients current user has access to: [{}]", String.join(", ", patientNames));
 
             ListIterator<PatientMatch> iterator = matches.listIterator();
@@ -332,7 +341,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
         } catch (Exception ex) {
             this.logger.error("Failed to query all patients that current user has access to [{}]: {}",
-                    ex.getMessage());
+                ex.getMessage());
         }
     }
 
@@ -349,16 +358,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     public List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
-            String patientId2, String serverId2)
+        String patientId2, String serverId2)
     {
         if (StringUtils.isNotEmpty(patientId1) && StringUtils.isNotEmpty(patientId2)) {
             return this.loadMatchesByCriteria(
                 // either patientId1 is reference and patientId2 is a match, or the other way around
                 new Criterion[] { Restrictions.or(
-                        Restrictions.and(this.patientIsReference(patientId1, serverId1),
-                                         this.patientIsMatch(patientId2, serverId2)),
-                        Restrictions.and(this.patientIsReference(patientId2, serverId2),
-                                         this.patientIsMatch(patientId1, serverId1)))});
+                    Restrictions.and(this.patientIsReference(patientId1, serverId1),
+                        this.patientIsMatch(patientId2, serverId2)),
+                    Restrictions.and(this.patientIsReference(patientId2, serverId2),
+                        this.patientIsMatch(patientId1, serverId1))) });
         } else {
             return Collections.emptyList();
         }
@@ -375,13 +384,13 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Criterion patientIsReference(String patientId, String serverId)
     {
         return Restrictions.and(Restrictions.eq("referencePatientId", patientId),
-                                Restrictions.eq("referenceServerId", this.getStoredServerId(serverId)));
+            Restrictions.eq("referenceServerId", this.getStoredServerId(serverId)));
     }
 
     private Criterion patientIsMatch(String patientId, String serverId)
     {
         return Restrictions.and(Restrictions.eq("matchedPatientId", patientId),
-                                Restrictions.eq("matchedServerId", this.getStoredServerId(serverId)));
+            Restrictions.eq("matchedServerId", this.getStoredServerId(serverId)));
     }
 
     @SuppressWarnings("unchecked")
@@ -512,11 +521,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     private void deleteLocalMatchesForLocalPatient(Session session, String patientId,
-            boolean deleteNotified, boolean deleteRejected)
+        boolean deleteNotified, boolean deleteRejected)
     {
         Query query = session.createQuery(HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT
-                + (deleteNotified ? "" : " and notified = false")
-                + (deleteRejected ? "" : " and status != 'rejected'"));
+            + (deleteNotified ? "" : " and notified = false")
+            + (deleteRejected ? "" : " and status != 'rejected'"));
         query.setParameter("localId", patientId);
 
         int numDeleted = query.executeUpdate();
@@ -538,7 +547,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             int numDeleted = query.executeUpdate();
 
             this.logger.debug("Removed all [{}] stored outgoing  matches for patient [{}] and server [{}]",
-                    numDeleted, localPatientId, remoteServerId);
+                numDeleted, localPatientId, remoteServerId);
         }
     }
 
@@ -555,7 +564,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             int numDeleted = query.executeUpdate();
 
             this.logger.debug("Removed all [{}] stored incoming  matches for remote patient [{}] and server [{}]",
-                    numDeleted, remotePatientId, remoteServerId);
+                numDeleted, remotePatientId, remoteServerId);
         }
     }
 
@@ -564,5 +573,20 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         for (PatientMatch match : matches) {
             session.save(match);
         }
+    }
+
+    @Override
+    public Long getNumberOfRemoteMatches()
+    {
+        Session session = this.beginTransaction();
+        try {
+            Query query = session.createQuery(HQL_QUERY_REMOTE_MATCHES);
+            return (Long) query.uniqueResult();
+        } catch (Exception ex) {
+            this.logger.error("Error geting remote matches: [{}]", ex.getMessage(), ex);
+        } finally {
+            session.close();
+        }
+        return null;
     }
 }
