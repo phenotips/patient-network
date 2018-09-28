@@ -99,13 +99,7 @@ var PhenoTips = (function (PhenoTips) {
             this._showMatches();
         }
 
-        // defines current/default sorting order for various columns
-        this._sortingOrder = { "score": "descending",
-                               "genotypicScore": "descending",
-                               "phenotypicScore": "descending",
-                               "foundTimestamp": "descending" };
-        // current sorting order
-        this._currentSortingOrder = "none";
+        this._resetSortingPreferences();
 
         // event listeners for sorting icon clicks
         $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn('score');}.bind(this));
@@ -114,6 +108,16 @@ var PhenoTips = (function (PhenoTips) {
         $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
 
         Event.observe(window, 'resize', this._buildTable.bind(this));
+    },
+
+    _resetSortingPreferences: function() {
+        // defines current/default sorting order for various columns
+        this._sortingOrder = { "score": "descending",
+                               "genotypicScore": "descending",
+                               "phenotypicScore": "descending",
+                               "foundTimestamp": "descending" };
+        // current sorting order
+        this._currentSortingOrder = "none";
     },
 
     _sortByColumn : function(propName) {
@@ -585,6 +589,9 @@ var PhenoTips = (function (PhenoTips) {
 
         // leave only uniq server ids in the array, remove duplicates
         this._presentServerIds = this._presentServerIds.uniq();
+
+        // new data - forget current sorting preferences
+        this._resetSortingPreferences();
 
         // sort by match found timestamp in descending order
         this._sortByColumn('foundTimestamp');
