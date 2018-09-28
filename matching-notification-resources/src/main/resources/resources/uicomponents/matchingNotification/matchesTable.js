@@ -211,6 +211,9 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         $$('input[name="status-filter"]').each(function (checkbox) {
+            // initialize filter to the value set in the form
+            this._filterValues.matchStatus[checkbox.value] = checkbox.checked;
+            // click handler
             checkbox.on('click', function(event) {
                 this._filterValues.matchStatus[event.currentTarget.value] = event.currentTarget.checked;
                 this._update();
@@ -218,6 +221,9 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         $$('input[name="ownership-filter"]').each(function (checkbox) {
+            // initialize filter to the value set in the form
+            this._filterValues.ownerStatus[checkbox.value] = checkbox.checked;
+            // click handler
             checkbox.on('click', function(event) {
                 this._filterValues.ownerStatus[event.currentTarget.value] = event.currentTarget.checked;
                 this._update(this._advancedFilter);
