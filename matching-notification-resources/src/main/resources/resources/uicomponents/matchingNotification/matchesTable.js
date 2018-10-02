@@ -346,21 +346,26 @@ var PhenoTips = (function (PhenoTips) {
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
 
-            var recordOwnershipMatch = function(record) {
-                                         return (this._filterValues.ownerStatus["me"] && record.ownership.userIsOwner)
-                                             || (this._filterValues.ownerStatus["group"] && record.ownership.userGroupIsOwner)
-                                             || (this._filterValues.ownerStatus["public"] && record.ownership.publicRecord)
-                                       }.bind(this);
-            var recordOwnershipOther = function(record) {
-                                         return record.serverId == ""
-                                                && !record.ownership.userIsOwner
-                                                && !record.ownership.userGroupIsOwner
-                                                && !record.ownership.publicRecord
-                                       }.bind(this);
-            var referenceRecordMatch = match.reference.serverId == "" && recordOwnershipMatch(match.reference);
-            var matchedRecordMatch = match.matched.serverId == "" && recordOwnershipMatch(match.matched);
-            var hasOwnershipMatch = referenceRecordMatch || matchedRecordMatch
-                                    || ((recordOwnershipOther(match.reference) || recordOwnershipOther(match.matched)) && this._filterValues.ownerStatus["others"]);
+            // returns true iff any of the two records in the match is local and its ownership field "ownershipParameter" is true
+            var matchHasRecordWithOwnership = function(match, ownershipParameter) {
+                                         if (match.reference.serverId == "" && match.reference.ownership[ownershipParameter]) {
+                                            return true;
+                                         }
+                                         if (match.matched.serverId == "" && match.matched.ownership[ownershipParameter]) {
+                                            return true;
+                                         }
+                                         return false;
+                                     };
+
+            var matchOwnedByMe     = matchHasRecordWithOwnership(match, "userIsOwner");
+            var matchOwnedByGroup  = matchHasRecordWithOwnership(match, "userGroupIsOwner");
+            var matchOwnedByPublic = matchHasRecordWithOwnership(match, "publicRecord");
+            var matchOwnedByOthers = !matchOwnedByMe && !matchOwnedByGroup && !matchOwnedByPublic;
+
+            var hasOwnershipMatch = (this._filterValues.ownerStatus["me"] && matchOwnedByMe)
+                                    || (this._filterValues.ownerStatus["group"] && matchOwnedByGroup)
+                                    || (this._filterValues.ownerStatus["public"] && matchOwnedByPublic)
+                                    || (this._filterValues.ownerStatus["others"] && matchOwnedByOthers);
 
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
