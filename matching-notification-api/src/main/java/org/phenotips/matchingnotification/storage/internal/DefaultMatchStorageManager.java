@@ -290,12 +290,15 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private void filterMatchesForCurrentUser(List<PatientMatch> matches)
     {
         User currentUser = this.users.getCurrentUser();
-        String userName = currentUser.getProfileDocument().toString();
-        String userEntityListForSQL = "'" + userName + "'";
 
+        // a set of all entity names that share their access rights with the user
+        Set<String> userEntities = new HashSet<>();
+        // ...add user profile document to the set
+        userEntities.add(currentUser.getProfileDocument().toString());
+        // ...add all user groups to the set
         Set<Group> userGroups = this.groupManager.getGroupsForUser(currentUser);
         for (Group g : userGroups) {
-            userEntityListForSQL += ",'" + g.getReference().toString() + "'";
+            userEntities.add(g.getReference().toString());
         }
 
         try {
@@ -313,20 +316,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             //
             org.xwiki.query.Query q = this.qm.createQuery(
                 "select doc.name from Document as doc, "
-                    + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
-                    + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
-                    + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
-                    + "((accessObj.className = 'PhenoTips.OwnerClass' and accessProp.value in "
-                    + "("
-                    + userEntityListForSQL
-                    + ")) "
-                    + "or (accessObj.className = 'PhenoTips.CollaboratorClass' and accessProp.value in "
-                    + "("
-                    + userEntityListForSQL
-                    + ")) "
-                    + "or (accessObj.className = 'PhenoTips.VisibilityClass' and "
-                    + "accessProp.value in ('public', 'open')))",
+                + "BaseObject as obj, BaseObject accessObj, StringProperty accessProp "
+                + "where obj.name = doc.fullName and obj.className = 'PhenoTips.PatientClass' and "
+                + "accessObj.name = doc.fullName and accessProp.id.id = accessObj.id and "
+                + "((accessObj.className = 'PhenoTips.OwnerClass' and accessProp.value in (:userEntityList)) "
+                + "or (accessObj.className = 'PhenoTips.CollaboratorClass' and accessProp.value in (:userEntityList)) "
+                + "or (accessObj.className = 'PhenoTips.VisibilityClass' and accessProp.value in ('public', 'open')))",
                 org.xwiki.query.Query.XWQL);
+            q.bindValue("userEntityList", userEntities);
             List<String> rawDocNames = q.execute();
 
             Set<String> patientNames = new HashSet<>(rawDocNames);
