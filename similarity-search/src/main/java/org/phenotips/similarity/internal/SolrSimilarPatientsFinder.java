@@ -23,6 +23,7 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -160,13 +161,15 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
         Family family = this.familyRepository.getFamilyForPatient(referencePatient);
-        EntityReference refOwner = this.accessHelper.getOwner(referencePatient).getUser();
+        Owner refOwner = this.accessHelper.getOwner(referencePatient);
+        EntityReference refOwnerRef =
+            (refOwner != null) ? this.accessHelper.getOwner(referencePatient).getUser() : null;
 
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.get(name);
 
-            if (filterPatient(matchPatient, family, refOwner, requiredConsentId)) {
+            if (filterPatient(matchPatient, family, refOwnerRef, requiredConsentId)) {
                 continue;
             }
 
@@ -206,7 +209,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients of the same owner
-        if (refOwner.equals(this.accessHelper.getOwner(matchPatient).getUser())) {
+        Owner matchOwner = this.accessHelper.getOwner(matchPatient);
+        if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
             return true;
         }
         // check consents, if required

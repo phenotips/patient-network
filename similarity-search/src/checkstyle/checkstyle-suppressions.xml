@@ -24,5 +24,6 @@
 
 <suppressions>
   <suppress checks="ClassFanOutComplexity" files="SolrSimilarPatientsFinder"/>
+  <suppress checks="CyclomaticComplexity" files="SolrSimilarPatientsFinder"/>
   <suppress checks="ReturnCount" files="SolrSimilarPatientsFinder"/>
 </suppressions>
