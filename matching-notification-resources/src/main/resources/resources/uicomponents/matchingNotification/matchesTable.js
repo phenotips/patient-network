@@ -844,7 +844,10 @@ var PhenoTips = (function (PhenoTips) {
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center" name="contacted">';
-        if (!this._isAdmin && (record.matched.isOwner || record.reference.isOwner) && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
+        var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
+                           || record.matched.access == "owner"  || record.reference.access == "owner"
+                           || record.matched.access == "manage" || record.reference.access == "manage";
+        if (!this._isAdmin && accessAboveEdit && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
