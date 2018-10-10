@@ -27,6 +27,11 @@
   </parent>
   <artifactId>patient-similarity-search</artifactId>
   <name>PhenoTips - Patient network - Java APIs for finding similar patients</name>
+
+  <properties>
+    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -46,6 +51,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vocabularies-api</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>family-studies-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
