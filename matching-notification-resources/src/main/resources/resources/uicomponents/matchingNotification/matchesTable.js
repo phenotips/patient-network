@@ -357,9 +357,9 @@ var PhenoTips = (function (PhenoTips) {
                                          return false;
                                      };
 
-            var matchOwnedByMe     = matchHasRecordWithOwnership(match, "userIsOwner"));
-            var matchOwnedByGroup  = matchHasRecordWithOwnership(match, "userGroupIsOwner"));
-            var matchOwnedByPublic = matchHasRecordWithOwnership(match, "publicRecord"));
+            var matchOwnedByMe     = matchHasRecordWithOwnership(match, "userIsOwner");
+            var matchOwnedByGroup  = matchHasRecordWithOwnership(match, "userGroupIsOwner");
+            var matchOwnedByPublic = matchHasRecordWithOwnership(match, "publicRecord");
             var matchOwnedByOthers = !matchOwnedByMe && !matchOwnedByGroup && !matchOwnedByPublic;
 
             var hasOwnershipMatch = (this._filterValues.ownerStatus["me"] && matchOwnedByMe)
