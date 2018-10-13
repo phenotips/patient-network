@@ -30,7 +30,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -411,7 +411,7 @@ public class MatchesByPatientTest
         when(m.getReferenceServerId()).thenReturn(referenceServerId);
         when(m.getMatchedPatientId()).thenReturn(matchedPatientId);
         when(m.getMatchedServerId()).thenReturn(matchedServerId);
-        when(m.toString()).thenReturn(Objects.toStringHelper(m).add("id", id).toString());
+        when(m.toString()).thenReturn(MoreObjects.toStringHelper(m).add("id", id).toString());
         return m;
     }
 }

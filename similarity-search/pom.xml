@@ -28,10 +28,6 @@
   <artifactId>patient-similarity-search</artifactId>
   <name>PhenoTips - Patient network - Java APIs for finding similar patients</name>
 
-  <properties>
-    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

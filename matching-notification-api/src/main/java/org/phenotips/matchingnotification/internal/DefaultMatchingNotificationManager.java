@@ -52,6 +52,7 @@ import com.google.common.base.Joiner;
  */
 @Component
 @Singleton
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class DefaultMatchingNotificationManager implements MatchingNotificationManager
 {
     private Logger logger = LoggerFactory.getLogger(DefaultMatchingNotificationManager.class);
@@ -101,10 +102,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
     @Override
     public PatientMatchNotificationResponse sendUserNotification(Long matchId,
-            String subjectPatientId, String subjectServerId, String customEmailtext, String customEmailSubject)
+        String subjectPatientId, String subjectServerId, String customEmailtext, String customEmailSubject)
     {
         List<PatientMatch> matches =
-                this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
+            this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
         if (matches.size() == 0) {
             throw new IllegalArgumentException("MatchId " + matchId + " is not a valid match id");
@@ -117,7 +118,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
 
         PatientMatchEmail email = this.notifier.createUserEmail(match,
-                subjectPatientId, subjectServerId, customEmailtext, customEmailSubject);
+            subjectPatientId, subjectServerId, customEmailtext, customEmailSubject);
 
         List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
 
@@ -153,10 +154,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     public JSONObject getUserEmailContent(Long matchId, String subjectPatientId, String subjectServerId)
     {
         List<PatientMatch> matches =
-                this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
+            this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
         PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
-                subjectPatientId, subjectServerId, null, null);
+            subjectPatientId, subjectServerId, null, null);
 
         return email.getEmail();
     }

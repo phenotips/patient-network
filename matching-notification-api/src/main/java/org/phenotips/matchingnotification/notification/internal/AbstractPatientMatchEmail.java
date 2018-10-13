@@ -69,6 +69,7 @@ import com.xpn.xwiki.XWikiContext;
  *
  * @version $Id$
  */
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 {
     protected static final Provider<XWikiContext> CONTEXT_PROVIDER;
@@ -393,6 +394,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     }
 
     @Override
+    @SuppressWarnings("checkstyle:NPathComplexity")
     public JSONObject getEmail()
     {
         JSONObject result = new JSONObject();

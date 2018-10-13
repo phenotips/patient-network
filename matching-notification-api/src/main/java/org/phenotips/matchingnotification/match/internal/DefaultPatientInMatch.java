@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @version $Id$
  */
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class DefaultPatientInMatch implements PatientInMatch
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientInMatch.class);

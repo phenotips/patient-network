@@ -24,9 +24,10 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.EntityAccess;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.Visibility;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
@@ -72,6 +73,7 @@ import org.slf4j.Logger;
  */
 @Component
 @Singleton
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
     /** The number of records to fully score. */
@@ -114,7 +116,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private ConsentManager consentManager;
 
     @Inject
-    private PatientAccessHelper accessHelper;
+    private EntityPermissionsManager permissionsManager;
 
     /** The Solr server instance used. */
     private SolrClient server;
@@ -161,9 +163,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
         Family family = this.familyRepository.getFamilyForPatient(referencePatient);
-        Owner refOwner = this.accessHelper.getOwner(referencePatient);
-        EntityReference refOwnerRef =
-            (refOwner != null) ? this.accessHelper.getOwner(referencePatient).getUser() : null;
+        Owner refOwner = this.permissionsManager.getEntityAccess(referencePatient).getOwner();
+        EntityReference refOwnerRef = (refOwner != null) ? refOwner.getUser() : null;
 
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
@@ -197,9 +198,11 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return results;
     }
 
+    @SuppressWarnings({ "checkstyle:NPathComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:ReturnCount" })
     private boolean filterPatient(Patient matchPatient, Family family, EntityReference refOwner,
         String requiredConsentId)
     {
+        EntityAccess access = this.permissionsManager.getEntityAccess(matchPatient);
         if (matchPatient == null) {
             // Leftover patient in the index, should be removed
             return true;
@@ -209,7 +212,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients of the same owner
-        Owner matchOwner = this.accessHelper.getOwner(matchPatient);
+        Owner matchOwner = access.getOwner();
         if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
             return true;
         }
@@ -218,13 +221,12 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients with access level less than defined access level threshold
-        AccessLevel patientAccessLevel =
-            this.accessHelper.getAccessLevel(matchPatient, this.accessHelper.getCurrentUser());
+        AccessLevel patientAccessLevel = access.getAccessLevel();
         if (this.accessLevelThreshold.compareTo(patientAccessLevel) > 0) {
             return true;
         }
         // filter out patients with visibility level less than defined visibility level threshold
-        Visibility patientVisibility = this.accessHelper.getVisibility(matchPatient);
+        Visibility patientVisibility = access.getVisibility();
         if (this.visibilityLevelThreshold.compareTo(patientVisibility) > 0) {
             return true;
         }

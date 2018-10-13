@@ -34,6 +34,10 @@
   <name>PhenoTips - Patient network - Default implementation for the similar patients APIs</name>
   <dependencies>
     <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-api</artifactId>
       <version>${project.version}</version>
@@ -136,12 +140,13 @@
       <artifactId>json</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <dependency>

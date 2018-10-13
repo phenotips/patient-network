@@ -45,11 +45,11 @@
 #end
 #if (!$patient)
   $response.setStatus(400)
-  $escapetool.xml($services.localization.render('phenotips.clearCache.error'))
+  $services.localization.render('phenotips.clearCache.error')
 #else
   #set ($discard = $services.patientMatching.clearPatientCache($request.id))
   $response.setStatus(200)
-  $escapetool.xml($services.localization.render('phenotips.clearCache.cleared'))
+  $services.localization.render('phenotips.clearCache.cleared')
 #end
 {{/velocity}}</content>
   <object>

@@ -30,7 +30,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWikiException;

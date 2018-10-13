@@ -52,10 +52,10 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
 
     private static final String OFFSET_LABEL = "offset";
 
-    /** @see #getReference(). */
+    /** @see #getReference() */
     private final Patient reference;
 
-    /** @see #getMatches(). */
+    /** @see #getMatches() */
     private final List<? extends PatientSimilarityView> matches;
 
     /**
