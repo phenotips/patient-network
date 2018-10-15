@@ -23,8 +23,9 @@ import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PatientAccess;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityAccess;
+import org.phenotips.data.permissions.EntityPermissionsManager;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.data.similarity.internal.mocks.MockDisorder;
@@ -43,6 +44,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.users.UserManager;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,25 +86,29 @@ public class RestrictedPatientSimilarityViewFactoryTest
     public final MockitoComponentMockingRule<PatientSimilarityViewFactory> mocker =
         new MockitoComponentMockingRule<PatientSimilarityViewFactory>(RestrictedPatientSimilarityViewFactory.class);
 
+    private EntityAccessManager helper;
+
+    private UserManager um;
+
     /** Basic tests for makeSimilarPatient. */
     @Test
     public void testMakeSimilarPatient() throws Exception
     {
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_1);
 
-        PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
-        PatientAccess pa = mock(PatientAccess.class);
-        when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
+        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class, "secure");
+        EntityAccess pa = mock(EntityAccess.class);
+        when(pm.getEntityAccess(mockMatch)).thenReturn(pa);
         when(pa.getAccessLevel()).thenReturn(this.mocker.<AccessLevel>getInstance(AccessLevel.class, "view"));
 
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
-        Assert.assertSame(PATIENT_1, result.getDocument());
+        Assert.assertSame(PATIENT_1, result.getDocumentReference());
         Assert.assertSame(mockReference, result.getReference());
     }
 
@@ -112,14 +118,14 @@ public class RestrictedPatientSimilarityViewFactoryTest
     {
         Patient mockMatch = mock(Patient.class);
         Patient mockReference = mock(Patient.class);
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
         when(mockReference.getReporter()).thenReturn(USER_2);
 
-        PermissionsManager pm = this.mocker.getInstance(PermissionsManager.class);
-        PatientAccess pa = mock(PatientAccess.class);
-        when(pm.getPatientAccess(mockMatch)).thenReturn(pa);
+        EntityPermissionsManager pm = this.mocker.getInstance(EntityPermissionsManager.class, "secure");
+        EntityAccess pa = mock(EntityAccess.class);
+        when(pm.getEntityAccess(mockMatch)).thenReturn(pa);
         AccessLevel match = this.mocker.getInstance(AccessLevel.class, "match");
         AccessLevel view = this.mocker.getInstance(AccessLevel.class, "view");
         when(pa.getAccessLevel()).thenReturn(match);
@@ -167,7 +173,7 @@ public class RestrictedPatientSimilarityViewFactoryTest
         PatientSimilarityView result = this.mocker.getComponentUnderTest().makeSimilarPatient(mockMatch, mockReference);
         Assert.assertNotNull(result);
         Assert.assertSame(mockReference, result.getReference());
-        Assert.assertNull(result.getDocument());
+        Assert.assertNull(result.getDocumentReference());
         Assert.assertEquals(4, result.getFeatures().size());
         Assert.assertEquals(2, result.getDisorders().size());
     }
@@ -196,6 +202,8 @@ public class RestrictedPatientSimilarityViewFactoryTest
         ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
         when(mockProvider.get()).thenReturn(componentManager);
 
+        this.helper = this.mocker.registerMockComponent(EntityAccessManager.class);
+        this.um = this.mocker.registerMockComponent(UserManager.class);
         CacheManager cacheManager = this.mocker.registerMockComponent(CacheManager.class);
 
         CacheFactory cacheFactory = mock(CacheFactory.class);

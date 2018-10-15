@@ -44,7 +44,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
-import org.slf4j.Logger;
 
 /**
  * Default implementation of the {@link PatientMatchResource}.
@@ -62,10 +61,6 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     private static final String OFFSET = "offset";
 
     private static final String LIMIT = "maxResults";
-
-    /** The logging object. */
-    @Inject
-    private Logger logger;
 
     /** The secure patient repository. */
     @Inject
@@ -94,7 +89,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
 
             return processRequest(reference, offset, limit, reqNo);
         } catch (final Exception e) {
-            this.logger.error("Unexpected exception while generating matches: {}", e.getMessage(), e);
+            this.slf4Jlogger.error("Unexpected exception while generating matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -102,7 +97,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     private Response processRequest(final String reference, int offset, int limit, int reqNo)
     {
         if (StringUtils.isBlank(reference)) {
-            this.logger.error("No reference patient ID was provided.");
+            this.slf4Jlogger.error("No reference patient ID was provided.");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -110,13 +105,13 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
             final Patient patient = this.repository.get(reference);
 
             if (patient == null) {
-                this.logger.error("Patient with ID: {} could not be found.", reference);
+                this.slf4Jlogger.error("Patient with ID: {} could not be found.", reference);
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
             return generateMatchesResponse(patient, offset, limit, reqNo);
         } catch (final SecurityException e) {
-            this.logger.error("Failed to retrieve patient with ID [{}]: {}", reference, e);
+            this.slf4Jlogger.error("Failed to retrieve patient with ID [{}]: {}", reference, e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
@@ -147,7 +142,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
             matchesJson.put(REQ_NO, reqNo);
             return Response.ok(matchesJson, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (final IndexOutOfBoundsException e) {
-            this.logger.error("The requested offset is out of bounds: {}", offset);
+            this.slf4Jlogger.error("The requested offset is out of bounds: {}", offset);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }

@@ -23,8 +23,8 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.permissions.EntityPermissionsManager;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @version $Id$
  */
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class DefaultPatientInMatch implements PatientInMatch
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientInMatch.class);
@@ -76,9 +77,9 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final VocabularyManager VOCABULARY_MANAGER;
 
-    private static final PermissionsManager PERMISSIONS_MANAGER;
+    private static final EntityPermissionsManager PERMISSIONS_MANAGER;
 
-    private static final PatientAccessHelper ACCESS_HELPER;
+    private static final EntityAccessManager ACCESS_HELPER;
 
     private static final UserManager USER_MANAGER;
 
@@ -118,8 +119,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientGenotypeManager pgm = null;
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
-        PermissionsManager pm = null;
-        PatientAccessHelper pa = null;
+        EntityPermissionsManager pm = null;
+        EntityAccessManager pa = null;
         UserManager um = null;
         GroupManager gm = null;
         try {
@@ -128,8 +129,8 @@ public class DefaultPatientInMatch implements PatientInMatch
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
-            pm = ccm.getInstance(PermissionsManager.class);
-            pa = ccm.getInstance(PatientAccessHelper.class);
+            pm = ccm.getInstance(EntityPermissionsManager.class, "secure");
+            pa = ccm.getInstance(EntityAccessManager.class);
             um = ccm.getInstance(UserManager.class);
             gm = ccm.getInstance(GroupManager.class);
         } catch (Exception e) {
@@ -474,20 +475,24 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private void setAccess()
     {
-        if (!this.isLocal() || this.patient == null) {
-            //
-            // FIXME: this is wrong, while server code has "view" access to the in-memory
-            // copy of the remote patient, from the UI's point of view current user
-            // does NOT have access to the patient. So need to investigate why this
-            // fix was needed and do a proper fix. Maybe we no longer need this after
-            // match obfuscation was removed.
+        try {
+            if (!this.isLocal() || this.patient == null) {
+                //
+                // FIXME: this is wrong, while server code has "view" access to the in-memory
+                // copy of the remote patient, from the UI's point of view current user
+                // does NOT have access to the patient. So need to investigate why this
+                // fix was needed and do a proper fix. Maybe we no longer need this after
+                // match obfuscation was removed.
 
-            // Remote patient, assume we have access
-            this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
-        } else if (this.patient instanceof PatientSimilarityView) {
-            this.access = ((PatientSimilarityView) this.patient).getAccess();
-        } else {
-            this.access = PERMISSIONS_MANAGER.getPatientAccess(this.patient).getAccessLevel();
+                // Remote patient, assume we have access
+                this.access = PERMISSIONS_MANAGER.resolveAccessLevel("view");
+            } else if (this.patient instanceof PatientSimilarityView) {
+                this.access = ((PatientSimilarityView) this.patient).getAccess();
+            } else {
+                this.access = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getAccessLevel();
+            }
+        } catch (Exception e) {
+            this.access = PERMISSIONS_MANAGER.resolveAccessLevel("none");
         }
     }
 
@@ -496,22 +501,26 @@ public class DefaultPatientInMatch implements PatientInMatch
      */
     private boolean isUserOwner()
     {
-        if (this.patient == null) {
-            return false;
-        }
-        User currentUser = USER_MANAGER.getCurrentUser();
-        DocumentReference userRef = currentUser.getProfileDocument();
-        EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
-        if (userRef.equals(ownerRef)) {
-            return true;
-        }
-        Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
-        for (Group group : userGroups) {
-            DocumentReference groupRef = group.getReference();
-            if (groupRef.equals(ownerRef)) {
+        try {
+            if (this.patient == null) {
+                return false;
+            }
+            User currentUser = USER_MANAGER.getCurrentUser();
+            DocumentReference userRef = currentUser.getProfileDocument();
+            EntityReference ownerRef = ACCESS_HELPER.getOwner(this.patient).getUser();
+            if (userRef.equals(ownerRef)) {
                 return true;
             }
+            Set<Group> userGroups = GROUP_MANAGER.getGroupsForUser(currentUser);
+            for (Group group : userGroups) {
+                DocumentReference groupRef = group.getReference();
+                if (groupRef.equals(ownerRef)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 }

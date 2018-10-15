@@ -23,16 +23,20 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.60</coverage.instructionRatio>
+    <coverage.instructionRatio>0.59</coverage.instructionRatio>
   </properties>
 
   <artifactId>patient-similarity-data-impl</artifactId>
   <name>PhenoTips - Patient network - Default implementation for the similar patients APIs</name>
   <dependencies>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-api</artifactId>
@@ -65,12 +69,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-contacts</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>patient-data-default-impl</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -82,6 +91,11 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-network-access-rules</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>phenotips-entities-api</artifactId>
+      <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
@@ -109,6 +123,11 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-cache-api</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
@@ -121,13 +140,13 @@
       <artifactId>json</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-      <version>3.0.1u2</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <dependency>

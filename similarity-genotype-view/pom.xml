@@ -23,11 +23,11 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.33</coverage.instructionRatio>
+    <coverage.instructionRatio>0.00</coverage.instructionRatio>
   </properties>
 
   <artifactId>similarity-genotype-view</artifactId>
@@ -35,7 +35,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -51,6 +51,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vocabularies-api</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>patient-data-default-impl</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -80,6 +85,11 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-model</artifactId>
+      <version>${xwiki.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${xwiki.version}</version>
     </dependency>
     <dependency>

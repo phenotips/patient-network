@@ -22,11 +22,13 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.FeatureMetadatum;
+import org.phenotips.data.Gene;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.internal.PhenoTipsGene;
 import org.phenotips.data.permissions.Owner;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -59,6 +61,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,7 +172,7 @@ public class RestrictedPatientSimilarityViewTest
     private Patient getEmptyMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
 
@@ -189,7 +192,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.open);
-        Assert.assertSame(PATIENT_1, o.getDocument());
+        Assert.assertSame(PATIENT_1, o.getDocumentReference());
     }
 
     /** The document is not disclosed for matchable patients. */
@@ -200,7 +203,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.limited);
-        Assert.assertNull(o.getDocument());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The document is not disclosed for private patients. */
@@ -211,7 +214,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockReference = mock(Patient.class);
 
         PatientSimilarityView o = new RestrictedPatientSimilarityView(mockMatch, mockReference, this.priv);
-        Assert.assertNull(o.getDocument());
+        Assert.assertNull(o.getDocumentReference());
     }
 
     /** The reporter is disclosed for public patients. */
@@ -475,20 +478,16 @@ public class RestrictedPatientSimilarityViewTest
      */
     private void setPatientCandidateGenes(Patient mockPatient, Collection<String> geneNames)
     {
-        List<Map<String, String>> fakeGenes = new ArrayList<>();
+        List<Gene> fakeGenes = new LinkedList<>();
 
         if (geneNames != null) {
             for (String gene : geneNames) {
-                Map<String, String> fakeGene = new HashMap<>();
-                fakeGene.put("gene", gene);
-                fakeGene.put("status", "solved");
+                Gene fakeGene = new PhenoTipsGene("", gene, "solved", null, null);
                 fakeGenes.add(fakeGene);
             }
         }
 
-        PatientData<Map<String, String>> fakeGeneData =
-            new IndexedPatientData<>("genes", fakeGenes);
-
+        PatientData<Gene> fakeGeneData = new IndexedPatientData<>("genes", fakeGenes);
         doReturn(fakeGeneData).when(mockPatient).getData("genes");
     }
 
@@ -620,7 +619,7 @@ public class RestrictedPatientSimilarityViewTest
         Patient mockMatch = getEmptyMockMatch();
         Patient mockReference = getBasicMockReference();
 
-        when(mockMatch.getDocument()).thenReturn(PATIENT_1);
+        when(mockMatch.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockMatch.getId()).thenReturn(PATIENT_1.getName());
         when(mockMatch.getReporter()).thenReturn(USER_1);
 
@@ -643,9 +642,9 @@ public class RestrictedPatientSimilarityViewTest
         when(mockProvider.get()).thenReturn(componentManager);
         when(ComponentManagerRegistry.getContextComponentManager()).thenReturn(componentManager);
 
-        PatientAccessHelper pa = mock(PatientAccessHelper.class);
+        EntityAccessManager pa = mock(EntityAccessManager.class);
         UserManager um = mock(UserManager.class);
-        when(componentManager.getInstance(PatientAccessHelper.class)).thenReturn(pa);
+        when(componentManager.getInstance(EntityAccessManager.class)).thenReturn(pa);
         when(componentManager.getInstance(UserManager.class)).thenReturn(um);
         User user = mock(User.class);
         when(um.getCurrentUser()).thenReturn(user);

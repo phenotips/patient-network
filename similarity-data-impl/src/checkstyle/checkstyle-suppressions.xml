@@ -24,4 +24,5 @@
 
 <suppressions>
   <suppress checks="IllegalType" files="DefaultPatientSimilarityViewFactory.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultPatientSimilarityView.java"/>
 </suppressions>

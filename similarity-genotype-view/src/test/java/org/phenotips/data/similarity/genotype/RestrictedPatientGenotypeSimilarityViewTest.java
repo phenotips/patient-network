@@ -18,9 +18,11 @@
 package org.phenotips.data.similarity.genotype;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Gene;
 import org.phenotips.data.IndexedPatientData;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.internal.PhenoTipsGene;
 import org.phenotips.data.permissions.internal.access.NoAccessLevel;
 import org.phenotips.data.permissions.internal.access.OwnerAccessLevel;
 import org.phenotips.data.similarity.AccessType;
@@ -29,6 +31,8 @@ import org.phenotips.data.similarity.ExomeManager;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.permissions.internal.MatchAccessLevel;
+import org.phenotips.vocabulary.Vocabulary;
+import org.phenotips.vocabulary.VocabularyManager;
 
 import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
@@ -43,7 +47,9 @@ import org.xwiki.model.reference.DocumentReference;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +65,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
+import org.mockito.Mock;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.objects.classes.StaticListClass;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -83,25 +97,38 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
     /** Sample exome data for match patient. */
     private static final String EXOME_1 =
-        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n"
-            +
-            "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n"
-            +
-            "chr6\t32628660\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-1A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.9\t0.612518\t1.0\t0.9057237\n"
-            +
-            "chr6\t32628661\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-2A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.5\t0.612518\t1.0\t0.9057237\n";
+        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)"
+            + "\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY"
+            + "\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_"
+            + "VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\nchr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRC"
+            + "AP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9"
+            + "876266\nchr6\t32628660\tT\tC\t225.0\tPASS\t0/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-1A>G\tHLA"
+            + "-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.9\t0.612518\t1.0\t0.9057237\nchr6\t32628661\tT\tC\t225.0\tPASS\t0"
+            + "/1\t94\tSPLICING\tHLA-DQB1:uc031snx.1:exon5:c.773-2A>G\tHLA-DQB1\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.5\t0.6"
+            + "12518\t1.0\t0.9057237\n";
 
     /** Sample exome data for reference patient. */
-    private static final String EXOME_2 =
-        "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUNCTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTASTER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_SCORE\tEXOMISER_GENE_COMBINED_SCORE\n"
-            +
-            "chr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1:exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\n"
-            +
-            "chr1\t120611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\n"
-            +
-            "chr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9609373\n";
+    private static final String EXOME_2 = "#CHROM\tPOS\tREF\tALT\tQUAL\tFILTER\tGENOTYPE\tCOVERAGE\tFUN"
+        + "CTIONAL_CLASS\tHGVS\tEXOMISER_GENE\tCADD(>0.483)\tPOLYPHEN(>0.956|>0.446)\tMUTATIONTA"
+        + "STER(>0.94)\tSIFT(<0.06)\tDBSNP_ID\tMAX_FREQUENCY\tDBSNP_FREQUENCY\tEVS"
+        + "_EA_FREQUENCY\tEVS_AA_FREQUENCY\tEXOMISER_VARIANT_SCORE\tEXOMISER_GENE_PHENO_SCORE\tEXOMISER_GENE_VARIANT_S"
+        + "CORE\tEXOMISER_GENE_COMBINED_SCORE\nchr16\t30748691\tC\tT\t225.0\tPASS\t0/1\t40\tSTOPGAIN\tSRCAP:uc002dzg.1"
+        + ":exon29:c.6715C>T:p.R2239*\tSRCAP\t.\t.\t.\t.\t.\t0.0\t.\t.\t.\t0.95\t0.8603835\t0.95\t0.9876266\nchr1\t120"
+        + "611963\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\tNOTCH2:uc001eil.3:exon1:c.56C>G:p.C19Q\tNOTCH2\t6.292\t.\t.\t0"
+        + ".0\t.\t0.0\t.\t.\t.\t0.4\t0.7029731\t1.0\t0.9609373\nchr1\t120611964\tG\tC\t76.0\tPASS\t0/1\t42\tMISSENSE\t"
+        + "NOTCH2:uc001eil.3:exon1:c.57C>G:p.C19W\tNOTCH2\t6.292\t.\t.\t0.0\t.\t0.0\t.\t.\t.\t1.0\t0.7029731\t1.0\t0.9"
+        + "609373\n";
 
     private static final String SRCAP = "SRCAP";
+
+    /** The mocked exome manager component, initialized once for all tests. */
+    private static ExomeManager exomeManager;
+
+    private static final List<String> STATUS_VALUES = Arrays.asList("candidate", "rejected", "rejected_candidate",
+        "solved", "carrier");
+
+    private static final List<String> STRATEGY_VALUES = Arrays.asList("sequencing", "deletion", "familial_mutation",
+        "common_mutations");
 
     private static AccessType open;
 
@@ -109,8 +136,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
     private static AccessType priv;
 
-    /** The mocked exome manager component, initialized once for all tests. */
-    private static ExomeManager exomeManager;
+    @Mock
+    private static XWikiContext context;
+
+    @Mock
+    private static Provider<XWikiContext> provider;
 
     /** The mocked match patient, initialized before each test. */
     private Patient mockMatch;
@@ -124,6 +154,15 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         LIMITED,
         NONE
     }
+
+    @Mock
+    private ComponentManager cm;
+
+    @Mock
+    private VocabularyManager vm;
+
+    @Mock
+    private Provider<ComponentManager> mockProvider;
 
     @BeforeClass
     public static void setupAccessTypes()
@@ -150,11 +189,76 @@ public class RestrictedPatientGenotypeSimilarityViewTest
         when(priv.getAccessLevel()).thenReturn(new NoAccessLevel());
     }
 
+    // Only do once, because components are stored statically within various classes,
+    // which causes problems with changing genetics mocks
+    @BeforeClass
+    @SuppressWarnings("unchecked")
+    public static void setupComponents() throws ComponentLookupException, CacheException, XWikiException
+    {
+        ComponentManager componentManager = mock(ComponentManager.class);
+        Provider<ComponentManager> mockProvider = mock(Provider.class);
+        // This is a bit fragile, let's hope the field name doesn't change
+        ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
+        when(mockProvider.get()).thenReturn(componentManager);
+
+        CacheManager cacheManager = mock(CacheManager.class);
+        when(componentManager.getInstance(CacheManager.class)).thenReturn(cacheManager);
+
+        CacheFactory cacheFactory = mock(CacheFactory.class);
+        when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
+
+        Cache<Exome> cache = mock(Cache.class);
+        doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
+        doReturn(null).when(cache).get(Matchers.anyString());
+
+        // Wire up mocked genetics
+        exomeManager = mock(ExomeManager.class);
+        when(componentManager.getInstance(ExomeManager.class, "exomiser")).thenReturn(exomeManager);
+
+        // Use a real GenotypeManager
+        PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
+        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
+
+        VocabularyManager vocabularyManager = mock(VocabularyManager.class);
+        Vocabulary hpo = mock(Vocabulary.class);
+        Vocabulary hgnc = mock(Vocabulary.class);
+        when(componentManager.getInstance(VocabularyManager.class)).thenReturn(vocabularyManager);
+        when(vocabularyManager.getVocabulary("HPO")).thenReturn(hpo);
+        when(vocabularyManager.getVocabulary("HGNC")).thenReturn(hgnc);
+        doReturn(null).when(hgnc).getTerm(Matchers.anyString());
+
+        provider = mock(Provider.class);
+        when(componentManager.getInstance(XWikiContext.TYPE_PROVIDER)).thenReturn(provider);
+        context = mock(XWikiContext.class);
+        when(provider.get()).thenReturn(context);
+        XWiki x = mock(XWiki.class);
+        when(context.getWiki()).thenReturn(x);
+
+        XWikiDocument geneDoc = mock(XWikiDocument.class);
+        when(x.getDocument(Gene.GENE_CLASS, context)).thenReturn(geneDoc);
+        geneDoc.setNew(false);
+        BaseClass c = mock(BaseClass.class);
+        when(geneDoc.getXClass()).thenReturn(c);
+        StaticListClass lc1 = mock(StaticListClass.class);
+        StaticListClass lc2 = mock(StaticListClass.class);
+        when(c.get("status")).thenReturn(lc1);
+        when(c.get("strategy")).thenReturn(lc2);
+        when(lc1.getList(context)).thenReturn(STATUS_VALUES);
+        when(lc2.getList(context)).thenReturn(STRATEGY_VALUES);
+    }
+
+    @Before
+    public void setupMockPatients() throws Exception
+    {
+        this.mockMatch = getBasicMockMatch();
+        this.mockReference = getBasicMockReference();
+    }
+
     /** Get basic match patient. */
     private Patient getBasicMockMatch()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_2);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_2);
         when(mockPatient.getId()).thenReturn(PATIENT_2.getName());
         when(mockPatient.getReporter()).thenReturn(USER_1);
         return mockPatient;
@@ -164,17 +268,15 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     private Patient getBasicMockReference()
     {
         Patient mockPatient = mock(Patient.class);
-        when(mockPatient.getDocument()).thenReturn(PATIENT_1);
+        when(mockPatient.getDocumentReference()).thenReturn(PATIENT_1);
         when(mockPatient.getId()).thenReturn(PATIENT_1.getName());
         when(mockPatient.getReporter()).thenReturn(null);
         return mockPatient;
     }
 
-    private Map<String, String> mockManualGene(String geneName, String status)
+    private Gene mockManualGene(String geneName, String status)
     {
-        Map<String, String> gene = new HashMap<>();
-        gene.put("gene", geneName);
-        gene.put("status", status);
+        Gene gene = new PhenoTipsGene(null, geneName, status, Collections.singleton(""), null);
         return gene;
     }
 
@@ -187,9 +289,9 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
     }
 
-    private List<Map<String, String>> mockCandidateGenes(Collection<String> geneNames)
+    private List<Gene> mockCandidateGenes(Collection<String> geneNames)
     {
-        List<Map<String, String>> genes = new ArrayList<>();
+        List<Gene> genes = new ArrayList<>();
         for (String geneName : geneNames) {
             genes.add(mockManualGene(geneName, "candidate"));
         }
@@ -202,10 +304,9 @@ public class RestrictedPatientGenotypeSimilarityViewTest
      * @param mockPatient the mock patient
      * @param genes candidate gene data
      */
-    private void setPatientGenes(Patient mockPatient, List<Map<String, String>> genes)
+    private void setPatientGenes(Patient mockPatient, List<Gene> genes)
     {
-        PatientData<Map<String, String>> geneData =
-            new IndexedPatientData<>("genes", genes);
+        PatientData<Gene> geneData = new IndexedPatientData<>("genes", genes);
         doReturn(geneData).when(mockPatient).getData("genes");
     }
 
@@ -326,11 +427,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testSolvedGenesMatch()
     {
-        List<Map<String, String>> matchGenes = new ArrayList<>();
+        List<Gene> matchGenes = new ArrayList<>();
         matchGenes.add(mockManualGene(SRCAP, "solved"));
         setPatientGenes(this.mockMatch, matchGenes);
 
-        List<Map<String, String>> refGenes = new ArrayList<>();
+        List<Gene> refGenes = new ArrayList<>();
         refGenes.add(mockManualGene(SRCAP, "candidate"));
         setPatientGenes(this.mockReference, refGenes);
 
@@ -349,11 +450,11 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     @Test
     public void testRejectedGenesDoNotMatch()
     {
-        List<Map<String, String>> matchGenes = new ArrayList<>();
+        List<Gene> matchGenes = new ArrayList<>();
         matchGenes.add(mockManualGene(SRCAP, "rejected"));
         setPatientGenes(this.mockMatch, matchGenes);
 
-        List<Map<String, String>> refGenes = new ArrayList<>();
+        List<Gene> refGenes = new ArrayList<>();
         refGenes.add(mockManualGene(SRCAP, "candidate"));
         setPatientGenes(this.mockReference, refGenes);
 
@@ -389,14 +490,14 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     {
         Collection<String> matchGenes = new ArrayList<>();
         matchGenes.add(SRCAP);
-        matchGenes.add("   ");
-        matchGenes.add("");
+        matchGenes.add("  k ");
+        matchGenes.add("k");
         setPatientGenes(this.mockMatch, mockCandidateGenes(matchGenes));
 
         Collection<String> refGenes = new ArrayList<>();
-        refGenes.add("");
+        refGenes.add("l");
         refGenes.add("HEXA");
-        refGenes.add("  ");
+        refGenes.add(" l ");
         setPatientGenes(this.mockReference, mockCandidateGenes(refGenes));
 
         PatientGenotypeSimilarityView view =
@@ -482,7 +583,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
     public void testManualVUSInNegativeGene()
     {
         // VUS in candidate gene in match
-        List<Map<String, String>> fakeGenes = new ArrayList<>();
+        List<Gene> fakeGenes = new ArrayList<>();
         fakeGenes.add(mockManualGene(SRCAP, "rejected"));
         setPatientGenes(this.mockMatch, fakeGenes);
 
@@ -612,44 +713,6 @@ public class RestrictedPatientGenotypeSimilarityViewTest
 
         // Ensure reference shows candidate gene score
         assertVariantDetailLevel(VariantDetailLevel.NONE, top.getJSONObject("reference"), 0);
-    }
-
-    // Only do once, because components are stored statically within various classes,
-    // which causes problems with changing genetics mocks
-    @BeforeClass
-    @SuppressWarnings("unchecked")
-    public static void setupComponents() throws ComponentLookupException, CacheException
-    {
-        ComponentManager componentManager = mock(ComponentManager.class);
-        Provider<ComponentManager> mockProvider = mock(Provider.class);
-        // This is a bit fragile, let's hope the field name doesn't change
-        ReflectionUtils.setFieldValue(new ComponentManagerRegistry(), "cmProvider", mockProvider);
-        when(mockProvider.get()).thenReturn(componentManager);
-
-        CacheManager cacheManager = mock(CacheManager.class);
-        when(componentManager.getInstance(CacheManager.class)).thenReturn(cacheManager);
-
-        CacheFactory cacheFactory = mock(CacheFactory.class);
-        when(cacheManager.getLocalCacheFactory()).thenReturn(cacheFactory);
-
-        Cache<Exome> cache = mock(Cache.class);
-        doReturn(cache).when(cacheFactory).newCache(Matchers.any(CacheConfiguration.class));
-        doReturn(null).when(cache).get(Matchers.anyString());
-
-        // Wire up mocked genetics
-        exomeManager = mock(ExomeManager.class);
-        when(componentManager.getInstance(ExomeManager.class, "exomiser")).thenReturn(exomeManager);
-
-        // Use a real GenotypeManager
-        PatientGenotypeManager genotypeManager = new DefaultPatientGenotypeManager();
-        when(componentManager.getInstance(PatientGenotypeManager.class)).thenReturn(genotypeManager);
-    }
-
-    @Before
-    public void setupMockPatients()
-    {
-        this.mockMatch = getBasicMockMatch();
-        this.mockReference = getBasicMockReference();
     }
 
     @After

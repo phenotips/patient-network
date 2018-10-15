@@ -23,14 +23,10 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
   <artifactId>patient-similarity-search</artifactId>
   <name>PhenoTips - Patient network - Java APIs for finding similar patients</name>
-
-  <properties>
-    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -45,12 +41,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vocabularies-api</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>phenotips-consents-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>

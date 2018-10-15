@@ -75,7 +75,7 @@ public class SimilarPatientsScriptService implements ScriptService
 
     /**
      * @deprecated Checks how many patients similar to a reference patient exist, and returns their count.
-     * See {@link SimilarPatientsFinder#countSimilarPatients(Patient)}.
+     *     See {@link SimilarPatientsFinder#countSimilarPatients(Patient)}.
      *
      * @param referencePatient the reference patient, must not be {@code null}
      * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid

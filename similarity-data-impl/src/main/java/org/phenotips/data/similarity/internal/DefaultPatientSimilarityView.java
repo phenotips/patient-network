@@ -22,7 +22,8 @@ import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.PatientWritePolicy;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
@@ -33,6 +34,7 @@ import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
 
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.UserManager;
 
@@ -46,6 +48,10 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Implementation of {@link org.phenotips.data.similarity.PatientSimilarityView} that uses a mutual information metric
@@ -57,11 +63,11 @@ import org.json.JSONArray;
 public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
 {
     static {
-        PatientAccessHelper pa = null;
+        EntityAccessManager pa = null;
         UserManager um = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-            pa = ccm.getInstance(PatientAccessHelper.class);
+            pa = ccm.getInstance(EntityAccessManager.class);
             um = ccm.getInstance(UserManager.class);
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
@@ -485,5 +491,41 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             }
         }
         return Collections.unmodifiableSet(disorders);
+    }
+
+    @Override
+    public void updateFromJSON(JSONObject arg0, PatientWritePolicy arg1)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Document getSecureDocument()
+    {
+        return this.match.getSecureDocument();
+    }
+
+    @Override
+    public XWikiDocument getXDocument()
+    {
+        return this.match.getXDocument();
+    }
+
+    @Override
+    public DocumentReference getDocumentReference()
+    {
+        return this.match.getDocumentReference();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated use {@link #getDocumentReference()} instead
+     */
+    @Deprecated
+    @Override
+    public DocumentReference getDocument()
+    {
+        return this.match.getDocumentReference();
     }
 }

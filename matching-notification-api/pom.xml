@@ -23,12 +23,11 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
   <name>PhenoTips - Patient Network - Matching Notification - API</name>
   <artifactId>matching-notification-api</artifactId>
   <properties>
-    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
     <coverage.instructionRatio>0.00</coverage.instructionRatio>
   </properties>
   <dependencies>
@@ -64,7 +63,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
+      <artifactId>entity-access-rules-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>
@@ -75,6 +74,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-data-api</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>users-api</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
     <dependency>

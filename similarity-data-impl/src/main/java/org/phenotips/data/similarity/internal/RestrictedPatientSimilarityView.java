@@ -22,7 +22,7 @@ import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
+import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
@@ -51,11 +51,11 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 {
     static {
         if (accessHelper == null && userManager == null) {
-            PatientAccessHelper pa = null;
+            EntityAccessManager pa = null;
             UserManager um = null;
             try {
                 ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-                pa = ccm.getInstance(PatientAccessHelper.class);
+                pa = ccm.getInstance(EntityAccessManager.class);
                 um = ccm.getInstance(UserManager.class);
             } catch (Exception e) {
                 LOGGER.error("Error loading static components: {}", e.getMessage(), e);
@@ -99,9 +99,9 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
     }
 
     @Override
-    public DocumentReference getDocument()
+    public DocumentReference getDocumentReference()
     {
-        return this.access.isOpenAccess() ? this.match.getDocument() : null;
+        return this.access.isOpenAccess() ? this.match.getDocumentReference() : null;
     }
 
     @Override
@@ -161,7 +161,8 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
         return null;
     }
 
-    private boolean isLimitedAccessibleField(String fieldName) {
+    private boolean isLimitedAccessibleField(String fieldName)
+    {
         return ("contact".equals(fieldName) || "genes".equals(fieldName)
             || "solved".equals(fieldName) || "solved__pubmed_id".equals(fieldName));
     }

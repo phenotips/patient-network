@@ -19,7 +19,7 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.PermissionsManager;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
@@ -67,7 +67,8 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
 
     /** Computes the real access level for a patient. */
     @Inject
-    protected PermissionsManager permissions;
+    @Named("secure")
+    protected EntityPermissionsManager permissions;
 
     /** Needed by {@link DefaultAccessType} for checking if a given access level provides read access to patients. */
     @Inject
@@ -131,7 +132,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
-        AccessType access = new DefaultAccessType(this.permissions.getPatientAccess(match).getAccessLevel(),
+        AccessType access = new DefaultAccessType(this.permissions.getEntityAccess(match).getAccessLevel(),
             this.viewAccess, this.matchAccess);
         return getCachedPatientSimilarityView(match, reference, access);
     }

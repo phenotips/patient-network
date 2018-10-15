@@ -117,7 +117,7 @@
       <name>org.phenotips.homepage.dashboard.MyMatches</name>
     </property>
     <property>
-      <parameters>
+      <parameters>title={{html clean="false"}}&lt;p&gt;$services.localization.render('phenotips.homepage.myMatches.title')&lt;/p&gt;{{/html}}
 column=1
 priority=0
 enabled=true

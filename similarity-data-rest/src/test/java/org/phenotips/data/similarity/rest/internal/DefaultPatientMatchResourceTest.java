@@ -116,6 +116,7 @@ public class DefaultPatientMatchResourceTest
 
     private PatientMatchResource component;
 
+    @Mock
     private Logger logger;
 
     private PatientRepository repository;

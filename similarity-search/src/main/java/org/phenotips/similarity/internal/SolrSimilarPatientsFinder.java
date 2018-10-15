@@ -17,15 +17,17 @@
  */
 package org.phenotips.similarity.internal;
 
-import org.phenotips.data.ConsentManager;
+import org.phenotips.consents.ConsentManager;
 import org.phenotips.data.Feature;
+import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.EntityAccess;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.Visibility;
-import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.similarity.SimilarPatientsFinder;
@@ -47,7 +49,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -72,6 +73,7 @@ import org.slf4j.Logger;
  */
 @Component
 @Singleton
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
     /** The number of records to fully score. */
@@ -114,7 +116,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private ConsentManager consentManager;
 
     @Inject
-    private PatientAccessHelper accessHelper;
+    private EntityPermissionsManager permissionsManager;
 
     /** The Solr server instance used. */
     private SolrClient server;
@@ -153,7 +155,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private List<PatientSimilarityView> find(Patient referencePatient, String requiredConsentId, boolean prototypes)
     {
         this.logger.debug("Searching for patients similar to [{}] using access level {}",
-            referencePatient.getDocument(), this.accessLevelThreshold.getName());
+            referencePatient.getId(), this.accessLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
         if (query == null) {
             return Collections.emptyList();
@@ -161,9 +163,8 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
         Family family = this.familyRepository.getFamilyForPatient(referencePatient);
-        Owner refOwner = this.accessHelper.getOwner(referencePatient);
-        EntityReference refOwnerRef =
-            (refOwner != null) ? this.accessHelper.getOwner(referencePatient).getUser() : null;
+        Owner refOwner = this.permissionsManager.getEntityAccess(referencePatient).getOwner();
+        EntityReference refOwnerRef = (refOwner != null) ? refOwner.getUser() : null;
 
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
@@ -197,9 +198,11 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return results;
     }
 
+    @SuppressWarnings({ "checkstyle:NPathComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:ReturnCount" })
     private boolean filterPatient(Patient matchPatient, Family family, EntityReference refOwner,
         String requiredConsentId)
     {
+        EntityAccess access = this.permissionsManager.getEntityAccess(matchPatient);
         if (matchPatient == null) {
             // Leftover patient in the index, should be removed
             return true;
@@ -209,7 +212,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients of the same owner
-        Owner matchOwner = this.accessHelper.getOwner(matchPatient);
+        Owner matchOwner = access.getOwner();
         if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
             return true;
         }
@@ -218,13 +221,12 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients with access level less than defined access level threshold
-        AccessLevel patientAccessLevel =
-            this.accessHelper.getAccessLevel(matchPatient, this.accessHelper.getCurrentUser());
+        AccessLevel patientAccessLevel = access.getAccessLevel();
         if (this.accessLevelThreshold.compareTo(patientAccessLevel) > 0) {
             return true;
         }
         // filter out patients with visibility level less than defined visibility level threshold
-        Visibility patientVisibility = this.accessHelper.getVisibility(matchPatient);
+        Visibility patientVisibility = access.getVisibility();
         if (this.visibilityLevelThreshold.compareTo(patientVisibility) > 0) {
             return true;
         }
@@ -247,17 +249,17 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
         }
 
-        PatientData<Map<String, String>> allGenes = referencePatient.getData("genes");
+        PatientData<Gene> allGenes = referencePatient.getData("genes");
         appendGenesToQuery(allGenes, q);
 
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
-        if (referencePatient.getDocument() != null) {
-            q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocument().toString()));
+        if (referencePatient.getDocumentReference() != null) {
+            q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocumentReference().toString()));
         }
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
         query.add(CommonParams.Q, q.toString());
-        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getDocument(),
+        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getId(),
             query.toString());
         return query;
     }
@@ -314,18 +316,18 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return termIds;
     }
 
-    private void appendGenesToQuery(PatientData<Map<String, String>> allGenes, StringBuilder q)
+    private void appendGenesToQuery(PatientData<Gene> allGenes, StringBuilder q)
     {
         Collection<String> genesToSearch = new ArrayList<>();
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
-            for (Map<String, String> gene : allGenes) {
-                String geneName = gene.get("gene");
+            for (Gene gene : allGenes) {
+                String geneName = gene.getId();
                 if (StringUtils.isBlank(geneName)) {
                     continue;
                 }
 
                 geneName = geneName.trim();
-                String status = gene.get("status");
+                String status = gene.getStatus();
                 // Treat empty status as candidate
                 if (StringUtils.isBlank(status) || "solved".equals(status) || "candidate".equals(status)) {
                     genesToSearch.add(geneName);
