@@ -129,11 +129,15 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 * $!phenotype.name
 #end
 #end
+#if($!subjectPatient.modeOfInheritance.size &gt; 0)
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label')
 #foreach ($item in $!subjectPatient.modeOfInheritance)
 * $!item
 #end
+#end
+#if("$!subjectPatient.ageOfOnset" != '')
 $services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label') $!subjectPatient.ageOfOnset
+#end
 
 -----------
 
@@ -158,11 +162,15 @@ $services.localization.render('phenotips.matchingNotifications.email.table.pheno
 * $!phenotype.name
 #end
 #end
+#if($!subjectPatient.modeOfInheritance.size &gt; 0)
 $services.localization.render('phenotips.matchingNotifications.email.table.modeOfInheritance.label')
 #foreach ($item in $!myPatient.modeOfInheritance)
 * $!item
 #end
+#end
+#if("$!subjectPatient.ageOfOnset" != '')
 $services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label') $!myPatient.ageOfOnset
+#end
 
 -----------
 

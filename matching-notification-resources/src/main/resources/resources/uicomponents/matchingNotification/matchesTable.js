@@ -99,7 +99,71 @@ var PhenoTips = (function (PhenoTips) {
             this._showMatches();
         }
 
+        this._resetSortingPreferences();
+
+        // event listeners for sorting icon clicks
+        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn('score');}.bind(this));
+        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn('genotypicScore');}.bind(this));
+        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn('phenotypicScore');}.bind(this));
+        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
+
         Event.observe(window, 'resize', this._buildTable.bind(this));
+    },
+
+    _resetSortingPreferences: function() {
+        // defines current/default sorting order for various columns
+        this._sortingOrder = { "score": "descending",
+                               "genotypicScore": "descending",
+                               "phenotypicScore": "descending",
+                               "foundTimestamp": "descending" };
+        // current sorting order
+        this._currentSortingOrder = "none";
+    },
+
+    _sortByColumn : function(propName) {
+        if (!this._sortingOrder.hasOwnProperty(propName)) {
+            console.log("Unsupported sorting column");
+            return;
+        }
+
+        if (this._currentSortingOrder == propName) {
+            // reverse sorting order if already sorting by this parameter...
+            this._sortingOrder[propName] = (this._sortingOrder[propName] == "ascending") ? "descending" : "ascending";
+        } else {
+            // ...but use curent/default sorting order if currently sorting by other column
+            this._currentSortingOrder = propName;
+        }
+
+        var getIconElementForProperty = function(propertyName) {
+            var element = $$('th[data-column="' + propertyName + '"]')[0];
+            return element.down('.fa') ? element.down('.fa') : element;
+        }
+
+        // update sorting icons for all columns
+        for (var column in this._sortingOrder) {
+            if (this._sortingOrder.hasOwnProperty(column)) {
+                var faElement = getIconElementForProperty(column);
+                if (faElement) {
+                    faElement.removeClassName('fa-sort-down');
+                    faElement.removeClassName('fa-sort-up');
+                    if (column == this._currentSortingOrder) {
+                        // for current column
+                        faElement.removeClassName('fa-sort');
+                        (this._sortingOrder[column] == "descending") ? faElement.addClassName('fa-sort-down') : faElement.addClassName('fa-sort-up');
+                    } else {
+                        // for all other columns
+                        faElement.addClassName('fa-sort');
+                    }
+                }
+            }
+        }
+
+        this._cachedMatches.sort( function(a, b) {
+            if(a[propName] < b[propName]) return (this._sortingOrder[propName] == "ascending") ? -1 : +1;
+            if(a[propName] > b[propName]) return (this._sortingOrder[propName] == "ascending") ? +1 : -1;
+            return 0;
+        }.bind(this));
+        this._update();
     },
 
     validateScore : function(score, className, messagesFieldName, applyMinScore) {
@@ -135,6 +199,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues = {};
         this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
         this._filterValues.matchStatus = {"rejected" : true, "saved" : true, "uncategorized" : true};
+        this._filterValues.ownerStatus = {"me" : true, "group" : true, "public" : false, "others": false};
         this._filterValues.notified  = {"notified" : $$('input[name="notified-filter"][value="notified"]')[0].checked,
                                         "unnotified" : $$('input[name="notified-filter"][value="unnotified"]')[0].checked};
         this._filterValues.score  = {"score" : 0, "phenotypicScore" : 0, "genotypicScore" : 0};
@@ -150,15 +215,28 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         $$('input[name="status-filter"]').each(function (checkbox) {
+            // initialize filter to the value set in the form
+            this._filterValues.matchStatus[checkbox.value] = checkbox.checked;
+            // click handler
             checkbox.on('click', function(event) {
                 this._filterValues.matchStatus[event.currentTarget.value] = event.currentTarget.checked;
+                this._update();
+            }.bind(this));
+        }.bind(this));
+
+        $$('input[name="ownership-filter"]').each(function (checkbox) {
+            // initialize filter to the value set in the form
+            this._filterValues.ownerStatus[checkbox.value] = checkbox.checked;
+            // click handler
+            checkbox.on('click', function(event) {
+                this._filterValues.ownerStatus[event.currentTarget.value] = event.currentTarget.checked;
                 this._update(this._advancedFilter);
             }.bind(this));
         }.bind(this));
 
         $('gene-status-filter').on('change', function(event) {
             this._filterValues.geneStatus = event.currentTarget.value;
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $$('input[name="access-filter"]').each(function (checkbox) {
@@ -170,14 +248,14 @@ var PhenoTips = (function (PhenoTips) {
                     this._filterValues.matchAccess["manage"] = event.currentTarget.checked;
                     this._filterValues.matchAccess["view"]   = event.currentTarget.checked;
                 }
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $$('input[name="notified-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.notified[event.currentTarget.value] = event.currentTarget.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
@@ -193,35 +271,35 @@ var PhenoTips = (function (PhenoTips) {
                     return;
                 }
                 this._filterValues.score[event.currentTarget.name] = event.currentTarget.value;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.serverIds[checkbox.value] = checkbox.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
         $('external-id-filter').on('input', function(event) {
             this._filterValues.externalId = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('email-filter').on('input', function(event) {
             this._filterValues.email = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('gene-symbol-filter').on('input', function(event) {
             this._filterValues.geneSymbol = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('phenotype-filter').on('input', function(event) {
             this._filterValues.phenotype = event.currentTarget.value.toLowerCase();
-            this._update(this._advancedFilter);
+            this._update();
         }.bind(this));
 
         $('global-search-input').on('input', function(event) {
@@ -267,12 +345,34 @@ var PhenoTips = (function (PhenoTips) {
             var hasGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
+
+            // returns true iff any of the two records in the match is local and its ownership field "ownershipParameter" is true
+            var matchHasRecordWithOwnership = function(match, ownershipParameter) {
+                                         if (match.reference.serverId == "" && match.reference.ownership[ownershipParameter]) {
+                                            return true;
+                                         }
+                                         if (match.matched.serverId == "" && match.matched.ownership[ownershipParameter]) {
+                                            return true;
+                                         }
+                                         return false;
+                                     };
+
+            var matchOwnedByMe     = matchHasRecordWithOwnership(match, "userIsOwner");
+            var matchOwnedByGroup  = matchHasRecordWithOwnership(match, "userGroupIsOwner");
+            var matchOwnedByPublic = matchHasRecordWithOwnership(match, "publicRecord");
+            var matchOwnedByOthers = !matchOwnedByMe && !matchOwnedByGroup && !matchOwnedByPublic;
+
+            var hasOwnershipMatch = (this._filterValues.ownerStatus["me"] && matchOwnedByMe)
+                                    || (this._filterValues.ownerStatus["group"] && matchOwnedByGroup)
+                                    || (this._filterValues.ownerStatus["public"] && matchOwnedByPublic)
+                                    || (this._filterValues.ownerStatus["others"] && matchOwnedByOthers);
+
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
                              && match.genotypicScore >= this._filterValues.score.genotypicScore;
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch
                        && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
@@ -350,7 +450,7 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this),
             onComplete : function () {
                 $("panels-livetable-ajax-loader").hide();
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this)
         });
     },
@@ -491,6 +591,15 @@ var PhenoTips = (function (PhenoTips) {
 
             this._organiseGenes(match);
         }.bind(this));
+
+        // leave only uniq server ids in the array, remove duplicates
+        this._presentServerIds = this._presentServerIds.uniq();
+
+        // new data - forget current sorting preferences
+        this._resetSortingPreferences();
+
+        // sort by match found timestamp in descending order
+        this._sortByColumn('foundTimestamp');
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -636,10 +745,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.isOwner, record.reference.pubmedId);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.pubmedId);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.isOwner, record.matched.pubmedId);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.pubmedId);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -804,7 +913,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isOwner, pubmedID)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, pubmedID)
     {
         var td = '<td name="' + cellName + '">';
         // if case is solved and has a Pubmed ID - display a link to it onstead of emails
@@ -1176,3 +1285,4 @@ var PhenoTips = (function (PhenoTips) {
     });
     return PhenoTips;
 }(PhenoTips || {}));
+
