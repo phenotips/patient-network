@@ -162,8 +162,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
-        Family family = this.familyRepository.getFamilyForPatient(referencePatient);
-        Owner refOwner = this.permissionsManager.getEntityAccess(referencePatient).getOwner();
+        // re-fetching patient to force it to be instance of internal Patient, not SecurePatient
+        Patient referenceIntPatient = this.patients.get(referencePatient.getId());
+        Family family = this.familyRepository.getFamilyForPatient(referenceIntPatient);
+        Owner refOwner = this.permissionsManager.getEntityAccess(referenceIntPatient).getOwner();
         EntityReference refOwnerRef = (refOwner != null) ? refOwner.getUser() : null;
 
         for (SolrDocument doc : docs) {
