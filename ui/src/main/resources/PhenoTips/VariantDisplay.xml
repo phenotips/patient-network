@@ -39,7 +39,7 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #set( $patient = $services.patients.get("$!{request.query}"))
-#set ($exomiserResults = $services.patientVariantView.getTopGenesAsJSON($patient, "$!{request.numberOfGenes}", "$!{request.numberOfVariants}"))
+#set ($exomiserResults = $services.patientVariantView.getTopGenesAsJSON("$!{request.query}", "$!{request.numberOfGenes}", "$!{request.numberOfVariants}"))
 #if ($xcontext.action == 'get')
   $response.setContentType('application/json')
 #end
