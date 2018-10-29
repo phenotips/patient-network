@@ -17,7 +17,6 @@
  */
 package org.phenotips.matchingnotification.rest.internal;
 
-import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
@@ -112,11 +111,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Inject
     private EntityReferenceResolver<String> resolver;
-
-    /** Needed for checking if a given access level provides read access to patients. */
-    @Inject
-    @Named("view")
-    private AccessLevel viewAccess;
 
     @Override
     public void refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)

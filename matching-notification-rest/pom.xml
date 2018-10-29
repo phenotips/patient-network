@@ -56,11 +56,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>patient-access-rules-api</artifactId>
-      <version>${phenotips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>patient-data-rest</artifactId>
       <version>${phenotips.version}</version>
     </dependency>
