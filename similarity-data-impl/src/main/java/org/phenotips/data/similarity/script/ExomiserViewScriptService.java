@@ -18,6 +18,7 @@
 package org.phenotips.data.similarity.script;
 
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.similarity.Exome;
@@ -66,6 +67,9 @@ public class ExomiserViewScriptService implements ScriptService
     @Named("exomiser")
     private ExomeManager exomeManager;
 
+    @Inject
+    private PatientRepository patients;
+
     /**
      * Checks if a patient has a valid Exomiser genotype.
      *
@@ -83,14 +87,15 @@ public class ExomiserViewScriptService implements ScriptService
     /**
      * Outputs the k top genes from a patient as a JSON array.
      *
-     * @param patient a valid patient
+     * @param patientID a valid patient ID
      * @param g the number of genes to report
      * @param v the maximum number of variants to report per gene
      * @return an array of "g" JSON objects representing the top genes for the patient
      */
-    public JSONArray getTopGenesAsJSON(Patient patient, int g, int v)
+    public JSONArray getTopGenesAsJSON(String patientID, int g, int v)
     {
         JSONArray result = new JSONArray();
+        Patient patient = this.patients.get(patientID);
         if (patient == null || g <= 0) {
             return result;
         }
