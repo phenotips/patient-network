@@ -262,9 +262,12 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     {
         Collection<String> emails = this.subjectPatient.getEmails();
         for (String emailAddress : emails) {
-            InternetAddress to = new InternetAddress();
-            to.setAddress(emailAddress);
-            this.mimeMessage.addRecipient(RecipientType.TO, to);
+            try {
+                InternetAddress to = new InternetAddress(emailAddress);
+                this.mimeMessage.addRecipient(RecipientType.TO, to);
+            } catch (Exception ex) {
+                LOGGER.error("Error parsing email: [{}] {}", emailAddress, ex);
+            }
         }
         InternetAddress bcc = new InternetAddress();
         bcc.setAddress("qc@phenomecentral.org");
