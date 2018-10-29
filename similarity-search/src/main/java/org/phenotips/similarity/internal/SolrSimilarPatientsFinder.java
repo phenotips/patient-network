@@ -24,6 +24,7 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.Owner;
+import org.phenotips.data.permissions.PermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.permissions.internal.PatientAccessHelper;
 import org.phenotips.data.similarity.PatientSimilarityView;
@@ -115,6 +116,9 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     @Inject
     private PatientAccessHelper accessHelper;
+
+    @Inject
+    private PermissionsManager permissionsManager;
 
     /** The Solr server instance used. */
     private SolrClient server;
@@ -218,8 +222,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             return true;
         }
         // filter out patients with access level less than defined access level threshold
-        AccessLevel patientAccessLevel =
-            this.accessHelper.getAccessLevel(matchPatient, this.accessHelper.getCurrentUser());
+        AccessLevel patientAccessLevel = this.permissionsManager.getPatientAccess(matchPatient).getAccessLevel();
         if (this.accessLevelThreshold.compareTo(patientAccessLevel) > 0) {
             return true;
         }

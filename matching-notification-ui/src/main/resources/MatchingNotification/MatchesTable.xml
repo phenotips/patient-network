@@ -134,6 +134,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
               &lt;/li&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.ownershipFilter'))&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="me" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_me'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="group" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_group'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="others" #if(!$hasAdmin)checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_other'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="public" &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_public'))&lt;/label&gt;
+              &lt;/li&gt;
               &lt;li #if(!$hasAdmin)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
                 &lt;select id="gene-status-filter"&gt;
                   &lt;option value="all" selected="selected"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterShowAll'))&lt;/option&gt;
@@ -173,6 +179,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           #if($hasAdmin)&lt;th colspan="1" &gt;&lt;/th&gt;#end
           &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.patDetails'))&lt;/th&gt;
           &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
+          &lt;th colspan="1"&gt;&lt;/th&gt;
           &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.emails'))&lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
         &lt;/tr&gt;
@@ -180,9 +187,22 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
         &lt;th data-column="status" #if(!$hasAdmin)class="hidden"#end title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
         &lt;th data-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
         &lt;th data-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;/th&gt;
-        &lt;th data-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.averageScore'))&lt;/th&gt;
-        &lt;th data-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))&lt;/th&gt;
-        &lt;th data-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))&lt;/th&gt;
+        &lt;th data-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;
+           $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.averageScore'))
+           &lt;span class="fa fa-sort" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.sort'))"&gt;&lt;/span&gt;
+        &lt;/th&gt;
+        &lt;th data-column="genotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.genotypicScore'))"&gt;
+          $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.genotypicScore'))
+          &lt;span class="fa fa-sort" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.sort'))"&gt;&lt;/span&gt;
+        &lt;/th&gt;
+        &lt;th data-column="phenotypicScore" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.phenotypicScore'))"&gt;
+          $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.phenotypicScore'))
+          &lt;span class="fa fa-sort" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.sort'))"&gt;&lt;/span&gt;
+        &lt;/th&gt;
+        &lt;th data-column="foundTimestamp" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.foundTimestamp'))"&gt;
+          $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.foundTimestamp'))
+          &lt;span class="fa fa-sort" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.sort'))"&gt;&lt;/span&gt;
+        &lt;/th&gt;
         &lt;th data-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
         &lt;th data-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
         &lt;th data-column="notified" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notified'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notified'))&lt;/th&gt;
