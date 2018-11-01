@@ -28,7 +28,7 @@
   </parent>
   
   <artifactId>patient-network</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1.12</version>
   <packaging>pom</packaging>
   <name>PhenoTips - Patient network</name>
 
@@ -36,6 +36,7 @@
     <connection>scm:git:git://github.com/phenotips/patient-network.git</connection>
     <developerConnection>scm:git:git@github.com:phenotips/patient-network.git</developerConnection>
     <url>https://github.com/phenotips/remote-matching.git/tree/stable-1.1.x/</url>
+    <tag>patient-network-1.1.12</tag>
   </scm>
 
   <!-- We need to list repositories for finding the parent. Other settings will be correctly inherited from the parent. -->
