@@ -261,7 +261,7 @@ public class DefaultPatientInMatch implements PatientInMatch
                 // MME emails may be of the form "mailto:email1,email2", need ot parse that
                 if (this.href.startsWith("mailto:")) {
                     String emailList = this.href.replace("mailto:", "");
-                    emails.addAll(Arrays.asList(emailList.split(",")));
+                    emails.addAll(Arrays.asList(emailList.split(",|;")));
                 } else {
                     emails.add(this.href);
                 }
