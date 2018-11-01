@@ -521,6 +521,9 @@
 
     _displayResultIdentifier : function (r) {
       if (this._mmeMode) {
+        if (r.id &amp;&amp; r.id.startsWith("http")) {
+          return new Element('a', {'href' : r.id}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.profile'))");
+        }
         return (r.id ? r.id : "");
       } else {
         return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedIdentifier'))");
