@@ -164,7 +164,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
      * @param customEmailSubject (optional) custom subject to be used for the email
      */
     public AbstractPatientMatchEmail(String subjectPatientId, String subjectServerId, Collection<PatientMatch> matches,
-            String customEmailText, String customEmailSubject)
+        String customEmailText, String customEmailSubject)
     {
         this.matches = matches;
         this.customEmailText = customEmailText;
@@ -187,8 +187,8 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     /**
      * Having a separate init method allows derived classes to initialize their own variables
      * which are used in createMimeMessage().
-     * @param subjectPatientId same as cobstructor
-     * @param subjectServerId same as cobstructor
+     * @param subjectPatientId same as constructor
+     * @param subjectServerId same as constructor
      */
     protected void init(String subjectPatientId, String subjectServerId)
     {
@@ -209,14 +209,14 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     {
         if (this.customEmailText == null) {
             DocumentReference templateReference = REFERENCE_RESOLVER.resolve(
-                    getEmailTemplate(), PatientMatch.DATA_SPACE);
+                getEmailTemplate(), PatientMatch.DATA_SPACE);
 
-            this.mimeMessage = MAIL_GENERATOR_SERVICE.
-                    createMessage("template", templateReference, this.createEmailParameters());
+            this.mimeMessage = MAIL_GENERATOR_SERVICE
+                .createMessage("template", templateReference, this.createEmailParameters());
 
             if (this.mimeMessage == null) {
                 LOGGER.error("Error while populating email template: [{}]",
-                        MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
+                    MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
             }
         } else {
             this.mimeMessage = MAIL_GENERATOR_SERVICE.createMessage();
@@ -224,7 +224,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
                 this.mimeMessage.setContent(this.customEmailText, "text/plain");
             } catch (Exception ex) {
                 LOGGER.error("Error while populating email with custom text [{}]: [{}]", this.customEmailText,
-                        MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
+                    MAIL_GENERATOR_SERVICE.getLastError().getMessage(), MAIL_GENERATOR_SERVICE.getLastError());
             }
         }
 
@@ -261,9 +261,12 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     {
         Collection<String> emails = this.subjectPatient.getEmails();
         for (String emailAddress : emails) {
-            InternetAddress to = new InternetAddress();
-            to.setAddress(emailAddress);
-            this.mimeMessage.addRecipient(RecipientType.TO, to);
+            try {
+                InternetAddress to = new InternetAddress(emailAddress);
+                this.mimeMessage.addRecipient(RecipientType.TO, to);
+            } catch (Exception ex) {
+                LOGGER.error("Error parsing email [{}]: {}", emailAddress, ex.getMessage(), ex);
+            }
         }
         InternetAddress bcc = new InternetAddress();
         bcc.setAddress("qc@phenomecentral.org");
@@ -311,7 +314,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
             if (listener.getMailStatusResult().getAllErrors().hasNext()) {
                 this.mailStatus = listener.getMailStatusResult().getAllErrors().next();
                 LOGGER.error("Error sending email: [{}] [{}]",
-                        this.mailStatus.getErrorDescription(), this.mailStatus.getErrorSummary());
+                    this.mailStatus.getErrorDescription(), this.mailStatus.getErrorSummary());
                 return;
             }
 
