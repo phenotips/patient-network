@@ -266,7 +266,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
                 InternetAddress to = new InternetAddress(emailAddress);
                 this.mimeMessage.addRecipient(RecipientType.TO, to);
             } catch (Exception ex) {
-                LOGGER.error("Error parsing email: [{}] {}", emailAddress, ex);
+                LOGGER.error("Error parsing email [{}]: {}", emailAddress, ex.getMessage(), ex);
             }
         }
         InternetAddress bcc = new InternetAddress();
