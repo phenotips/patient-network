@@ -22,6 +22,7 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
@@ -193,7 +194,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("externalId", this.getExternalId());
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
-        json.put("pubmedId", this.getPubmedId());
+        json.put("pubmedIds", this.getPubmedIds());
         if (this.access != null) {
             // FIXME: workaround for incorrect access-setting code in this.setAccess()
             // This JSON goes to the UI, which needs to know correct access level
@@ -436,17 +437,21 @@ public class DefaultPatientInMatch implements PatientInMatch
         return "";
     }
 
-    private String getPubmedId()
+    private List<String> getPubmedIds()
     {
         // if the patient is remote
         if (this.patient == null) {
             return null;
         }
-        PatientData<String> data = this.patient.getData("solved");
-        if (data != null && data.size() > 0 && "1".equals(data.get("solved"))) {
-            String pubmed = data.get("solved__pubmed_id");
-            if (!StringUtils.isBlank(pubmed)) {
-                return pubmed;
+        PatientData<SolvedData> data = this.patient.getData("solved");
+        if (data == null) {
+            return null;
+        }
+        SolvedData patientData = data.getValue();
+        if ("1".equals(patientData.getStatus())) {
+            List<String> pubmedIds = patientData.getPubmedIds();
+            if (!pubmedIds.isEmpty()) {
+                return pubmedIds;
             }
         }
         return null;

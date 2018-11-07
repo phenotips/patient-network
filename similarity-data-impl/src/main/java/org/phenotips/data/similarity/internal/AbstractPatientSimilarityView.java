@@ -20,6 +20,7 @@ package org.phenotips.data.similarity.internal;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
+import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.AccessType;
@@ -36,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private static final String GLOBAL_QUALIFIERS = "global-qualifiers";
 
-    private static final String PUBMED_ID = "solved__pubmed_id";
+    private static final String PUBMED_IDS = "pubmedIds";
 
     private static final String ID_KEY = "id";
 
@@ -232,7 +232,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
         result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
-        result.put(PUBMED_ID, this.getPubmedId());
+        result.put(PUBMED_IDS, this.getPubmedIds());
 
         return result;
     }
@@ -262,13 +262,17 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return null;
     }
 
-    private String getPubmedId()
+    private List<String> getPubmedIds()
     {
-        PatientData<String> data = this.match.getData("solved");
-        if (data != null && data.size() > 0 && "1".equals(data.get("solved"))) {
-            String pubmed = data.get("solved__pubmed_id");
-            if (!StringUtils.isBlank(pubmed)) {
-                return pubmed;
+        PatientData<SolvedData> data = this.match.getData("solved");
+        if (data == null) {
+            return null;
+        }
+        SolvedData patientData = data.getValue();
+        if ("1".equals(patientData.getStatus())) {
+            List<String> pubmedIds = patientData.getPubmedIds();
+            if (!pubmedIds.isEmpty()) {
+                return pubmedIds;
             }
         }
         return null;

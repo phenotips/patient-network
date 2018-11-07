@@ -745,10 +745,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.pubmedId);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.pubmedIds);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.pubmedId);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.pubmedIds);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -913,13 +913,16 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, pubmedID)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, pubmedIDs)
     {
         var td = '<td name="' + cellName + '">';
-        // if case is solved and has a Pubmed ID - display a link to it onstead of emails
-        if (!this._utils.isBlank(pubmedID)) {
-            var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedID.trim();
-            td += '<a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedID + '<span class="metadata">' + this._SOLVED_CASE + '</span></a></td>';
+        // if case is solved and has at least one Pubmed ID - display a link to it instead of emails
+        if (pubmedIDs && pubmedIDs.size() > 0) {
+            for (var i=0; i < pubmedIDs.length; i++) {
+                var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedIDs[i].trim();
+                td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
+            }
+            td += '<span class="metadata">' + this._SOLVED_CASE + '</span></td>';
             return td;
         }
         for (var i=0; i < emails.length; i++) {
