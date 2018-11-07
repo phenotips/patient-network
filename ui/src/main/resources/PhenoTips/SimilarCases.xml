@@ -744,10 +744,14 @@
 
     _displayAgeOfOnset : function(table, r) {
       this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))");
-      var formatAgeOfOnset = function(age) {return age ? age : "-";};
       var row = this._getEmptyTableRow(table);
-      row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
-      row.insert(new Element('td', {'class' : 'table-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
+      if (!r.global_age_of_onset &amp;&amp; !r.matched_global_age_of_onset) {
+        row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noAgeOfOnset'))"));
+      } else {
+        var formatAgeOfOnset = function(age) {return age ? age : "-";};
+        row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.global_age_of_onset)));
+        row.insert(new Element('td', {'class' : 'table-data result'}).update(formatAgeOfOnset(r.matched_global_age_of_onset)));
+      }
     },
 
     _displayModeOfInheritance : function(table, r) {
@@ -759,17 +763,21 @@
       }
       this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))");
       var row = this._getEmptyTableRow(table);
-      var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["-"];};
-      var referenceElement = new Element('td', {'class' : 'table-data query'});
-      row.insert(referenceElement);
-      handleEmptyArray(r.global_mode_of_inheritance).each(function (item) {
-          referenceElement.insert(new Element('div').update(item));
-      });
-      var matchedElement = new Element('td', {'class' : 'table-data result'});
-      row.insert(matchedElement);
-      handleEmptyArray(r.matched_global_mode_of_inheritance).each(function (item) {
-          matchedElement.insert(new Element('div').update(item));
-      });
+      if ((!r.global_mode_of_inheritance || r.global_mode_of_inheritance.length == 0) &amp;&amp; (!r.matched_global_mode_of_inheritance || r.matched_global_mode_of_inheritance.length == 0)) {
+        row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noModeOfInheritance'))"));
+      } else {
+        var handleEmptyArray = function(moiArray) {return (moiArray &amp;&amp; moiArray.length &gt; 0) ? moiArray : ["-"];};
+        var referenceElement = new Element('td', {'class' : 'table-data query'});
+        row.insert(referenceElement);
+        handleEmptyArray(r.global_mode_of_inheritance).each(function (item) {
+            referenceElement.insert(new Element('div').update(item));
+        });
+        var matchedElement = new Element('td', {'class' : 'table-data result'});
+        row.insert(matchedElement);
+        handleEmptyArray(r.matched_global_mode_of_inheritance).each(function (item) {
+            matchedElement.insert(new Element('div').update(item));
+        });
+      }
     },
 
     _displayFeatureMatches : function (table, r) {
