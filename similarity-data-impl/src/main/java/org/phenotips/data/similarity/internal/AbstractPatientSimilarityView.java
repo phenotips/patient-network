@@ -193,6 +193,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         JSONObject result = new JSONObject();
 
         result.put(ID_KEY, getId());
+        result.put("externalId", getExternalId());
         result.put(OWNER_JSON_KEY, getOwnerJSON());
         if (this.access != null) {
             result.put("access", this.access.toString());
