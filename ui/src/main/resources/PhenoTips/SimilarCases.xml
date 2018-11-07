@@ -521,6 +521,12 @@
 
     _displayResultIdentifier : function (r) {
       if (this._mmeMode) {
+        // Parse remote patient ID because MyGene2 uses URLs in the ID field to ensure that the public MyGene2 profiles are actually delivered to the end user
+        if (this._mmeServer == "mygene2" &amp;&amp; r.id &amp;&amp; r.id.startsWith("http")) {
+          var matches = r.id.match(/[\d]+/g);
+          var id = matches ? matches[matches.length - 1] : "$escapetool.javascript($services.localization.render('phenotips.similarCases.profile'))";
+          return new Element("a", {href : r.id}).update(id);
+        }
         return (r.id ? r.id : "");
       } else {
         return (r.id ? new Element("a", {href : r.url || new XWiki.Document(r.id).getURL()}).update(r.id) : "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedIdentifier'))");

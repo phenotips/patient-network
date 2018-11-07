@@ -793,7 +793,14 @@ var PhenoTips = (function (PhenoTips) {
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
         } else { // remote patient
             // TODO pass a server name in JSON as well to display a server name instead if server ID in the table
-            td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
+            // Parse remote patient ID because MyGene2 uses URLs in the ID field to ensure that the public MyGene2 profiles are actually delivered to the end user
+            if (patient.serverId == "mygene2" && patient.patientId && patient.patientId.startsWith("http")) {
+                var matches = patient.patientId.match(/[\d]+/g);
+                var id = matches ? matches[matches.length - 1] : "$escapetool.javascript($services.localization.render('phenotips.similarCases.profile'))";
+                td += '<a href="' + patient.patientId + '" target="_blank" class="patient-href">' + id + externalId  + ' (' + patient.serverId + ') ' + '</a>';
+            } else {
+                td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
+            }
         }
 
         // Collapsible div
