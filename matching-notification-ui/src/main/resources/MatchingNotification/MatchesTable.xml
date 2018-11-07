@@ -137,7 +137,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;input class="score-filter" type="text" name="genotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))"&gt;
                  &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
-              &lt;li #if(!$hasAdmin)class="hidden"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
+              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="rejected" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
@@ -192,7 +192,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           &lt;th colspan="1"&gt;&lt;/th&gt;
         &lt;/tr&gt;
         &lt;tr class="second-header-row"&gt;
-        &lt;th data-column="status" #if(!$hasAdmin)class="hidden"#end title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
+        &lt;th data-column="status" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
         &lt;th data-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
         &lt;th data-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;/th&gt;
         &lt;th data-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;
