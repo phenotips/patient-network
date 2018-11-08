@@ -966,7 +966,7 @@ var PhenoTips = (function (PhenoTips) {
         var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                            || record.matched.access == "owner"  || record.reference.access == "owner"
                            || record.matched.access == "manage" || record.reference.access == "manage";
-        if (!this._isAdmin && accessAboveEdit && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
+        if (!this._isAdmin && accessAboveEdit && (!record.matched.pubmedIDs || record.matched.pubmedIDs.size() == 0) || (!record.reference.pubmedIDs || record.reference.pubmedIDs.size() == 0)) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
