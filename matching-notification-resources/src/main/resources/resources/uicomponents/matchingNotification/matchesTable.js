@@ -973,10 +973,10 @@ var PhenoTips = (function (PhenoTips) {
             var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
             if (validatedEmails.length > 0) {
                 if (record.notified == false) {
-                    td += '<a class="contact-button" data-matchid="'
+                    td += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
                         + matchId + '" data-patientid="'
                         + patientID + '" data-serverid="'
-                        + serverId + '"href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a>';
+                        + serverId + '"href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
                 } else {
                     td += this._CONTACTED_LABEL;
                 }
