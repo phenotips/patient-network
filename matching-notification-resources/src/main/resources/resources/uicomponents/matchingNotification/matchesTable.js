@@ -62,6 +62,8 @@ var PhenoTips = (function (PhenoTips) {
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._MARK_NOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markNotifiedButton.label'))";
         this._MARK_UNNOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUnnotifiedButton.label'))";
+        this._SAVE_COMMENT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saveComment'))";
+        this._ADD_COMMENT_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.addComment'))";
         this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
@@ -794,12 +796,18 @@ var PhenoTips = (function (PhenoTips) {
         if (this._tableElement.down('th[data-column="status"]').hasClassName("hidden")) {
             return '';
         }
-        return '<td>'
-        + '<select class="status" data-matchid="' + record.id +'">'
-        + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
-        + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
-        + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
-        + '</select></td>';
+        var td = '<td>';
+        td += '<select class="status" data-matchid="' + record.id +'">'
+            + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+            + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
+            + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
+            + '</select>';
+        td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="fa fa-comment"> </span></a></span>';
+        td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
+            +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + record.id + '" href="#"><span class="fa fa-save"> </span>'
+            + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
+        td += '</td>';
+        return td;
     },
 
     _simpleCellWriter : function(value)
@@ -1050,6 +1058,36 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableCollapseEmails();
         this._afterProcessTableInitNotificationEmails();
         this._afterProcessTableHideApsentServerIdsFromFilter();
+        this._afterProcessTableComments();
+    },
+
+    _afterProcessTableComments : function()
+    {
+        this._tableElement.select('.button.comment').each(function (elm) {
+            var comment_container = elm.up('td').down('.comment-container');
+            // hide comment container on table update
+            comment_container.addClassName('hidden');
+
+            elm.on('click', function(event) {
+                comment_container.toggleClassName('hidden');
+            });
+
+            var hideTool = elm.up('td').down('.hide-tool');
+            hideTool.on('click', function(event) {
+                comment_container.addClassName('hidden');
+            });
+
+            var saveButton = elm.up('td').down('.save-comment');
+            saveButton.on('click', function(event) {
+                event.stop();
+                comment_container.addClassName('hidden');
+                this._saveComment(event);
+            }.bind(this));
+
+            var textarea = elm.up('td').down('textarea');
+            var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
+            textarea.value = (commentMatch && commentMatch[0] && commentMatch[0].comment) ? commentMatch[0].comment : '';
+        }.bind(this));
     },
 
     _afterProcessTableHideApsentServerIdsFromFilter : function()
@@ -1382,6 +1420,40 @@ var PhenoTips = (function (PhenoTips) {
                 } else if (results.failed && results.failed.length > 0) {
                     this._setState(results.failed, { 'state': 'failed' });
                     this._utils.showFailure('show-matches-messages', "Mark matches notified status to " + newNotifiedStatus + " failed");
+                }
+            }.bind(this),
+            onFailure : function (response) {
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
+        });
+    },
+
+// SAVE COMMENT
+
+    // Send request to save match comment
+    _saveComment : function(event)
+    {
+        var target = event.element();
+        if (!target) return;
+        var matchId = String(target.dataset.matchid);
+        var comment = target.up('.comment-container').down('textarea').value;
+        var ids = matchId.split(",");
+
+        new Ajax.Request(this._ajaxURL + 'save-comment', {
+            contentType : 'application/json',
+            parameters : {'matchesIds'    : ids,
+                          'comment'       : comment
+            },
+            onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._utils.showFailure('show-matches-messages');
+                    return;
+                }
+                var results = response.responseJSON.results;
+                if (results.success && results.success.length > 0) {
+                	this._setState(results.success, {'state': 'success' });
+                } else if (results.failed && results.failed.length > 0) {
+                    this._utils.showFailure('show-matches-messages', "Saving comment failed");
                 }
             }.bind(this),
             onFailure : function (response) {

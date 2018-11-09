@@ -209,6 +209,23 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return successful;
     }
 
+    @Override
+    public boolean setComment(Set<Long> matchesIds, String comment)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+
+            filterNonUsersMatches(matches);
+
+            successful = this.matchStorageManager.setComment(matches, comment);
+        } catch (Exception e) {
+            this.logger.error("Error while setting comment for matches {} as {}",
+                Joiner.on(",").join(matchesIds), comment, e);
+        }
+        return successful;
+    }
+
     /**
      * Filters out matches that user does not own or has access to.
      */

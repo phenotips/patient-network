@@ -213,4 +213,17 @@ public interface MatchingNotificationResource
     @Path("/mark-notified")
     Response setNotifiedStatus(@FormParam("matchesIds") Set<Long> matchesIds,
         @FormParam("isNotified") @DefaultValue("false") boolean isNotified);
+
+    /**
+     * Saves comment for matches, with ids given in parameter.
+     *
+     * @param matchesIds List of matches IDs to change the status for
+     * @param comment comment text
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/save-comment")
+    Response saveComment(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("comment") String comment);
 }

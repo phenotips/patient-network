@@ -86,6 +86,13 @@ public interface PatientMatch
     void setStatus(String status);
 
     /**
+     * Sets match comment.
+     *
+     * @param comment comment text
+     */
+    void setComment(String comment);
+
+    /**
      * @return object in JSON format.
      */
     JSONObject toJSON();
@@ -114,6 +121,11 @@ public interface PatientMatch
      * @return status of match: saved, rejected or uncategorized.
      */
     String getStatus();
+
+    /**
+     * @return match comment.
+     */
+    String getComment();
 
     /**
      * Checks if {@code other} is equivalent to this.
