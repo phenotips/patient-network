@@ -280,10 +280,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setNotified()
+    public void setNotified(boolean isNotified)
     {
-        this.notified = true;
-        this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
+        this.notified = isNotified;
+        if (isNotified) {
+            this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
+        }
     }
 
     @Override

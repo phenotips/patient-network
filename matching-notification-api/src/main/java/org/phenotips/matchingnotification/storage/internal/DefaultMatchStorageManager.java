@@ -422,19 +422,20 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean markNotified(List<PatientMatch> matches)
+    public boolean setNotifiedStatus(List<PatientMatch> matches, boolean isNotified)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
             for (PatientMatch match : matches) {
-                match.setNotified();
+                match.setNotified(isNotified);
                 session.update(match);
             }
             transactionCompleted = true;
         } catch (Exception ex) {
-            this.logger.error("Error marking matches as notified: [{}]", ex.getMessage(), ex);
+            String status = isNotified ? "notified" : "unnotified";
+            this.logger.error("Error marking matches as {}: [{}]", status, ex.getMessage(), ex);
         } finally {
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
