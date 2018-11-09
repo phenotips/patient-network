@@ -60,6 +60,7 @@ var PhenoTips = (function (PhenoTips) {
         this._REJECTED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
+        this._MARK_NOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markNotifiedButton.label'))";
         this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
@@ -966,17 +967,19 @@ var PhenoTips = (function (PhenoTips) {
         var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                            || record.matched.access == "owner"  || record.reference.access == "owner"
                            || record.matched.access == "manage" || record.reference.access == "manage";
-        if (!this._isAdmin && accessAboveEdit && (this._utils.isBlank(record.matched.pubmedId) || this._utils.isBlank(record.reference.pubmedId))) {
+        if (!this._isAdmin && accessAboveEdit && (!record.matched.pubmedIDs || record.matched.pubmedIDs.size() == 0) || (!record.reference.pubmedIDs || record.reference.pubmedIDs.size() == 0)) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
             var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
             if (validatedEmails.length > 0) {
                 if (record.notified == false) {
-                    td += '<a class="contact-button" data-matchid="'
+                    td += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
                         + matchId + '" data-patientid="'
                         + patientID + '" data-serverid="'
-                        + serverId + '"href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a>';
+                        + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
+                    td += '<span class="buttonwrapper"><a class="button mark-notified-button" data-matchid="'
+                        + matchId + '" href="#"><span class="fa fa-check"></span> '+ this._MARK_NOTIFIED_BUTTON_LABEL +'</a></span>';
                 } else {
                     td += this._CONTACTED_LABEL;
                 }
@@ -1076,10 +1079,17 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
         }.bind(this));
 
-        $$('a[class="contact-button"]').each(function (elm) {
+        $$('.contact-button').each(function (elm) {
             elm.on('click', function(event) {
                 event.stop();
                 this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
+            }.bind(this));
+        }.bind(this));
+
+        $$('.mark-notified-button').each(function (elm) {
+            elm.on('click', function(event) {
+                event.stop();
+                this._markNotified(event);
             }.bind(this));
         }.bind(this));
     },
@@ -1291,8 +1301,40 @@ var PhenoTips = (function (PhenoTips) {
                 this._utils.showFailure('show-matches-messages');
             }.bind(this)
         });
+    },
+
+//--MARK NOTIFIED --
+
+    // Send request to change match state to "notified"
+    _markNotified : function(event)
+    {
+        var target = event.element();
+        if (!target) return;
+        var matchId = String(target.dataset.matchid);
+        var ids = matchId.split(",");
+
+        new Ajax.Request(this._ajaxURL + 'mark-notified', {
+            contentType : 'application/json',
+            parameters : {'matchesIds' : ids},
+            onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._utils.showFailure('show-matches-messages');
+                    return;
+                }
+                var results = response.responseJSON.results;
+                if (results.success && results.success.length > 0) {
+                    this._setState(results.success, {'notified': true, 'state': 'success'});
+                } else if (results.failed && results.failed.length > 0) {
+                    this._setState(results.failed, { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Mark matches as `notified` failed");
+                }
+            }.bind(this),
+            onFailure : function (response) {
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
+        });
     }
+
     });
     return PhenoTips;
 }(PhenoTips || {}));
-
