@@ -252,16 +252,14 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response markNotified(final Set<Long> matchesIds)
+    public Response setNotifiedStatus(final Set<Long> matchesIds, boolean isNotified)
     {
         if (matchesIds.isEmpty()) {
             this.logger.error("The requested ids list is blank");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-        boolean success = this.matchStorageManager.markNotified(matches);
+        boolean success = this.matchingNotificationManager.setNotifiedStatus(matchesIds, isNotified);
         JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
             : Collections.<Long>emptyList());
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();

@@ -65,9 +65,11 @@ public interface PatientMatch
     Boolean isNotified();
 
     /**
-     * Marks that notifications regarding this match were sent.
+     * Marks whether notifications regarding this match were sent or not.
+     *
+     * @param isNotified boolean indicator whether notifications regarding this match were sent or not
      */
-    void setNotified();
+    void setNotified(boolean isNotified);
 
     /**
      * @return true only if match is rejected.
