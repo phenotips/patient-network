@@ -209,6 +209,7 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues.email       = "";
         this._filterValues.geneSymbol  = "";
         this._filterValues.phenotype   = "";
+        this._filterValues.solved   = $$('input[name="solved-filter"][value="hide"]')[0].checked;
 
         this._filterValues.serverIds   = [{"local" : true}];
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
@@ -249,6 +250,13 @@ var PhenoTips = (function (PhenoTips) {
                     this._filterValues.matchAccess["manage"] = event.currentTarget.checked;
                     this._filterValues.matchAccess["view"]   = event.currentTarget.checked;
                 }
+                this._update();
+            }.bind(this));
+        }.bind(this));
+
+        $$('input[name="solved-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.solved = event.currentTarget.checked;
                 this._update();
             }.bind(this));
         }.bind(this));
@@ -372,8 +380,20 @@ var PhenoTips = (function (PhenoTips) {
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
-                             && match.genotypicScore >= this._filterValues.score.genotypicScore;
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch
+
+            // returns true if one of the records in match is local and owned my user and is solved
+            var matchHasOwnSolvedCase = function(match) {
+                    if (match.reference.serverId == "" && match.reference.ownership["userIsOwner"] && match.reference.pubmedIDs && match.reference.pubmedIDs.size() > 0) {
+                        return true;
+                    }
+                    if (match.matched.serverId == "" && match.matched.ownership["userIsOwner"] && match.matched.pubmedIDs && match.matched.pubmedIDs.size() > 0) {
+                        return true;
+                    }
+                    return false;
+                };
+            var hideOwnSolvedSaces = !this._filterValues.solved || !matchHasOwnSolvedCase;
+
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedSaces
                        && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
