@@ -138,7 +138,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                  &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
-                &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="rejected" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="rejected"&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
               &lt;/li&gt;
