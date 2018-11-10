@@ -986,36 +986,33 @@ var PhenoTips = (function (PhenoTips) {
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center" name="contacted">';
+        if (record.notified == true) {
+            td += this._CONTACTED_LABEL;
+        }
+
         var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                            || record.matched.access == "owner"  || record.reference.access == "owner"
                            || record.matched.access == "manage" || record.reference.access == "manage";
         var atLeastOneCaseUnsolved = !record.matched.solved || !record.reference.solved;
-        if (!this._isAdmin && accessAboveEdit && atLeastOneCaseUnsolved) {
+        if (accessAboveEdit && atLeastOneCaseUnsolved) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
             var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
-            if (validatedEmails.length > 0) {
-                if (record.notified == false) {
+            if (validatedEmails.length > 0 && !record.notified) {
+                if (!this._isAdmin) {
+                    // Show "contact" button
                     td += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
                         + matchId + '" data-patientid="'
                         + patientID + '" data-serverid="'
                         + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
-                    td += '<span class="buttonwrapper"><a class="button mark-notified-button" data-matchid="'
-                        + matchId + '" href="#"><span class="fa fa-check"></span> '+ this._MARK_NOTIFIED_BUTTON_LABEL +'</a></span>';
-                } else {
-                    td += this._CONTACTED_LABEL;
                 }
-            } else {
-                if (record.notified == true) {
-                    td += this._CONTACTED_LABEL;
-                }
-            }
-        } else {
-            if (record.notified == true) {
-                td += this._CONTACTED_LABEL;
+                // Show "mark contacted" button
+                td += '<span class="buttonwrapper"><a class="button mark-notified-button" data-matchid="'
+                    + matchId + '" href="#"><span class="fa fa-check"></span> '+ this._MARK_NOTIFIED_BUTTON_LABEL +'</a></span>';
             }
         }
+
         td += '</td>';
         return td;
     },
