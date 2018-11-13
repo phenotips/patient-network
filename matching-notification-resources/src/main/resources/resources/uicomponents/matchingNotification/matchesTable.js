@@ -383,17 +383,17 @@ var PhenoTips = (function (PhenoTips) {
 
             // returns true if one of the records in match is local and owned my user and is solved
             var matchHasOwnSolvedCase = function(match) {
-                    if (match.reference.serverId == "" && match.reference.ownership["userIsOwner"] && match.reference.pubmedIDs && match.reference.pubmedIDs.size() > 0) {
+                    if (match.reference.serverId == "" && match.reference.ownership["userIsOwner"] && match.reference.solved) {
                         return true;
                     }
-                    if (match.matched.serverId == "" && match.matched.ownership["userIsOwner"] && match.matched.pubmedIDs && match.matched.pubmedIDs.size() > 0) {
+                    if (match.matched.serverId == "" && match.matched.ownership["userIsOwner"] && match.matched.solved) {
                         return true;
                     }
                     return false;
                 };
-            var hideOwnSolvedSaces = !this._filterValues.solved || !matchHasOwnSolvedCase;
+            var hideOwnSolvedCaces = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedSaces
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCaces
                        && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
@@ -766,10 +766,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.pubmedIds);
+                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.solved, record.reference.pubmedIds);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.pubmedIds);
+                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.solved, record.matched.pubmedIds);
                     break;
                 case 'notified':
                     tr+= this._getNotified(record);
@@ -941,14 +941,16 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, pubmedIDs)
+    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isSolved, pubmedIDs)
     {
         var td = '<td name="' + cellName + '">';
         // if case is solved and has at least one Pubmed ID - display a link to it instead of emails
-        if (pubmedIDs && pubmedIDs.size() > 0) {
-            for (var i=0; i < pubmedIDs.length; i++) {
-                var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedIDs[i].trim();
-                td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
+        if (isSolved) {
+            if (pubmedIDs && pubmedIDs.size() > 0) {
+                for (var i=0; i < pubmedIDs.length; i++) {
+                    var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedIDs[i].trim();
+                    td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
+                }
             }
             td += '<span class="metadata">' + this._SOLVED_CASE + '</span></td>';
             return td;
@@ -987,7 +989,8 @@ var PhenoTips = (function (PhenoTips) {
         var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                            || record.matched.access == "owner"  || record.reference.access == "owner"
                            || record.matched.access == "manage" || record.reference.access == "manage";
-        if (!this._isAdmin && accessAboveEdit && (!record.matched.pubmedIDs || record.matched.pubmedIDs.size() == 0) || (!record.reference.pubmedIDs || record.reference.pubmedIDs.size() == 0)) {
+        var atLeastOneCaseUnsolved = !record.matched.solved || !record.reference.solved;
+        if (!this._isAdmin && accessAboveEdit && atLeastOneCaseUnsolved) {
             var matchId = record.id[0] ? record.id[0] : record.id;
             var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
             var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;

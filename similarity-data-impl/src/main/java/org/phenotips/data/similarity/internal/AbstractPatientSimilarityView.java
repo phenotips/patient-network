@@ -233,7 +233,11 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
         result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
-        result.put(PUBMED_IDS, this.getPubmedIds());
+        SolvedData patientData = this.getSolvedData();
+        if (patientData != null) {
+            result.put("solved", "1".equals(patientData.getStatus()));
+            result.put(PUBMED_IDS, patientData.getPubmedIds());
+        }
 
         return result;
     }
@@ -263,20 +267,15 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         return null;
     }
 
-    private List<String> getPubmedIds()
+    private SolvedData getSolvedData()
     {
         PatientData<SolvedData> data = this.match.getData("solved");
         if (data == null) {
             return null;
         }
+
         SolvedData patientData = data.getValue();
-        if ("1".equals(patientData.getStatus())) {
-            List<String> pubmedIds = patientData.getPubmedIds();
-            if (!pubmedIds.isEmpty()) {
-                return pubmedIds;
-            }
-        }
-        return null;
+        return patientData;
     }
 
     /**

@@ -194,7 +194,13 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put("externalId", this.getExternalId());
         json.put("serverId", this.getServerId());
         json.put("emails", this.getEmails());
-        json.put("pubmedIds", this.getPubmedIds());
+
+        SolvedData patientData = this.getSolvedData();
+        if (patientData != null) {
+            json.put("solved", "1".equals(patientData.getStatus()));
+            json.put("pubmedIds", patientData.getPubmedIds());
+        }
+
         if (this.access != null) {
             // FIXME: workaround for incorrect access-setting code in this.setAccess()
             // This JSON goes to the UI, which needs to know correct access level
@@ -437,24 +443,20 @@ public class DefaultPatientInMatch implements PatientInMatch
         return "";
     }
 
-    private List<String> getPubmedIds()
+    private SolvedData getSolvedData()
     {
         // if the patient is remote
         if (this.patient == null) {
             return null;
         }
+
         PatientData<SolvedData> data = this.patient.getData("solved");
         if (data == null) {
             return null;
         }
+
         SolvedData patientData = data.getValue();
-        if ("1".equals(patientData.getStatus())) {
-            List<String> pubmedIds = patientData.getPubmedIds();
-            if (!pubmedIds.isEmpty()) {
-                return pubmedIds;
-            }
-        }
-        return null;
+        return patientData;
     }
 
     private Patient getLocalPatient()
