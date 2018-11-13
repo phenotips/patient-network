@@ -162,7 +162,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input type="checkbox" name="access-filter" value="view" checked /&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.view'))&lt;/label&gt;
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solvedFilter'))&lt;br&gt;
-                &lt;label&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;
               &lt;/li&gt;
             &lt;/ul&gt;
           &lt;/div&gt;

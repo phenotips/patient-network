@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -66,7 +65,7 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
 
     private static final String GLOBAL_QUALIFIERS = "global-qualifiers";
 
-    private static final String PUBMED_ID = "solved__pubmed_id";
+    private static final String PUBMED_ID = "pubmedId";
 
     private static final String ID_KEY = "id";
 
@@ -238,7 +237,11 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         result.put(GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(referenceControllers));
         result.put(MATCHED_GLOBAL_MODE_OF_INHERITANCE, this.getModeOfInheritance(matchedControllers));
 
-        result.put(PUBMED_ID, this.getPubmedId());
+        PatientData<String> patientData = this.match.getData("solved");
+        if (patientData != null && patientData.size() > 0) {
+            result.put("solved", "1".equals(patientData.get("solved")));
+            result.put(PUBMED_ID, patientData.get("solved__pubmed_id"));
+        }
 
         return result;
     }
@@ -263,18 +266,6 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
             ContactInfo contact = data.get(0);
             if (contact != null) {
                 return contact.toJSON();
-            }
-        }
-        return null;
-    }
-
-    private String getPubmedId()
-    {
-        PatientData<String> data = this.match.getData("solved");
-        if (data != null && data.size() > 0 && "1".equals(data.get("solved"))) {
-            String pubmed = data.get("solved__pubmed_id");
-            if (!StringUtils.isBlank(pubmed)) {
-                return pubmed;
             }
         }
         return null;
