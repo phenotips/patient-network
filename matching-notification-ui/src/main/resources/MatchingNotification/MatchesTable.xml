@@ -193,6 +193,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           &lt;th colspan="1"&gt;&lt;/th&gt;
           &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.emails'))&lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
+          &lt;th colspan="1"&gt;&lt;/th&gt;
         &lt;/tr&gt;
         &lt;tr class="second-header-row"&gt;
         &lt;th data-column="status" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
@@ -216,6 +217,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
         &lt;/th&gt;
         &lt;th data-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
         &lt;th data-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedEmails'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;span class="fa fa-angle-double-left collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
+        &lt;th data-column="contact" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.contact'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.contact'))&lt;/th&gt;
         &lt;th data-column="notified" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notified'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notified'))&lt;/th&gt;
       &lt;/tr&gt;
       &lt;/thead&gt;
