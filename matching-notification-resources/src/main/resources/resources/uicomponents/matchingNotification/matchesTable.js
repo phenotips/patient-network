@@ -61,6 +61,7 @@ var PhenoTips = (function (PhenoTips) {
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._MARK_NOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markNotifiedButton.label'))";
+        this._MARK_UNNOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUnnotifiedButton.label'))";
         this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
@@ -771,6 +772,9 @@ var PhenoTips = (function (PhenoTips) {
                 case 'matchedEmails':
                     tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.solved, record.matched.pubmedIds);
                     break;
+                case 'contact':
+                    tr+= this._getContact(record);
+                    break;
                 case 'notified':
                     tr+= this._getNotified(record);
                     break;
@@ -983,13 +987,21 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getNotified : function(record)
+    _getContact : function(record)
     {
-        var td = '<td style="text-align: center" name="contacted">';
-        if (record.notified == true) {
+        var td = '<td style="text-align: center" name="contact">';
+        if (record.notified) {
             td += this._CONTACTED_LABEL;
+        } else {
+            td += this._getContactButton(record);
         }
+        td += '</td>';
+        return td;
+    },
 
+    _getContactButton : function(record)
+    {
+        var button = '';
         var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                            || record.matched.access == "owner"  || record.reference.access == "owner"
                            || record.matched.access == "manage" || record.reference.access == "manage";
@@ -1002,19 +1014,32 @@ var PhenoTips = (function (PhenoTips) {
             if (validatedEmails.length > 0 && !record.notified) {
                 if (!this._isAdmin) {
                     // Show "contact" button
-                    td += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
+                    button += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
                         + matchId + '" data-patientid="'
                         + patientID + '" data-serverid="'
                         + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
                 }
-                // Show "mark contacted" button
-                td += '<span class="buttonwrapper"><a class="button mark-notified-button" data-matchid="'
-                    + matchId + '" href="#"><span class="fa fa-check"></span> '+ this._MARK_NOTIFIED_BUTTON_LABEL +'</a></span>';
             }
         }
+        return button;
+    },
 
+    _getNotified : function(record)
+    {
+        var td = '<td style="text-align: center" name="notified">';
+        td += this._getMarkNotifiedButton(record);
         td += '</td>';
         return td;
+    },
+
+    _getMarkNotifiedButton : function(match)
+    {
+        var matchId = match.id[0] || match.id;
+        var label = (match.notified) ? this._MARK_UNNOTIFIED_BUTTON_LABEL : this._MARK_NOTIFIED_BUTTON_LABEL;
+        var icon = (match.notified) ? "fa fa-undo" : "fa fa-check";
+        var button = '<span class="buttonwrapper"><a class="button secondary mark-notified-button" data-matchid="'
+                    + matchId + '" data-notified="' + match.notified + '" href="#"><span class="' + icon + '"></span> '+ label +'</a></span>';
+        return button;
     },
 
 // -- AFTER PROCESS TABLE
@@ -1270,12 +1295,21 @@ var PhenoTips = (function (PhenoTips) {
 
         matchesToSet.each( function(match, index) {
             if (properties.hasOwnProperty('notified')) {
-                // updating Contacted column
-                var contactedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contacted"]');
-                contactedTd && contactedTd.update(this._CONTACTED_LABEL);
+                // update macthes status
+                this._matches[this._matches.indexOf(match)].notified = properties.notified;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].notified = properties.notified;
 
-                this._matches[this._matches.indexOf(match)].notified = true;
-                this._cachedMatches[this._cachedMatches.indexOf(match)].notified = true;
+                // updating Contact column
+                var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
+                contactTd && contactTd.update(properties.notified ? this._CONTACTED_LABEL : this._getContactButton(match));
+
+                // updating Notified status column
+                var notifiedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="notified"]');
+                notifiedTd && notifiedTd.update(this._getMarkNotifiedButton(match));
+                notifiedTd.down('.mark-notified-button').on('click', function(event) {
+                    event.stop();
+                    this._markNotified(event);
+                }.bind(this));
             }
             if (properties.hasOwnProperty('status')) {
                 this._matches[this._matches.indexOf(match)].status = properties.status;
@@ -1325,17 +1359,20 @@ var PhenoTips = (function (PhenoTips) {
 
 //--MARK NOTIFIED --
 
-    // Send request to change match state to "notified"
+    // Send request to change match notified status to notified or un-notified
     _markNotified : function(event)
     {
         var target = event.element();
         if (!target) return;
         var matchId = String(target.dataset.matchid);
         var ids = matchId.split(",");
+        // new notified status to set to is a negation of the current one
+        var newNotifiedStatus = !JSON.parse(target.dataset.notified);
 
         new Ajax.Request(this._ajaxURL + 'mark-notified', {
             contentType : 'application/json',
-            parameters : {'matchesIds' : ids},
+            parameters : {'matchesIds' : ids,
+                          'isNotified' : newNotifiedStatus},
             onSuccess : function (response) {
                 if (!response.responseJSON || !response.responseJSON.results) {
                     this._utils.showFailure('show-matches-messages');
@@ -1343,10 +1380,10 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'notified': true, 'state': 'success'});
+                    this._setState(results.success, {'notified': newNotifiedStatus, 'state': 'success'});
                 } else if (results.failed && results.failed.length > 0) {
                     this._setState(results.failed, { 'state': 'failed' });
-                    this._utils.showFailure('show-matches-messages', "Mark matches as `notified` failed");
+                    this._utils.showFailure('show-matches-messages', "Mark matches notified status to " + newNotifiedStatus + " failed");
                 }
             }.bind(this),
             onFailure : function (response) {
