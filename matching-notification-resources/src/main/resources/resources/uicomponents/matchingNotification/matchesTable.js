@@ -802,7 +802,8 @@ var PhenoTips = (function (PhenoTips) {
             + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
             + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
             + '</select>';
-        td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="fa fa-comment"> </span></a></span>';
+        var icon = (record.comment && record.comment != "") ? "fa fa-commenting-o" : "fa fa-comment";
+        td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
         td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
             +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + record.id + '" href="#"><span class="fa fa-save"> </span>'
             + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
@@ -1065,6 +1066,8 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._tableElement.select('.button.comment').each(function (elm) {
             var comment_container = elm.up('td').down('.comment-container');
+            var textarea = elm.up('td').down('textarea');
+
             // hide comment container on table update
             comment_container.addClassName('hidden');
 
@@ -1074,17 +1077,18 @@ var PhenoTips = (function (PhenoTips) {
 
             var hideTool = elm.up('td').down('.hide-tool');
             hideTool.on('click', function(event) {
+                elm.down('span').className = (textarea.value != "") ? "fa fa-commenting-o" : "fa fa-comment";
                 comment_container.addClassName('hidden');
             });
 
             var saveButton = elm.up('td').down('.save-comment');
             saveButton.on('click', function(event) {
                 event.stop();
+                elm.down('span').className = (textarea.value != "") ? "fa fa-commenting-o" : "fa fa-comment";
                 comment_container.addClassName('hidden');
                 this._saveComment(event);
             }.bind(this));
 
-            var textarea = elm.up('td').down('textarea');
             var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
             textarea.value = (commentMatch && commentMatch[0] && commentMatch[0].comment) ? commentMatch[0].comment : '';
         }.bind(this));
