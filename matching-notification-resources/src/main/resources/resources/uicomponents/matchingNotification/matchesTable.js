@@ -41,13 +41,9 @@ var PhenoTips = (function (PhenoTips) {
         $('send-notifications-button').on('click', this._sendNotification.bind(this));
         $('expand_all').on('click', this._expandAllClicked.bind(this));
 
-        $('show-matches-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
-        $('show-matches-phen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
-        $('show-matches-gen-score').on('input', function() {this._utils.clearHint('score-validation-message');}.bind(this));
-
-        $('show-matches-score').on('change', function() {this.validateScore($('show-matches-score').value, 'show-matches-score', 'score-validation-message', true);}.bind(this));
-        $('show-matches-phen-score').on('change', function() {this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'score-validation-message', true);}.bind(this));
-        $('show-matches-gen-score').on('change', function() {this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'score-validation-message', true);}.bind(this));
+        this._overallScoreSlider = this._initiateScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
+        this._phenScoreSlider = this._initiateScoreSlider('show-matches-phen-score', 0, 0);
+        this._genScoreSlider = this._initiateScoreSlider('show-matches-gen-score', 0, 0.1);
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -99,11 +95,6 @@ var PhenoTips = (function (PhenoTips) {
 
         document.observe("match:contacted:byuser", this._handleUserNotifiedUpdate.bind(this));
 
-        // set initial scores
-        $('show-matches-score').value = 0.5;
-        $('show-matches-phen-score').value = 0;
-        $('show-matches-gen-score').value = 0.1;
-
         if (!this._isAdmin) {
             this._showMatches();
         }
@@ -117,6 +108,31 @@ var PhenoTips = (function (PhenoTips) {
         $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
 
         Event.observe(window, 'resize', this._buildTable.bind(this));
+    },
+
+    _initiateScoreSlider: function(id, minScore, initialScore) {
+        var filterEl = $(id);
+        if (!filterEl) { return; };
+
+        filterEl.down('.grid .point.left').update(minScore);
+        filterEl.down('.grid .point.right').update("1");
+
+        var progressEl = filterEl.down('.progress');
+        var handleEl = filterEl.down('.handle');
+
+        progressEl.setStyle({ width: initialScore*5 + 'em'});
+        handleEl.update(initialScore);
+
+        var slider = new Control.Slider(handleEl, filterEl, {
+            range: $R(minScore, 1),
+            sliderValue: initialScore,
+            onSlide: function(value) {
+                progressEl.setStyle({ width: window.getComputedStyle(handleEl, null).getPropertyValue("left")});
+                // round a float to the nearest 0.05
+                handleEl.update((Math.ceil(value*20)/20).toFixed(2));
+            }
+        });
+        return slider;
     },
 
     _resetSortingPreferences: function() {
@@ -175,28 +191,8 @@ var PhenoTips = (function (PhenoTips) {
         this._update();
     },
 
-    validateScore : function(score, className, messagesFieldName, applyMinScore) {
-        // minimum allowed scores: can be less than initial, but no less than some values
-        if (!this._isAdmin) {
-            var minAllowedValue = { 'show-matches-score': 0.4,
-                                    'show-matches-phen-score': 0,
-                                    'show-matches-gen-score': 0 };
-        } else {
-            var minAllowedValue = { 'show-matches-score': 0.1,
-                                    'show-matches-phen-score': 0,
-                                    'show-matches-gen-score': 0 };
-        }
-
-        if (score == undefined || score == "" || Number(score) < minAllowedValue[className]) {
-            if (className == 'show-matches-score') {
-                this._utils.showHint(messagesFieldName, "For performance reasons currently only matches with overall score of at least " + minAllowedValue[className] + " can be retrieved", "invalid");
-            }
-
-            if (applyMinScore) {
-                $(className).value = minAllowedValue[className];
-                return minAllowedValue[className];
-            }
-        } else if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
+    validateScore : function(score, messagesFieldName) {
+        if (isNaN(score) || Number(score) < 0 || Number(score) > 1) {
             this._utils.showHint(messagesFieldName, "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.invalidScore'))", "invalid");
             return undefined;
         }
@@ -280,10 +276,9 @@ var PhenoTips = (function (PhenoTips) {
             input.on('input', function(event) {
                 this._utils.clearHint('score-filter-validation-message');
             }.bind(this));
-        }.bind(this));
-        $$('input[class="score-filter"]').each(function (input) {
+
             input.on('change', function(event) {
-                var score = this.validateScore(event.currentTarget.value, event.currentTarget.id, 'score-filter-validation-message');
+                var score = this.validateScore(event.currentTarget.value, 'score-filter-validation-message');
                 if (score == undefined) {
                     return;
                 }
@@ -466,7 +461,6 @@ var PhenoTips = (function (PhenoTips) {
             parameters : options,
             onCreate : function () {
                 $("panels-livetable-ajax-loader").show();
-                this._utils.clearHint('score-validation-message');
                 this._utils.clearHint('send-notifications-messages');
                 $('send-notifications-button').addClassName("disabled");
             }.bind(this),
@@ -497,12 +491,9 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score = this.validateScore($('show-matches-score').value, 'show-matches-score', 'show-matches-messages', true);
-        var phenScore = this.validateScore($('show-matches-phen-score').value, 'show-matches-phen-score', 'show-matches-messages', true);
-        var genScore = this.validateScore($('show-matches-gen-score').value, 'show-matches-gen-score', 'show-matches-messages', true);
-        if (score == undefined || phenScore == undefined || genScore == undefined) {
-            return;
-        }
+        var score = (Math.ceil(this._overallScoreSlider.value*20)/20).toFixed(2);
+        var phenScore = (Math.ceil(this._phenScoreSlider.value*20)/20).toFixed(2);
+        var genScore = (Math.ceil(this._genScoreSlider.value*20)/20).toFixed(2);
 
         var options = { 'score'        : score,
                         'phenScore'    : phenScore,
