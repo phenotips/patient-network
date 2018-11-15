@@ -92,12 +92,12 @@ table#matchesTable {
   vertical-align: top;
 }
 
-#score-validation-message, #score-filter-validation-message {
+#score-filter-validation-message {
   font-size: 83%;
   float: left;
 }
 
-#show-matches-messages .invalid, #score-validation-message .invalid, #score-filter-validation-message .invalid {
+#show-matches-messages .invalid, #score-filter-validation-message .invalid {
   color: #CC3333;
 }
 
@@ -161,8 +161,8 @@ input.notify , td span.fa.fa-envelope {
 
 #show-matches-score, #show-matches-gen-score, #show-matches-phen-score {
   float: right;
-  width: 5em!important;
-  margin-top: 3px;
+  width: 6.5em!important;
+  margin-top: 1.5em;
   line-height: 1.2em;
 }
 
@@ -209,7 +209,7 @@ a.button.toggle-filters.secondary-filters {
 }
 .score-label {
   float: left;
-  margin-top: 8px;
+  margin-top: 1em;
 }
 .score-label .xHelpButton {
   margin-left: 0;
@@ -308,4 +308,71 @@ input.button, .buttonwrapper button, .buttonwrapper a:visited, .buttonwrapper a:
 div[name="notification-email-long"] {
   font-size: 95%;
   margin: 0 2px 0 2px;
+}
+.slider {
+  background: #bfbfbf;
+  border-radius: 4px;
+  height: 2px;
+}
+.slider .handle {
+  width: 21px;
+  height: 13px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  margin-top: -9px;
+  background-image: linear-gradient(to bottom, #f9f9f9 0%, #dad8d8 100%);
+  font-size: 70%;
+  text-align: center;
+  margin-left: 2px;
+  font-family: Tahoma, Geneva, sans-serif;
+}
+.progress {
+  background-color: #EA972D;
+  height: 2px;
+}
+.dash {
+  width: 1px;
+  height: 6px;
+  position: absolute;
+  background: #bfbfbf;
+  user-select: none;
+  margin-top: 1px;
+}
+.dash.small-dash {
+  height: 4px;
+}
+.grid {
+  font-family: "Trebuchet MS",Arial,sans-serif;
+  opacity: 0.6;
+  position: absolute;
+  width: 5.2em;
+  line-height: 1em!important;
+  margin-left: 0.7em;
+}
+.point {
+  font-size: 60%;
+  margin-top: 0.7em;
+  position: absolute;
+}
+.point.right {
+  float: right;
+  position: initial;
+}
+.hider {
+  width: 0.9em;
+  background-color: #f6f8f9;
+  height: 2px;
+  margin-top: -2px;
+}
+.hider.right {
+  float: right;
+  width: 0.6em;
+}
+.hider.disabled-range {
+  width: 0;
+  background-color: #bfbfbf;
+  margin-left: 0.9em;
 }
