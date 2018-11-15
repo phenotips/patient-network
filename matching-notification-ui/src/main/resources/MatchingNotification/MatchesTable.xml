@@ -43,11 +43,28 @@ $xwiki.ssfx.use('uicomponents/matchingNotification/contactDialog.css')##
 $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/runtimeConfig.js', true)##
 $xwiki.jsfx.use('uicomponents/matchingNotification/matchesTable.js', true)##
+$xwiki.jsfx.use('js/scriptaculous/slider.js')##
 $xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
 $xwiki.ssx.use('PhenoTips.Widgets')##
 $xwiki.jsx.use('PhenoTips.Widgets')##
 
 {{html clean='false' wiki='true'}}
+#macro (__generateGridBlock )
+  &lt;div class="progress"&gt;&lt;/div&gt;
+    &lt;div class="grid"&gt;
+    &lt;span class="point left"&gt;&lt;/span&gt;
+    &lt;span class="dash" style="left: 0%;"&gt;&lt;/span&gt;
+    &lt;span class="dash small-dash" style="left: 25%;"&gt;&lt;/span&gt;
+    &lt;span class="dash" style="left: 50%;"&gt;&lt;/span&gt;
+    &lt;span class="dash small-dash" style="left: 75%;"&gt;&lt;/span&gt;
+    &lt;span class="dash" style="left: 99%;"&gt;&lt;/span&gt;
+    &lt;span class="point right"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="handle"&gt;&lt;/div&gt;
+#end
+##
+##
+##
 #set ($isAdminOfGroup = false)
 #foreach ($group in $xwiki.wrapDocs($xwiki.rightsmanager.getAllGroupsNamesForMember($xcontext.userReference.toString())))
   #set ($groupObj = $group.getObject('PhenoTips.PhenoTipsGroupClass'))
@@ -71,22 +88,33 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
             &lt;ul class="filters xform"&gt;
               &lt;li&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
-                &lt;div class="score-label"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
-                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.hint'))"&gt;&lt;/span&gt;
+                &lt;div&gt;
+                  &lt;div class="score-label"&gt;
+                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.hint'))"&gt;&lt;/span&gt;
+                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
+                  &lt;/div&gt;
+                  &lt;div id="show-matches-score" class="slider"&gt;
+                    #__generateGridBlock()
+                  &lt;/div&gt;
                 &lt;/div&gt;
-                &lt;input id="show-matches-score" type="text"&gt;&lt;br&gt;
-                &lt;div class="score-label"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
-                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;div&gt;
+                  &lt;div class="score-label"&gt;
+                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
+                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                  &lt;/div&gt;
+                  &lt;div id="show-matches-phen-score" class="slider"&gt;
+                    #__generateGridBlock()
+                  &lt;/div&gt;
                 &lt;/div&gt;
-                &lt;input id="show-matches-phen-score" type="text"&gt;&lt;br&gt;
-                &lt;div class="score-label"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
-                  &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
+                &lt;div&gt;
+                  &lt;div class="score-label"&gt;
+                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
+                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                  &lt;/div&gt;
+                  &lt;div id="show-matches-gen-score" class="slider"&gt;
+                    #__generateGridBlock()
+                  &lt;/div&gt;
                 &lt;/div&gt;
-                &lt;input id="show-matches-gen-score" type="text"&gt;
-                &lt;div id="score-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
               &lt;div&gt;
                 &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="show-matches-button" href="#"&gt;&lt;span class="fa fa-refresh"&gt; &lt;/span&gt;&lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.search.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
