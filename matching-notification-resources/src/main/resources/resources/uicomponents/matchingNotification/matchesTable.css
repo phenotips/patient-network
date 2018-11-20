@@ -272,8 +272,24 @@ ul.filters label {
 }
 .xTooltip.comment-container textarea {
   margin-bottom: 5px;
+  margin-top: 10px;
+}
+a.button.comment {
+  background-image: none;
+  background-color: #eee;
+  color: #000;
+  text-shadow: none;
+  border: 1px solid #ddd;
 }
 .buttonwrapper a.button.comment:link {
   margin-top: 5px;
   margin-left: 5px;
+}
+td.status-column {
+  white-space: nowrap;
+  padding-right: 0px;
+}
+select.status {
+  padding: .3em 1px .3em 1px;
+  margin-right: 2px;
 }
