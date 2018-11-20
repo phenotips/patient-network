@@ -796,13 +796,13 @@ var PhenoTips = (function (PhenoTips) {
         if (this._tableElement.down('th[data-column="status"]').hasClassName("hidden")) {
             return '';
         }
-        var td = '<td>';
+        var td = '<td class="status-column">';
         td += '<select class="status" data-matchid="' + record.id +'">'
             + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
             + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
             + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
             + '</select>';
-        var icon = (record.comment && record.comment != "") ? "fa fa-commenting-o" : "fa fa-comment";
+        var icon = (record.comment && record.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
         td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
         td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
             +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + record.id + '" href="#"><span class="fa fa-save"> </span>'
@@ -1079,14 +1079,14 @@ var PhenoTips = (function (PhenoTips) {
 
             var hideTool = elm.up('td').down('.hide-tool');
             hideTool.on('click', function(event) {
-                elm.down('span').className = (textarea.value != "") ? "fa fa-commenting-o" : "fa fa-comment";
+                elm.down('span').className = (textarea.value != "") ? "fa fa-comment" : "fa fa-comment-o";
                 comment_container.addClassName('hidden');
             });
 
             var saveButton = elm.up('td').down('.save-comment');
             saveButton.on('click', function(event) {
                 event.stop();
-                elm.down('span').className = (textarea.value != "") ? "fa fa-commenting-o" : "fa fa-comment";
+                elm.down('span').className = (textarea.value != "") ? "fa fa-comment" : "fa fa-comment-o";
                 comment_container.addClassName('hidden');
                 this._saveComment(event);
             }.bind(this));
@@ -1360,6 +1360,10 @@ var PhenoTips = (function (PhenoTips) {
             if (properties.hasOwnProperty('state')) {
                 this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
             }
+            if (properties.hasOwnProperty('comment')) {
+            	this._matches[this._matches.indexOf(match)].comment = properties.comment;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].comment = properties.comment;
+            }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this));
     },
@@ -1457,7 +1461,7 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
-                	this._setState(results.success, {'state': 'success' });
+                	this._setState(results.success, {'state': 'success', 'comment' : comment});
                 } else if (results.failed && results.failed.length > 0) {
                     this._utils.showFailure('show-matches-messages', "Saving comment failed");
                 }
