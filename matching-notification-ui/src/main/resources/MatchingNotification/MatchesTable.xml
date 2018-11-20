@@ -187,7 +187,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;table id="matchesTable" class="matches-table"&gt;
       &lt;thead&gt;
         &lt;tr class="first-header-row"&gt;
-          #if($hasAdmin || $isAdminOfGroup)&lt;th colspan="1" &gt;&lt;/th&gt;#end
+          &lt;th colspan="1" &gt;&lt;/th&gt;
           &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.patDetails'))&lt;/th&gt;
           &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
