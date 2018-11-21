@@ -15,7 +15,7 @@ table#matchesTable {
 }
 
 .matches-table .succeed, .success {
-  color: green;
+  background-color: #fff9ee;
 }
 
 .matches-table .failed, .failure  {
