@@ -845,6 +845,10 @@ var PhenoTips = (function (PhenoTips) {
         // End collapsible div
         td += '</div>';
 
+        if (patient.solved) {
+            td += '<div class="metadata">' + this._SOLVED_CASE + '</div>';
+        }
+
         td += '</td>';
         return td;
     },
@@ -957,11 +961,10 @@ var PhenoTips = (function (PhenoTips) {
         // if case is solved and has at least one Pubmed ID - display a link to it instead of emails
         if (isSolved) {
             if (!this._utils.isBlank(pubmedID)) {
-				var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedID.trim();
-				td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedID + '</a><div>';
+                var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedID.trim();
+                td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedID + '</a><div>';
+                return td;
             }
-            td += '<span class="metadata">' + this._SOLVED_CASE + '</span></td>';
-            return td;
         }
         for (var i=0; i < emails.length; i++) {
             var email = emails[i]
