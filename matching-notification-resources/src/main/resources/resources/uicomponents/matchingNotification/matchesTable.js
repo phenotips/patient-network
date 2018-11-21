@@ -1107,6 +1107,7 @@ var PhenoTips = (function (PhenoTips) {
 
             elm.on('click', function(event) {
                 comment_container.toggleClassName('hidden');
+                !comment_container.hasClassName('hidden') && textarea.focus();
             });
 
             var hideTool = elm.up('td').down('.hide-tool');
