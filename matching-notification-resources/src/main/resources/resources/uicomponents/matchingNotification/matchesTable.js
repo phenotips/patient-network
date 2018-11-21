@@ -845,6 +845,10 @@ var PhenoTips = (function (PhenoTips) {
         // End collapsible div
         td += '</div>';
 
+        if (patient.solved) {
+            td += '<div class="metadata">' + this._SOLVED_CASE + '</div>';
+        }
+
         td += '</td>';
         return td;
     },
@@ -961,9 +965,8 @@ var PhenoTips = (function (PhenoTips) {
                     var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedIDs[i].trim();
                     td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
                 }
+                return td;
             }
-            td += '<span class="metadata">' + this._SOLVED_CASE + '</span></td>';
-            return td;
         }
         for (var i=0; i < emails.length; i++) {
             var email = emails[i]
