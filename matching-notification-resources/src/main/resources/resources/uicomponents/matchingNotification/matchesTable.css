@@ -252,6 +252,8 @@ input.mme {
 }
 .matches-table .fa.fa-sort {
   color: #999;
+  padding-left: 3px;
+  float: none;
 }
 .matches-table .fa.fa-sort:hover {
   color: #000;
@@ -292,4 +294,7 @@ td.status-column {
 select.status {
   padding: .3em 1px .3em 1px;
   margin-right: 2px;
+}
+th[data-column="score"], th[data-column="genotypicScore"], th[data-column="phenotypicScore"] {
+  font-size: 90%;
 }
