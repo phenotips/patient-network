@@ -172,12 +172,13 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                         patientId, refPatientID);
                 }
 
-                // if the same un-notified match already exists, we have to keep the original date the match was found
+                // if the same un-notified match already exists, we preserve the original comment and match found date
                 List<PatientMatch> sameExistingMatches = this.loadMatchesBetweenPatients(match.getReferencePatientId(),
                     match.getReferenceServerId(), match.getMatchedPatientId(), match.getMatchedServerId());
                 for (PatientMatch existingMatch : sameExistingMatches) {
                     if (!existingMatch.isNotified()) {
                         match.setFoundTimestamp(existingMatch.getFoundTimestamp());
+                        match.setComment(existingMatch.getComment());
                     }
                 }
             }
@@ -456,6 +457,26 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error saving matches statuses: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
+    }
+
+    @Override
+    public boolean setComment(List<PatientMatch> matches, String comment)
+    {
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
+
+        try {
+            for (PatientMatch match : matches) {
+                match.setComment(comment);
+                session.update(match);
+            }
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error saving matches comments: [{}]", ex.getMessage(), ex);
         } finally {
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }

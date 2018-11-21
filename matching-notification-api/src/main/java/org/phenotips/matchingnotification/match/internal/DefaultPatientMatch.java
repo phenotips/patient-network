@@ -97,6 +97,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String status;
 
     @Basic
+    private String comment;
+
+    @Basic
     private Double score;
 
     @Basic
@@ -274,9 +277,21 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public void setComment(String comment)
+    {
+        this.comment = comment;
+    }
+
+    @Override
     public String getStatus()
     {
         return this.status;
+    }
+
+    @Override
+    public String getComment()
+    {
+        return this.comment;
     }
 
     @Override
@@ -381,6 +396,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
         json.put("href", this.isLocal() ? "" : this.getHref());
+        json.put("comment", this.getComment());
 
         return json;
     }

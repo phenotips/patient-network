@@ -82,6 +82,15 @@ public interface MatchStorageManager
     boolean setStatus(List<PatientMatch> matches, String status);
 
     /**
+     * Sets comment to all matches in {@code matches} to a passed status string.
+     *
+     * @param matches list of matches to mark as notified.
+     * @param comment comment text
+     * @return true if successful
+     */
+    boolean setComment(List<PatientMatch> matches, String comment);
+
+    /**
      * Deletes all matches (including those that users have been notified about, and MME matches)
      * for the given local patient.
      *
