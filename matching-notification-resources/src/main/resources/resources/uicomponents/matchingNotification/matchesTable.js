@@ -793,9 +793,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _getStatusTd : function(record)
     {
-        if (this._tableElement.down('th[data-column="status"]').hasClassName("hidden")) {
-            return '';
-        }
         var td = '<td class="status-column">';
         td += '<select class="status" data-matchid="' + record.id +'">'
             + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
