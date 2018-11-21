@@ -64,7 +64,6 @@ var PhenoTips = (function (PhenoTips) {
         this._MARK_UNNOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUnnotifiedButton.label'))";
         this._SAVE_COMMENT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saveComment'))";
         this._ADD_COMMENT_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.addComment'))";
-        this._CONTACTED_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contacted.label'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
@@ -997,11 +996,7 @@ var PhenoTips = (function (PhenoTips) {
     _getContact : function(record)
     {
         var td = '<td style="text-align: center" name="contact">';
-        if (record.notified) {
-            td += this._CONTACTED_LABEL;
-        } else {
-            td += this._getContactButton(record);
-        }
+        td += this._getContactButton(record);
         td += '</td>';
         return td;
     },
@@ -1009,19 +1004,32 @@ var PhenoTips = (function (PhenoTips) {
     _getContactButton : function(record)
     {
         var button = '';
-        var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
-                           || record.matched.access == "owner"  || record.reference.access == "owner"
-                           || record.matched.access == "manage" || record.reference.access == "manage";
-        var atLeastOneCaseUnsolved = !record.matched.solved || !record.reference.solved;
-        if (accessAboveEdit && atLeastOneCaseUnsolved) {
-            var matchId = record.id[0] ? record.id[0] : record.id;
-            var patientID = (record.matched.isOwner) ? record.reference.patientId : record.matched.patientId;
-            var serverId = (record.matched.isOwner) ? record.reference.serverId : record.matched.serverId;
-            var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
-            if (validatedEmails.length > 0 && !record.notified) {
-                if (!this._isAdmin) {
-                    // Show "contact" button
-                    button += '<span class="buttonwrapper"><a class="button contact-button" data-matchid="'
+        if (!this._isAdmin) {
+            var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
+                               || record.matched.access == "owner"  || record.reference.access == "owner"
+                               || record.matched.access == "manage" || record.reference.access == "manage";
+            // determine matched case:
+            // don't show contact button if user is not owner of one of the cases
+            var matchedCase = '';
+            if (record.matched.ownership["userIsOwner"]) {
+                var matchedCase = record.matched;
+            }
+            if (record.reference.ownership["userIsOwner"]) {
+                var matchedCase = record.reference;
+            }
+            if (matchedCase == '') {
+                return button;
+            }
+
+            var matchedCaseHasPubmedID = !this._utils.isBlank(matchedCase.pubmedId);
+            if (accessAboveEdit && !matchedCaseHasPubmedID) {
+                var matchId = record.id[0] ? record.id[0] : record.id;
+                var patientID = matchedCase.patientId;
+                var serverId = matchedCase.serverId;
+                var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
+                var className = record.notified ? "button contact-button secondary" : "button contact-button";
+                if (validatedEmails.length > 0) {
+                    button += '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
                         + matchId + '" data-patientid="'
                         + patientID + '" data-serverid="'
                         + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
@@ -1342,7 +1350,12 @@ var PhenoTips = (function (PhenoTips) {
 
                 // updating Contact column
                 var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
-                contactTd && contactTd.update(properties.notified ? this._CONTACTED_LABEL : this._getContactButton(match));
+                contactTd && contactTd.update(this._getContactButton(match));
+                contactTd.down('.contact-button') && contactTd.down('.contact-button').on('click', function(event) {
+                    event.stop();
+                    var elm = event.element();
+                    this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
+                }.bind(this));
 
                 // updating Notified status column
                 var notifiedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="notified"]');
