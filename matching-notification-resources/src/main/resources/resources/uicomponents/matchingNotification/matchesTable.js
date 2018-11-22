@@ -997,88 +997,108 @@ var PhenoTips = (function (PhenoTips) {
     _getContact : function(record)
     {
         var td = '<td style="text-align: center" name="contact">';
-        td += this._getContactButton(record);
+        td += this._getContactButtonHTML(record);
         td += '</td>';
         return td;
     },
 
-    _getContactButton : function(record)
+    _getPatientToBeContactedByCurrentNonAdminUser : function(record)
     {
-        var button = '';
-        if (!this._isAdmin) {
-            var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
-                               || record.matched.access == "owner"  || record.reference.access == "owner"
-                               || record.matched.access == "manage" || record.reference.access == "manage";
-
-            // determine which of the two patients is "my case" and which is "matched case"
-            var matchedCase = '';
-            if (record.matched.ownership["userIsOwner"]) {
-                var matchedCase = record.matched;
-            }
-            if (record.reference.ownership["userIsOwner"]) {
-                var matchedCase = record.reference;
-            }
-
-            // don't show contact button if user is not owner of one of the cases
-            if (matchedCase == '') {
-                return button;
-            }
-
-            var matchedCaseHasPubmedID = !this._utils.isBlank(matchedCase.pubmedId);
-            if (accessAboveEdit && !matchedCaseHasPubmedID) {
-                var matchId = record.id[0] ? record.id[0] : record.id;
-                var patientID = matchedCase.patientId;
-                var serverId = matchedCase.serverId;
-                var validatedEmails = (record.matched.isOwner) ? record.reference.validatedEmails : record.matched.validatedEmails;
-                var className = record.notified ? "button contact-button secondary" : "button contact-button";
-                if (validatedEmails.length > 0) {
-                    button += '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
-                        + matchId + '" data-patientid="'
-                        + patientID + '" data-serverid="'
-                        + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
-                }
-            }
+        var accessAboveEdit = function(patient) {
+            return (patient.access == "edit" || patient.access == "owner"  || patient.access == "manage");
         }
-        return button;
+
+        if (!accessAboveEdit(record.reference) && !accessAboveEdit(record.matched)) {
+            // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as contacted
+            return null;
+        }
+
+        var matchedCase;
+        // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
+        if (record.reference.ownership["userIsOwner"]) {
+            // user directly owns "record.reference" => "matched" is record.matched
+            matchedCase = record.matched;
+        } else if (record.matched.ownership["userIsOwner"]) {
+            // user directly owns "record.matched" => "matched" is record.reference
+            matchedCase = record.reference;
+        } else if (accessAboveEdit(record.reference) && !accessAboveEdit(record.matched)) {
+            // user has edit access to "record.reference" and no edit access to the "record.matched": assume that the user wants to contact record.matched
+            matchedCase = record.matched;
+        } else if (accessAboveEdit(record.matched) && !accessAboveEdit(record.reference)) {
+            // user has edit access to "record.matched" and no edit access to the "record.reference": assume that the user wants to contact record.reference
+            matchedCase = record.reference;
+        } else if (record.reference.ownership["userGroupIsOwner"] && !record.matched.ownership["userGroupIsOwner"]) {
+            // user does not own any of the cases, but user's group owns "record.reference" => "matched" is record.matched
+            matchedCase = record.matched;
+        } else if (record.matched.ownership["userGroupIsOwner"] && !record.reference.ownership["userGroupIsOwner"]) {
+            // user does not own any of the cases, but user's group owns "record.matched" => "matched" is record.reference
+            matchedCase = record.reference;
+        } else {
+            // else: user has "equal" (*) access level with both records: we don't know which one of the two the user wants to contact
+            //       (*) e.g. both are owned by someone else and user has equal edit access to both
+            return null;
+        }
+
+        // check if the case the user can contact has a PubmedID:
+        // if it does, no need to have any contact button(s), user should use PubmedID link instead
+        var matchedCaseHasPubmedID = !this._utils.isBlank(matchedCase.pubmedId);
+        if (matchedCaseHasPubmedID) {
+            return null;
+        }
+
+        return matchedCase;
+    },
+
+    _getContactButtonHTML : function(record)
+    {
+        var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(record);
+        if (!matchedCase) {
+            // unable to determine which of the two cases should be contacted or matched case has a pubmed ID : do not show contact button
+            return '';
+        }
+
+        var validatedEmails = matchedCase.validatedEmails;
+        if (validatedEmails.length == 0) {
+            // no emails => no contact button
+            return '';
+        }
+
+        var matchId = record.id[0] || record.id;
+        var patientID = matchedCase.patientId;
+        var serverId = matchedCase.serverId;
+        var className = record.notified ? "button contact-button secondary" : "button contact-button";
+
+        var  buttonHTML = '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
+                          + matchId + '" data-patientid="'
+                          + patientID + '" data-serverid="'
+                          + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
+        return buttonHTML;
     },
 
     _getNotified : function(record)
     {
         var td = '<td style="text-align: center" name="notified">';
-        td += this._getMarkNotifiedButton(record);
+        td += this._getMarkNotifiedButtonHTML(record);
         td += '</td>';
         return td;
     },
 
-    _getMarkNotifiedButton : function(match)
+    _getMarkNotifiedButtonHTML : function(match)
     {
-        var button = '';
-        var accessAboveEdit = match.matched.access == "edit"   || match.reference.access == "edit"
-                           || match.matched.access == "owner"  || match.reference.access == "owner"
-                           || match.matched.access == "manage" || match.reference.access == "manage";
-        // determine matched case:
-        // don't show contact button if user is not owner of one of the cases
-        var matchedCase = '';
-        if (record.matched.ownership["userIsOwner"]) {
-            var matchedCase = record.matched;
-        }
-        if (record.reference.ownership["userIsOwner"]) {
-            var matchedCase = record.reference;
-        }
-        if (matchedCase == '') {
-            return button;
+        var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(match);
+        if (!matchedCase) {
+            // unable to determine which of the two cases should be contacted or matched case has a pubmed ID: do not show "mark/unmark contacted" button
+            return '';
         }
 
-        var matchedCaseHasPubmedID = !this._utils.isBlank(matchedCase.pubmedId);
-        if (accessAboveEdit && !matchedCaseHasPubmedID) {
-            var matchId = match.id[0] || match.id;
-            var label = this._MARK_NOTIFIED_BUTTON_LABEL;
-            var icon = (!match.notified) ? "fa fa-square-o" : "fa fa-check-square-o";
-            var title = (match.notified) ? this._MARK_UNNOTIFIED_BUTTON_TITLE : this._MARK_NOTIFIED_BUTTON_TITLE;
-            button = '<span class="buttonwrapper"><a class="button secondary mark-notified-button" title="' + title + '" data-matchid="'
-                    + matchId + '" data-notified="' + match.notified + '" href="#"><span class="' + icon + '"></span> '+ label +'</a></span>';
-        }
-        return button;
+        var matchId = match.id[0] || match.id;
+        var label = this._MARK_NOTIFIED_BUTTON_LABEL;
+        var icon = (!match.notified) ? "fa fa-square-o" : "fa fa-check-square-o";
+        var title = (match.notified) ? this._MARK_UNNOTIFIED_BUTTON_TITLE : this._MARK_NOTIFIED_BUTTON_TITLE;
+
+        var buttonHTML = '<span class="buttonwrapper"><a class="button secondary mark-notified-button" title="' + title + '" data-matchid="'
+                         + matchId + '" data-notified="' + match.notified + '" href="#"><span class="' + icon + '"></span> '+ label +'</a></span>';
+        return buttonHTML;
     },
 
 // -- AFTER PROCESS TABLE
@@ -1374,7 +1394,7 @@ var PhenoTips = (function (PhenoTips) {
 
                 // updating Contact column
                 var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
-                contactTd && contactTd.update(this._getContactButton(match));
+                contactTd && contactTd.update(this._getContactButtonHTML(match));
                 contactTd.down('.contact-button') && contactTd.down('.contact-button').on('click', function(event) {
                     event.stop();
                     var elm = event.element();
@@ -1383,7 +1403,7 @@ var PhenoTips = (function (PhenoTips) {
 
                 // updating Notified status column
                 var notifiedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="notified"]');
-                notifiedTd && notifiedTd.update(this._getMarkNotifiedButton(match));
+                notifiedTd && notifiedTd.update(this._getMarkNotifiedButtonHTML(match));
                 notifiedTd.down('.mark-notified-button') && notifiedTd.down('.mark-notified-button').on('click', function(event) {
                     event.stop();
                     this._markNotified(event);
