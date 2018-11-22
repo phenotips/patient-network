@@ -1398,20 +1398,24 @@ var PhenoTips = (function (PhenoTips) {
 
                 // updating Contact column
                 var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
-                contactTd && contactTd.update(this._getContactButtonHTML(match));
-                contactTd.down('.contact-button') && contactTd.down('.contact-button').on('click', function(event) {
-                    event.stop();
-                    var elm = event.element();
-                    this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
-                }.bind(this));
+                if (contactTd) {
+                    contactTd.update(this._getContactButtonHTML(match));
+                    contactTd.down('.contact-button') && contactTd.down('.contact-button').on('click', function(event) {
+                        event.stop();
+                        var elm = event.element();
+                        this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
+                    }.bind(this));
+                }
 
                 // updating Notified status column
                 var notifiedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="notified"]');
-                notifiedTd && notifiedTd.update(this._getMarkNotifiedButtonHTML(match));
-                notifiedTd.down('.mark-notified-button') && notifiedTd.down('.mark-notified-button').on('click', function(event) {
-                    event.stop();
-                    this._markNotified(event);
-                }.bind(this));
+                if (notifiedTd) {
+                    notifiedTd && notifiedTd.update(this._getMarkNotifiedButtonHTML(match));
+                    notifiedTd.down('.mark-notified-button') && notifiedTd.down('.mark-notified-button').on('click', function(event) {
+                        event.stop();
+                        this._markNotified(event);
+                    }.bind(this));
+                }
             }
             if (properties.hasOwnProperty('status')) {
                 this._matches[this._matches.indexOf(match)].status = properties.status;
