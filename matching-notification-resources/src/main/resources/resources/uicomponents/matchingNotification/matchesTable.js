@@ -1,6 +1,7 @@
 require(["matchingNotification/utils",
          "matchingNotification/matcherPaginator",
          "matchingNotification/matcherPageSizer",
+         "matchingNotification/notificationDialog",
          "matchingNotification/matcherContactDialog"],
         function(utils) {
             var loadMNM = function(utils) {
@@ -73,7 +74,7 @@ var PhenoTips = (function (PhenoTips) {
         this._initiateFilters();
 
         this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
-        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
+        this._errorDialog = new PhenoTips.widgets.NotificationDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
         // memorise filers open/close state
         var filtersButton = $('toggle-filters-button');

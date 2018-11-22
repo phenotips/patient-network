@@ -17,16 +17,18 @@ var PhenoTips = (function(PhenoTips) {
         this._CONTACT_PREVIEW_ERROR_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.send.error.header'))";
 
         this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
-
         this._CONTACT_SEND_ERROR_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.send.error.header'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
-        this._SUSSESS_NOTIFICATION_MESSAGE  = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))"; 
+        this._CONTACT_SEND_FAILED_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.sendFailed'))";
+
+        this._SUSSESS_NOTIFICATION_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.emailsent.title'))";
+        this._SUSSESS_NOTIFICATION_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))"; 
 
         this.matchId = '';
         this.subjectPatientId = '';
         this.subjectServerId = '';
 
-        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
+        this._errorDialog = new PhenoTips.widgets.NotificationDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
         this._contactContainer = this._createContactDialogContainer();
         this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': this._CONTACT_DIALOG_TITLE, 'verticalPosition': 'top'});
@@ -148,12 +150,13 @@ var PhenoTips = (function(PhenoTips) {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                     return;
                 }
-                if (response.responseJSON.results.failed && response.responseJSON.results.failed.length == 0) {
-                    this._errorDialog.showError('', this._SUSSESS_NOTIFICATION_MESSAGE);
-                    return;
+                if (!response.responseJSON.results.failed || response.responseJSON.results.failed.length == 0) {
+                    this._errorDialog.showNotification('', this._SUSSESS_NOTIFICATION_MESSAGE, this._SUSSESS_NOTIFICATION_TITLE);
+                    var event = { 'results' : response.responseJSON.results };
+                    document.fire("notified", event);
+                } else {
+                    this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._CONTACT_SEND_FAILED_MESSAGE);
                 }
-                var event = { 'results' : response.responseJSON.results };
-                document.fire("notified", event);
             }.bind(this),
             onFailure : function (response) {
                this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
