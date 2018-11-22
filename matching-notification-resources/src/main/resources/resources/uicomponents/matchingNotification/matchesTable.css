@@ -297,3 +297,6 @@ select.status {
 th[data-column="score"], th[data-column="genotypicScore"], th[data-column="phenotypicScore"] {
   font-size: 90%;
 }
+.notification-dialog-message {
+  margin-top: 0.5em;
+}
