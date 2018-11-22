@@ -71,6 +71,8 @@ var PhenoTips = (function (PhenoTips) {
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
         this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
 
+        this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
+
         this._initiateFilters();
 
         this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
@@ -963,7 +965,7 @@ var PhenoTips = (function (PhenoTips) {
         if (isSolved) {
             if (pubmedIDs && pubmedIDs.size() > 0) {
                 for (var i=0; i < pubmedIDs.length; i++) {
-                    var href = "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + pubmedIDs[i].trim();
+                    var href = this._PUBMED_URL + pubmedIDs[i].trim();
                     td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
                 }
                 return td;
