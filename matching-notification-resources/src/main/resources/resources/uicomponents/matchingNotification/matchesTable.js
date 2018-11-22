@@ -1011,8 +1011,8 @@ var PhenoTips = (function (PhenoTips) {
             var accessAboveEdit = record.matched.access == "edit"   || record.reference.access == "edit"
                                || record.matched.access == "owner"  || record.reference.access == "owner"
                                || record.matched.access == "manage" || record.reference.access == "manage";
-            // determine matched case:
-            // don't show contact button if user is not owner of one of the cases
+
+            // determine which of the two patients is "my case" and which is "matched case"
             var matchedCase = '';
             if (record.matched.ownership["userIsOwner"]) {
                 var matchedCase = record.matched;
@@ -1020,6 +1020,8 @@ var PhenoTips = (function (PhenoTips) {
             if (record.reference.ownership["userIsOwner"]) {
                 var matchedCase = record.reference;
             }
+
+            // don't show contact button if user is not owner of one of the cases
             if (matchedCase == '') {
                 return button;
             }
@@ -1057,7 +1059,7 @@ var PhenoTips = (function (PhenoTips) {
         var accessAboveEdit = match.matched.access == "edit"   || match.reference.access == "edit"
                            || match.matched.access == "owner"  || match.reference.access == "owner"
                            || match.matched.access == "manage" || match.reference.access == "manage";
-     // determine matched case:
+        // determine matched case:
         // don't show contact button if user is not owner of one of the cases
         var matchedCase = '';
         if (record.matched.ownership["userIsOwner"]) {
