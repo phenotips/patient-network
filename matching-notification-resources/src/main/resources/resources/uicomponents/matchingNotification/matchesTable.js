@@ -93,7 +93,7 @@ var PhenoTips = (function (PhenoTips) {
         $('contentmenu') && $('contentmenu').hide();
         $('hierarchy') && $('hierarchy').hide();
 
-        document.observe("notified", this._handleNotifiedUpdate.bind(this));
+        document.observe("match:contacted", this._handleNotifiedUpdate.bind(this));
 
         // set initial scores
         $('show-matches-score').value = 0.5;
