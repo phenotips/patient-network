@@ -9,7 +9,7 @@ var PhenoTips = (function(PhenoTips) {
         this._SEND = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.send'))";
         this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
 
-    	this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
+        this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
         this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
         this._EMAIL_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
@@ -28,16 +28,16 @@ var PhenoTips = (function(PhenoTips) {
 
         this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
-    	this._contactContainer = this._createContactDialogContainer();
+        this._contactContainer = this._createContactDialogContainer();
         this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': this._CONTACT_DIALOG_TITLE, 'verticalPosition': 'top'});
     },
 
     show  : function() {
-    	this._contactDialog.showDialog();
+        this._contactDialog.showDialog();
     },
 
     close : function() {
-    	this._contactDialog.closeDialog();
+        this._contactDialog.closeDialog();
     },
 
     _createContactDialogContainer : function()
@@ -90,7 +90,7 @@ var PhenoTips = (function(PhenoTips) {
          this._contactContainer.down('input[name="cc"]').value = cc.toString();
          this._contactContainer.down('input[name="from"]').value = from.toString();
     },
-    
+
     launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
     {
         new Ajax.Request(this._ajaxURL + "preview-user-match-email", {
@@ -128,7 +128,7 @@ var PhenoTips = (function(PhenoTips) {
                 this.close();
             }.bind(this),
             on0 : function (response) {
-            	this._errorDialog.showError(this._CONTACT_PREVIEW_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+                this._errorDialog.showError(this._CONTACT_PREVIEW_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                 this.close();
             }.bind(this)
         });

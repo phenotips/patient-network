@@ -3,7 +3,7 @@ var PhenoTips = (function(PhenoTips) {
   widgets.ErrorDialog = Class.create({
     initialize: function(title) {
 
-    	this._GENERAL_ERROR_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
+        this._GENERAL_ERROR_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
         this._CLOSE_BUTTON_NAME = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.closeButton.name'))";
 
         this._errorDialogContainer = this._createErrorDialogContainer();
