@@ -153,7 +153,7 @@ var PhenoTips = (function(PhenoTips) {
                 if (!response.responseJSON.results.failed || response.responseJSON.results.failed.length == 0) {
                     this._errorDialog.showNotification('', this._SUSSESS_NOTIFICATION_MESSAGE, this._SUSSESS_NOTIFICATION_TITLE);
                     var event = { 'results' : response.responseJSON.results };
-                    document.fire("notified", event);
+                    document.fire("match:contacted", event);
                 } else {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._CONTACT_SEND_FAILED_MESSAGE);
                 }
