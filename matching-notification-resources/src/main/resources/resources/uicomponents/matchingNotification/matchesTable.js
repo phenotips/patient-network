@@ -1446,8 +1446,27 @@ var PhenoTips = (function (PhenoTips) {
                 this._cachedMatches[this._cachedMatches.indexOf(match)].status = properties.status;
             }
             if (properties.hasOwnProperty('state')) {
-                this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
-                // TODO: the code to highlight not the enitre row, but only one of the emails should be here
+                // FIXME: "match.reference.patientId != match.matched.patientId"
+                //        when notifying patients, we know matchID and patientID. But in theory both reference and match
+                //        patient may have the same ID (when one is local, another is remote). We actually know which one
+                //        we are notifying, so we can pass this information around, but it requires more refactoring, so
+                //        since this is an extremely inlikely corner case it is left "as is" for now - just both will
+                //        be highlighted, so no real functionality loss happens
+                if (notifiedPatients && notifiedPatients.hasOwnProperty(match.id) && match.reference.patientId != match.matched.patientId) {
+                    // highlight only cells with contacted emails
+                    // use custom highligh css class, since the color used to highlight the enitre row is too bleak to notice within a single cell
+                    var highllightCSSClass = (properties.state == "failure") ? "failure" : "notified";
+                    notifiedPatients[match.id].each(function(patientId) {
+                        if (match.reference.patientId == patientId) {
+                            this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=referenceEmails]").className = highllightCSSClass;
+                        } else {
+                            this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=matchedEmails]").className = highllightCSSClass;
+                        }
+                    }.bind(this));
+                } else {
+                    // highlight entire row
+                    this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
+                }
             }
             if (properties.hasOwnProperty('comment')) {
                 this._matches[this._matches.indexOf(match)].comment = properties.comment;

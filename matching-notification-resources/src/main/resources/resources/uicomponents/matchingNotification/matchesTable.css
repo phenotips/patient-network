@@ -18,8 +18,12 @@ table#matchesTable {
   background-color: #fff9ee;
 }
 
+.matches-table .notified {
+  background-color: #fef2da;
+}
+
 .matches-table .failed, .failure  {
-  color: red;
+  background-color: #ffcece !important;
 }
 
 .matches-table .ok {
