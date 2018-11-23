@@ -1452,15 +1452,22 @@ var PhenoTips = (function (PhenoTips) {
                 //        we are notifying, so we can pass this information around, but it requires more refactoring, so
                 //        since this is an extremely inlikely corner case it is left "as is" for now - just both will
                 //        be highlighted, so no real functionality loss happens
-                if (notifiedPatients && notifiedPatients.hasOwnProperty(match.id) && match.reference.patientId != match.matched.patientId) {
+                //
+                // TODO: simplify logic related to match.id once the duality of match.id is resolved on the back-end
+                var matchIdArray = String(match.id).split(",");
+                if (notifiedPatients && this._utils.listsIntersect(Object.keys(notifiedPatients), matchIdArray) && match.reference.patientId != match.matched.patientId) {
                     // highlight only cells with contacted emails
                     // use custom highligh css class, since the color used to highlight the enitre row is too bleak to notice within a single cell
                     var highllightCSSClass = (properties.state == "failure") ? "failure" : "notified";
-                    notifiedPatients[match.id].each(function(patientId) {
-                        if (match.reference.patientId == patientId) {
-                            this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=referenceEmails]").className = highllightCSSClass;
-                        } else {
-                            this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=matchedEmails]").className = highllightCSSClass;
+                    matchIdArray.each(function(matchId) {
+                        if (notifiedPatients.hasOwnProperty(matchId)) {
+                            notifiedPatients[matchId].each(function(patientId) {
+                                if (match.reference.patientId == patientId) {
+                                    this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=referenceEmails]").className = highllightCSSClass;
+                                } else {
+                                    this._tableElement.down('[data-matchid="' + match.id +'"]').down("[name=matchedEmails]").className = highllightCSSClass;
+                                }
+                            }.bind(this));
                         }
                     }.bind(this));
                 } else {
