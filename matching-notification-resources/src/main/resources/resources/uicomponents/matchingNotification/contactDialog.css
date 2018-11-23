@@ -26,3 +26,8 @@ a.contact-button {
   clear: both;
   text-align: center;
 }
+input[name="to"], input[name="from"], input[name="cc"] {
+  color: #000;
+  opacity: 1;
+  background-color: #f4f4f4;
+}
