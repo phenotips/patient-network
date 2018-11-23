@@ -390,14 +390,17 @@ var PhenoTips = (function (PhenoTips) {
 
             // returns true if one of the records in match is local and owned my user and is solved
             var matchHasOwnSolvedCase = function(match) {
-                    if (match.reference.serverId == "" && match.reference.ownership["userIsOwner"] && match.reference.solved) {
-                        return true;
+                    var notMyCase = this._getNotMyCase(match);
+                    if (notMyCase == null) {
+                        // can't decide which patient is mine: do not exclude this record
+                        return false;
                     }
-                    if (match.matched.serverId == "" && match.matched.ownership["userIsOwner"] && match.matched.solved) {
+                    var myCase = (notMyCase == match.reference) ? match.matched : match.reference;
+                    if (myCase.solved) {
                         return true;
                     }
                     return false;
-                };
+                }.bind(this);
             var hideOwnSolvedCaces = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
             return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCaces
@@ -1008,40 +1011,48 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getPatientToBeContactedByCurrentNonAdminUser : function(record)
-    {
-        var accessAboveEdit = function(patient) {
-            return (patient.access == "edit" || patient.access == "owner"  || patient.access == "manage");
-        }
+    _accessAboveEdit : function(patient) {
+        return (patient.access == "edit" || patient.access == "owner"  || patient.access == "manage");
+    },
 
-        if (!accessAboveEdit(record.reference) && !accessAboveEdit(record.matched)) {
+    // out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
+    _getNotMyCase : function(match)
+    {
+        // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
+        if (match.reference.ownership["userIsOwner"]) {
+            // user directly owns "match.reference" => "matched" is match.matched (we know user never owns both patients in a match from this table)
+            return match.matched;
+        } else if (match.matched.ownership["userIsOwner"]) {
+            // user directly owns "match.matched" => "matched" is match.reference
+            return match.reference;
+        } else if (this._accessAboveEdit(match.reference) && !this._accessAboveEdit(match.matched)) {
+            // user has edit access to "match.reference" and no edit access to the "match.matched": assume that the user wants to contact match.matched
+            return match.matched;
+        } else if (this._accessAboveEdit(match.matched) && !this._accessAboveEdit(match.reference)) {
+            // user has edit access to "match.matched" and no edit access to the "match.reference": assume that the user wants to contact match.reference
+            return match.reference;
+        } else if (match.reference.ownership["userGroupIsOwner"] && !match.matched.ownership["userGroupIsOwner"]) {
+            // user does not own any of the cases, but user's group owns "match.reference" => "matched" is match.matched
+            return match.matched;
+        } else if (match.matched.ownership["userGroupIsOwner"] && !match.reference.ownership["userGroupIsOwner"]) {
+            // user does not own any of the cases, but user's group owns "match.matched" => "matched" is match.reference
+            return match.reference;
+        }
+        // else: user has "equal" (*) access level to both patients: we don't know which one of the two the user wants to contact
+        //       (*) e.g. both are owned by someone else and user has equal edit access to both
+        return null;
+    },
+
+    _getPatientToBeContactedByCurrentNonAdminUser : function(match)
+    {
+        if (!this._accessAboveEdit(match.reference) && !this._accessAboveEdit(match.matched)) {
             // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as contacted
             return null;
         }
 
-        var matchedCase;
-        // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
-        if (record.reference.ownership["userIsOwner"]) {
-            // user directly owns "record.reference" => "matched" is record.matched
-            matchedCase = record.matched;
-        } else if (record.matched.ownership["userIsOwner"]) {
-            // user directly owns "record.matched" => "matched" is record.reference
-            matchedCase = record.reference;
-        } else if (accessAboveEdit(record.reference) && !accessAboveEdit(record.matched)) {
-            // user has edit access to "record.reference" and no edit access to the "record.matched": assume that the user wants to contact record.matched
-            matchedCase = record.matched;
-        } else if (accessAboveEdit(record.matched) && !accessAboveEdit(record.reference)) {
-            // user has edit access to "record.matched" and no edit access to the "record.reference": assume that the user wants to contact record.reference
-            matchedCase = record.reference;
-        } else if (record.reference.ownership["userGroupIsOwner"] && !record.matched.ownership["userGroupIsOwner"]) {
-            // user does not own any of the cases, but user's group owns "record.reference" => "matched" is record.matched
-            matchedCase = record.matched;
-        } else if (record.matched.ownership["userGroupIsOwner"] && !record.reference.ownership["userGroupIsOwner"]) {
-            // user does not own any of the cases, but user's group owns "record.matched" => "matched" is record.reference
-            matchedCase = record.reference;
-        } else {
-            // else: user has "equal" (*) access level with both records: we don't know which one of the two the user wants to contact
-            //       (*) e.g. both are owned by someone else and user has equal edit access to both
+        // the main part: figure out which of the two patients should be contacted
+        var matchedCase = this._getNotMyCase(match);
+        if (matchedCase == null) {
             return null;
         }
 
@@ -1055,11 +1066,12 @@ var PhenoTips = (function (PhenoTips) {
         return matchedCase;
     },
 
-    _getContactButtonHTML : function(record)
+    _getContactButtonHTML : function(match)
     {
-        var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(record);
+        var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(match);
         if (!matchedCase) {
-            // unable to determine which of the two cases should be contacted OR : do not show contact button
+            // a match should not be contacted (because it has a pubmedID or not enough permissions for current user to contact)
+            // OR unable to determine which of the two cases should be contacted => do not show contact button
             return '';
         }
 
@@ -1069,10 +1081,10 @@ var PhenoTips = (function (PhenoTips) {
             return '';
         }
 
-        var matchId = record.id[0] ? record.id[0] : record.id;
+        var matchId = match.id[0] ? match.id[0] : match.id;
         var patientID = matchedCase.patientId;
         var serverId = matchedCase.serverId;
-        var className = record.notified ? "button contact-button secondary" : "button contact-button";
+        var className = match.notified ? "button contact-button secondary" : "button contact-button";
 
         var  buttonHTML = '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
                           + matchId + '" data-patientid="'
@@ -1081,10 +1093,10 @@ var PhenoTips = (function (PhenoTips) {
         return buttonHTML;
     },
 
-    _getNotified : function(record)
+    _getNotified : function(match)
     {
         var td = '<td style="text-align: center" name="notified">';
-        td += this._getMarkNotifiedButtonHTML(record);
+        td += this._getMarkNotifiedButtonHTML(match);
         td += '</td>';
         return td;
     },
