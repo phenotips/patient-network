@@ -47,15 +47,15 @@ define([], function()
             return (!str || !str.trim());
         },
 
-        // Return true if all elements of the first list are found in the second
-        listIsSubset : function(first, second)
+        // Return true if there is at least one common element in two lists
+        listsIntersect : function(first, second)
         {
             for (var i = 0; i < first.length; i++) {
-                if (second.indexOf(first[i]) === -1) {
-                    return false;
+                if (second.indexOf(first[i]) != -1) {
+                    return true;
                 }
             }
-            return true;
+            return false;
         },
 
         validateEmail: function (email)

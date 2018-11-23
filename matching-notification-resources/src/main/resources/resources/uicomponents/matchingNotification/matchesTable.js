@@ -70,6 +70,7 @@ var PhenoTips = (function (PhenoTips) {
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
         this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
+        this._ADMIN_NOTIFICATION_FAILED_MESSAGE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -95,7 +96,7 @@ var PhenoTips = (function (PhenoTips) {
         $('contentmenu') && $('contentmenu').hide();
         $('hierarchy') && $('hierarchy').hide();
 
-        document.observe("match:contacted", this._handleNotifiedUpdate.bind(this));
+        document.observe("match:contacted:byuser", this._handleUserNotifiedUpdate.bind(this));
 
         // set initial scores
         $('show-matches-score').value = 0.5;
@@ -1293,7 +1294,7 @@ var PhenoTips = (function (PhenoTips) {
         this._notifyMatchByIDs(ids);
     },
 
-    _notifyMatchByIDs  : function(matchIDs)
+    _notifyMatchByIDs : function(matchIDs)
     {
         // console.log("Sending " + idsToNotify);
         var idsToNotify = JSON.stringify({ ids: matchIDs});
@@ -1309,7 +1310,19 @@ var PhenoTips = (function (PhenoTips) {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                     return;
                 }
-                this._updateTableState(response.responseJSON.results, true);
+
+                var failedIDs = response.responseJSON.results.failed;
+                if (failedIDs && failedIDs.length > 0) {
+                    var message = this._ADMIN_NOTIFICATION_FAILED_MESSAGE + " " + this._getAllEmailsForMatchIds(failedIDs);
+                    this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, message);
+                }
+
+                // add data about patients to notification response (which currently only has matchIDs, but not patient IDs
+                // involved - which may include only one of the two patients in a match, or both)
+                var notificationResult = this._addPatientDataToResults(response.responseJSON.results, matchIDs);
+
+                // highlight table cells/rows as notified/failed to notify
+                this._updateTableAfterNotification(notificationResult, true);
             }.bind(this),
             onFailure : function (response) {
                 this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
@@ -1334,9 +1347,9 @@ var PhenoTips = (function (PhenoTips) {
     },
 
 //--POST_PROCESS NOTIFICATION
-    _handleNotifiedUpdate: function(event)
+    _handleUserNotifiedUpdate: function(event)
     {
-        if (!event || !event.memo || !event.memo.results) {
+        if (!event || !event.memo || !event.memo.notificationResult) {
             return;
         }
         console.log("Send notification - reply received:");
@@ -1344,12 +1357,27 @@ var PhenoTips = (function (PhenoTips) {
 
         this._utils.showReplyReceived('send-notifications-messages');
 
-        var results = event.memo.results;
-
-        this._updateTableState(results, false);
+        // highlight table cells/rows as notified/failed to notify
+        this._updateTableAfterNotification(event.memo.notificationResult, false);
     },
 
-    _updateTableState : function (results, isAdminNotification) {
+    _addPatientDataToResults: function(restResponse, matchIDs) {
+        // convert matchIDs to a map { matchID -> [ list of patients (for which their owners were contacted) ] }
+        var matchPatients = {};
+        matchIDs.each(function(match) {
+                    if (!matchPatients.hasOwnProperty(match.matchId)) {
+                        matchPatients[match.matchId] = [];
+                    }
+                    matchPatients[match.matchId].push(match.patientId);
+                });
+
+        restResponse["notifiedPatients"] = matchPatients;
+        return restResponse;
+    },
+
+    // updates the table after a match (or matches) have been notified by either the user (isAdminNotification == false) or admin (isAdminNotification == true)
+    // notifiedPatients, failedNotifications: a map of { matchId -> [ list of notified patient IDs ] }
+    _updateTableAfterNotification : function (notificationResult, isAdminNotification) {
         // un-check all notification checkboxes, only admin sees them
         if (isAdminNotification) {
             this._tableElement.select('input[type=checkbox][class="notify"]').each(function (contactCheckbox) {
@@ -1357,15 +1385,13 @@ var PhenoTips = (function (PhenoTips) {
             });
         }
 
-        if (results.success && results.success.length > 0 ) {
+        if (notificationResult.success && notificationResult.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
-            this._setState(results.success, properties);
+            this._setState(notificationResult.success, properties, notificationResult.notifiedPatients);
         }
-        if (results.failed && results.failed.length > 0) {
-            var message = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert')) " + this._getAllEmailsForMatchIds(results.failed);
-            this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, message);
+        if (notificationResult.failed && notificationResult.failed.length > 0) {
             var properties = {'state': 'failure', 'isAdminNotification': isAdminNotification};
-            this._setState(results.failed, properties);
+            this._setState(notificationResult.failed, properties, notificationResult.notifiedPatients);
         }
     },
 
@@ -1380,16 +1406,17 @@ var PhenoTips = (function (PhenoTips) {
         return emails;
     },
 
-    _setState : function(matchIds, properties)
+    _setState : function(matchIds, properties, notifiedPatients)
     {
         var strMatchIds = String(matchIds).split(",");
         var matchesToSet = [];
         this._matches.each( function(match) {
+            // a match can potentially have more than one ID (e.g. P1 matchs P2 and P2 matches P1 may be two different matches, but they are equivalent and grouped into a single match with two IDs)
             var curIds = String(match.id).split(",");
-            if ( (strMatchIds.length < curIds.length && this._utils.listIsSubset(strMatchIds, curIds))
-                || (strMatchIds.length >= curIds.length && this._utils.listIsSubset(curIds, strMatchIds)) ){
-                    matchesToSet.push(match);
-                }
+            // if at least one of the match IDs matches an ID that changed its state => include the match in the list of affected matches
+            if (this._utils.listsIntersect(strMatchIds, curIds)) {
+                matchesToSet.push(match);
+            }
         }.bind(this));
 
         matchesToSet.each( function(match, index) {
@@ -1425,6 +1452,7 @@ var PhenoTips = (function (PhenoTips) {
             }
             if (properties.hasOwnProperty('state')) {
                 this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
+                // TODO: the code to highlight not the enitre row, but only one of the emails should be here
             }
             if (properties.hasOwnProperty('comment')) {
                 this._matches[this._matches.indexOf(match)].comment = properties.comment;

@@ -152,8 +152,13 @@ var PhenoTips = (function(PhenoTips) {
                 }
                 if (!response.responseJSON.results.failed || response.responseJSON.results.failed.length == 0) {
                     this._errorDialog.showNotification('', this._SUSSESS_NOTIFICATION_MESSAGE, this._SUSSESS_NOTIFICATION_TITLE);
-                    var event = { 'results' : response.responseJSON.results };
-                    document.fire("match:contacted", event);
+
+                    var notificationResult = response.responseJSON.results;
+                    notificationResult.notifiedPatients = {};
+                    notificationResult.notifiedPatients[matchID] = [ subjectPatientId ];
+
+                    var event = { 'notificationResult' : notificationResult };
+                    document.fire("match:contacted:byuser", event);
                 } else {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._CONTACT_SEND_FAILED_MESSAGE);
                 }
