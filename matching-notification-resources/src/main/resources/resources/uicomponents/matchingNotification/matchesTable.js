@@ -388,6 +388,12 @@ var PhenoTips = (function (PhenoTips) {
 
             // returns true if one of the records in match is local and owned my user and is solved
             var matchHasOwnSolvedCase = function(match) {
+                    // exclud ematch if both cases are solved (one of them must be "mine", so want to exclude those - both solved is not interesting anyway)
+                    if (match.reference.solved && match.matched.solved) {
+                        return true;
+                    }
+
+                    // otherwise only exclude matches where it is clear which patient is "mine"
                     var notMyCase = this._getNotMyCase(match);
                     if (notMyCase == null) {
                         // can't decide which patient is mine: do not exclude this record
