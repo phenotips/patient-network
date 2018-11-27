@@ -226,7 +226,7 @@
       this.launchSearchExisting();
 
       this._contactDialog = new PhenoTips.widgets.MatcherContactDialog("$escapetool.javascript($services.localization.render('phenotips.similarCases.contactDialogTitle'))");
-      this._errorDialog = new PhenoTips.widgets.ErrorDialog();
+      this._errorDialog = new PhenoTips.widgets.NotificationDialog();
     },
 
     launchSearchRefresh: function(event) {
@@ -1771,7 +1771,7 @@
         $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPaginator.js', true)##
         $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPageSizer.js', true)##
         $xwiki.jsfx.use('uicomponents/matchingNotification/matcherContactDialog.js', true)##
-        $xwiki.jsfx.use('uicomponents/matchingNotification/errorDialog.js', true)##
+        $xwiki.jsfx.use('uicomponents/matchingNotification/notificationDialog.js', true)##
         {{html clean=false}}&lt;span class="xwiki-livetable-pagination" id="pagination-similar-cases"&gt;&lt;span class="controlPagination"&gt;
             &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
             &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;

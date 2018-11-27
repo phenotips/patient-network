@@ -15,11 +15,15 @@ table#matchesTable {
 }
 
 .matches-table .succeed, .success {
-  color: green;
+  background-color: #fff9ee;
+}
+
+.matches-table .notified {
+  background-color: #fef2da;
 }
 
 .matches-table .failed, .failure  {
-  color: red;
+  background-color: #ffcece !important;
 }
 
 .matches-table .ok {
@@ -32,10 +36,6 @@ table#matchesTable {
 
 .matches-table .patient-href {
   margin-left: 3px;
-}
-
-.matches-table .genes-div, .matches-table .age-of-onset-div  {
-  background: #fff9ee;
 }
 
 .matches-table .subtitle {
@@ -235,8 +235,6 @@ input.mme {
 }
 .metadata {
   display: block;
-  opacity: .7;
-  padding-left: 1.6em;
   font-size: .8em;
   font-style: italic;
 }
@@ -252,6 +250,8 @@ input.mme {
 }
 .matches-table .fa.fa-sort {
   color: #999;
+  padding-left: 3px;
+  float: none;
 }
 .matches-table .fa.fa-sort:hover {
   color: #000;
@@ -292,4 +292,17 @@ td.status-column {
 select.status {
   padding: .3em 1px .3em 1px;
   margin-right: 2px;
+}
+th[data-column="score"], th[data-column="genotypicScore"], th[data-column="phenotypicScore"] {
+  font-size: 90%;
+}
+.notification-dialog-message {
+  margin-top: 0.5em;
+}
+.solved {
+  background-color: whitesmoke;
+}
+div[name="notification-email-long"] {
+  font-size: 95%;
+  margin: 0 2px 0 2px;
 }
