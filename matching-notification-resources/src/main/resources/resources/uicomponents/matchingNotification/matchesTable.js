@@ -54,6 +54,7 @@ var PhenoTips = (function (PhenoTips) {
         this._MODE_OF_INHERITANCE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.modeOfInheritance'))";
         this._NOT_OBSERVED = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notObserved'))";
         this._GENES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.genes.label'))";
+        this._CAUSAL_GENE_STATUS = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.geneStatus.causal'))";
         this._PHENOTYPES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'))";
         this._NOTIFY = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify'))";
         this._NONE_STANDART_PHENOTYPE = "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))";
@@ -877,7 +878,8 @@ var PhenoTips = (function (PhenoTips) {
         }
         td += '<p class="subtitle">' + genesTitle;
         if (genesStatus && genesStatus.length > 0 && genes.size() > 0) {
-            td += ' (' + genesStatus + ')';
+            var status = genesStatus == "solved" ? this._CAUSAL_GENE_STATUS : genesStatus;
+            td += ' (' + status + ')';
         }
         if (hasExomeData) {
             td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
