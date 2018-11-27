@@ -65,9 +65,11 @@ public interface PatientMatch
     Boolean isNotified();
 
     /**
-     * Marks that notifications regarding this match were sent.
+     * Marks whether notifications regarding this match were sent or not.
+     *
+     * @param isNotified boolean indicator whether notifications regarding this match were sent or not
      */
-    void setNotified();
+    void setNotified(boolean isNotified);
 
     /**
      * @return true only if match is rejected.
@@ -82,6 +84,13 @@ public interface PatientMatch
      * @param status whether saved, rejected or uncategorized
      */
     void setStatus(String status);
+
+    /**
+     * Sets match comment.
+     *
+     * @param comment comment text
+     */
+    void setComment(String comment);
 
     /**
      * @return object in JSON format.
@@ -112,6 +121,11 @@ public interface PatientMatch
      * @return status of match: saved, rejected or uncategorized.
      */
     String getStatus();
+
+    /**
+     * @return match comment.
+     */
+    String getComment();
 
     /**
      * Checks if {@code other} is equivalent to this.

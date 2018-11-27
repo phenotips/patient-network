@@ -9,7 +9,7 @@ var PhenoTips = (function(PhenoTips) {
         this._SEND = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.send'))";
         this._CANCEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cancel'))";
 
-    	this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
+        this._EMAIL_CC = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.cc.label'))";
         this._EMAIL_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
         this._EMAIL_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._EMAIL_SUBJECT = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.subject.label'))";
@@ -17,27 +17,29 @@ var PhenoTips = (function(PhenoTips) {
         this._CONTACT_PREVIEW_ERROR_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.send.error.header'))";
 
         this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
-
         this._CONTACT_SEND_ERROR_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.send.error.header'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
-        this._SUSSESS_NOTIFICATION_MESSAGE  = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))"; 
+        this._CONTACT_SEND_FAILED_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.sendFailed'))";
+
+        this._SUSSESS_NOTIFICATION_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.emailsent.title'))";
+        this._SUSSESS_NOTIFICATION_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))"; 
 
         this.matchId = '';
         this.subjectPatientId = '';
         this.subjectServerId = '';
 
-        this._errorDialog = new PhenoTips.widgets.ErrorDialog(this._CONTACT_ERROR_DIALOG_TITLE);
+        this._errorDialog = new PhenoTips.widgets.NotificationDialog(this._CONTACT_ERROR_DIALOG_TITLE);
 
-    	this._contactContainer = this._createContactDialogContainer();
+        this._contactContainer = this._createContactDialogContainer();
         this._contactDialog = new PhenoTips.widgets.ModalPopup(this._contactContainer, false, {'title': this._CONTACT_DIALOG_TITLE, 'verticalPosition': 'top'});
     },
 
     show  : function() {
-    	this._contactDialog.showDialog();
+        this._contactDialog.showDialog();
     },
 
     close : function() {
-    	this._contactDialog.closeDialog();
+        this._contactDialog.closeDialog();
     },
 
     _createContactDialogContainer : function()
@@ -90,7 +92,7 @@ var PhenoTips = (function(PhenoTips) {
          this._contactContainer.down('input[name="cc"]').value = cc.toString();
          this._contactContainer.down('input[name="from"]').value = from.toString();
     },
-    
+
     launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
     {
         new Ajax.Request(this._ajaxURL + "preview-user-match-email", {
@@ -128,7 +130,7 @@ var PhenoTips = (function(PhenoTips) {
                 this.close();
             }.bind(this),
             on0 : function (response) {
-            	this._errorDialog.showError(this._CONTACT_PREVIEW_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+                this._errorDialog.showError(this._CONTACT_PREVIEW_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                 this.close();
             }.bind(this)
         });
@@ -148,12 +150,18 @@ var PhenoTips = (function(PhenoTips) {
                     this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
                     return;
                 }
-                if (response.responseJSON.results.failed && response.responseJSON.results.failed.length == 0) {
-                    this._errorDialog.showError('', this._SUSSESS_NOTIFICATION_MESSAGE);
-                    return;
+                if (!response.responseJSON.results.failed || response.responseJSON.results.failed.length == 0) {
+                    this._errorDialog.showNotification('', this._SUSSESS_NOTIFICATION_MESSAGE, this._SUSSESS_NOTIFICATION_TITLE);
+
+                    var notificationResult = response.responseJSON.results;
+                    notificationResult.notifiedPatients = {};
+                    notificationResult.notifiedPatients[matchID] = [ subjectPatientId ];
+
+                    var event = { 'notificationResult' : notificationResult };
+                    document.fire("match:contacted:byuser", event);
+                } else {
+                    this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._CONTACT_SEND_FAILED_MESSAGE);
                 }
-                var event = { 'results' : response.responseJSON.results };
-                document.fire("notified", event);
             }.bind(this),
             onFailure : function (response) {
                this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);

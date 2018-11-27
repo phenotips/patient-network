@@ -64,12 +64,13 @@ public interface MatchStorageManager
         String patientId2, String serverId2);
 
     /**
-     * Marks all matches in {@code matches} as notified.
+     * Marks all matches in {@code matches} as notified or not notified.
      *
      * @param matches list of matches to mark as notified.
+     * @param isNotified boolean notified status to set for matches
      * @return true if successful
      */
-    boolean markNotified(List<PatientMatch> matches);
+    boolean setNotifiedStatus(List<PatientMatch> matches, boolean isNotified);
 
     /**
      * Sets status to all matches in {@code matches} to a passed status string.
@@ -79,6 +80,15 @@ public interface MatchStorageManager
      * @return true if successful
      */
     boolean setStatus(List<PatientMatch> matches, String status);
+
+    /**
+     * Sets comment to all matches in {@code matches} to a passed status string.
+     *
+     * @param matches list of matches to mark as notified.
+     * @param comment comment text
+     * @return true if successful
+     */
+    boolean setComment(List<PatientMatch> matches, String comment);
 
     /**
      * Deletes all matches (including those that users have been notified about, and MME matches)

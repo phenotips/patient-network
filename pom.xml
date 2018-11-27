@@ -656,6 +656,60 @@
               <method>java.lang.Long getNumberOfRemoteMatches()</method>
               <justification>Added to implement MME metrics endpoint.</justification>
             </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getComment()</method>
+              <justification>Added to implement saving commens on matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setNotifiedStatus(java.util.Set, boolean)</method>
+              <justification>Added to change matches notified status from UI.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/MatchingNotificationManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setComment(java.util.Set, java.lang.String)</method>
+              <justification>Added to change matches notified status from UI.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>java.lang.String getComment()</method>
+              <justification>Added to implement saving commens on matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7012</differenceType>
+              <method>void setComment(java.lang.String)</method>
+              <justification>Added to implement saving commens on matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setComment(java.util.List, java.lang.String)</method>
+              <justification>Added to implement saving commens on matches.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7012</differenceType>
+              <method>boolean setNotifiedStatus(java.util.List, boolean)</method>
+              <justification>Added to change matches notified status from UI.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/match/PatientMatch</className>
+              <differenceType>7004</differenceType>
+              <method>void setNotified()</method>
+              <justification>Altered to change matches notified status from UI.</justification>
+            </difference>
+            <difference>
+              <className>org/phenotips/matchingnotification/storage/MatchStorageManager</className>
+              <differenceType>7002</differenceType>
+              <method>boolean markNotified(org.hibernate.Session, java.util.List)</method>
+              <justification>Substituted with setNotifiedStatus(java.util.List, boolean).</justification>
+            </difference>
           </ignored>
           <excludes>
             <exclude>**/internal/**</exclude>

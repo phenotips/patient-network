@@ -90,7 +90,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
 
-            if (!this.matchStorageManager.markNotified(successfulMatches)) {
+            if (!this.matchStorageManager.setNotifiedStatus(successfulMatches, true)) {
                 this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
             }
 
@@ -128,7 +128,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
 
-        if (!this.matchStorageManager.markNotified(successfulMatches)) {
+        if (!this.matchStorageManager.setNotifiedStatus(successfulMatches, true)) {
             this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
         }
 
@@ -187,6 +187,41 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             successful = this.matchStorageManager.setStatus(matches, status);
         } catch (Exception e) {
             this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
+        }
+        return successful;
+    }
+
+    @Override
+    public boolean setNotifiedStatus(Set<Long> matchesIds, boolean isNotified)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+
+            filterNonUsersMatches(matches);
+
+            successful = this.matchStorageManager.setNotifiedStatus(matches, isNotified);
+        } catch (Exception e) {
+            String status = isNotified ? "notified" : "unnotified";
+            this.logger.error("Error while marking matches {} as {}",
+                Joiner.on(",").join(matchesIds), status, e);
+        }
+        return successful;
+    }
+
+    @Override
+    public boolean setComment(Set<Long> matchesIds, String comment)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+
+            filterNonUsersMatches(matches);
+
+            successful = this.matchStorageManager.setComment(matches, comment);
+        } catch (Exception e) {
+            this.logger.error("Error while setting comment for matches {} as {}",
+                Joiner.on(",").join(matchesIds), comment, e);
         }
         return successful;
     }

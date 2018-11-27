@@ -194,4 +194,36 @@ public interface MatchingNotificationResource
         @FormParam("referenceServerId") String referenceServerId,
         @FormParam("matchedPatientId") String matchedPatientId,
         @FormParam("matchedServerId") String matchedServerId);
+
+    /**
+     * Marks matches, with ids given in parameter, as notified or not notified. Example:
+     *
+     * <pre>
+     * Input: ["1", "2"], "true"
+     * Output: {"results": {"success": [1,2]}}
+     * </pre>
+     *
+     * @param matchesIds List of matches IDs to change the status for
+     * @param isNotified boolean notified status to set for matches
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/mark-notified")
+    Response setNotifiedStatus(@FormParam("matchesIds") Set<Long> matchesIds,
+        @FormParam("isNotified") @DefaultValue("false") boolean isNotified);
+
+    /**
+     * Saves comment for matches, with ids given in parameter.
+     *
+     * @param matchesIds List of matches IDs to change the status for
+     * @param comment comment text
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/save-comment")
+    Response saveComment(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("comment") String comment);
 }

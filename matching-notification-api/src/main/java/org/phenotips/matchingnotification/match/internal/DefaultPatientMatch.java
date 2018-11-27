@@ -97,6 +97,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String status;
 
     @Basic
+    private String comment;
+
+    @Basic
     private Double score;
 
     @Basic
@@ -274,16 +277,30 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public void setComment(String comment)
+    {
+        this.comment = comment;
+    }
+
+    @Override
     public String getStatus()
     {
         return this.status;
     }
 
     @Override
-    public void setNotified()
+    public String getComment()
     {
-        this.notified = true;
-        this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
+        return this.comment;
+    }
+
+    @Override
+    public void setNotified(boolean isNotified)
+    {
+        this.notified = isNotified;
+        if (isNotified) {
+            this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
+        }
     }
 
     @Override
@@ -369,7 +386,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("reference", this.getReference().toJSON());
         json.put("matched", this.getMatched().toJSON());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
         json.put("notifiedTimestamp", this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
@@ -379,6 +396,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
         json.put("href", this.isLocal() ? "" : this.getHref());
+        json.put("comment", this.getComment());
 
         return json;
     }
