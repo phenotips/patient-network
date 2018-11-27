@@ -38,10 +38,6 @@ table#matchesTable {
   margin-left: 3px;
 }
 
-.matches-table .genes-div, .matches-table .age-of-onset-div  {
-  background: #fff9ee;
-}
-
 .matches-table .subtitle {
   margin-bottom: 0px;
   margin-top: 0px;
@@ -239,7 +235,6 @@ input.mme {
 }
 .metadata {
   display: block;
-  opacity: .7;
   font-size: .8em;
   font-style: italic;
 }
@@ -303,4 +298,14 @@ th[data-column="score"], th[data-column="genotypicScore"], th[data-column="pheno
 }
 .notification-dialog-message {
   margin-top: 0.5em;
+}
+input.button, .buttonwrapper button, .buttonwrapper a:visited, .buttonwrapper a:link, .buttonwrapper a:active {
+  white-space: nowrap;
+}
+.solved {
+  background-color: whitesmoke;
+}
+div[name="notification-email-long"] {
+  font-size: 95%;
+  margin: 0 2px 0 2px;
 }
