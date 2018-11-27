@@ -828,7 +828,11 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientDetailsTd : function(patient, tdId, matchId)
     {
-        var td = '<td id="' + tdId + '">';
+        var td = '<td id="' + tdId + '"';
+        if (patient.solved) {
+            td += ' class="solved"';
+        }
+        td += '>';
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
         td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '"></div>';
