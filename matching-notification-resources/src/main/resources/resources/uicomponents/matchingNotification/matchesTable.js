@@ -41,9 +41,9 @@ var PhenoTips = (function (PhenoTips) {
         $('send-notifications-button').on('click', this._sendNotification.bind(this));
         $('expand_all').on('click', this._expandAllClicked.bind(this));
 
-        this._overallScoreSlider = this._initiateScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
-        this._phenScoreSlider = this._initiateScoreSlider('show-matches-phen-score', 0, 0);
-        this._genScoreSlider = this._initiateScoreSlider('show-matches-gen-score', 0, 0.1);
+        this._overallScoreSlider = this._initializeScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
+        this._phenScoreSlider = this._initializeScoreSlider('show-matches-phen-score', 0, 0);
+        this._genScoreSlider = this._initializeScoreSlider('show-matches-gen-score', 0, 0.1);
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -110,7 +110,7 @@ var PhenoTips = (function (PhenoTips) {
         Event.observe(window, 'resize', this._buildTable.bind(this));
     },
 
-    _initiateScoreSlider: function(id, minScore, initialScore) {
+    _initializeScoreSlider: function(id, minScore, initialScore) {
         var filterEl = $(id);
         if (!filterEl) { return; };
 
