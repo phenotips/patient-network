@@ -120,18 +120,19 @@ var PhenoTips = (function (PhenoTips) {
         var progressEl = filterEl.down('.progress');
         var handleEl = filterEl.down('.handle');
 
-        progressEl.setStyle({ width: initialScore*5 + 'em'});
-        handleEl.update(initialScore);
-
         var slider = new Control.Slider(handleEl, filterEl, {
             range: $R(minScore, 1),
             sliderValue: initialScore,
             onSlide: function(value) {
-                progressEl.setStyle({ width: window.getComputedStyle(handleEl, null).getPropertyValue("left")});
+                progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left").replace('px', '')) + 2 + "px"});
                 // round a float to the nearest 0.05
                 handleEl.update((Math.ceil(value*20)/20).toFixed(2));
             }
         });
+
+        handleEl.update(initialScore);
+        progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left").replace('px', '')) + 2 + "px"});
+
         return slider;
     },
 

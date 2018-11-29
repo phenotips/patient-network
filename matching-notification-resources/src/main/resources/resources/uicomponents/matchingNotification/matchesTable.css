@@ -161,7 +161,7 @@ input.notify , td span.fa.fa-envelope {
 
 #show-matches-score, #show-matches-gen-score, #show-matches-phen-score {
   float: right;
-  width: 5em!important;
+  width: 5.5em!important;
   margin-top: 1.5em;
   line-height: 1.2em;
 }
@@ -323,6 +323,7 @@ div[name="notification-email-long"] {
   background-image: linear-gradient(to bottom, #f9f9f9 0%, #dad8d8 100%);
   font-size: 70%;
   text-align: center;
+  margin-left: 2px;
 }
 .progress {
   background-color: #EA972D;
@@ -343,16 +344,21 @@ div[name="notification-email-long"] {
   font-family: "Trebuchet MS",Arial,sans-serif;
   opacity: 0.6;
   position: absolute;
-  width: 5em;
+  width: 5.5em;
   line-height: 1em!important;
 }
 .point {
   font-size: 60%;
-  margin-left: -4px;
   margin-top: 0.7em;
   position: absolute;
 }
 .point.right {
   float: right;
   position: initial;
+}
+.hider {
+  width: 2px;
+  background-color: #f6f8f9;
+  height: 2px;
+  margin-top: -2px;
 }
