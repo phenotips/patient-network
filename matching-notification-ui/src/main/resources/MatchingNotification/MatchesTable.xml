@@ -131,9 +131,9 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
-                &lt;input class="score-filter" type="text" name="score" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))"&gt;
-                &lt;input class="score-filter" type="text" name="phenotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))"&gt;
-                &lt;input class="score-filter" type="text" name="genotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))"&gt;
+                &lt;input class="score-filter" type="text" name="score" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label.placeholder'))"&gt;
+                &lt;input class="score-filter" type="text" name="phenotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label.placeholder'))"&gt;
+                &lt;input class="score-filter" type="text" name="genotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label.placeholder'))"&gt;
                  &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
