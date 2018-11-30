@@ -161,7 +161,7 @@ input.notify , td span.fa.fa-envelope {
 
 #show-matches-score, #show-matches-gen-score, #show-matches-phen-score {
   float: right;
-  width: 5.5em!important;
+  width: 6.5em!important;
   margin-top: 1.5em;
   line-height: 1.2em;
 }
@@ -344,8 +344,9 @@ div[name="notification-email-long"] {
   font-family: "Trebuchet MS",Arial,sans-serif;
   opacity: 0.6;
   position: absolute;
-  width: 5.5em;
+  width: 5.2em;
   line-height: 1em!important;
+  margin-left: 0.7em;
 }
 .point {
   font-size: 60%;
@@ -357,8 +358,12 @@ div[name="notification-email-long"] {
   position: initial;
 }
 .hider {
-  width: 2px;
+  width: 0.9em;
   background-color: #f6f8f9;
   height: 2px;
   margin-top: -2px;
+}
+.hider.right {
+  float: right;
+  width: 0.6em;
 }
