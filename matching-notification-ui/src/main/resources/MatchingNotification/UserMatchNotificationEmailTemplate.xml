@@ -141,7 +141,7 @@ $services.localization.render('phenotips.matchingNotifications.email.table.ageOf
 
 -----------
 
-My patient: $myPatient.patientId#if("$!subjectPatient.serverId" == "") ($xwiki.getDocument($services.patients.get("$myPatient.patientId").getDocumentReference()).getExternalURL())#end
+My patient: $myPatient.patientId#if("$!subjectPatient.serverId" == "") ($xwiki.getDocument($services.patients.get("$myPatient.patientId").getDocument()).getExternalURL())#end
 
 $services.localization.render('phenotips.matchingNotifications.email.table.genes.label')
 #foreach ($gene in $!myPatient.candidateGenes)
