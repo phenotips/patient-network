@@ -126,7 +126,7 @@ var PhenoTips = (function (PhenoTips) {
             onSlide: function(value) {
                 progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left").replace('px', '')) + 2 + "px"});
                 // round a float to the nearest 0.05
-                handleEl.update((Math.ceil(value*20)/20).toFixed(2));
+                handleEl.update((Math.ceil(value*20)/20).toFixed(2).toString().replace(/[\.]?0+$/, ''));
             }
         });
 
