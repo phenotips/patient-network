@@ -308,7 +308,8 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
                 allAncestors.addAll(refAncestors);
                 allAncestors.addAll(matchAncestors);
 
-                return getTermICs(commonAncestors) / getTermICs(allAncestors);
+                double baseScore = getTermICs(commonAncestors) / getTermICs(allAncestors);
+                return adjustScoreWithDisordersScore(baseScore);
             }
         }
     }
@@ -379,7 +380,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
      * @return the adjusted similarity score, boosted closer to {@code 1} if there are common disorders between this
      *         patient and the reference patient, or the unmodified base score otherwise; the score is never lowered,
      *         and never goes above {@code 1}
-     * @see #getScore()
+     * @see #getPhenotypeScore()
      */
     private double adjustScoreWithDisordersScore(double baseScore)
     {
@@ -404,8 +405,6 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         // Memoize the score
         if (this.score == null) {
             double phenotypeScore = getPhenotypeScore();
-            phenotypeScore = adjustScoreWithDisordersScore(phenotypeScore);
-
             // Factor in overlap between candidate genes
             double genotypeScore = getGenotypeScore();
             // Return boosted score
