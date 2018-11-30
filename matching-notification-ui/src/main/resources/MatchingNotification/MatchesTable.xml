@@ -52,9 +52,10 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
 #macro (__generateGridBlock )
   &lt;div class="progress"&gt;&lt;/div&gt;
     &lt;div class="hider"&gt;&lt;/div&gt;
+    &lt;div class="hider right"&gt;&lt;/div&gt;
     &lt;div class="grid"&gt;
       &lt;span class="point left"&gt;&lt;/span&gt;
-      &lt;span class="dash" style="left: 3%;"&gt;&lt;/span&gt;
+      &lt;span class="dash" style="left: 4%;"&gt;&lt;/span&gt;
       &lt;span class="dash small-dash" style="left: 25%;"&gt;&lt;/span&gt;
       &lt;span class="dash" style="left: 50%;"&gt;&lt;/span&gt;
       &lt;span class="dash small-dash" style="left: 75%;"&gt;&lt;/span&gt;
