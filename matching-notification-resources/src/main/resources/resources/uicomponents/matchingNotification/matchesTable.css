@@ -324,6 +324,7 @@ div[name="notification-email-long"] {
   font-size: 70%;
   text-align: center;
   margin-left: 2px;
+  font-family: Tahoma, Geneva, sans-serif;
 }
 .progress {
   background-color: #EA972D;
@@ -366,4 +367,9 @@ div[name="notification-email-long"] {
 .hider.right {
   float: right;
   width: 0.6em;
+}
+.hider.disabled-range {
+  width: 0;
+  background-color: #bfbfbf;
+  margin-left: 0.9em;
 }

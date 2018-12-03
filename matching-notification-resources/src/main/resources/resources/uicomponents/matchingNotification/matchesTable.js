@@ -114,24 +114,34 @@ var PhenoTips = (function (PhenoTips) {
         var filterEl = $(id);
         if (!filterEl) { return; };
 
-        filterEl.down('.grid .point.left').update(minScore);
-        filterEl.down('.grid .point.right').update("1");
-
         var progressEl = filterEl.down('.progress');
         var handleEl = filterEl.down('.handle');
+        var gridEl = filterEl.down('.grid');
+        var gridWidth = parseInt(window.getComputedStyle(gridEl, null).getPropertyValue("width"));
+        var disabledRange = filterEl.down('.disabled-range');
+        var disabledRangeWidth = gridWidth * minScore;
+        disabledRange.setStyle({ width: disabledRangeWidth + "px"});
+
+        var sliderValues = [minScore];
+        var i = minScore;
+        while (i <= 1) {
+            i += 0.05;
+            sliderValues.push(parseFloat(i.toFixed(2)));
+        }
 
         var slider = new Control.Slider(handleEl, filterEl, {
-            range: $R(minScore, 1),
+            range: $R(0, 1),
+            values: sliderValues,
             sliderValue: initialScore,
             onSlide: function(value) {
-                progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left").replace('px', '')) + 2 + "px"});
+                progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left")) + 2 + "px"});
                 // round a float to the nearest 0.05
-                handleEl.update((Math.ceil(value*20)/20).toFixed(2).toString().replace(/[\.]?0+$/, ''));
+                handleEl.update(value);
             }
         });
 
         handleEl.update(initialScore);
-        progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left").replace('px', '')) + 2 + "px"});
+        progressEl.setStyle({ width: parseInt(window.getComputedStyle(handleEl, null).getPropertyValue("left")) + 2 + "px"});
 
         return slider;
     },
