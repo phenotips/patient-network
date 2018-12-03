@@ -388,6 +388,7 @@ var PhenoTips = (function (PhenoTips) {
             var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
+                             && match.genotypicScore >= this._filterValues.score.genotypicScore;
 
             // returns true if one of the records in match is local and owned my user and is solved
             var matchHasOwnSolvedCase = function(match) {
