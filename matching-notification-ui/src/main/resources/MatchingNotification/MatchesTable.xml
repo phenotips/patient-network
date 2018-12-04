@@ -162,10 +162,19 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
-                &lt;input class="score-filter" type="text" name="score" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label.placeholder'))"&gt;
-                &lt;input class="score-filter" type="text" name="phenotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label.placeholder'))"&gt;
-                &lt;input class="score-filter" type="text" name="genotypicScore" placeholder="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label.placeholder'))"&gt;
-                 &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
+                &lt;label class="score"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
+                  &lt;input class="score-filter" type="text" name="score"&gt;
+                &lt;/label&gt;
+                &lt;label class="score"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                  &lt;input class="score-filter" type="text" name="genotypicScore"&gt;
+                &lt;/label&gt;
+                &lt;label class="score"&gt;
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                  &lt;input class="score-filter" type="text" name="phenotypicScore"&gt;
+                &lt;/label&gt;
+                &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchStatusFilter'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="rejected"&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))&lt;/label&gt;&lt;br&gt;
