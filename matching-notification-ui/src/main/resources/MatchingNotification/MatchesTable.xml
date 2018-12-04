@@ -102,19 +102,19 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;/div&gt;
                 &lt;div&gt;
                   &lt;div class="score-label"&gt;
-                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
-                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
+                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
                   &lt;/div&gt;
-                  &lt;div id="show-matches-phen-score" class="slider"&gt;
+                  &lt;div id="show-matches-gen-score" class="slider"&gt;
                     #__generateGridBlock()
                   &lt;/div&gt;
                 &lt;/div&gt;
                 &lt;div&gt;
                   &lt;div class="score-label"&gt;
-                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.genotipicScore.hint'))"&gt;&lt;/span&gt;
-                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                    &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.phenotipicScore.hint'))"&gt;&lt;/span&gt;
+                    $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
                   &lt;/div&gt;
-                  &lt;div id="show-matches-gen-score" class="slider"&gt;
+                  &lt;div id="show-matches-phen-score" class="slider"&gt;
                     #__generateGridBlock()
                   &lt;/div&gt;
                 &lt;/div&gt;
