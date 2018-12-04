@@ -165,16 +165,6 @@ input.notify , td span.fa.fa-envelope {
   margin-top: 1.5em;
   line-height: 1.2em;
 }
-
-input[name="score"] {
-  width: 4em!important;
-}
-input[name="genotypicScore"] {
-  width: 5.3em!important;
-}
-input[name="phenotypicScore"] {
-  width: 5.8em!important;
-}
 .xwiki-livetable-pagination {
   color: #636B75;
   font-size: 90%;
@@ -375,4 +365,12 @@ div[name="notification-email-long"] {
   width: 0;
   background-color: #bfbfbf;
   margin-left: 0.9em;
+}
+label.score {
+  box-sizing: border-box;
+  display: inline-block;
+  font-size: .8em;
+  width: 30%;
+  padding-top: 0.1em;
+  padding-right: 0.2em;
 }
