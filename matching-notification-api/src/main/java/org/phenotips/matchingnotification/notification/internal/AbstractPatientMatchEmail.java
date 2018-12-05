@@ -18,7 +18,10 @@
 package org.phenotips.matchingnotification.notification.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Feature;
+import org.phenotips.data.Patient;
+import org.phenotips.data.PatientData;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityViewFactory;
@@ -38,6 +41,7 @@ import org.xwiki.mail.script.ScriptMimeMessage;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.util.Collection;
@@ -72,6 +76,27 @@ import com.xpn.xwiki.XWikiContext;
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 {
+    /** notification recipients. */
+    public static final String EMAIL_RECIPIENTS_KEY = "recipients";
+
+    /** notification email TO recipients. */
+    public static final String EMAIL_RECIPIENTS_TO = "to";
+
+    /** notification email FROM recipients. */
+    public static final String EMAIL_RECIPIENTS_FROM = "from";
+
+    /** notification email CC recipients. */
+    public static final String EMAIL_RECIPIENTS_CC = "cc";
+
+    /** notification email sender user info. */
+    public static final String EMAIL_RECIPIENTS_SENDER = "sender";
+
+    /** notification email recipient user info. */
+    public static final String EMAIL_RECIPIENTS_RECIPIENT = "recipient";
+
+    /** subjectPatientId id of patient who is the subject of this email. */
+    public static final String EMAIL_SUBJECT_PATIENT_ID = "subjectPatientId";
+
     protected static final Provider<XWikiContext> CONTEXT_PROVIDER;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultAdminPatientMatchEmail.class);
@@ -81,14 +106,6 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     private static final String EMAIL_CONTENT_KEY = "emailContent";
 
     private static final String EMAIL_CONTENT_TYPE_KEY = "contentType";
-
-    private static final String EMAIL_RECIPIENTS_KEY = "recipients";
-
-    private static final String EMAIL_RECIPIENTS_TO = "to";
-
-    private static final String EMAIL_RECIPIENTS_FROM = "from";
-
-    private static final String EMAIL_RECIPIENTS_CC = "cc";
 
     private static final String EMAIL_SUBJECT_KEY = "subject";
 
@@ -397,7 +414,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
     }
 
     @Override
-    @SuppressWarnings("checkstyle:NPathComplexity")
+    @SuppressWarnings({ "NPathComplexity", "ExecutableStatementCount" })
     public JSONObject getEmail()
     {
         JSONObject result = new JSONObject();
@@ -413,11 +430,12 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
 
         JSONArray to = new JSONArray();
         JSONArray cc = new JSONArray();
-        String from = null;
+        JSONArray from = new JSONArray();
         try {
             for (Address address : this.mimeMessage.getRecipients(Message.RecipientType.TO)) {
                 to.put(address.toString());
             }
+
         } catch (Exception ex) {
             LOGGER.error("Error getting email TO recipients: [{}]", ex.getMessage());
         }
@@ -430,17 +448,19 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         }
         try {
             for (Address address : this.mimeMessage.getReplyTo()) {
-                from = (from == null) ? address.toString() : (from + ", " + address.toString());
+                from.put(address.toString());
             }
         } catch (Exception ex) {
             LOGGER.error("Error getting email FROM recipients: [{}]", ex.getMessage());
-            from = "";
         }
 
         JSONObject recipients = new JSONObject();
         recipients.put(EMAIL_RECIPIENTS_TO, to);
         recipients.put(EMAIL_RECIPIENTS_CC, cc);
         recipients.put(EMAIL_RECIPIENTS_FROM, from);
+        recipients.put(EMAIL_RECIPIENTS_RECIPIENT, this.getPatientContactInfo(this.subjectPatient.getPatient()));
+        recipients.put(EMAIL_SUBJECT_PATIENT_ID, this.subjectPatient.getPatient().getId());
+        recipients.put(EMAIL_RECIPIENTS_SENDER, this.getSenderContactInfo());
         result.put(EMAIL_RECIPIENTS_KEY, recipients);
 
         try {
@@ -451,5 +471,27 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         }
 
         return result;
+    }
+
+    private JSONObject getPatientContactInfo(Patient patient)
+    {
+        if (patient != null) {
+            PatientData<ContactInfo> data = patient.getData("contact");
+            if (data != null && data.size() > 0) {
+                ContactInfo contact = data.get(0);
+                return contact.toJSON();
+            }
+        }
+        return null;
+    }
+
+    private JSONObject getSenderContactInfo()
+    {
+        JSONObject info = new JSONObject();
+        User user = USERMANAGER.getCurrentUser();
+        info.put("id", user.getId());
+        info.put("name", user.getUsername());
+        info.put("institution", user.getAttribute("company") != null ? user.getAttribute("company").toString() : null);
+        return info;
     }
 }

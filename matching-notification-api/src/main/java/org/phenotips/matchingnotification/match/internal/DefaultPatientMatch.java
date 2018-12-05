@@ -46,6 +46,8 @@ import org.hibernate.CallbackException;
 import org.hibernate.Session;
 import org.hibernate.annotations.Index;
 import org.hibernate.classic.Lifecycle;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -56,7 +58,7 @@ import org.json.JSONObject;
 @Table(name = "patient_matching")
 @org.hibernate.annotations.Table(appliesTo = "patient_matching",
     indexes = { @Index(name = "filterIndex", columnNames = { "notified", "score" }),
-                @Index(name = "propertiesIndex", columnNames = { "notified", "status" })})
+    @Index(name = "propertiesIndex", columnNames = { "notified", "status" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     private static final int DB_HREF_FIELD_LENGTH = 2048;
@@ -67,6 +69,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private static final String SEPARATOR = ";";
 
     private static final String ID = "id";
+
+    private static final String INTERACTIONS = "interactions";
 
     /*
      * Attributes of the match
@@ -164,6 +168,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Column(length = 0xFFFFFF)
     private String matchedDetails;
 
+    @Basic
+    @Column(length = 0xFFFFFF)
+    private String notificationHistory;
+
     @Transient
     private PatientInMatch matchedPatientInMatch;
 
@@ -224,6 +232,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
         this.notified = false;
+        this.notificationHistory = null;
         this.status = "uncategorized";
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
@@ -301,6 +310,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         if (isNotified) {
             this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
         }
+    }
+
+    @Override
+    public Timestamp getNotifiedTimestamp()
+    {
+        return this.notifiedTimestamp;
     }
 
     @Override
@@ -397,6 +412,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("phenotypicScore", this.getPhenotypeScore());
         json.put("href", this.isLocal() ? "" : this.getHref());
         json.put("comment", this.getComment());
+        json.put("notificationHistory", this.notificationHistory);
 
         return json;
     }
@@ -576,5 +592,26 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public String getMatchedDetails()
     {
         return this.matchedDetails;
+    }
+
+    @Override
+    public void updateNotificationHistory(String notificationRecord)
+    {
+        try {
+            JSONObject newRecord = new JSONObject(notificationRecord);
+
+            JSONObject history = (this.notificationHistory != null) ? new JSONObject(this.notificationHistory)
+                : new JSONObject();
+            JSONArray records = history.optJSONArray(INTERACTIONS);
+            if (records == null) {
+                records = new JSONArray();
+            }
+
+            records.put(newRecord);
+            history.put(INTERACTIONS, records);
+            this.notificationHistory = history.toString();
+        } catch (JSONException ex) {
+            // error parsing notification history/ new record JSON string to JSON object happened
+        }
     }
 }

@@ -66,7 +66,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
     }
 
     /**
-     * Same as above, but allows using custom emial texts.
+     * Same as above, but allows using custom email texts.
      *
      * @param match the match that the email notifies of
      * @param subjectPatientId id of patient who is the subject of this email.

@@ -35,7 +35,6 @@ import org.phenotips.groups.Group;
 import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.phenotips.vocabulary.Vocabulary;
 import org.phenotips.vocabulary.VocabularyManager;
 import org.phenotips.vocabulary.VocabularyTerm;
@@ -47,6 +46,7 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,8 +69,6 @@ import org.slf4j.LoggerFactory;
 public class DefaultPatientInMatch implements PatientInMatch
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientInMatch.class);
-
-    private static final PatientMatchNotifier NOTIFIER;
 
     private static final PatientGenotypeManager PATIENT_GENOTYPE_MANAGER;
 
@@ -116,7 +114,6 @@ public class DefaultPatientInMatch implements PatientInMatch
     private AccessLevel access;
 
     static {
-        PatientMatchNotifier notifier = null;
         PatientGenotypeManager pgm = null;
         PatientRepository patientRepository = null;
         VocabularyManager vm = null;
@@ -126,7 +123,6 @@ public class DefaultPatientInMatch implements PatientInMatch
         GroupManager gm = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
-            notifier = ccm.getInstance(PatientMatchNotifier.class);
             pgm = ccm.getInstance(PatientGenotypeManager.class);
             patientRepository = ccm.getInstance(PatientRepository.class);
             vm = ccm.getInstance(VocabularyManager.class);
@@ -137,7 +133,6 @@ public class DefaultPatientInMatch implements PatientInMatch
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
-        NOTIFIER = notifier;
         PATIENT_GENOTYPE_MANAGER = pgm;
         PATIENT_REPOSITORY = patientRepository;
         VOCABULARY_MANAGER = vm;
@@ -261,7 +256,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             // Note: The patient is not saved because sometimes (often?) this method is run not on an object that
             // was just created, but on one created from a column from the DB. In this case, we might not have
             // a Patient object when the patient is remote.
-            emails.addAll(NOTIFIER.getNotificationEmailsForPatient(this.patient));
+            emails.addAll(this.getPatientEmails(this.patient));
         } else {
             if (StringUtils.isNotEmpty(this.href)) {
                 // TODO: discuss what better algorithm/package can be use to split emails
@@ -546,5 +541,19 @@ public class DefaultPatientInMatch implements PatientInMatch
         ownershipJSON.put("userGroupIsOwner", userGroupIsOwner);
         ownershipJSON.put("publicRecord", isPublic);
         return ownershipJSON;
+    }
+
+    private Collection<String> getPatientEmails(Patient patient)
+    {
+        List<String> result = new ArrayList<>();
+        if (patient != null) {
+            PatientData<ContactInfo> data = patient.getData("contact");
+            if (data != null && data.size() > 0) {
+                for (ContactInfo contact : data) {
+                    result.addAll(contact.getEmails());
+                }
+            }
+        }
+        return result;
     }
 }

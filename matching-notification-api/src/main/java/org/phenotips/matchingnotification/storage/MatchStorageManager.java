@@ -141,4 +141,13 @@ public interface MatchStorageManager
      * @return the total number of remote matches in matches database
      */
     Long getNumberOfRemoteMatches();
+
+    /**
+     * Updates a notification history JSON log string with new notification record.
+     *
+     * @param match subject match
+     * @param notificationRecord the new notification record JSON string
+     * @return true if successful
+     */
+    boolean updateNotificationHistory(PatientMatch match, String notificationRecord);
 }
