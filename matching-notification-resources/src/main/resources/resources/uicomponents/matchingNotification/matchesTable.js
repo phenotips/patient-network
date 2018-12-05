@@ -68,6 +68,10 @@ var PhenoTips = (function (PhenoTips) {
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
         this._CONTACT_ERROR_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.error.title'))";
         this._ADMIN_NOTIFICATION_FAILED_MESSAGE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.onFailureAlert'))";
+        this._NOTIFICATION_HISTORY_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notificationHistory.title'))";
+        this._NOTIFICATION_HISTORY_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
+        this._NOTIFICATION_HISTORY_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
+        this._NOTIFICATION_HISTORY_DATE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.notificationHistory.date'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -404,12 +408,11 @@ var PhenoTips = (function (PhenoTips) {
                     }
 
                     // otherwise only exclude matches where it is clear which patient is "mine"
-                    var notMyCase = this._getNotMyCase(match);
-                    if (notMyCase == null) {
+                    if (match.notMyCase == null) {
                         // can't decide which patient is mine: do not exclude this record
                         return false;
                     }
-                    var myCase = (notMyCase == match.reference) ? match.matched : match.reference;
+                    var myCase = (match.notMyCase == match.reference) ? match.matched : match.reference;
                     if (myCase.solved) {
                         return true;
                     }
@@ -631,6 +634,12 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseModeOfInheritance(match);
 
             this._organiseGenes(match);
+
+            // For user only: out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
+            match.notMyCase = (!this._isAdmin) ? this._getNotMyCase(match) : null;
+
+            // sort notification recorsd between those who ere sent to reference and to matched patient owners
+            match.notificationHistory && this._organiseNotificationHistory(match);
         }.bind(this));
 
         // leave only uniq server ids in the array, remove duplicates
@@ -641,6 +650,36 @@ var PhenoTips = (function (PhenoTips) {
 
         // sort by match found timestamp in descending order
         this._sortByColumn('foundTimestamp');
+    },
+
+    _organiseNotificationHistory : function(match)
+    {
+        try {
+            var history = JSON.parse(match.notificationHistory);
+            if (history && history.interactions && history.interactions.size() > 0) {
+
+                match.reference.notificationHistory = [];
+                match.matched.notificationHistory = [];
+
+                // we go from bottom of array to top to put most recent notifications first
+                for (var i=history.interactions.length-1; i >= 0; i--) {
+                    var record = history.interactions[i];
+                    if (record.to && record.to.emails && record.to.emails.size() > 0 && record.subjectPatientId) {
+
+                        // email was sent to matched patient owner
+                        if (match.matched.patientId == record.subjectPatientId) {
+                            match.matched.notificationHistory.push(record);
+                        }
+                        // email was sent to reference patient owner
+                        if (match.reference.patientId == record.subjectPatientId) {
+                            match.reference.notificationHistory.push(record);
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            console.log("Syntax error parsing match.notificationHistory JSON from string for match ID: "+ match.id +" history string: "+ match.notificationHistory);
+        }
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -786,10 +825,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference.emails, record.reference.patientId, record.id[0] ? record.id[0] : record.id, record.reference.serverId, 'referenceEmails', record.reference.solved, record.reference.pubmedIds);
+                    tr += this._getEmailsTd(record.reference, record.id[0] ? record.id[0] : record.id, 'referenceEmails', record.notMyCase);
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched.emails, record.matched.patientId, record.id[0] ? record.id[0] : record.id, record.matched.serverId, 'matchedEmails', record.matched.solved, record.matched.pubmedIds);
+                    tr += this._getEmailsTd(record.matched, record.id[0] ? record.id[0] : record.id, 'matchedEmails', record.notMyCase);
                     break;
                 case 'contact':
                     tr+= this._getContact(record);
@@ -977,26 +1016,26 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(emails, patientId, matchId, serverId, cellName, isSolved, pubmedIDs)
+    _getEmailsTd : function(patient, matchId, cellName, notMyCase)
     {
         var td = '<td name="' + cellName + '">';
         // if case is solved and has at least one Pubmed ID - display a link to it instead of emails
-        if (isSolved) {
-            if (pubmedIDs && pubmedIDs.size() > 0) {
-                for (var i=0; i < pubmedIDs.length; i++) {
-                    var href = this._PUBMED_URL + pubmedIDs[i].trim();
-                    td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + pubmedIDs[i] + '</a><div>';
+        if (patient.solved) {
+            if (patient.pubmedIDs && patient.pubmedIDs.size() > 0) {
+                for (var i=0; i < patient.pubmedIDs.length; i++) {
+                    var href = this._PUBMED_URL + patient.pubmedIDs[i].trim();
+                    td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + patient.pubmedIDs[i] + '</a><div>';
                 }
                 return td;
             }
         }
-        for (var i=0; i < emails.length; i++) {
-            var email = emails[i]
+        for (var i=0; i < patient.emails.length; i++) {
+            var email = patient.emails[i]
             if (email.indexOf("://") > -1) {
                 email = email.split('/')[2];
-                email = '<a href=' + emails[i] + ' target="_blank">' + email + '</a>';
+                email = '<a href=' + patient.emails[i] + ' target="_blank">' + email + '</a>';
             } else {
-                if (i != emails.length - 1) {
+                if (i != patient.emails.length - 1) {
                     email += ", ";
                 }
                 // insert a 0-width space after the @, so that a long email can be split into two lines
@@ -1007,15 +1046,97 @@ var PhenoTips = (function (PhenoTips) {
             }
             td += '<div name="notification-email-long">' + email + '</div>';
         }
-        var shortEmail = (emails.length > 0) ? (emails[0].substring(0, 9) + "...") :  "";
+        var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
         td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
+        //add notification history icon
+        if (patient.notificationHistory && patient.notificationHistory.size() > 0) {
+            // show both sides of history for admins, and only matched patient side for users
+            if (this._isAdmin || (notMyCase != null && patient.patientId == notMyCase.patientId)) {
+                td += '<span class="fa fa-history notification-history" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>';
+                td += '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
+                    + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>'
+                    + this._generateNotificationHistoryTable(patient.notificationHistory) + '</div>';
+            }
+        }
+
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
-        if (this._isAdmin && serverId == '' && emails.length > 0) {
-            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patientId +'" data-emails="'+ emails.toString() +'">';
+        if (this._isAdmin && patient.serverId == '' && patient.emails.length > 0) {
+            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'">';
         }
         td += '</td>';
         return td;
+    },
+
+    _generateNotificationHistoryTable : function(records)
+    {
+        var table = '<table class="notification-history-table"><tbody>';
+
+        var header = '<tr>';
+        header += '<th scope="col">' + this._NOTIFICATION_HISTORY_DATE + '</th>';
+        header += '<th scope="col">' + this._NOTIFICATION_HISTORY_FROM + '</th>';
+        header += '<th scope="col">' + this._NOTIFICATION_HISTORY_TO + '</th>';
+        header += '</tr>';
+
+        table += header;
+
+        for (var i=0; i < records.length; i++) {
+            var record = records[i];
+            var row = '<tr class="' + record.type + '" title="' + record.type + '">';
+
+            var dateIconName = record.type == 'contact' ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
+            var date = '<td><div class="date">' + record.date + '</div><span class="'+ dateIconName + '"> </span></td>';
+
+            var from = '<td>';
+            if (record.from) {
+                from += this._generateRecipientCell(record.from);
+            }
+            from += '</td>';
+
+            var to = '<td>';
+            if (record.to) {
+                to += this._generateRecipientCell(record.to);
+            }
+            to += '</td>';
+
+            row += date;
+            row += from;
+            row += to;
+            row += '</tr>';
+
+            table += row;
+        }
+
+        table += '</tbody></table>';
+
+        return table;
+    },
+
+    _generateRecipientCell : function(info)
+    {
+        var cell = '';
+        // user name and institution
+        if (info.userinfo) {
+            if (info.userinfo.name) {
+                if (info.userinfo.id) {
+                    var space = (info.userinfo.id.startsWith("xwiki:XWiki.")) ? "XWiki" : "Groups";
+                    var url = (new XWiki.Document(info.userinfo.id, space)).getURL();
+                    cell += '<a href="' + url + '" target="_blank">' + info.userinfo.name + '</a>';
+                } else {
+                    cell += info.userinfo.name;
+                }
+            }
+            if (info.userinfo.institution) {
+                cell += '<span class="metadata">' + info.userinfo.institution + '</span>';
+            }
+        }
+        // emails
+        if (info.emails && info.emails.size() > 0) {
+            for (var i=0; i < info.emails.length; i++) {
+                cell += '<span class="code">' + info.emails[i] + '</span>';
+            }
+        }
+        return cell;
     },
 
     _getContact : function(record)
@@ -1066,19 +1187,18 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         // the main part: figure out which of the two patients should be contacted
-        var matchedCase = this._getNotMyCase(match);
-        if (matchedCase == null) {
+        if (match.notMyCase == null) {
             return null;
         }
 
         // check if the case the user can contact has a PubmedID:
         // it it does, no need to have any contact button(s), user should use PubmedID link instead
-        var matchedCaseHasPubmedID = matchedCase.pubmedIds && matchedCase.pubmedIds.size() > 0;
+        var matchedCaseHasPubmedID = match.notMyCase.pubmedIds && match.notMyCase.pubmedIds.size() > 0;
         if (matchedCaseHasPubmedID) {
             return null;
         }
 
-        return matchedCase;
+        return match.notMyCase;
     },
 
     _getContactButtonHTML : function(match)
@@ -1146,6 +1266,26 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableInitNotificationEmails();
         this._afterProcessTableHideApsentServerIdsFromFilter();
         this._afterProcessTableComments();
+        this._afterProcessTableNotificationHistory();
+    },
+
+    _afterProcessTableNotificationHistory : function()
+    {
+        this._tableElement.select('.notification-history').each(function (elm) {
+            var history_container = elm.up('td').down('.notification-history-container');
+
+            // hide comment container on table update
+            history_container.addClassName('hidden');
+
+            elm.on('click', function(event) {
+                history_container.toggleClassName('hidden');
+            });
+
+            var hideTool = elm.up('td').down('.hide-tool');
+            hideTool.on('click', function(event) {
+                history_container.addClassName('hidden');
+            });
+        });
     },
 
     _afterProcessTableComments : function()
@@ -1215,7 +1355,7 @@ var PhenoTips = (function (PhenoTips) {
     _afterProcessTablePatientsDivs : function()
     {
         // Makes patient details divs the same height in patient and matched patient columns
-        this._tableElement.select('tbody tr').each( function (elm, index) {
+        this._tableElement.select('tbody tr[id^="row-"]').each( function (elm, index) {
             var referencePatientTd = elm.down('#referencePatientTd');
             var matchedPatientTd = elm.down('#matchedPatientTd');
 

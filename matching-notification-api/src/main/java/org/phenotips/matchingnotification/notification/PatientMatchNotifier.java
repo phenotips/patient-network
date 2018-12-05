@@ -17,12 +17,10 @@
  */
 package org.phenotips.matchingnotification.notification;
 
-import org.phenotips.data.Patient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -43,8 +41,7 @@ public interface PatientMatchNotifier
      * @return list of emails
      */
     List<PatientMatchEmail> createAdminEmailsToLocalUsers(List<PatientMatch> matches,
-            Map<Long, List<String>> matchesIds);
-
+        Map<Long, List<String>> matchesIds);
 
     /**
      * Generates a email to be sent from the current user to the owner of the subjectPatientId on subjectServerId
@@ -59,7 +56,7 @@ public interface PatientMatchNotifier
      * @return the generated email
      */
     PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText, String customEmailSubject);
+        String customEmailText, String customEmailSubject);
 
     /**
      * Sends notification for an email.
@@ -68,13 +65,4 @@ public interface PatientMatchNotifier
      * @return list of {@link PatientMatchNotificationResponse} for the matches associated with the email
      */
     List<PatientMatchNotificationResponse> notify(PatientMatchEmail email);
-
-    /**
-     * Receives a patient, and returns a collection of emails of people who need to be notified about a match for this
-     * patient, including the patient's owner, users from projects the patient belongs to, etc.
-     *
-     * @param patient to get emails for
-     * @return a collection of emails addresses
-     */
-    Collection<String> getNotificationEmailsForPatient(Patient patient);
 }

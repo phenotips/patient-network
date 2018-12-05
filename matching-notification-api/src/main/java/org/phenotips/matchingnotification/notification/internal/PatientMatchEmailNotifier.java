@@ -17,9 +17,6 @@
  */
 package org.phenotips.matchingnotification.notification.internal;
 
-import org.phenotips.data.ContactInfo;
-import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
 import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
@@ -29,7 +26,6 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.mail.MailStatus;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -57,7 +53,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
     @Override
     public List<PatientMatchEmail> createAdminEmailsToLocalUsers(List<PatientMatch> matches,
-            Map<Long, List<String>> matchesIds)
+        Map<Long, List<String>> matchesIds)
     {
         MatchesByPatient mbp = new MatchesByPatient(matches);
         List<PatientMatchEmail> emails = new LinkedList<>();
@@ -79,7 +75,7 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
             }
             if (matchesForPatient.size() == 0) {
                 this.logger.error("No matches found for patient [{}] when composing admin notification emails",
-                        subjectPatientId);
+                    subjectPatientId);
                 continue;
             }
             PatientMatchEmail email = new DefaultAdminPatientMatchEmail(subjectPatientId, matchesForPatient);
@@ -91,10 +87,10 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
 
     @Override
     public PatientMatchEmail createUserEmail(PatientMatch match, String subjectPatientId, String subjectServerId,
-            String customEmailText, String customEmailSubject)
+        String customEmailText, String customEmailSubject)
     {
         return new DefaultUserPatientMatchEmail(
-                    match, subjectPatientId, subjectServerId, customEmailText, customEmailSubject);
+            match, subjectPatientId, subjectServerId, customEmailText, customEmailSubject);
     }
 
     @Override
@@ -118,18 +114,4 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
         return responses;
     }
 
-    @Override
-    public Collection<String> getNotificationEmailsForPatient(Patient patient)
-    {
-        List<String> result = new ArrayList<>();
-        if (patient != null) {
-            PatientData<ContactInfo> data = patient.getData("contact");
-            if (data != null && data.size() > 0) {
-                for (ContactInfo contact : data) {
-                    result.addAll(contact.getEmails());
-                }
-            }
-        }
-        return result;
-    }
 }

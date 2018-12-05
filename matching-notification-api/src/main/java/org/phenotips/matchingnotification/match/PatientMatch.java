@@ -262,4 +262,33 @@ public interface PatientMatch
      * @return the matched details.
      */
     String getMatchedDetails();
+
+    /**
+     * @return timestamp the match was notified
+     */
+    Timestamp getNotifiedTimestamp();
+
+    /**
+     * Updates a notification history JSON log string with new notification record.
+     * Record is a JSON String object, in the following format:
+     *     <pre>
+     *      { "from": {"userinfo":{"id":"xwiki:XWiki.Mary",
+     *                             "name":"Mary"},
+     *                 "emails"  :["mary@blueberry.com"]
+     *                },
+     *         "to":  {"userinfo":{ "id":"xwiki:XWiki.Pat",
+     *                              "name":"Pat Smith",
+     *                              "institution":"Western Hospital San Diego"},
+     *                  "emails":["patcat@catrescuecentre.kom"]
+     *                },
+     *         "cc":  ["mary@blueberry.com"],
+     *         "subjectPatientId":"P000005"
+     *         "type":"contact",
+     *         "date":"2018/12/06"
+     *       }
+     *     </pre>
+     *
+     * @param notificationRecord the new notification record JSON string
+     */
+    void updateNotificationHistory(String notificationRecord);
 }

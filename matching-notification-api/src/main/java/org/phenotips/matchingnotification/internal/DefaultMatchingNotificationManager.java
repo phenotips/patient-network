@@ -25,11 +25,14 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchEmail;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 import org.phenotips.matchingnotification.notification.PatientMatchNotifier;
+import org.phenotips.matchingnotification.notification.internal.AbstractPatientMatchEmail;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
 
 import java.security.AccessControlException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,6 +98,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
             }
 
+            this.saveNotificationHistory(successfulMatches, email, "notification");
+
             responses.addAll(notificationResults);
         }
         return responses;
@@ -133,7 +138,40 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
         }
 
+        this.saveNotificationHistory(successfulMatches, email, "contact");
+
         return notificationResults.get(0);
+    }
+
+    private void saveNotificationHistory(List<PatientMatch> matches, PatientMatchEmail email, String type)
+    {
+        JSONObject json = new JSONObject();
+        json.put("type", type);
+
+        JSONObject mimeJSON = email.getEmail().getJSONObject(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_KEY);
+
+        JSONObject from = new JSONObject();
+        from.put("userinfo", mimeJSON.optJSONObject(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_SENDER));
+        from.put("emails", mimeJSON.optJSONArray(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_FROM));
+
+        JSONObject to = new JSONObject();
+        to.put("userinfo", mimeJSON.optJSONObject(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_RECIPIENT));
+        to.put("emails", mimeJSON.optJSONArray(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_TO));
+
+        json.put("from", from);
+        json.put("to", to);
+        json.put("cc", mimeJSON.optJSONArray(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_CC));
+        json.put("subjectPatientId", mimeJSON.optString(AbstractPatientMatchEmail.EMAIL_SUBJECT_PATIENT_ID));
+
+        for (PatientMatch notifiedMatch : matches) {
+            Timestamp date = notifiedMatch.getNotifiedTimestamp();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            json.put("date", date == null ? sdf.format(new Timestamp(System.currentTimeMillis())) : sdf.format(date));
+
+            if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json.toString())) {
+                this.logger.error("Error saving {} history for match {}", type, notifiedMatch.getId());
+            }
+        }
     }
 
     private List<PatientMatch> getSuccessfulNotifications(List<PatientMatchNotificationResponse> notificationResults)

@@ -444,6 +444,24 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
+    public boolean updateNotificationHistory(PatientMatch match, String notificationRecord)
+    {
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
+
+        try {
+            match.updateNotificationHistory(notificationRecord);
+            session.update(match);
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error updating notification history: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
+    }
+
+    @Override
     public boolean setStatus(List<PatientMatch> matches, String status)
     {
         Session session = this.beginTransaction();
