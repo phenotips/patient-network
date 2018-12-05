@@ -163,15 +163,15 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))&lt;/div&gt;
                 &lt;label class="score"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.average.label'))
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.filter.average.label'))
                   &lt;input class="score-filter" type="text" name="score"&gt;
                 &lt;/label&gt;
                 &lt;label class="score"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.genotipicScore.label'))
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.filter.genotipicScore.label'))
                   &lt;input class="score-filter" type="text" name="genotypicScore"&gt;
                 &lt;/label&gt;
                 &lt;label class="score"&gt;
-                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.phenotipicScore.label'))
+                  $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.filter.phenotipicScore.label'))
                   &lt;input class="score-filter" type="text" name="phenotypicScore"&gt;
                 &lt;/label&gt;
                 &lt;div id="score-filter-validation-message"&gt;&lt;/div&gt;
