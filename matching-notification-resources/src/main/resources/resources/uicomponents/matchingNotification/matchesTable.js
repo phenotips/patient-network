@@ -415,9 +415,9 @@ var PhenoTips = (function (PhenoTips) {
                     }
                     return false;
                 }.bind(this);
-            var hideOwnSolvedCaces = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
+            var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCaces
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCases
                        && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
@@ -1026,7 +1026,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _accessAboveEdit : function(patient) {
+    _accessAtLeastEdit : function(patient) {
         return (patient.access == "edit" || patient.access == "owner"  || patient.access == "manage");
     },
 
@@ -1040,10 +1040,10 @@ var PhenoTips = (function (PhenoTips) {
         } else if (match.matched.ownership["userIsOwner"]) {
             // user directly owns "match.matched" => "matched" is match.reference
             return match.reference;
-        } else if (this._accessAboveEdit(match.reference) && !this._accessAboveEdit(match.matched)) {
+        } else if (this._accessAtLeastEdit(match.reference) && !this._accessAtLeastEdit(match.matched)) {
             // user has edit access to "match.reference" and no edit access to the "match.matched": assume that the user wants to contact match.matched
             return match.matched;
-        } else if (this._accessAboveEdit(match.matched) && !this._accessAboveEdit(match.reference)) {
+        } else if (this._accessAtLeastEdit(match.matched) && !this._accessAtLeastEdit(match.reference)) {
             // user has edit access to "match.matched" and no edit access to the "match.reference": assume that the user wants to contact match.reference
             return match.reference;
         } else if (match.reference.ownership["userGroupIsOwner"] && !match.matched.ownership["userGroupIsOwner"]) {
@@ -1060,7 +1060,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientToBeContactedByCurrentNonAdminUser : function(match)
     {
-        if (!this._accessAboveEdit(match.reference) && !this._accessAboveEdit(match.matched)) {
+        if (!this._accessAtLeastEdit(match.reference) && !this._accessAtLeastEdit(match.matched)) {
             // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as contacted
             return null;
         }

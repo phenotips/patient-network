@@ -21,8 +21,8 @@ var PhenoTips = (function(PhenoTips) {
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._CONTACT_SEND_FAILED_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.sendFailed'))";
 
-        this._SUSSESS_NOTIFICATION_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.emailsent.title'))";
-        this._SUSSESS_NOTIFICATION_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))"; 
+        this._SUCCESS_NOTIFICATION_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.emailsent.title'))";
+        this._SUCCESS_NOTIFICATION_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.similarCases.emailSent'))";
 
         this.matchId = '';
         this.subjectPatientId = '';
@@ -151,7 +151,7 @@ var PhenoTips = (function(PhenoTips) {
                     return;
                 }
                 if (!response.responseJSON.results.failed || response.responseJSON.results.failed.length == 0) {
-                    this._errorDialog.showNotification('', this._SUSSESS_NOTIFICATION_MESSAGE, this._SUSSESS_NOTIFICATION_TITLE);
+                    this._errorDialog.showNotification('', this._SUCCESS_NOTIFICATION_MESSAGE, this._SUCCESS_NOTIFICATION_TITLE);
 
                     var notificationResult = response.responseJSON.results;
                     notificationResult.notifiedPatients = {};
