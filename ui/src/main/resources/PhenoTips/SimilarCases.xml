@@ -534,8 +534,9 @@
     },
 
     _displayResultDiagnosis : function (r) {
+      var container = new Element("span");
       if (!r.disorders || !r.disorders.length) {
-        return new Element('span', {'class' :  this._NOMATCH_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))");
+        container.insert(new Element('span', {'class' :  this._NOMATCH_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))"));
       } else {
         var dList = new Element('ul');
         var LINKS = this.DISEASE_DB_LINKS;
@@ -549,26 +550,27 @@
           }
           dList.insert(new Element('li').insert( dLink ? new Element('a', {href : dLink, 'target' : '_blank'}).update(dName) : dName));
         });
-        return dList;
+        container.insert(dList);
       }
+      if (r.solved) {
+        container.insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))"));
+      }
+      return container;
     },
 
     _displayResultContactInfo : function (r) {
       // if case is solved - show link to pubmed articles
-      if (r.solved) {
+      if (r.solved &amp;&amp; r.pubmedId &amp;&amp; r.pubmedId != "") {
          var container = new Element("span");
-         if (r.pubmedId &amp;&amp; r.pubmedId != "") {
-            var icon = this.Utils.generateIcon('leanpub');
-		    var contactInfo = new Element("a", {
+         var icon = this.Utils.generateIcon('leanpub');
+		 var contactInfo = new Element("a", {
 			   "href"  : "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + r.pubmedId.trim(),
 			   "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))",
 			   "class" : "owner-info",
 			   "target" : "_blank"
-		    }).update('PMID: ' + r.pubmedId);
-		    contactInfo.insert({top: " "}).insert({top: icon});
-		    container.insert(new Element("div").insert(contactInfo));
-         }
-         return container.insert(new Element("span", {"class" : this._METADATA_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))"));
+		 }).update('PMID: ' + r.pubmedId);
+		 contactInfo.insert({top: " "}).insert({top: icon});
+		 return container.insert(new Element("div").insert(contactInfo));
       }
       var icon = this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))");
       if (r.myCase || !r.owner.email) {
