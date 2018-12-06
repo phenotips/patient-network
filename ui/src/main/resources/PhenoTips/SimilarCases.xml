@@ -534,7 +534,7 @@
     },
 
     _displayResultDiagnosis : function (r) {
-      var container = new Element("span");
+      var container = new Element("div");
       if (!r.disorders || !r.disorders.length) {
         container.insert(new Element('span', {'class' :  this._NOMATCH_MARKER}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))"));
       } else {
