@@ -141,9 +141,9 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notifiedStatusFilter'))&lt;br&gt;
                 &lt;label&gt;
-                  &lt;input name="notified-filter" type="checkbox" value="notified" #if(!$hasAdmin) checked #end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notified'))&lt;br&gt;
+                  &lt;input name="notified-filter" type="checkbox" value="notified" #if(!$hasAdmin) checked #end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notified'))&lt;br&gt;
                 &lt;/label&gt;&lt;label&gt;
-                  &lt;input name="notified-filter" type="checkbox" value="unnotified" checked &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.unnotified'))&lt;/label&gt;&lt;br&gt;
+                  &lt;input name="notified-filter" type="checkbox" value="unnotified" checked &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.unnotified'))&lt;/label&gt;&lt;br&gt;
               &lt;/li&gt;
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;
