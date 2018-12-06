@@ -293,15 +293,15 @@
     },
 
     _generateFailureReason: function(status) {
-    	var response;
+        var response;
 
-    	switch(status) {
-    	  case 401:
-    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
-    	    break;
-    	  case 400:
-    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
-    	    break;
+        switch(status) {
+          case 401:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
+            break;
+          case 400:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
+            break;
           case 204:
             response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.neverSentMME'))";
             break;
@@ -320,13 +320,13 @@
           case 406:
             response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.invalidRequestMME'))";
             break;
-    	  case 500:
-    	    response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
-    	    break;
-    	  default:
+          case 500:
+            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+            break;
+          default:
           response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
-    	}
-    	return response;
+        }
+        return response;
     },
 
     changePageSize: function(newLimit) {
@@ -564,7 +564,7 @@
       if (r.solved &amp;&amp; r.pubmedIds &amp;&amp; r.pubmedIds.size() &gt; 0) {
         var container = new Element("span");
         var icon = this.Utils.generateIcon('leanpub');
-		for (var i=0; i &lt; r.pubmedIds.length; i++) {
+        for (var i=0; i &lt; r.pubmedIds.length; i++) {
           var contactInfo = new Element("a", {
             "href"  : "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + r.pubmedIds[i].trim(),
             "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))",
