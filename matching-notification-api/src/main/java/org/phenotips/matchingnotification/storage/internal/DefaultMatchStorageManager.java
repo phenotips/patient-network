@@ -444,6 +444,28 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
+    public boolean setUserContacted(List<PatientMatch> matches, boolean isUserContacted)
+    {
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
+
+        try {
+            for (PatientMatch match : matches) {
+                match.setUserContacted(isUserContacted);
+                session.update(match);
+            }
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            String status = isUserContacted ? "Error while marking match as user-contacted"
+                : "Error while marking match as not user-contacted";
+            this.logger.error(status, ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
+    }
+
+    @Override
     public boolean updateNotificationHistory(PatientMatch match, String notificationRecord)
     {
         Session session = this.beginTransaction();

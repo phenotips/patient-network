@@ -58,9 +58,9 @@ var PhenoTips = (function (PhenoTips) {
         this._REJECTED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
-        this._MARK_NOTIFIED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markNotifiedButton.label'))";
-        this._MARK_NOTIFIED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markNotifiedButton.title'))";
-        this._MARK_UNNOTIFIED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUnnotifiedButton.title'))";
+        this._MARK_USER_CONTACTED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.label'))";
+        this._MARK_USER_CONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.title'))";
+        this._MARK_USER_UNCONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserUncontactedButton.title'))";
         this._SAVE_COMMENT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saveComment'))";
         this._ADD_COMMENT_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.addComment'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
@@ -222,6 +222,8 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues.ownerStatus = {"me" : true, "group" : true, "public" : false, "others": false};
         this._filterValues.notified  = {"notified" : $$('input[name="notified-filter"][value="notified"]')[0].checked,
                                         "unnotified" : $$('input[name="notified-filter"][value="unnotified"]')[0].checked};
+        this._filterValues.contacted  = {"contacted" : $$('input[name="contacted-filter"][value="contacted"]')[0].checked,
+                                        "uncontacted" : $$('input[name="contacted-filter"][value="uncontacted"]')[0].checked};
         this._filterValues.score  = {"score" : 0, "phenotypicScore" : 0, "genotypicScore" : 0};
         this._filterValues.geneStatus  = "all";
         this._filterValues.externalId  = "";
@@ -283,6 +285,13 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[name="notified-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.notified[event.currentTarget.value] = event.currentTarget.checked;
+                this._update();
+            }.bind(this));
+        }.bind(this));
+
+        $$('input[name="contacted-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.contacted[event.currentTarget.value] = event.currentTarget.checked;
                 this._update();
             }.bind(this));
         }.bind(this));
@@ -395,7 +404,9 @@ var PhenoTips = (function (PhenoTips) {
                                     || (this._filterValues.ownerStatus["others"] && matchOwnedByOthers);
 
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
-            var isNotifiedMatch = match.notified && this._filterValues.notified.notified || !match.notified && this._filterValues.notified.unnotified;
+            var isNotifiedMatch = match.adminNotified && this._filterValues.notified.notified || !match.adminNotified && this._filterValues.notified.unnotified;
+            var isContactedMatch = (match.contacted || match.userContacted) && this._filterValues.contacted.contacted 
+                                || (!match.contacted && !match.userContacted) && this._filterValues.contacted.uncontacted;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
                              && match.genotypicScore >= this._filterValues.score.genotypicScore;
@@ -421,7 +432,7 @@ var PhenoTips = (function (PhenoTips) {
             var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
             return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCases
-                       && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
+                       && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
 
@@ -662,23 +673,39 @@ var PhenoTips = (function (PhenoTips) {
     {
         try {
             var history = JSON.parse(match.notificationHistory);
-            if (history && history.interactions && history.interactions.size() > 0) {
 
-                match.reference.notificationHistory = [];
-                match.matched.notificationHistory = [];
+            if (history) {
+                // whether match was contacted by user outside of the PhenomeCentral
+                match.userContacted = !!history["user-contacted"];
+                if (match.userContacted) {
+                    match.contacted = true;
+                }
 
-                // we go from bottom of array to top to put most recent notifications first
-                for (var i=history.interactions.length-1; i >= 0; i--) {
-                    var record = history.interactions[i];
-                    if (record.to && record.to.emails && record.to.emails.size() > 0 && record.subjectPatientId) {
+                if (history.interactions && history.interactions.size() > 0) {
 
-                        // email was sent to matched patient owner
-                        if (match.matched.patientId == record.subjectPatientId) {
-                            match.matched.notificationHistory.push(record);
-                        }
-                        // email was sent to reference patient owner
-                        if (match.reference.patientId == record.subjectPatientId) {
-                            match.reference.notificationHistory.push(record);
+                    match.reference.notificationHistory = [];
+                    match.matched.notificationHistory = [];
+
+                    // we go from bottom of array to top to put most recent notifications first
+                    for (var i=history.interactions.length-1; i >= 0; i--) {
+                        var record = history.interactions[i];
+                        if (record.to && record.to.emails && record.to.emails.size() > 0 && record.subjectPatientId) {
+
+                            if (record.type == "notification") {
+                                match.adminNotified = true;
+                            }
+                            if (record.type == "contact") {
+                                match.contacted = true;
+                            }
+
+                            // email was sent to matched patient owner
+                            if (match.matched.patientId == record.subjectPatientId) {
+                                match.matched.notificationHistory.push(record);
+                            }
+                            // email was sent to reference patient owner
+                            if (match.reference.patientId == record.subjectPatientId) {
+                                match.reference.notificationHistory.push(record);
+                            }
                         }
                     }
                 }
@@ -814,36 +841,33 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTable();
     },
 
-    _rowWriter : function(rowIndex, record, columns, cellWriter)
+    _rowWriter : function(rowIndex, match, columns, cellWriter)
     {
-        var tr = '<tr id="row-' + record.rowIndex + '" data-matchid="' + record.id + '">';
+        var tr = '<tr id="row-' + match.rowIndex + '" data-matchid="' + match.id + '">';
 
-        // For each column in table, get record's attribute, or formatted element
+        // For each column in table, get match's attribute, or formatted element
         columns.each(function(column, index) {
             switch(column.dataset.column) {
                 case 'status':
-                    tr += this._getStatusTd(record);
+                    tr += this._getStatusTd(match);
                     break;
                 case 'referencePatient':
-                    tr += this._getPatientDetailsTd(record.reference, 'referencePatientTd', record.id);
+                    tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id);
                     break;
                 case 'matchedPatient':
-                    tr += this._getPatientDetailsTd(record.matched, 'matchedPatientTd', record.id);
+                    tr += this._getPatientDetailsTd(match.matched, 'matchedPatientTd', match.id);
                     break;
                 case 'referenceEmails':
-                    tr += this._getEmailsTd(record.reference, record.id[0] ? record.id[0] : record.id, 'referenceEmails', record.notMyCase);
+                    tr += this._getEmailsTd(match.reference, match, 'referenceEmails');
                     break;
                 case 'matchedEmails':
-                    tr += this._getEmailsTd(record.matched, record.id[0] ? record.id[0] : record.id, 'matchedEmails', record.notMyCase);
+                    tr += this._getEmailsTd(match.matched, match, 'matchedEmails');
                     break;
                 case 'contact':
-                    tr+= this._getContact(record);
-                    break;
-                case 'notified':
-                    tr+= this._getNotified(record);
+                    tr+= this._getContact(match);
                     break;
                 default:
-                    tr += cellWriter(record[column.dataset.column]);
+                    tr += cellWriter(match[column.dataset.column]);
                     break;
             }
         }.bind(this));
@@ -853,18 +877,18 @@ var PhenoTips = (function (PhenoTips) {
         return tr;
     },
 
-    _getStatusTd : function(record)
+    _getStatusTd : function(match)
     {
         var td = '<td class="status-column">';
-        td += '<select class="status" data-matchid="' + record.id +'">'
-            + '<option value="uncategorized" '+ (record.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
-            + '<option value="saved" '+ (record.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
-            + '<option value="rejected" '+ (record.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
+        td += '<select class="status" data-matchid="' + match.id +'">'
+            + '<option value="uncategorized" '+ (match.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+            + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
+            + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
             + '</select>';
-        var icon = (record.comment && record.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
+        var icon = (match.comment && match.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
         td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
         td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
-            +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + record.id + '" href="#"><span class="fa fa-save"> </span>'
+            +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
             + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
         td += '</td>';
         return td;
@@ -1022,15 +1046,16 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getEmailsTd : function(patient, matchId, cellName, notMyCase)
+    _getEmailsTd : function(patient, match, cellName)
     {
+        var matchId = match.id[0] ? match.id[0] : match.id;
         var td = '<td name="' + cellName + '">';
         // if case is solved and has at least one Pubmed ID - display a link to it instead of emails
         if (patient.solved) {
-            if (patient.pubmedIDs && patient.pubmedIDs.size() > 0) {
-                for (var i=0; i < patient.pubmedIDs.length; i++) {
-                    var href = this._PUBMED_URL + patient.pubmedIDs[i].trim();
-                    td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + patient.pubmedIDs[i] + '</a><div>';
+            if (patient.pubmedIds && patient.pubmedIds.size() > 0) {
+                for (var i=0; i < patient.pubmedIds.length; i++) {
+                    var href = this._PUBMED_URL + patient.pubmedIds[i].trim();
+                    td += '<div><a href=' + href + ' target="_blank"><span class="fa fa-leanpub" title="' + this._PUBMED + '"></span>PMID: ' + patient.pubmedIds[i] + '</a></div>';
                 }
                 return td;
             }
@@ -1055,15 +1080,25 @@ var PhenoTips = (function (PhenoTips) {
         var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
         td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
-        //add notification history icon
-        if (patient.notificationHistory && patient.notificationHistory.size() > 0) {
-            // show both sides of history for admins, and only matched patient side for users
-            if (this._isAdmin || (notMyCase != null && patient.patientId == notMyCase.patientId)) {
-                td += '<span class="fa fa-history notification-history" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>';
-                td += '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
-                    + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>'
-                    + this._generateNotificationHistoryTable(patient.notificationHistory) + '</div>';
+        var hasHistory = patient.notificationHistory && patient.notificationHistory.size() > 0;
+        // show both sides of history for admins, and only matched patient side for users
+        if ((this._isAdmin && hasHistory) || (match.notMyCase != null && patient.patientId == match.notMyCase.patientId)) {
+            //add notification history icon
+            td += '<span class="fa fa-history notification-history ' + ((!hasHistory) ? 'secondary' : '')
+                + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
+                + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
+                + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
+            // add "mark user-contacted" button only if user did not contact through Phenomecentral yet
+            // in other words, if there is no "contact" type records in this match notification history
+            var contactRecords = hasHistory && patient.notificationHistory.filter(function(record) {return record.type == "contact";}) || '';
+            if (!contactRecords || contactRecords.length == 0) {
+                td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
             }
+            // add notification history table if there is any history
+            if (hasHistory) {
+                td += this._generateNotificationHistoryTable(patient.notificationHistory);
+            }
+            td += '</div>';
         }
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
@@ -1095,13 +1130,13 @@ var PhenoTips = (function (PhenoTips) {
 
             var from = '<td>';
             if (record.from) {
-                from += this._generateRecipientCell(record.from);
+                from += this._generateRecipientCell(record.from, record.type);
             }
             from += '</td>';
 
             var to = '<td>';
             if (record.to) {
-                to += this._generateRecipientCell(record.to);
+                to += this._generateRecipientCell(record.to, record.type);
             }
             to += '</td>';
 
@@ -1118,8 +1153,13 @@ var PhenoTips = (function (PhenoTips) {
         return table;
     },
 
-    _generateRecipientCell : function(info)
+    _generateRecipientCell : function(info, type)
     {
+        // notifications should have something generic e.g. "PhenomeCentral" (no link)
+        if (type == "notification" && info.userinfo.id == "xwiki:XWiki.Admin") {
+            return "PhenomeCentral";
+        }
+
         var cell = '';
         // user name and institution
         if (info.userinfo) {
@@ -1145,10 +1185,10 @@ var PhenoTips = (function (PhenoTips) {
         return cell;
     },
 
-    _getContact : function(record)
+    _getContact : function(match)
     {
         var td = '<td style="text-align: center" name="contact">';
-        td += this._getContactButtonHTML(record);
+        td += this._getContactButtonHTML(match);
         td += '</td>';
         return td;
     },
@@ -1188,7 +1228,7 @@ var PhenoTips = (function (PhenoTips) {
     _getPatientToBeContactedByCurrentNonAdminUser : function(match)
     {
         if (!this._accessAtLeastEdit(match.reference) && !this._accessAtLeastEdit(match.matched)) {
-            // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as contacted
+            // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as user-contacted
             return null;
         }
 
@@ -1225,7 +1265,12 @@ var PhenoTips = (function (PhenoTips) {
         var matchId = match.id[0] ? match.id[0] : match.id;
         var patientID = matchedCase.patientId;
         var serverId = matchedCase.serverId;
-        var className = match.notified ? "button contact-button secondary" : "button contact-button";
+        var className = "button contact-button";
+
+        var contactRecords = matchedCase.notificationHistory && matchedCase.notificationHistory.filter(function(record) {return record.type == "contact";}) || '';
+        if (match.userContacted || contactRecords && contactRecords.length > 0) {
+            className += " secondary";
+        }
 
         var  buttonHTML = '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
                           + matchId + '" data-patientid="'
@@ -1234,15 +1279,7 @@ var PhenoTips = (function (PhenoTips) {
         return buttonHTML;
     },
 
-    _getNotified : function(match)
-    {
-        var td = '<td style="text-align: center" name="notified">';
-        td += this._getMarkNotifiedButtonHTML(match);
-        td += '</td>';
-        return td;
-    },
-
-    _getMarkNotifiedButtonHTML : function(match)
+    _getMarkUserContactedHTML : function(match)
     {
         var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(match);
         if (!matchedCase) {
@@ -1252,12 +1289,12 @@ var PhenoTips = (function (PhenoTips) {
 
         // the case user/user's group is NOT owner of is unsolved
         var matchId = match.id[0] || match.id;
-        var label = this._MARK_NOTIFIED_BUTTON_LABEL;
-        var icon = (!match.notified) ? "fa fa-square-o" : "fa fa-check-square-o";
-        var title = (match.notified) ? this._MARK_UNNOTIFIED_BUTTON_TITLE : this._MARK_NOTIFIED_BUTTON_TITLE;
+        var label = this._MARK_USER_CONTACTED_BUTTON_LABEL;
+        var icon = (!match.userContacted) ? "fa fa-square-o" : "fa fa-check-square-o";
+        var title = (match.userContacted) ? this._MARK_USER_UNCONTACTED_BUTTON_TITLE : this._MARK_USER_CONTACTED_BUTTON_TITLE;
 
-        var buttonHTML = '<span class="buttonwrapper"><a class="button secondary mark-notified-button" title="' + title + '" data-matchid="'
-                         + matchId + '" data-notified="' + match.notified + '" href="#"><span class="' + icon + '"></span> '+ label +'</a></span>';
+        var buttonHTML = '<span class="buttonwrapper"><a class="button secondary mark-user-contacted-button" title="' + title + '" data-matchid="'
+                         + matchId + '" data-userContacted="' + !!match.userContacted + '" href="#"><span class="' + icon + '"></span> '+ label +'</a></span>';
         return buttonHTML;
     },
 
@@ -1404,10 +1441,10 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
         }.bind(this));
 
-        $$('.mark-notified-button').each(function (elm) {
+        $$('.mark-user-contacted-button').each(function (elm) {
             elm.on('click', function(event) {
                 event.stop();
-                this._markNotified(event);
+                this._markUserContacted(event);
             }.bind(this));
         }.bind(this));
     },
@@ -1581,6 +1618,10 @@ var PhenoTips = (function (PhenoTips) {
 
     _setState : function(matchIds, properties, notifiedPatients)
     {
+        if (!matchIds || !properties) {
+            return;
+        }
+
         var strMatchIds = String(matchIds).split(",");
         var matchesToSet = [];
         this._matches.each( function(match) {
@@ -1595,34 +1636,49 @@ var PhenoTips = (function (PhenoTips) {
         matchesToSet.each( function(match, index) {
             if (properties.hasOwnProperty('notified')) {
                 // update macthes status
-                this._matches[this._matches.indexOf(match)].notified = properties.notified;
-                this._cachedMatches[this._cachedMatches.indexOf(match)].notified = properties.notified;
-
-                // updating Contact column
+                if (notifiedPatients && notifiedPatients.hasOwnProperty('isAdminNotification')) {
+                    this._matches[this._matches.indexOf(match)].adminNotified = true;
+                    this._cachedMatches[this._cachedMatches.indexOf(match)].adminNotified = true;
+                } else {
+                    this._matches[this._matches.indexOf(match)].contacted = true;
+                    this._cachedMatches[this._cachedMatches.indexOf(match)].contacted = true;
+                }
+                // updating contact button
                 var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
-                if (contactTd) {
-                    contactTd.update(this._getContactButtonHTML(match));
-                    contactTd.down('.contact-button') && contactTd.down('.contact-button').on('click', function(event) {
-                        event.stop();
-                        var elm = event.element();
-                        this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
-                    }.bind(this));
+                if (contactTd && contactTd.down('.contact-button')) {
+                    if (properties.notified) {
+                        contactTd.down('.contact-button').addClassName('secondary');
+                    } else {
+                        contactTd.down('.contact-button').removeClassName('secondary');
+                    }
+                }
+            }
+
+            if (properties.hasOwnProperty('userContacted')) {
+                this._matches[this._matches.indexOf(match)].userContacted = properties.userContacted;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].userContacted = properties.userContacted;
+
+                if (properties.userContacted) {
+                    this._matches[this._matches.indexOf(match)].contacted = true;
+                    this._cachedMatches[this._cachedMatches.indexOf(match)].contacted = true;
                 }
 
-                // updating Notified status column
-                var notifiedTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="notified"]');
-                if (notifiedTd) {
-                    notifiedTd && notifiedTd.update(this._getMarkNotifiedButtonHTML(match));
-                    notifiedTd.down('.mark-notified-button') && notifiedTd.down('.mark-notified-button').on('click', function(event) {
+                // updating mark user-contacted button
+                var historyButtonContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .mark-user-contacted-button-container');
+                if (historyButtonContainer) {
+                    historyButtonContainer.update(this._getMarkUserContactedHTML(match));
+                    historyButtonContainer.down('.mark-user-contacted-button') && historyButtonContainer.down('.mark-user-contacted-button').on('click', function(event) {
                         event.stop();
-                        this._markNotified(event);
+                        this._markUserContacted(event);
                     }.bind(this));
                 }
             }
+
             if (properties.hasOwnProperty('status')) {
                 this._matches[this._matches.indexOf(match)].status = properties.status;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].status = properties.status;
             }
+
             if (properties.hasOwnProperty('state')) {
                 // FIXME: "match.reference.patientId != match.matched.patientId"
                 //        when notifying patients, we know matchID and patientID. But in theory both reference and match
@@ -1653,6 +1709,7 @@ var PhenoTips = (function (PhenoTips) {
                     this._tableElement.down('[data-matchid="' + match.id +'"]').className = properties.state;
                 }
             }
+
             if (properties.hasOwnProperty('comment')) {
                 this._matches[this._matches.indexOf(match)].comment = properties.comment;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].comment = properties.comment;
@@ -1698,22 +1755,22 @@ var PhenoTips = (function (PhenoTips) {
 
 //--MARK NOTIFIED --
 
-    // Send request to change match notified status to notified or un-notified
-    _markNotified : function(event)
+    // Send request to add a user-notified attrubute to the notification history
+    _markUserContacted : function(event)
     {
         var target = event.element();
         if (!target) return;
-        var button = target.up('.buttonwrapper').down('.mark-notified-button');
+        var button = target.up('.buttonwrapper').down('.mark-user-contacted-button');
         if (!button) return;
         var matchId = String(button.dataset.matchid);
         var ids = matchId.split(",");
-        // new notified status to set to is a negation of the current one
-        var newNotifiedStatus = !JSON.parse(button.dataset.notified);
+        // new user-contacted status to set to is a negation of the current one
+        var newUserContactedStatus = !JSON.parse(button.dataset.usercontacted);
 
-        new Ajax.Request(this._ajaxURL + 'mark-notified', {
+        new Ajax.Request(this._ajaxURL + 'mark-user-contacted', {
             contentType : 'application/json',
             parameters : {'matchesIds' : ids,
-                          'isNotified' : newNotifiedStatus},
+                          'isUserContacted' : newUserContactedStatus},
             onSuccess : function (response) {
                 if (!response.responseJSON || !response.responseJSON.results) {
                     this._utils.showFailure('show-matches-messages');
@@ -1721,10 +1778,10 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'notified': newNotifiedStatus, 'state': 'success'});
+                    this._setState(results.success, {'notified': newUserContactedStatus, 'userContacted': newUserContactedStatus, 'state': 'success'});
                 } else if (results.failed && results.failed.length > 0) {
                     this._setState(results.failed, { 'state': 'failed' });
-                    this._utils.showFailure('show-matches-messages', "Mark matches notified status to " + newNotifiedStatus + " failed");
+                    this._utils.showFailure('show-matches-messages', "Mark matches user-contacted status to " + newUserContactedStatus + " failed");
                 }
             }.bind(this),
             onFailure : function (response) {

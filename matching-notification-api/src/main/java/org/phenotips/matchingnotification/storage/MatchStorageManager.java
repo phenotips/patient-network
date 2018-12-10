@@ -73,6 +73,15 @@ public interface MatchStorageManager
     boolean setNotifiedStatus(List<PatientMatch> matches, boolean isNotified);
 
     /**
+     * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
+     *
+     * @param matches list of matches to mark as user-contacted.
+     * @param isUserContacted boolean user-contacted status to set for matches
+     * @return true if successful
+     */
+    boolean setUserContacted(List<PatientMatch> matches, boolean isUserContacted);
+
+    /**
      * Sets status to all matches in {@code matches} to a passed status string.
      *
      * @param matches list of matches to mark as notified.
