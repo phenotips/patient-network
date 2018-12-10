@@ -249,6 +249,24 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
+    public boolean setUserContacted(Set<Long> matchesIds, boolean isUserContacted)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+
+            filterNonUsersMatches(matches);
+
+            successful = this.matchStorageManager.setUserContacted(matches, isUserContacted);
+        } catch (Exception e) {
+            String status = isUserContacted ? "Error while marking matches as user-contacted"
+                : "Error while marking matches as not user-contacted";
+            this.logger.error(status, Joiner.on(",").join(matchesIds), e);
+        }
+        return successful;
+    }
+
+    @Override
     public boolean setComment(Set<Long> matchesIds, String comment)
     {
         boolean successful = false;

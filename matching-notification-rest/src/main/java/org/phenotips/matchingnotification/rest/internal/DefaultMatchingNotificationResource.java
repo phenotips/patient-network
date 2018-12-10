@@ -248,14 +248,14 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response setNotifiedStatus(final Set<Long> matchesIds, boolean isNotified)
+    public Response setUserContacted(final Set<Long> matchesIds, boolean isUserContacted)
     {
         if (matchesIds.isEmpty()) {
             this.slf4Jlogger.error("The requested ids list is blank");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        boolean success = this.matchingNotificationManager.setNotifiedStatus(matchesIds, isNotified);
+        boolean success = this.matchingNotificationManager.setUserContacted(matchesIds, isUserContacted);
         JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
             : Collections.<Long>emptyList());
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();

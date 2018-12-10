@@ -56,7 +56,7 @@ public interface MatchingNotificationManager
      * @return status of the notification as PatientMatchNotificationResponse
      */
     PatientMatchNotificationResponse sendUserNotification(Long matchId,
-            String subjectPatientId, String subjectServerId, String customEmailText, String customEmailSubject);
+        String subjectPatientId, String subjectServerId, String customEmailText, String customEmailSubject);
 
     /**
      * Returns the contents of the email that will be send as a notification for match with the given id,
@@ -120,6 +120,15 @@ public interface MatchingNotificationManager
      * @return true if successful
      */
     boolean setNotifiedStatus(Set<Long> matchesIds, boolean isNotified);
+
+    /**
+     * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
+     *
+     * @param matchesIds list of ids of matches to mark as user-contacted.
+     * @param isUserContacted boolean user-contacted status to set for matches
+     * @return true if successful
+     */
+    boolean setUserContacted(Set<Long> matchesIds, boolean isUserContacted);
 
     /**
      * Sets comment to all matches with ids in {@code matchesIds} to a passed comment string.

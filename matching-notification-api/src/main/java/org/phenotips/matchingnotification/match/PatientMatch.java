@@ -291,4 +291,11 @@ public interface PatientMatch
      * @param notificationRecord the new notification record JSON string
      */
     void updateNotificationHistory(String notificationRecord);
+
+    /**
+     * Add a record to the notification history in case user contacted regarding this match outside of PhenomeCentral.
+     *
+     * @param isUserContacted boolean indicator whether contact regarding this match was done or not
+     */
+    void setUserContacted(boolean isUserContacted);
 }

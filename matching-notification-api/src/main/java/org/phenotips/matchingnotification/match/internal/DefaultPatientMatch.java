@@ -72,6 +72,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final String INTERACTIONS = "interactions";
 
+    private static final String USER_CONTACTED = "user-contacted";
+
     /*
      * Attributes of the match
      */
@@ -609,6 +611,19 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
             records.put(newRecord);
             history.put(INTERACTIONS, records);
+            this.notificationHistory = history.toString();
+        } catch (JSONException ex) {
+            // error parsing notification history/ new record JSON string to JSON object happened
+        }
+    }
+
+    @Override
+    public void setUserContacted(boolean isUserContacted)
+    {
+        try {
+            JSONObject history = (this.notificationHistory != null) ? new JSONObject(this.notificationHistory)
+                : new JSONObject();
+            history.put(USER_CONTACTED, isUserContacted);
             this.notificationHistory = history.toString();
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
