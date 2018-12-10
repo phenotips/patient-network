@@ -638,6 +638,12 @@ var PhenoTips = (function (PhenoTips) {
             // For user only: out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
             match.notMyCase = (!this._isAdmin) ? this._getNotMyCase(match) : null;
 
+            // swap "reference" and "matched" if they are not in right place based on "notMyCase" if determined
+            if (match.notMyCase != null && match.reference == match.notMyCase) {
+                match.reference = match.matched;
+                match.matched = match.notMyCase
+            }
+
             // sort notification recorsd between those who ere sent to reference and to matched patient owners
             match.notificationHistory && this._organiseNotificationHistory(match);
         }.bind(this));
