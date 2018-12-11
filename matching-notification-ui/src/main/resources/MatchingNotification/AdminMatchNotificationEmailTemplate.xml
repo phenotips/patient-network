@@ -119,7 +119,7 @@
          &lt;th style="$grey-background $table"&gt;
             &lt;div style="$subheader"&gt;$!services.localization.render('phenotips.matchingNotifications.email.table.yourPatient.label', 'xhtml/1.0')&lt;/div&gt;
             &lt;div style="$patient-id"&gt;
-               &lt;span&gt;#if($subjectPatientObj)&lt;a href="$xwiki.getDocument($subjectPatientObj.document).getExternalURL()" target="_blank"&gt;$!{escapetool.xml($!subjectPatient.patientId)}&lt;/a&gt;#else$!{escapetool.xml($!subjectPatient.patientId)}#end&lt;/span&gt;
+               &lt;span&gt;#if($subjectPatientObj)&lt;a href="$xwiki.getDocument($subjectPatientObj.getDocumentReference()).getExternalURL()" target="_blank"&gt;$!{escapetool.xml($!subjectPatient.patientId)}&lt;/a&gt;#else$!{escapetool.xml($!subjectPatient.patientId)}#end&lt;/span&gt;
                &lt;span&gt;$!{escapetool.xml($!subjectPatient.externalId)}&lt;/span&gt;
             &lt;/div&gt;
          &lt;/th&gt;
