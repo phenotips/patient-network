@@ -269,8 +269,18 @@ public interface PatientMatch
     Timestamp getNotifiedTimestamp();
 
     /**
-     * Updates a notification history JSON log string with new notification record.
-     * Record is a JSON String object, in the following format:
+     * @return the match notification history JSON.
+     */
+    JSONObject getNotificationHistory();
+
+    /**
+     * @param notificationHistory the notification history JSON
+     */
+    void setNotificationHistory(JSONObject notificationHistory);
+
+    /**
+     * Updates a notification history JSON log string property with new notification record.
+     * Record is a JSON object in the following format:
      *     <pre>
      *      { "from": {"userinfo":{"id":"xwiki:XWiki.Mary",
      *                             "name":"Mary"},
@@ -284,13 +294,13 @@ public interface PatientMatch
      *         "cc":  ["mary@blueberry.com"],
      *         "subjectPatientId":"P000005"
      *         "type":"contact",
-     *         "date":"2018/12/06"
+     *         "date":"2018/12/06 14:58"
      *       }
      *     </pre>
      *
-     * @param notificationRecord the new notification record JSON string
+     * @param notificationRecord the new notification record JSON
      */
-    void updateNotificationHistory(String notificationRecord);
+    void updateNotificationHistory(JSONObject notificationRecord);
 
     /**
      * Add a record to the notification history in case user contacted regarding this match outside of PhenomeCentral.

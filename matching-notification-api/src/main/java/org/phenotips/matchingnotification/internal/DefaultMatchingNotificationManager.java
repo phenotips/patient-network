@@ -98,7 +98,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
                 this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
             }
 
-            this.saveNotificationHistory(successfulMatches, email, "notification");
+            this.updateNotificationHistory(successfulMatches, email, "notification");
 
             responses.addAll(notificationResults);
         }
@@ -138,12 +138,12 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
         }
 
-        this.saveNotificationHistory(successfulMatches, email, "contact");
+        this.updateNotificationHistory(successfulMatches, email, "contact");
 
         return notificationResults.get(0);
     }
 
-    private void saveNotificationHistory(List<PatientMatch> matches, PatientMatchEmail email, String type)
+    private void updateNotificationHistory(List<PatientMatch> matches, PatientMatchEmail email, String type)
     {
         JSONObject json = new JSONObject();
         json.put("type", type);
@@ -165,10 +165,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         for (PatientMatch notifiedMatch : matches) {
             Timestamp date = notifiedMatch.getNotifiedTimestamp();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
             json.put("date", date == null ? sdf.format(new Timestamp(System.currentTimeMillis())) : sdf.format(date));
 
-            if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json.toString())) {
+            if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json)) {
                 this.logger.error("Error saving {} history for match {}", type, notifiedMatch.getId());
             }
         }

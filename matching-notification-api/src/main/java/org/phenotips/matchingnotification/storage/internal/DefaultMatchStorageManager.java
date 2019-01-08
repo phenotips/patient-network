@@ -49,6 +49,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,6 +181,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                         match.setFoundTimestamp(existingMatch.getFoundTimestamp());
                         match.setStatus(existingMatch.getStatus());
                         match.setComment(existingMatch.getComment());
+                        match.setNotificationHistory(existingMatch.getNotificationHistory());
                     }
                 }
             }
@@ -467,7 +469,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean updateNotificationHistory(PatientMatch match, String notificationRecord)
+    public boolean updateNotificationHistory(PatientMatch match, JSONObject notificationRecord)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
