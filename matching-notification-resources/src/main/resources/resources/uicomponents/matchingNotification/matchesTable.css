@@ -264,7 +264,7 @@ ul.filters label {
   margin-bottom: 5px;
   margin-top: 10px;
 }
-a.button.comment {
+a.button.comment, a.button.notes {
   background-image: none;
   background-color: #eee;
   color: #000;
@@ -272,7 +272,6 @@ a.button.comment {
   border: 1px solid #ddd;
 }
 .buttonwrapper a.button.comment:link {
-  margin-top: 5px;
   margin-left: 5px;
 }
 td.status-column {
@@ -423,4 +422,11 @@ label.score {
 }
 .mark-user-contacted-button-container {
   margin-top: 1em;
+}
+.xHint {
+  color: #369;
+  font-size: 87%;
+}
+.notes-container h4 {
+  margin: 0;
 }

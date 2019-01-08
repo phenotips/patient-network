@@ -226,4 +226,17 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/save-comment")
     Response saveComment(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("comment") String comment);
+
+    /**
+     * Saves note for matches, with ids given in parameter.
+     *
+     * @param matchesIds List of matches IDs to save note for
+     * @param note note text
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/save-note")
+    Response saveNote(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("note") String note);
 }

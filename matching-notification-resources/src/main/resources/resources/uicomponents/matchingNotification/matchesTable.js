@@ -72,6 +72,9 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTIFICATION_HISTORY_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
         this._NOTIFICATION_HISTORY_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._NOTIFICATION_HISTORY_DATE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.notificationHistory.date'))";
+        this._NOTES_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.title'))";
+        this._NOTES_SAVE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.save'))";
+        this._NOTES_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.hint'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -878,6 +881,13 @@ var PhenoTips = (function (PhenoTips) {
         td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
             +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
             + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
+        // notes icon
+        var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
+        td += '<span class="buttonwrapper" title="' + this._NOTES_TITLE + '"><a class="button notes" href="#"><span class="' + icon + '"> </span></a></span>';
+        td += '<div class="xTooltip notes-container"><span class="hide-tool" title="Hide">×</span><div><h4>' + this._NOTES_TITLE + '</h4><p class="xHint">'
+            + this._NOTES_HINT + '</p><textarea rows="5" cols="20"></textarea></div>'
+            +'<span class="buttonwrapper"><a class="button save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+            + this._NOTES_SAVE + '</a></span></div>';
         td += '</td>';
         return td;
     },
@@ -1295,6 +1305,7 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableInitNotificationEmails();
         this._afterProcessTableHideApsentServerIdsFromFilter();
         this._afterProcessTableComments();
+        this._afterProcessTableNotes();
         this._afterProcessTableNotificationHistory();
     },
 
@@ -1321,7 +1332,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._tableElement.select('.button.comment').each(function (elm) {
             var comment_container = elm.up('td').down('.comment-container');
-            var textarea = elm.up('td').down('textarea');
+            var textarea = comment_container.down('textarea');
 
             // hide comment container on table update
             comment_container.addClassName('hidden');
@@ -1331,7 +1342,7 @@ var PhenoTips = (function (PhenoTips) {
                 !comment_container.hasClassName('hidden') && textarea.focus();
             });
 
-            var hideTool = elm.up('td').down('.hide-tool');
+            var hideTool = elm.up('td').down('.comment-container .hide-tool');
             hideTool.on('click', function(event) {
                 elm.down('span').className = (textarea.value != "") ? "fa fa-comment" : "fa fa-comment-o";
                 comment_container.addClassName('hidden');
@@ -1347,6 +1358,39 @@ var PhenoTips = (function (PhenoTips) {
 
             var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
             textarea.value = (commentMatch && commentMatch[0] && commentMatch[0].comment) ? commentMatch[0].comment : '';
+        }.bind(this));
+    },
+
+    _afterProcessTableNotes : function()
+    {
+        this._tableElement.select('.button.notes').each(function (elm) {
+            var notes_container = elm.up('td').down('.notes-container');
+            var textarea = notes_container.down('textarea');
+
+            // hide notes container on table update
+            notes_container.addClassName('hidden');
+
+            elm.on('click', function(event) {
+                notes_container.toggleClassName('hidden');
+                !notes_container.hasClassName('hidden') && textarea.focus();
+            });
+
+            var hideTool = elm.up('td').down('.notes-container .hide-tool');
+            hideTool.on('click', function(event) {
+                elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+                notes_container.addClassName('hidden');
+            });
+
+            var saveButton = elm.up('td').down('.save-notes');
+            saveButton.on('click', function(event) {
+                event.stop();
+                elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+                notes_container.addClassName('hidden');
+                this._saveNote(event);
+            }.bind(this));
+
+            var notesMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
+            textarea.value = (notesMatch && notesMatch[0] && notesMatch[0].notes) ? notesMatch[0].notes : '';
         }.bind(this));
     },
 
@@ -1695,6 +1739,11 @@ var PhenoTips = (function (PhenoTips) {
                 this._matches[this._matches.indexOf(match)].comment = properties.comment;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].comment = properties.comment;
             }
+
+            if (properties.hasOwnProperty('notes')) {
+                this._matches[this._matches.indexOf(match)].notes = properties.notes;
+                this._cachedMatches[this._cachedMatches.indexOf(match)].notes = properties.notes;
+            }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this));
     },
@@ -1797,6 +1846,40 @@ var PhenoTips = (function (PhenoTips) {
                     this._setState(results.success, {'state': 'success', 'comment' : comment});
                 } else if (results.failed && results.failed.length > 0) {
                     this._utils.showFailure('show-matches-messages', "Saving comment failed");
+                }
+            }.bind(this),
+            onFailure : function (response) {
+                this._utils.showFailure('show-matches-messages');
+            }.bind(this)
+        });
+    },
+
+ // SAVE Notes
+
+    // Send request to save match notes
+    _saveNote : function(event)
+    {
+        var target = event.element();
+        if (!target) return;
+        var matchId = String(target.dataset.matchid);
+        var note = target.up('.notes-container').down('textarea').value;
+        var ids = matchId.split(",");
+
+        new Ajax.Request(this._ajaxURL + 'save-note', {
+            contentType : 'application/json',
+            parameters : {'matchesIds'    : ids,
+                          'note'       : note
+            },
+            onSuccess : function (response) {
+                if (!response.responseJSON || !response.responseJSON.results) {
+                    this._utils.showFailure('show-matches-messages');
+                    return;
+                }
+                var results = response.responseJSON.results;
+                if (results.success && results.success.length > 0) {
+                    this._setState(results.success, {'state': 'success', 'note' : note});
+                } else if (results.failed && results.failed.length > 0) {
+                    this._utils.showFailure('show-matches-messages', "Saving notes failed");
                 }
             }.bind(this),
             onFailure : function (response) {

@@ -93,6 +93,28 @@ public interface PatientMatch
     void setComment(String comment);
 
     /**
+     * Sets match notes as a JSON String object, in the following format:
+     *     <pre>
+     *      { "notes":
+     *         [ {"user":"xwiki:XWiki.Pat",
+     *            "note":"This match is very important"}
+     *           ...
+     *          ]
+     *       }
+     *     </pre>
+     *
+     * @param notes notes JSON string
+     */
+    void setNotes(String notes);
+
+    /**
+     * Updates a notes JSON log string with new note record.
+     *
+     * @param note the new note record JSON string
+     */
+    void updateNotes(String note);
+
+    /**
      * @return object in JSON format.
      */
     JSONObject toJSON();
@@ -123,9 +145,14 @@ public interface PatientMatch
     String getStatus();
 
     /**
-     * @return match comment.
+     * @return match comment for a reason why the status was changed.
      */
     String getComment();
+
+    /**
+     * @return currently logged user note about the match in general, if any.
+     */
+    String getNotes();
 
     /**
      * Checks if {@code other} is equivalent to this.

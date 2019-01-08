@@ -28,6 +28,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.users.UserManager;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -49,6 +50,8 @@ import org.hibernate.classic.Lifecycle;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version $Id$
@@ -61,6 +64,8 @@ import org.json.JSONObject;
     @Index(name = "propertiesIndex", columnNames = { "notified", "status" }) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
+
     private static final int DB_HREF_FIELD_LENGTH = 2048;
 
     private static final int DB_MAX_DEFAULT_STRING_LENGTH = 255;
@@ -73,6 +78,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private static final String INTERACTIONS = "interactions";
 
     private static final String USER_CONTACTED = "user-contacted";
+
+    private static final String NOTES = "notes";
+
+    private static final UserManager USER_MANAGER;
 
     /*
      * Attributes of the match
@@ -104,6 +113,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Basic
     private String comment;
+
+    @Basic
+    @Column(length = 0xFFFFFF)
+    private String notes;
 
     @Basic
     private Double score;
@@ -177,6 +190,17 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Transient
     private PatientInMatch matchedPatientInMatch;
 
+    static {
+        UserManager um = null;
+        try {
+            ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
+            um = ccm.getInstance(UserManager.class);
+        } catch (Exception e) {
+            LOGGER.error("Error loading static components: {}", e.getMessage(), e);
+        }
+        USER_MANAGER = um;
+    }
+
     /**
      * Hibernate requires a no-args constructor.
      */
@@ -235,6 +259,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.notifiedTimestamp = null;
         this.notified = false;
         this.notificationHistory = null;
+        this.notes = null;
         this.status = "uncategorized";
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
@@ -294,6 +319,50 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public void setNotes(String notes)
+    {
+        this.notes = notes;
+    }
+
+    @Override
+    public void updateNotes(String note)
+    {
+        try {
+            String currentUserId = USER_MANAGER.getCurrentUser().getId();
+            JSONObject allNotes = (this.notes != null) ? new JSONObject(this.notes)
+                : new JSONObject();
+            JSONArray records = allNotes.optJSONArray(NOTES);
+            JSONObject newRecord = new JSONObject();
+            newRecord.put("user", currentUserId);
+            newRecord.put("note", note);
+
+            if (records == null) {
+                records = new JSONArray();
+                records.put(newRecord);
+            } else {
+                boolean updated = false;
+                for (Object record : records) {
+                    JSONObject item = (JSONObject) record;
+                    if (item.optString("user", "").equals(currentUserId)) {
+                        item.put("note", note);
+                        updated = true;
+                        break;
+                    }
+                }
+
+                if (!updated) {
+                    records.put(newRecord);
+                }
+            }
+
+            allNotes.put(NOTES, records);
+            this.notes = allNotes.toString();
+        } catch (JSONException ex) {
+            // error parsing notes or new record JSON string to JSON object happened
+        }
+    }
+
+    @Override
     public String getStatus()
     {
         return this.status;
@@ -303,6 +372,30 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public String getComment()
     {
         return this.comment;
+    }
+
+    @Override
+    public String getNotes()
+    {
+        try {
+            JSONObject allNotes = (this.notes != null) ? new JSONObject(this.notes)
+                : new JSONObject();
+            JSONArray records = allNotes.optJSONArray(NOTES);
+            if (records == null) {
+                return null;
+            }
+
+            String currentUserId = USER_MANAGER.getCurrentUser().getId();
+            for (Object record : records) {
+                JSONObject note = (JSONObject) record;
+                if (note.optString("user", "").equals(currentUserId)) {
+                    return note.optString("note");
+                }
+            }
+        } catch (JSONException ex) {
+            // error parsing notes or new record JSON string to JSON object happened
+        }
+        return null;
     }
 
     @Override
@@ -415,6 +508,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("href", this.isLocal() ? "" : this.getHref());
         json.put("comment", this.getComment());
         json.put("notificationHistory", this.notificationHistory);
+        json.put("notes", this.getNotes());
 
         return json;
     }

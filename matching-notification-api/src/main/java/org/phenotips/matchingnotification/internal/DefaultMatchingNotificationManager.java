@@ -283,6 +283,23 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return successful;
     }
 
+    @Override
+    public boolean saveNote(Set<Long> matchesIds, String note)
+    {
+        boolean successful = false;
+        try {
+            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
+
+            filterNonUsersMatches(matches);
+
+            successful = this.matchStorageManager.saveNote(matches, note);
+        } catch (Exception e) {
+            this.logger.error("Error while saving a note for matches {} as {}",
+                Joiner.on(",").join(matchesIds), note, e);
+        }
+        return successful;
+    }
+
     /**
      * Filters out matches that user does not own or has access to.
      */
