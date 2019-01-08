@@ -182,6 +182,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                         match.setStatus(existingMatch.getStatus());
                         match.setComment(existingMatch.getComment());
                         match.setNotificationHistory(existingMatch.getNotificationHistory());
+                        match.setNotes(existingMatch.getNotes());
                     }
                 }
             }
@@ -487,6 +488,24 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
+    public boolean updateNotes(PatientMatch match, String note)
+    {
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
+
+        try {
+            match.updateNotes(note);
+            session.update(match);
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error updating notes: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
+    }
+
+    @Override
     public boolean setStatus(List<PatientMatch> matches, String status)
     {
         Session session = this.beginTransaction();
@@ -520,6 +539,26 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error saving matches comments: [{}]", ex.getMessage(), ex);
+        } finally {
+            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
+        }
+        return transactionCompleted;
+    }
+
+    @Override
+    public boolean saveNote(List<PatientMatch> matches, String note)
+    {
+        Session session = this.beginTransaction();
+        boolean transactionCompleted = false;
+
+        try {
+            for (PatientMatch match : matches) {
+                match.updateNotes(note);
+                session.update(match);
+            }
+            transactionCompleted = true;
+        } catch (Exception ex) {
+            this.logger.error("Error saving matches note: [{}]", ex.getMessage(), ex);
         } finally {
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }

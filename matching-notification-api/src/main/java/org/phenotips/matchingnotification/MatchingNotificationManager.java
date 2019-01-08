@@ -138,4 +138,13 @@ public interface MatchingNotificationManager
      * @return true if successful
      */
     boolean setComment(Set<Long> matchesIds, String comment);
+
+    /**
+     * Saves note to all matches with ids in {@code matchesIds}.
+     *
+     * @param matchesIds list of ids of matches to save note to
+     * @param note note text
+     * @return true if successful
+     */
+    boolean saveNote(Set<Long> matchesIds, String note);
 }

@@ -279,6 +279,24 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
+    @Override
+    public Response saveNote(Set<Long> matchesIds, String note)
+    {
+        if (matchesIds.isEmpty()) {
+            this.slf4Jlogger.error("The requested ids list is blank");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (StringUtils.isBlank(note)) {
+            this.slf4Jlogger.error("The 'note' request parameter is blank");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        boolean success = this.matchingNotificationManager.saveNote(matchesIds, note);
+        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
+            : Collections.<Long>emptyList());
+        return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
+    }
+
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
         @Nullable final double genScore, final boolean onlyNotified, final int reqNo)
     {
