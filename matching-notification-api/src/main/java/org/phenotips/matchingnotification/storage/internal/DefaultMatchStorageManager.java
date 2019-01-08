@@ -178,6 +178,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                 for (PatientMatch existingMatch : sameExistingMatches) {
                     if (!existingMatch.isNotified()) {
                         match.setFoundTimestamp(existingMatch.getFoundTimestamp());
+                        match.setStatus(existingMatch.getStatus());
                         match.setComment(existingMatch.getComment());
                     }
                 }
