@@ -655,7 +655,7 @@ var PhenoTips = (function (PhenoTips) {
                 match.matched = match.notMyCase
             }
 
-            // sort notification recorsd between those who ere sent to reference and to matched patient owners
+            // sort notification records between those who were sent to reference and to matched patient owners
             match.notificationHistory && this._organiseNotificationHistory(match);
         }.bind(this));
 
@@ -1125,8 +1125,12 @@ var PhenoTips = (function (PhenoTips) {
             var record = records[i];
             var row = '<tr class="' + record.type + '" title="' + record.type + '">';
 
-            var dateIconName = record.type == 'contact' ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
-            var date = '<td><div class="date">' + record.date + '</div><span class="'+ dateIconName + '"> </span></td>';
+            var date = '<td>';
+            if (record.date) {
+                var dateIconName = record.type == 'contact' ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
+                date += '<div class="date">' + record.date.split(' ')[0] + '</div><span class="'+ dateIconName + '"> </span></td>';
+            }
+            date += '</td>';
 
             var from = '<td>';
             if (record.from) {

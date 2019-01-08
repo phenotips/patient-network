@@ -70,7 +70,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final String ID = "id";
 
-    private static final String INTERACTIONS = "interactions";
+    private static final String JSON_KEY_INTERACTIONS = "interactions";
 
     private static final String USER_CONTACTED = "user-contacted";
 
@@ -597,20 +597,34 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void updateNotificationHistory(String notificationRecord)
+    public JSONObject getNotificationHistory()
     {
         try {
-            JSONObject newRecord = new JSONObject(notificationRecord);
+            return new JSONObject(this.notificationHistory);
+        } catch (JSONException | NullPointerException ex) {
+            return null;
+        }
+    }
 
+    @Override
+    public void setNotificationHistory(JSONObject notificationHistory)
+    {
+        this.notificationHistory = (notificationHistory != null) ? notificationHistory.toString() : null;
+    }
+
+    @Override
+    public void updateNotificationHistory(JSONObject notificationRecord)
+    {
+        try {
             JSONObject history = (this.notificationHistory != null) ? new JSONObject(this.notificationHistory)
                 : new JSONObject();
-            JSONArray records = history.optJSONArray(INTERACTIONS);
+            JSONArray records = history.optJSONArray(JSON_KEY_INTERACTIONS);
             if (records == null) {
                 records = new JSONArray();
             }
 
-            records.put(newRecord);
-            history.put(INTERACTIONS, records);
+            records.put(notificationRecord);
+            history.put(JSON_KEY_INTERACTIONS, records);
             this.notificationHistory = history.toString();
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened

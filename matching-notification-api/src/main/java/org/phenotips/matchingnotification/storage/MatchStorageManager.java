@@ -26,6 +26,8 @@ import org.xwiki.stability.Unstable;
 import java.util.List;
 import java.util.Set;
 
+import org.json.JSONObject;
+
 /**
  * @version $Id$
  */
@@ -155,8 +157,8 @@ public interface MatchStorageManager
      * Updates a notification history JSON log string with new notification record.
      *
      * @param match subject match
-     * @param notificationRecord the new notification record JSON string
+     * @param notificationRecord the new notification record JSON
      * @return true if successful
      */
-    boolean updateNotificationHistory(PatientMatch match, String notificationRecord);
+    boolean updateNotificationHistory(PatientMatch match, JSONObject notificationRecord);
 }
