@@ -597,6 +597,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public String getNotificationHistory()
+    {
+        return this.notificationHistory;
+    }
+
+    @Override
+    public void setNotificationHistory(String notificationHistory)
+    {
+        this.notificationHistory = notificationHistory;
+    }
+
+    @Override
     public void updateNotificationHistory(String notificationRecord)
     {
         try {

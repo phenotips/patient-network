@@ -269,6 +269,16 @@ public interface PatientMatch
     Timestamp getNotifiedTimestamp();
 
     /**
+     * @return the match notification history JSON string.
+     */
+    String getNotificationHistory();
+
+    /**
+     * @param notificationHistory the notification history JSON string
+     */
+    void setNotificationHistory(String notificationHistory);
+
+    /**
      * Updates a notification history JSON log string with new notification record.
      * Record is a JSON String object, in the following format:
      *     <pre>

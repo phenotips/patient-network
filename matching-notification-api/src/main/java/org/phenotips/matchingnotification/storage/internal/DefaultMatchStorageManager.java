@@ -179,6 +179,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     if (!existingMatch.isNotified()) {
                         match.setFoundTimestamp(existingMatch.getFoundTimestamp());
                         match.setComment(existingMatch.getComment());
+                        match.setNotificationHistory(existingMatch.getNotificationHistory());
                     }
                 }
             }
