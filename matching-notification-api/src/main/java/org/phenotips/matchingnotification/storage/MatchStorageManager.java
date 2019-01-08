@@ -102,6 +102,15 @@ public interface MatchStorageManager
     boolean setComment(List<PatientMatch> matches, String comment);
 
     /**
+     * Saves a note to all matches in {@code matches}.
+     *
+     * @param matches list of matches to save note to.
+     * @param note note text
+     * @return true if successful
+     */
+    boolean saveNote(List<PatientMatch> matches, String note);
+
+    /**
      * Deletes all matches (including those that users have been notified about, and MME matches)
      * for the given local patient.
      *
@@ -161,4 +170,13 @@ public interface MatchStorageManager
      * @return true if successful
      */
     boolean updateNotificationHistory(PatientMatch match, JSONObject notificationRecord);
+
+    /**
+     * Updates match notes string property with new note record.
+     *
+     * @param match subject match
+     * @param note the new note record JSON string
+     * @return true if successful
+     */
+    boolean updateNotes(PatientMatch match, String note);
 }
