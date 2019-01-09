@@ -576,6 +576,9 @@
         }
         return container;
       }
+      if (!r.owner) {
+        return '';
+      }
       var icon = this.Utils.generateIcon('contact', "$escapetool.javascript($services.localization.render('phenotips.similarCases.contactOwnerTitle'))");
       if (r.myCase || !r.owner.email) {
         contactInfo = new Element("span", {"class" : "owner-info"}).insert(r.owner.name || r.owner.id || "").insert(new Element("span", {"class" : this._METADATA_MARKER}));
