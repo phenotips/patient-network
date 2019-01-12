@@ -90,7 +90,25 @@ public interface PatientMatch
      *
      * @param comment comment text
      */
-    void setComment(String comment);
+    void setComments(String comment);
+
+    /**
+     * Updates a comment SON log string with new comment record.
+     * Record is a JSON String object, in the following format:
+     *     <pre>
+     *      { "comments":
+     *         [ { "userinfo":{"id":"xwiki:XWiki.Mary",
+     *                         "name":"Mary Green"},
+     *              "comment":"This is a good match"
+     *              "date":"2018/12/06"},
+     *            ...
+     *          ]
+     *       }
+     *     </pre>
+     *
+     * @param commentRecord the new comment record JSON string
+     */
+    void updateComments(String commentRecord);
 
     /**
      * Sets match notes as a JSON String object, in the following format:
@@ -147,7 +165,7 @@ public interface PatientMatch
     /**
      * @return match comment for a reason why the status was changed.
      */
-    String getComment();
+    String getComments();
 
     /**
      * @return currently logged user note about the match in general, if any.

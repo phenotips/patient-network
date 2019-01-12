@@ -131,13 +131,13 @@ public interface MatchingNotificationManager
     boolean setUserContacted(Set<Long> matchesIds, boolean isUserContacted);
 
     /**
-     * Sets comment to all matches with ids in {@code matchesIds} to a passed comment string.
+     * Saves comment to all matches with ids in {@code matchesIds} to a passed comment string.
      *
-     * @param matchesIds list of ids of matches to set status
+     * @param matchesIds list of ids of matches to save comment
      * @param comment comment text
      * @return true if successful
      */
-    boolean setComment(Set<Long> matchesIds, String comment);
+    boolean saveComment(Set<Long> matchesIds, String comment);
 
     /**
      * Saves note to all matches with ids in {@code matchesIds}.

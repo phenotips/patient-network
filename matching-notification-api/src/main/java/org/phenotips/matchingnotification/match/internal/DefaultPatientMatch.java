@@ -28,6 +28,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.io.Serializable;
@@ -81,6 +82,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final String NOTES = "notes";
 
+    private static final String COMMENTS = "comments";
+
     private static final UserManager USER_MANAGER;
 
     /*
@@ -112,7 +115,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     private String status;
 
     @Basic
-    private String comment;
+    @Column(length = 0xFFFFFF)
+    private String comments;
 
     @Basic
     @Column(length = 0xFFFFFF)
@@ -259,6 +263,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         this.notifiedTimestamp = null;
         this.notified = false;
         this.notificationHistory = null;
+        this.comments = null;
         this.notes = null;
         this.status = "uncategorized";
         this.score = similarityView.getScore();
@@ -313,9 +318,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setComment(String comment)
+    public void setComments(String comments)
     {
-        this.comment = comment;
+        this.comments = comments;
     }
 
     @Override
@@ -369,9 +374,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String getComment()
+    public String getComments()
     {
-        return this.comment;
+        return this.comments;
     }
 
     @Override
@@ -506,7 +511,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("genotypicScore", this.getGenotypeScore());
         json.put("phenotypicScore", this.getPhenotypeScore());
         json.put("href", this.isLocal() ? "" : this.getHref());
-        json.put("comment", this.getComment());
+        json.put("comments", this.getComments());
         json.put("notificationHistory", this.notificationHistory);
         json.put("notes", this.getNotes());
 
@@ -733,6 +738,50 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             this.notificationHistory = history.toString();
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
+        }
+    }
+
+    @Override
+    public void updateComments(String commentRecord)
+    {
+        try {
+            User currentUser = USER_MANAGER.getCurrentUser();
+            JSONObject allComments = (this.comments != null) ? new JSONObject(this.comments)
+                : new JSONObject();
+            JSONArray records = allComments.optJSONArray(COMMENTS);
+            JSONObject newRecord = new JSONObject();
+            JSONObject userInfo = new JSONObject();
+            userInfo.put("id", currentUser.getId());
+            userInfo.put("name", currentUser.getName());
+            newRecord.put("userinfo", userInfo);
+            newRecord.put("comment", commentRecord);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+            newRecord.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
+
+            if (records == null) {
+                records = new JSONArray();
+                records.put(newRecord);
+            } else {
+                boolean updated = false;
+                for (Object record : records) {
+                    JSONObject item = (JSONObject) record;
+                    JSONObject userInfoJson = item.optJSONObject("userinfo");
+                    if (userInfoJson != null && userInfoJson.optString("id", "").equals(currentUser.getId())) {
+                        item.put("comment", commentRecord);
+                        updated = true;
+                        break;
+                    }
+                }
+
+                if (!updated) {
+                    records.put(newRecord);
+                }
+            }
+
+            allComments.put(COMMENTS, records);
+            this.comments = allComments.toString();
+        } catch (JSONException ex) {
+            // error parsing notes or new record JSON string to JSON object happened
         }
     }
 }
