@@ -184,7 +184,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     if (!existingMatch.isNotified()) {
                         match.setFoundTimestamp(existingMatch.getFoundTimestamp());
                         match.setStatus(existingMatch.getStatus());
-                        match.setComment(existingMatch.getComment());
+                        match.setComments(existingMatch.getComments());
                         match.setNotificationHistory(existingMatch.getNotificationHistory());
                         match.setNotes(existingMatch.getNotes());
                     }
@@ -552,14 +552,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean setComment(List<PatientMatch> matches, String comment)
+    public boolean saveComment(List<PatientMatch> matches, String comment)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
             for (PatientMatch match : matches) {
-                match.setComment(comment);
+                match.updateComments(comment);
                 session.update(match);
             }
             transactionCompleted = true;

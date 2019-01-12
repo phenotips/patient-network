@@ -267,7 +267,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean setComment(Set<Long> matchesIds, String comment)
+    public boolean saveComment(Set<Long> matchesIds, String comment)
     {
         boolean successful = false;
         try {
@@ -275,7 +275,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             filterNonUsersMatches(matches);
 
-            successful = this.matchStorageManager.setComment(matches, comment);
+            successful = this.matchStorageManager.saveComment(matches, comment);
         } catch (Exception e) {
             this.logger.error("Error while setting comment for matches {} as {}",
                 Joiner.on(",").join(matchesIds), comment, e);

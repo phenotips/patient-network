@@ -306,7 +306,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        boolean success = this.matchingNotificationManager.setComment(matchesIds, comment);
+        boolean success = this.matchingNotificationManager.saveComment(matchesIds, comment);
         JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
             : Collections.<Long>emptyList());
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
