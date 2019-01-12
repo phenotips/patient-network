@@ -93,13 +93,13 @@ public interface MatchStorageManager
     boolean setStatus(List<PatientMatch> matches, String status);
 
     /**
-     * Sets comment to all matches in {@code matches} to a passed status string.
+     * Saves comment to all matches in {@code matches} to a passed status string.
      *
-     * @param matches list of matches to mark as notified.
+     * @param matches list of matches to save comment.
      * @param comment comment text
      * @return true if successful
      */
-    boolean setComment(List<PatientMatch> matches, String comment);
+    boolean saveComment(List<PatientMatch> matches, String comment);
 
     /**
      * Saves a note to all matches in {@code matches}.
