@@ -370,7 +370,7 @@ label.score {
   padding-top: 0.1em;
   padding-right: 0.2em;
 }
-.notification-history-table {
+.notification-history-table, .comments-table {
   width: 100%;
 }
 .notification-history-table th {
@@ -379,8 +379,16 @@ label.score {
   font-size: .8em;
   padding: 3px 4px;
   text-transform: uppercase;
+  background-color: #F6F8F9;
 }
-.notification-history-table td {
+.comments-table .comment-info {
+  border: 0;
+  border-bottom: 1px solid #D7DEE3;
+  font-size: .9em;
+  padding: 3px 4px;
+  background-color: #F6F8F9;
+}
+.notification-history-table td, .comments-table td {
   border: 0;
   border-bottom: 1px solid #D7DEE3;
   color: #636B75;
@@ -404,6 +412,10 @@ label.score {
 .notification-history-table .date {
   font-size: .85em;
   margin-bottom: 0.5em;
+}
+.comments-table .date {
+  font-size: .9em;
+  float: right;
 }
 .xTooltip.notification-history-container {
   margin: .5em 2.5em 0 0;
@@ -436,6 +448,14 @@ td[name="contact"] {
 .xHint {
   color: #369;
   font-size: 87%;
+  white-space: -moz-pre-wrap !important;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  white-space: -webkit-pre-wrap;
+  word-break: break-all;
+  white-space: normal;
 }
 .notes-container h4 {
   margin: 0;

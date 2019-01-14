@@ -62,8 +62,10 @@ var PhenoTips = (function (PhenoTips) {
         this._MARK_USER_CONTACTED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.title'))";
         this._MARK_USER_UNCONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserUncontactedButton.title'))";
-        this._SAVE_COMMENT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saveComment'))";
+        this._SAVE_COMMENT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.comment.save'))";
         this._ADD_COMMENT_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.addComment'))";
+        this._COMMENTS_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.comments.title'))";
+        this._COMMENTS_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.comments.hint'))";
         this._SERVER_ERROR_MESSAGE = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.serverFailed'))";
         this._PUBMED = "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))";
         this._SOLVED_CASE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.solvedCase'))";
@@ -659,6 +661,16 @@ var PhenoTips = (function (PhenoTips) {
             }
 
             match.notificationHistory = this._organiseNotificationHistory(match);
+
+            // parse comments if any
+            if (match.comments) {
+                try {
+                    var records = JSON.parse(match.comments);
+                    match.comments = records.comments;
+                } catch(e) {
+                    console.log("Syntax error parsing match.comments for match ID: "+ match.id +" comments JSON string: "+ match.comments);
+                }
+            }
         }.bind(this));
 
         // new data - forget current sorting preferences
@@ -878,11 +890,20 @@ var PhenoTips = (function (PhenoTips) {
                 + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
                 + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
                 + '</select>';
-            var icon = (match.comment && match.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
+            // comments
+            var icon = (match.comments) ? "fa fa-comments" : "fa fa-comments-o";
             td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
-            td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
-                +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+            var commentsTable = '';
+            if (match.comments) {
+                commentsTable = this._generateCommentsTable(match.comments);
+            }
+            td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span>'
+                + '<div class="nhdialog-title">' + this._COMMENTS_TITLE + '</div>'
+                + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
+                + '<div><textarea rows="5" cols="20"></textarea></div>';
+            td +='<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
                 + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
+            td += commentsTable;
         }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
@@ -893,6 +914,74 @@ var PhenoTips = (function (PhenoTips) {
             + this._NOTES_SAVE + '</a></span></div>';
         td += '</td>';
         return td;
+    },
+
+    _getUserComment : function(records) {
+        for (var i=0; i < records.length; i++) {
+            if (records[i].userinfo && records[i].userinfo.id && this._currentUserId == records[i].userinfo.id) {
+                return records[i].comment;
+            }
+        }
+        return null;
+    },
+
+    _generateCommentsTable : function(records)
+    {
+        var tableBody = '';
+
+        for (var i=0; i < records.length; i++) {
+            var record = records[i];
+
+            // if no comment text or comment made by current user, continue to next comment record
+            if (!record.comment || record.userinfo && record.userinfo.id && this._currentUserId == record.userinfo.id) {
+                continue;
+            }
+
+            // date and user name row
+            var row = '<tr>';
+            var date = '<td class="comment-info">';
+            if (record.date) {
+                date += '<span class="date">' + record.date.split(' ')[0] + '</span>';
+            }
+            if (record.userinfo) {
+                // admin comments should have something generic e.g. "PhenomeCentral" (no link)
+                if (record.userinfo.id == "xwiki:XWiki.Admin") {
+                    date += '<span>PhenomeCentral</span>';
+                } else {
+                    if (record.userinfo.name) {
+                        if (record.userinfo.id) {
+                            var space = (record.userinfo.id.startsWith("xwiki:XWiki.")) ? "XWiki" : "Groups";
+                            var url = (new XWiki.Document(record.userinfo.id, space)).getURL();
+                            date += '<a href="' + url + '" target="_blank">' + record.userinfo.name + '</a>';
+                        } else {
+                            date += record.userinfo.name;
+                        }
+                    }
+                }
+            }
+            date += '</td>';
+            row += date;
+            row += '</tr>';
+            tableBody += row;
+
+            // comment row
+            row = '<tr>';
+            var comment = '<td class="comment-text">' + record.comment + '</td>';
+            row += comment;
+            row += '</tr>';
+
+            tableBody += row;
+        }
+
+        if (!tableBody) {
+            return '';
+        }
+
+        var table = '<table class="comments-table"><tbody>';
+        table += tableBody;
+        table += '</tbody></table>';
+
+        return table;
     },
 
     _simpleCellWriter : function(value)
@@ -1367,6 +1456,10 @@ var PhenoTips = (function (PhenoTips) {
         this._tableElement.select('.button.comment').each(function (elm) {
             var comment_container = elm.up('td').down('.comment-container');
             var textarea = comment_container.down('textarea');
+            var saveButton = elm.up('td').down('.save-comment');
+            var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
+            var records = commentMatch && commentMatch[0] && commentMatch[0].comments || '';
+            textarea.value = (records) ? this._getUserComment(records) : '';
 
             // hide comment container on table update
             comment_container.addClassName('hidden');
@@ -1380,20 +1473,17 @@ var PhenoTips = (function (PhenoTips) {
 
             var hideTool = elm.up('td').down('.comment-container .hide-tool');
             hideTool.on('click', function(event) {
-                elm.down('span').className = (textarea.value != "") ? "fa fa-comment" : "fa fa-comment-o";
+                elm.down('span').className = (textarea.value || records.length > 0) ? "fa fa-comments" : "fa fa-comments-o";
                 comment_container.addClassName('hidden');
             });
 
-            var saveButton = elm.up('td').down('.save-comment');
             saveButton.on('click', function(event) {
                 event.stop();
-                elm.down('span').className = (textarea.value != "") ? "fa fa-comment" : "fa fa-comment-o";
+                elm.down('span').className = (textarea.value || records.length > 0) ? "fa fa-comments" : "fa fa-comments-o";
                 comment_container.addClassName('hidden');
                 this._saveComment(event);
             }.bind(this));
 
-            var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
-            textarea.value = (commentMatch && commentMatch[0] && commentMatch[0].comment) ? commentMatch[0].comment : '';
         }.bind(this));
     },
 
