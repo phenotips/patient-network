@@ -294,7 +294,7 @@ public interface PatientMatch
      *         "cc":  ["mary@blueberry.com"],
      *         "subjectPatientId":"P000005"
      *         "type":"contact",
-     *         "date":"2018/12/06"
+     *         "date":"2018/12/06 14:58"
      *       }
      *     </pre>
      *

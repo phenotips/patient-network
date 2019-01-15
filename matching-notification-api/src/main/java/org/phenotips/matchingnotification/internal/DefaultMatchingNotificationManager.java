@@ -165,7 +165,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         for (PatientMatch notifiedMatch : matches) {
             Timestamp date = notifiedMatch.getNotifiedTimestamp();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
             json.put("date", date == null ? sdf.format(new Timestamp(System.currentTimeMillis())) : sdf.format(date));
 
             if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json.toString())) {
