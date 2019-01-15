@@ -631,6 +631,9 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseModeOfInheritance(match);
 
             this._organiseGenes(match);
+
+            // exclude empty/blank pubmedIDs
+            this._excludeBlankPubmedIDs(match);
         }.bind(this));
 
         // leave only uniq server ids in the array, remove duplicates
@@ -641,6 +644,16 @@ var PhenoTips = (function (PhenoTips) {
 
         // sort by match found timestamp in descending order
         this._sortByColumn('foundTimestamp');
+    },
+
+    _excludeBlankPubmedIDs : function(match)
+    {
+        if (match.reference.pubmedIds) {
+            match.reference.pubmedIds = match.reference.pubmedIds.filter(function(pubmedID) { return !!pubmedID.trim(); })
+        }
+        if (match.matched.pubmedIds) {
+            match.matched.pubmedIds = match.matched.pubmedIds.filter(function(pubmedID) { return !!pubmedID.trim(); })
+        }
     },
 
     _organiseModeOfInheritance : function(match) {
