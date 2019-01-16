@@ -32,7 +32,6 @@ var PhenoTips = (function (PhenoTips) {
         this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.pagination, this._maxResults);
 
         this._isAdmin = $('isAdmin');
-        this._presentServerIds = [];
 
         this._utils = new utils(this._tableElement);
 
@@ -565,10 +564,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _formatMatches : function()
     {
-        // collect server IDs that are present in the match data
-        // to show/hide corresponding filter checkboxes after table processing (see this._afterProcessTableHideApsentServerIdsFromFilter())
-        this._presentServerIds = [];
-
         this._cachedMatches.each( function (match, index) {
             // add field for match row index
             match.rowIndex = index;
@@ -584,22 +579,17 @@ var PhenoTips = (function (PhenoTips) {
             match.reference.access = match.reference.access || '';
 
             match.isLocal = (match.matched.serverId == '' && match.reference.serverId == '');
-            match.isLocal && this._presentServerIds.push("local");
 
             if (match.matched.serverId != '') {
                 if (!this._filterValues.serverIds.hasOwnProperty(match.matched.serverId)) {
                     // do not show matches that have server ID that is not pre-generated in velocity,
                     // i.e. are not in the valid (enabled) list of servers
                     this._filterValues.serverIds[match.matched.serverId] = false;
-                } else {
-                    this._presentServerIds.push(match.matched.serverId);
                 }
             }
             if (match.reference.serverId != '') {
                 if (!this._filterValues.serverIds.hasOwnProperty(match.reference.serverId)) {
                     this._filterValues.serverIds[match.reference.serverId] = false;
-                } else {
-                    this._presentServerIds.push(match.reference.serverId);
                 }
             }
 
@@ -632,9 +622,6 @@ var PhenoTips = (function (PhenoTips) {
 
             this._organiseGenes(match);
         }.bind(this));
-
-        // leave only uniq server ids in the array, remove duplicates
-        this._presentServerIds = this._presentServerIds.uniq();
 
         // new data - forget current sorting preferences
         this._resetSortingPreferences();
@@ -1183,14 +1170,13 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTableHideApsentServerIdsFromFilter : function()
     {
-        if (this._presentServerIds.length > 1) {
-            $('checkbox-server-filters').show();
-            $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-                (this._presentServerIds.indexOf(selectEl.value) >= 0) ? selectEl.up().show() : selectEl.up().hide();
-            }.bind(this));
-        } else {
-            $('checkbox-server-filters').hide();
-        }
+        $('checkbox-server-filters').show();
+        $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
+        	//count matches with this server id
+            var serverID = (selectEl.value == "local") ? "" : selectEl.value;
+            var matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
+            var countEl = selectEl.next('.matches-count').update(' (' + matchesForServer.length + ')');
+        }.bind(this));
     },
 
     _afterProcessTableStatusListeners : function()
