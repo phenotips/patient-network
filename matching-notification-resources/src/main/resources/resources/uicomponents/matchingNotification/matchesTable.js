@@ -87,8 +87,6 @@ var PhenoTips = (function (PhenoTips) {
         // set behaviour for hide/show email columns triggers
         this._initiateEmailColumnsBehaviur();
 
-        $('checkbox-server-filters').hide();
-
         $('contentmenu') && $('contentmenu').hide();
         $('hierarchy') && $('hierarchy').hide();
 
@@ -1170,7 +1168,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTableHideApsentServerIdsFromFilter : function()
     {
-        $('checkbox-server-filters').show();
         $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
         	//count matches with this server id
             var serverID = (selectEl.value == "local") ? "" : selectEl.value;
