@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification;
 
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.notification.PatientMatchNotificationResponse;
 
 import org.xwiki.component.annotation.Role;
@@ -135,9 +136,9 @@ public interface MatchingNotificationManager
      *
      * @param matchesIds list of ids of matches to save comment
      * @param comment comment text
-     * @return true if successful
+     * @return list of updated matches
      */
-    boolean saveComment(Set<Long> matchesIds, String comment);
+    List<PatientMatch> saveComment(Set<Long> matchesIds, String comment);
 
     /**
      * Saves note to all matches with ids in {@code matchesIds}.

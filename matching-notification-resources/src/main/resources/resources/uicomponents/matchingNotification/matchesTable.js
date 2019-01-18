@@ -661,16 +661,6 @@ var PhenoTips = (function (PhenoTips) {
             }
 
             match.notificationHistory = this._organiseNotificationHistory(match);
-
-            // parse comments if any
-            if (match.comments) {
-                try {
-                    var records = JSON.parse(match.comments);
-                    match.comments = records.comments;
-                } catch(e) {
-                    console.log("Syntax error parsing match.comments for match ID: "+ match.id +" comments JSON string: "+ match.comments);
-                }
-            }
         }.bind(this));
 
         // new data - forget current sorting preferences
@@ -902,8 +892,7 @@ var PhenoTips = (function (PhenoTips) {
                 + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
                 + '<div><textarea rows="5" cols="20"></textarea></div>';
             td +='<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
-                + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
-            td += commentsTable;
+                + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span>' + commentsTable + '</div>';
         }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
@@ -916,24 +905,15 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getUserComment : function(records) {
-        for (var i=0; i < records.length; i++) {
-            if (records[i].userinfo && records[i].userinfo.id && this._currentUserId == records[i].userinfo.id) {
-                return records[i].comment;
-            }
-        }
-        return null;
-    },
-
     _generateCommentsTable : function(records)
     {
         var tableBody = '';
 
-        for (var i=0; i < records.length; i++) {
+        for (var i=records.length-1; i >= 0; i--) {
             var record = records[i];
 
-            // if no comment text or comment made by current user, continue to next comment record
-            if (!record.comment || record.userinfo && record.userinfo.id && this._currentUserId == record.userinfo.id) {
+            // if no comment text, continue to next comment record
+            if (!record.comment) {
                 continue;
             }
 
@@ -949,10 +929,8 @@ var PhenoTips = (function (PhenoTips) {
                     date += '<span>PhenomeCentral</span>';
                 } else {
                     if (record.userinfo.name) {
-                        if (record.userinfo.id) {
-                            var space = (record.userinfo.id.startsWith("xwiki:XWiki.")) ? "XWiki" : "Groups";
-                            var url = (new XWiki.Document(record.userinfo.id, space)).getURL();
-                            date += '<a href="' + url + '" target="_blank">' + record.userinfo.name + '</a>';
+                        if (record.userinfo.url) {
+                            date += '<a href="' + record.userinfo.url + '" target="_blank">' + record.userinfo.name + '</a>';
                         } else {
                             date += record.userinfo.name;
                         }
@@ -1445,8 +1423,6 @@ var PhenoTips = (function (PhenoTips) {
             if (item && elm === item) {
                 return;
             }
-            var textarea = elm.down('textarea');
-            elm.up('td').down('.comment span.fa').className = (textarea.value) ?  "fa fa-comment" : "fa fa-comment-o";
             elm.addClassName('hidden');
         });
     },
@@ -1457,14 +1433,14 @@ var PhenoTips = (function (PhenoTips) {
             var comment_container = elm.up('td').down('.comment-container');
             var textarea = comment_container.down('textarea');
             var saveButton = elm.up('td').down('.save-comment');
-            var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
+            var commentMatch = this._matches.filter( function(match) { return String(match.id) === saveButton.dataset.matchid; } );
             var records = commentMatch && commentMatch[0] && commentMatch[0].comments || '';
-            textarea.value = (records) ? this._getUserComment(records) : '';
 
             // hide comment container on table update
             comment_container.addClassName('hidden');
 
             elm.on('click', function(event) {
+                event.stop();
                 comment_container.toggleClassName('hidden');
                 this._hideAllNotesDialogs();
                 this._hideAllCommentsDialogs(comment_container);
@@ -1473,14 +1449,11 @@ var PhenoTips = (function (PhenoTips) {
 
             var hideTool = elm.up('td').down('.comment-container .hide-tool');
             hideTool.on('click', function(event) {
-                elm.down('span').className = (textarea.value || records.length > 0) ? "fa fa-comments" : "fa fa-comments-o";
                 comment_container.addClassName('hidden');
             });
 
             saveButton.on('click', function(event) {
                 event.stop();
-                elm.down('span').className = (textarea.value || records.length > 0) ? "fa fa-comments" : "fa fa-comments-o";
-                comment_container.addClassName('hidden');
                 this._saveComment(event);
             }.bind(this));
 
@@ -1890,9 +1863,21 @@ var PhenoTips = (function (PhenoTips) {
                 }
             }
 
-            if (properties.hasOwnProperty('comment')) {
-                this._matches[matchIndex].comment = properties.comment;
-                this._cachedMatches[cachedIndex].comment = properties.comment;
+            if (properties.hasOwnProperty('comments') && Object.keys(properties.comments).indexOf(match.id.toString()) > -1) {
+                this._matches[matchIndex].comments = properties.comments[match.id];
+                this._cachedMatches[cachedIndex].comments = properties.comments[match.id];
+                // update comments table in pop-up
+                var commentsContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .comment-container');
+                if (commentsContainer) {
+                    var commentsTable = commentsContainer.down('.comments-table');
+                    commentsTable && commentsTable.remove();
+                    var newCommentsTable = this._generateCommentsTable(this._matches[matchIndex].comments);
+                    commentsContainer.insert(newCommentsTable);
+                    var commentsIconEl = commentsContainer.up('tr').down('.button.comment span.fa');
+                    if (commentsIconEl) { commentsIconEl.className = "fa fa-comments"; }
+                    var textarea = commentsContainer.down('textarea');
+                    if (textarea) { textarea.value = ''; }
+                }
             }
 
             if (properties.hasOwnProperty('notes')) {
@@ -1982,8 +1967,9 @@ var PhenoTips = (function (PhenoTips) {
     {
         var target = event.element();
         if (!target) return;
-        var matchId = String(target.dataset.matchid);
         var comment = target.up('.comment-container').down('textarea').value;
+        if (!comment) return;
+        var matchId = String(target.dataset.matchid);
         var ids = matchId.split(",");
 
         new Ajax.Request(this._ajaxURL + 'save-comment', {
@@ -1998,7 +1984,7 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'state': 'success', 'comment' : comment});
+                    this._setState(results.success, {'state': 'success', 'comments' : results.comments});
                 } else if (results.failed && results.failed.length > 0) {
                     this._utils.showFailure('show-matches-messages', "Saving comment failed");
                 }

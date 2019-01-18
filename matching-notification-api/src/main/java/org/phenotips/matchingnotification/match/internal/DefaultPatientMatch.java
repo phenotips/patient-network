@@ -82,8 +82,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final String NOTES = "notes";
 
-    private static final String COMMENTS = "comments";
-
     private static final UserManager USER_MANAGER;
 
     /*
@@ -318,9 +316,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setComments(String comments)
+    public void setComments(JSONArray comments)
     {
-        this.comments = comments;
+        this.comments = (comments != null) ? comments.toString() : null;
     }
 
     @Override
@@ -374,9 +372,13 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String getComments()
+    public JSONArray getComments()
     {
-        return this.comments;
+        try {
+            return new JSONArray(this.comments);
+        } catch (JSONException | NullPointerException ex) {
+            return null;
+        }
     }
 
     @Override
@@ -754,44 +756,24 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void updateComments(String commentRecord)
+    public void updateComments(String comment)
     {
         try {
             User currentUser = USER_MANAGER.getCurrentUser();
-            JSONObject allComments = (this.comments != null) ? new JSONObject(this.comments)
-                : new JSONObject();
-            JSONArray records = allComments.optJSONArray(COMMENTS);
+            JSONArray records = (this.comments != null) ? new JSONArray(this.comments)
+                : new JSONArray();
+
             JSONObject newRecord = new JSONObject();
             JSONObject userInfo = new JSONObject();
             userInfo.put("id", currentUser.getId());
             userInfo.put("name", currentUser.getName());
             newRecord.put("userinfo", userInfo);
-            newRecord.put("comment", commentRecord);
+            newRecord.put("comment", comment);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
             newRecord.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
 
-            if (records == null) {
-                records = new JSONArray();
-                records.put(newRecord);
-            } else {
-                boolean updated = false;
-                for (Object record : records) {
-                    JSONObject item = (JSONObject) record;
-                    JSONObject userInfoJson = item.optJSONObject("userinfo");
-                    if (userInfoJson != null && userInfoJson.optString("id", "").equals(currentUser.getId())) {
-                        item.put("comment", commentRecord);
-                        updated = true;
-                        break;
-                    }
-                }
-
-                if (!updated) {
-                    records.put(newRecord);
-                }
-            }
-
-            allComments.put(COMMENTS, records);
-            this.comments = allComments.toString();
+            records.put(newRecord);
+            this.comments = records.toString();
         } catch (JSONException ex) {
             // error parsing notes or new record JSON string to JSON object happened
         }

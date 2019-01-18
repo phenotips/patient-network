@@ -22,6 +22,7 @@ import org.xwiki.model.reference.EntityReference;
 
 import java.sql.Timestamp;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -86,29 +87,27 @@ public interface PatientMatch
     void setStatus(String status);
 
     /**
-     * Sets match comment.
+     * Sets match comments.
      *
-     * @param comment comment text
+     * @param comments comments JSON array
      */
-    void setComments(String comment);
+    void setComments(JSONArray comments);
 
     /**
-     * Updates a comment SON log string with new comment record.
-     * Record is a JSON String object, in the following format:
+     * Updates match comments JSON log string property with new comment.
+     * Comments are stored as a JSON String object, in the following format:
      *     <pre>
-     *      { "comments":
      *         [ { "userinfo":{"id":"xwiki:XWiki.Mary",
      *                         "name":"Mary Green"},
-     *              "comment":"This is a good match"
-     *              "date":"2018/12/06"},
+     *              "comment":"This is a good match",
+     *              "date":"2018/12/06 15:36"},
      *            ...
      *          ]
-     *       }
      *     </pre>
      *
-     * @param commentRecord the new comment record JSON string
+     * @param comment the new comment string
      */
-    void updateComments(String commentRecord);
+    void updateComments(String comment);
 
     /**
      * Sets match notes as a JSON object, in the following format:
@@ -163,9 +162,9 @@ public interface PatientMatch
     String getStatus();
 
     /**
-     * @return match comment for a reason why the status was changed.
+     * @return all match comments as JSON array.
      */
-    String getComments();
+    JSONArray getComments();
 
     /**
      * @return currently logged user note about the match in general, if any.

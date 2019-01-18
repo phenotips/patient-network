@@ -77,7 +77,6 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
   #end
 #end
 #if($hasAdmin)&lt;input type="hidden" id="isAdmin"&gt;#end
-&lt;input type="hidden" id="currentUserId" value="$xcontext.userReference"&gt;
 ##--FILTERS--
 &lt;div id="matches-directory" class="entity-directory"&gt;
   &lt;div class="xwiki-livetable-container"&gt;
