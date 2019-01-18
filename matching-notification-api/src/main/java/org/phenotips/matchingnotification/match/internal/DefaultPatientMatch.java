@@ -749,6 +749,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             JSONObject allComments = (this.comments != null) ? new JSONObject(this.comments)
                 : new JSONObject();
             JSONArray records = allComments.optJSONArray(COMMENTS);
+            if (records == null) {
+                records = new JSONArray();
+            }
+
             JSONObject newRecord = new JSONObject();
             JSONObject userInfo = new JSONObject();
             userInfo.put("id", currentUser.getId());
@@ -758,26 +762,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
             newRecord.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
 
-            if (records == null) {
-                records = new JSONArray();
-                records.put(newRecord);
-            } else {
-                boolean updated = false;
-                for (Object record : records) {
-                    JSONObject item = (JSONObject) record;
-                    JSONObject userInfoJson = item.optJSONObject("userinfo");
-                    if (userInfoJson != null && userInfoJson.optString("id", "").equals(currentUser.getId())) {
-                        item.put("comment", commentRecord);
-                        updated = true;
-                        break;
-                    }
-                }
-
-                if (!updated) {
-                    records.put(newRecord);
-                }
-            }
-
+            records.put(newRecord);
             allComments.put(COMMENTS, records);
             this.comments = allComments.toString();
         } catch (JSONException ex) {

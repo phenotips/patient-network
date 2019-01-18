@@ -901,8 +901,7 @@ var PhenoTips = (function (PhenoTips) {
             + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
             + '<div><textarea rows="5" cols="20"></textarea></div>';
         td +='<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
-            + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
-        td += commentsTable;
+            + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span>' + commentsTable + '</div>';
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
         td += '<span class="buttonwrapper" title="' + this._NOTES_TITLE + '"><a class="button notes" href="#"><span class="' + icon + '"> </span></a></span>';
@@ -914,15 +913,6 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getUserComment : function(records) {
-        for (var i=0; i < records.length; i++) {
-            if (records[i].userinfo && records[i].userinfo.id && this._currentUserId == records[i].userinfo.id) {
-                return records[i].comment;
-            }
-        }
-        return null;
-    },
-
     _generateCommentsTable : function(records)
     {
         var tableBody = '';
@@ -930,8 +920,8 @@ var PhenoTips = (function (PhenoTips) {
         for (var i=0; i < records.length; i++) {
             var record = records[i];
 
-            // if no comment text or comment made by current user, continue to next comment record
-            if (!record.comment || record.userinfo && record.userinfo.id && this._currentUserId == record.userinfo.id) {
+            // if no comment text, continue to next comment record
+            if (!record.comment) {
                 continue;
             }
 
@@ -1426,7 +1416,6 @@ var PhenoTips = (function (PhenoTips) {
             var saveButton = elm.up('td').down('.save-comment');
             var commentMatch = this._matches.filter(function(match) { return String(match.id) === saveButton.dataset.matchid; });
             var records = commentMatch && commentMatch[0] && commentMatch[0].comments || '';
-            textarea.value = (records) ? this._getUserComment(records) : '';
 
             // hide comment container on table update
             comment_container.addClassName('hidden');
