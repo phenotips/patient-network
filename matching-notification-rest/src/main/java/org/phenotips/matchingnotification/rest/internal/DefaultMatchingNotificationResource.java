@@ -282,9 +282,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        boolean success = this.matchingNotificationManager.saveComment(matchesIds, comment);
-        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
-            : Collections.<Long>emptyList());
+        List<PatientMatch> successfulMatches = this.matchingNotificationManager.saveComment(matchesIds, comment);
+        JSONObject result = this.successfulMatchesCommentsToJSON(new LinkedList<>(matchesIds), successfulMatches);
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
@@ -347,7 +346,24 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         result.put("failed", failedIds);
         JSONObject reply = new JSONObject();
         reply.put("results", result);
+        return reply;
+    }
 
+    private JSONObject successfulMatchesCommentsToJSON(Collection<Long> allIds, List<PatientMatch> successfulMatches)
+    {
+        JSONObject result = new JSONObject();
+        Collection<Long> failedIds = new LinkedList<>(allIds);
+        JSONObject comments = new JSONObject();
+        for (PatientMatch match : successfulMatches) {
+            failedIds.remove(match.getId());
+            comments.put(match.getId().toString(), match.getComments());
+        }
+        allIds.removeAll(failedIds);
+        result.put("success", allIds);
+        result.put("failed", failedIds);
+        result.put("comments", comments);
+        JSONObject reply = new JSONObject();
+        reply.put("results", result);
         return reply;
     }
 

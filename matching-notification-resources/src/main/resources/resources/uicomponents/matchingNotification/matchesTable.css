@@ -255,11 +255,12 @@ ul.filters label {
 }
 .xTooltip.comment-container, .xTooltip.notes-container {
   width: 20em;
+  text-align: left;
 }
 .xTooltip.comment-container {
   background-color: #F6F8F9;
 }
-.xTooltip.comment-container textarea {
+.xTooltip.comment-container textarea, .xTooltip.notes-container textarea {
   margin-bottom: 5px;
   margin-top: 10px;
 }
@@ -454,7 +455,6 @@ td[name="contact"] {
   white-space: pre-wrap;
   word-wrap: break-word;
   white-space: -webkit-pre-wrap;
-  word-break: break-all;
   white-space: normal;
 }
 .notes-container h4 {
@@ -471,4 +471,8 @@ td[name="contact"] {
 .matched {
   background-color: #EEE;
   border-radius: 4px 4px;
+}
+.comment-text {
+  color: #565656;
+  background-color: #eaeaea;
 }

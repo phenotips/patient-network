@@ -267,20 +267,21 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveComment(Set<Long> matchesIds, String comment)
+    public List<PatientMatch> saveComment(Set<Long> matchesIds, String comment)
     {
-        boolean successful = false;
         try {
             List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
 
             filterNonUsersMatches(matches);
 
-            successful = this.matchStorageManager.saveComment(matches, comment);
+            if (this.matchStorageManager.saveComment(matches, comment)) {
+                return matches;
+            }
         } catch (Exception e) {
             this.logger.error("Error while setting comment for matches {} as {}",
                 Joiner.on(",").join(matchesIds), comment, e);
         }
-        return successful;
+        return Collections.emptyList();
     }
 
     @Override
