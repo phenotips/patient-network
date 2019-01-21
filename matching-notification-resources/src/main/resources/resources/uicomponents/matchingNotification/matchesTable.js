@@ -230,6 +230,8 @@ var PhenoTips = (function (PhenoTips) {
                                         "uncontacted" : $$('input[name="contacted-filter"][value="uncontacted"]')[0].checked};
         this._filterValues.score  = {"score" : 0, "phenotypicScore" : 0, "genotypicScore" : 0};
         this._filterValues.geneStatus  = "all";
+        this._filterValues.hasExome  = {"hasExome" : $$('input[name="exome-filter"][value="hasExome"]')[0].checked,
+                                        "hasNoExome" : $$('input[name="exome-filter"][value="hasNoExome"]')[0].checked};
         this._filterValues.externalId  = "";
         this._filterValues.email       = "";
         this._filterValues.geneSymbol  = "";
@@ -264,6 +266,13 @@ var PhenoTips = (function (PhenoTips) {
         $('gene-status-filter').on('change', function(event) {
             this._filterValues.geneStatus = event.currentTarget.value;
             this._update();
+        }.bind(this));
+
+        $$('input[name="exome-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.hasExome[event.currentTarget.value] = event.currentTarget.checked;
+                this._update();
+            }.bind(this));
         }.bind(this));
 
         $$('input[name="access-filter"]').each(function (checkbox) {
@@ -381,8 +390,11 @@ var PhenoTips = (function (PhenoTips) {
             // by match access type (owned or shares cases for non admin users)
             var hasAccessTypeMath = this._filterValues.matchAccess[match.matched.access]
                 || this._filterValues.matchAccess[match.reference.access];
-            // by gene matching statuses (candidate-candidate, solved-candidate, has exome data matches)
-            var hasGeneExomeTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
+            // by gene matching statuses (candidate-candidate, solved-candidate)
+            var hasGeneTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
+            // by uploaded VCF file to ane of the patients
+            var hasExomeMatch = (match.matched.hasExomeData || match.reference.hasExomeData) && this._filterValues.hasExome.hasExome
+                             || (!match.matched.hasExomeData && !match.reference.hasExomeData) && this._filterValues.hasExome.hasNoExome;
             // by match status (rejected, saved, uncategorized)
             var hasMatchStatusMatch = this._filterValues.matchStatus[match.status];
 
@@ -435,8 +447,8 @@ var PhenoTips = (function (PhenoTips) {
                 }.bind(this);
             var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCases
-                       && hasMatchStatusMatch && hasGeneExomeTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch
+                       && hasMatchStatusMatch && hasGeneTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
 
@@ -748,9 +760,6 @@ var PhenoTips = (function (PhenoTips) {
             var status2 = match.reference.genesStatus ? match.reference.genesStatus : "candidate";
             matchedGenesTypes.push(status1 + '_' + status2);
             matchedGenesTypes.push(status2 + '_' + status1);
-            if (match.matched.hasExomeData || match.reference.hasExomeData) {
-                matchedGenesTypes.push('has_exome');
-            }
         }
         // remove possible repetitions
         return matchedGenesTypes.uniq();
