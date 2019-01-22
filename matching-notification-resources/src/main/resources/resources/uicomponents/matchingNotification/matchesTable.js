@@ -72,6 +72,8 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTIFICATION_HISTORY_TO = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.to.label'))";
         this._NOTIFICATION_HISTORY_FROM = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.from.label'))";
         this._NOTIFICATION_HISTORY_DATE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.notificationHistory.date'))";
+        this._NOTIFICATION_HISTORY_CONTACT_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.notificationHistory.contact.title'))";
+        this._NOTIFICATION_HISTORY_NOTIFICATION_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.notificationHistory.notification.title'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -655,8 +657,7 @@ var PhenoTips = (function (PhenoTips) {
                 match.matched = match.notMyCase
             }
 
-            // sort notification records between those who were sent to reference and to matched patient owners
-            match.notificationHistory && this._organiseNotificationHistory(match);
+            match.notificationHistory = this._organiseNotificationHistory(match);
         }.bind(this));
 
         // leave only uniq server ids in the array, remove duplicates
@@ -671,20 +672,18 @@ var PhenoTips = (function (PhenoTips) {
 
     _organiseNotificationHistory : function(match)
     {
+        if (!match.notificationHistory) {
+            return null;
+        }
+
+        var records = [];
         try {
             var history = JSON.parse(match.notificationHistory);
 
             if (history) {
                 // whether match was contacted by user outside of the PhenomeCentral
                 match.userContacted = !!history["user-contacted"];
-                if (match.userContacted) {
-                    match.contacted = true;
-                }
-
                 if (history.interactions && history.interactions.size() > 0) {
-
-                    match.reference.notificationHistory = [];
-                    match.matched.notificationHistory = [];
 
                     // we go from bottom of array to top to put most recent notifications first
                     for (var i=history.interactions.length-1; i >= 0; i--) {
@@ -698,14 +697,7 @@ var PhenoTips = (function (PhenoTips) {
                                 match.contacted = true;
                             }
 
-                            // email was sent to matched patient owner
-                            if (match.matched.patientId == record.subjectPatientId) {
-                                match.matched.notificationHistory.push(record);
-                            }
-                            // email was sent to reference patient owner
-                            if (match.reference.patientId == record.subjectPatientId) {
-                                match.reference.notificationHistory.push(record);
-                            }
+                            records.push(record);
                         }
                     }
                 }
@@ -713,6 +705,8 @@ var PhenoTips = (function (PhenoTips) {
         } catch(e) {
             console.log("Syntax error parsing match.notificationHistory JSON from string for match ID: "+ match.id +" history string: "+ match.notificationHistory);
         }
+
+        return records;
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -1080,27 +1074,6 @@ var PhenoTips = (function (PhenoTips) {
         var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
         td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
-        var hasHistory = patient.notificationHistory && patient.notificationHistory.size() > 0;
-        // show both sides of history for admins, and only matched patient side for users
-        if ((this._isAdmin && hasHistory) || (match.notMyCase != null && patient.patientId == match.notMyCase.patientId)) {
-            //add notification history icon
-            td += '<span class="fa fa-history notification-history ' + ((!hasHistory) ? 'secondary' : '')
-                + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
-                + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
-                + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
-            // add "mark user-contacted" button only if user did not contact through Phenomecentral yet
-            // in other words, if there is no "contact" type records in this match notification history
-            var contactRecords = hasHistory && patient.notificationHistory.filter(function(record) {return record.type == "contact";}) || '';
-            if (!contactRecords || contactRecords.length == 0) {
-                td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
-            }
-            // add notification history table if there is any history
-            if (hasHistory) {
-                td += this._generateNotificationHistoryTable(patient.notificationHistory);
-            }
-            td += '</div>';
-        }
-
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
         if (this._isAdmin && patient.serverId == '' && patient.emails.length > 0) {
             td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'">';
@@ -1123,24 +1096,26 @@ var PhenoTips = (function (PhenoTips) {
 
         for (var i=0; i < records.length; i++) {
             var record = records[i];
-            var row = '<tr class="' + record.type + '" title="' + record.type + '">';
+            var row = '<tr class="' + record.type + '">';
 
-            var date = '<td>';
+            var title = (record.type == 'contact') ? this._NOTIFICATION_HISTORY_CONTACT_TITLE : this._NOTIFICATION_HISTORY_NOTIFICATION_TITLE;
+            var date = '<td title="' + title + '">';
             if (record.date) {
-                var dateIconName = record.type == 'contact' ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
+                var dateIconName = (record.type == 'contact') ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
                 date += '<div class="date">' + record.date.split(' ')[0] + '</div><span class="'+ dateIconName + '"> </span></td>';
             }
             date += '</td>';
 
             var from = '<td>';
             if (record.from) {
-                from += this._generateRecipientCell(record.from, record.type);
+                // The `From` field should be " PhenomeCentral" for all `notification`s, regardless of which admin sent them
+                from += (record.type == "notification") ? "PhenomeCentral" : this._generateUserInfoCell(record.from, record.type);
             }
             from += '</td>';
 
             var to = '<td>';
             if (record.to) {
-                to += this._generateRecipientCell(record.to, record.type);
+                to += this._generateUserInfoCell(record.to, record.type);
             }
             to += '</td>';
 
@@ -1157,21 +1132,14 @@ var PhenoTips = (function (PhenoTips) {
         return table;
     },
 
-    _generateRecipientCell : function(info, type)
+    _generateUserInfoCell : function(info, type)
     {
-        // notifications should have something generic e.g. "PhenomeCentral" (no link)
-        if (type == "notification" && info.userinfo.id == "xwiki:XWiki.Admin") {
-            return "PhenomeCentral";
-        }
-
         var cell = '';
         // user name and institution
         if (info.userinfo) {
             if (info.userinfo.name) {
-                if (info.userinfo.id) {
-                    var space = (info.userinfo.id.startsWith("xwiki:XWiki.")) ? "XWiki" : "Groups";
-                    var url = (new XWiki.Document(info.userinfo.id, space)).getURL();
-                    cell += '<a href="' + url + '" target="_blank">' + info.userinfo.name + '</a>';
+                if (info.userinfo.url) {
+                    cell += '<a href="' + info.userinfo.url + '" target="_blank">' + info.userinfo.name + '</a>';
                 } else {
                     cell += info.userinfo.name;
                 }
@@ -1191,8 +1159,30 @@ var PhenoTips = (function (PhenoTips) {
 
     _getContact : function(match)
     {
-        var td = '<td style="text-align: center" name="contact">';
+        var td = '<td name="contact">';
         td += this._getContactButtonHTML(match);
+
+        var hasHistory = match.notificationHistory && match.notificationHistory.size() > 0;
+        // show notification history
+        // if no notification history and not admin, show "mark user-contacted" button
+        if (hasHistory || !match.contacted && !this._isAdmin) {
+            //add notification history icon
+            td += '<span class="fa fa-history notification-history ' + ((!hasHistory && !match.userContacted) ? 'secondary' : '')
+                + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
+                + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
+                + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
+            // add "mark user-contacted" button only if not admin and no one contacted through Phenomecentral yet
+            // in other words, if there is no "contact" type records in this match notification history
+            if (!match.contacted && !this._isAdmin) {
+                td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
+            }
+            // add notification history table if there is any history
+            if (hasHistory) {
+                td += this._generateNotificationHistoryTable(match.notificationHistory);
+            }
+            td += '</div>';
+        }
+
         td += '</td>';
         return td;
     },
@@ -1271,8 +1261,7 @@ var PhenoTips = (function (PhenoTips) {
         var serverId = matchedCase.serverId;
         var className = "button contact-button";
 
-        var contactRecords = matchedCase.notificationHistory && matchedCase.notificationHistory.filter(function(record) {return record.type == "contact";}) || '';
-        if (match.userContacted || contactRecords && contactRecords.length > 0) {
+        if (match.contacted || match.userContacted) {
             className += " secondary";
         }
 
@@ -1285,12 +1274,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _getMarkUserContactedHTML : function(match)
     {
-        var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(match);
-        if (!matchedCase) {
-            // unable to determine which of the two cases should be contacted: do not show "mark/unmark contacted" button
-            return '';
-        }
-
         // the case user/user's group is NOT owner of is unsolved
         var matchId = match.id[0] || match.id;
         var label = this._MARK_USER_CONTACTED_BUTTON_LABEL;
@@ -1316,6 +1299,13 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableNotificationHistory();
     },
 
+    _hideAllNotificationHistoryDialogs: function()
+    {
+        this._tableElement.select('.notification-history-container').each(function (elm) {
+            elm.addClassName('hidden');
+        });
+    },
+
     _afterProcessTableNotificationHistory : function()
     {
         this._tableElement.select('.notification-history').each(function (elm) {
@@ -1325,14 +1315,15 @@ var PhenoTips = (function (PhenoTips) {
             history_container.addClassName('hidden');
 
             elm.on('click', function(event) {
+                this._hideAllNotificationHistoryDialogs();
                 history_container.toggleClassName('hidden');
-            });
+            }.bind(this));
 
             var hideTool = elm.up('td').down('.hide-tool');
             hideTool.on('click', function(event) {
                 history_container.addClassName('hidden');
             });
-        });
+        }.bind(this));
     },
 
     _afterProcessTableComments : function()
@@ -1662,11 +1653,6 @@ var PhenoTips = (function (PhenoTips) {
                 this._matches[this._matches.indexOf(match)].userContacted = properties.userContacted;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].userContacted = properties.userContacted;
 
-                if (properties.userContacted) {
-                    this._matches[this._matches.indexOf(match)].contacted = true;
-                    this._cachedMatches[this._cachedMatches.indexOf(match)].contacted = true;
-                }
-
                 // updating mark user-contacted button
                 var historyButtonContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .mark-user-contacted-button-container');
                 if (historyButtonContainer) {
@@ -1675,6 +1661,19 @@ var PhenoTips = (function (PhenoTips) {
                         event.stop();
                         this._markUserContacted(event);
                     }.bind(this));
+                }
+
+                // updating notification history button
+                var notificationHistoryIcon = this._tableElement.down('tr[data-matchid="' + match.id +'"] .fa.notification-history');
+                if (notificationHistoryIcon) {
+                    if (properties.userContacted) {
+                        contactTd.down('.notification-history').removeClassName('secondary');
+                    } else {
+                        var hasHistory = match.notificationHistory && match.notificationHistory.size() > 0;
+                        if (!hasHistory) {
+                            contactTd.down('.notification-history').addClassName('secondary');
+                        }
+                    }
                 }
             }
 
