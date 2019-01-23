@@ -845,10 +845,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getStatusTd(match);
                     break;
                 case 'referencePatient':
-                    tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id);
+                    tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id, match.matched);
                     break;
                 case 'matchedPatient':
-                    tr += this._getPatientDetailsTd(match.matched, 'matchedPatientTd', match.id);
+                    tr += this._getPatientDetailsTd(match.matched, 'matchedPatientTd', match.id, match.reference);
                     break;
                 case 'referenceEmails':
                     tr += this._getEmailsTd(match.reference, match, 'referenceEmails');
@@ -901,7 +901,7 @@ var PhenoTips = (function (PhenoTips) {
         return '<td style="text-align: center">' + value + '</td>';
     },
 
-    _getPatientDetailsTd : function(patient, tdId, matchId)
+    _getPatientDetailsTd : function(patient, tdId, matchId, otherPatient)
     {
         var td = '<td id="' + tdId + '"';
         if (patient.solved) {
@@ -931,7 +931,7 @@ var PhenoTips = (function (PhenoTips) {
 
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus);
+        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus, otherPatient.genes);
         td += this._getPhenotypesDiv(patient.phenotypes);
 
         // End collapsible div
@@ -945,7 +945,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getGenesDiv : function(genes, hasExomeData, genesStatus)
+    _getGenesDiv : function(genes, hasExomeData, genesStatus, otherPatientGenes)
     {
         var td = '<div class="genes-div">';
         var genesTitle = this._GENES;
@@ -965,7 +965,11 @@ var PhenoTips = (function (PhenoTips) {
             td += '<ul>';
             for (var i = 0 ; i < genes.size() ; i++) {
                 var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
-                td += '<li>' + gene + '</li>';
+                if (otherPatientGenes.indexOf(gene) > -1) {
+                    td += '<li class="bold">' + gene + '</li>';
+                } else {
+                    td += '<li>' + gene + '</li>';
+                }
             }
             td += '</ul>';
         }
