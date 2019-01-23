@@ -440,3 +440,9 @@ td[name="contact"] {
 .notes-container h4 {
   margin: 0;
 }
+.comment-text {
+  padding: 5px!important;
+}
+.bold {
+  font-weight: bold;
+}
