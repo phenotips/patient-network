@@ -450,3 +450,6 @@ label.score {
 .comment-text {
   padding: 5px!important;
 }
+.bold {
+  font-weight: bold;
+}
