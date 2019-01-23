@@ -931,7 +931,7 @@ var PhenoTips = (function (PhenoTips) {
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
         td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus, otherPatient.genes);
-        td += this._getPhenotypesDiv(patient.phenotypes);
+        td += this._getPhenotypesDiv(patient.phenotypes, otherPatient.phenotypes);
 
         // End collapsible div
         td += '</div>';
@@ -976,7 +976,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getPhenotypesDiv : function(phenotypes)
+    _getPhenotypesDiv : function(phenotypes, otherPatientPhenotypes)
     {
         var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
 
@@ -985,19 +985,25 @@ var PhenoTips = (function (PhenoTips) {
         if (empty) {
             phenotypesTitle += ' -';
         }
+
         td += '<p class="subtitle">' + phenotypesTitle + '</p>';
         if (!empty) {
             td += '<ul>';
-            td += this._addPhenotypes(phenotypes.predefined, false);
-            td += this._addPhenotypes(phenotypes.freeText, true);
+            td += this._addPhenotypes(phenotypes.predefined, false, otherPatientPhenotypes.predefined);
+            td += this._addPhenotypes(phenotypes.freeText, true, otherPatientPhenotypes.freeText);
             td += '</ul>';
         }
         td += '</div>';
         return td;
     },
 
-    _addPhenotypes : function(phenotypesArray, asFreeText)
+    _addPhenotypes : function(phenotypesArray, asFreeText, otherPatientPhenotypesArray)
     {
+        var otherPatientPhenotypesNames = [];
+        if (otherPatientPhenotypesArray && otherPatientPhenotypesArray.size() > 0) {
+            otherPatientPhenotypesArray.each( function (el) { otherPatientPhenotypesNames.push(el.name);});
+        }
+
         var td = '';
         for (var i = 0 ; i < phenotypesArray.size() ; i++) {
             var observed = phenotypesArray[i].observed != "no";
@@ -1007,7 +1013,12 @@ var PhenoTips = (function (PhenoTips) {
                 td += '<span class="fa fa-exclamation-triangle" title="' + this._NONE_STANDART_PHENOTYPE + '"/> ';
             }
 
-            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + phenotypesArray[i].name;
+            var phenotypesClass = '';
+            if (otherPatientPhenotypesNames.size() > 0 && otherPatientPhenotypesNames.indexOf(phenotypesArray[i].name) > -1) {
+                phenotypesClass = ' class="bold"';
+            }
+
+            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + '<span' + phenotypesClass + '>' + phenotypesArray[i].name + '</span>';
             if (asFreeText) {
                 td += '</div>';
             }
