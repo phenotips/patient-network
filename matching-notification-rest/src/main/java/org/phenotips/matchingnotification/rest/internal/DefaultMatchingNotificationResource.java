@@ -280,7 +280,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response saveNote(Set<Long> matchesIds, String note)
+    public Response addNote(Set<Long> matchesIds, String note)
     {
         if (matchesIds.isEmpty()) {
             this.slf4Jlogger.error("The requested ids list is blank");
@@ -291,7 +291,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        boolean success = this.matchingNotificationManager.saveNote(matchesIds, note);
+        boolean success = this.matchingNotificationManager.addNote(matchesIds, note);
         JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
             : Collections.<Long>emptyList());
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();

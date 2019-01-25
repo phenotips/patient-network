@@ -146,5 +146,5 @@ public interface MatchingNotificationManager
      * @param note note text
      * @return true if successful
      */
-    boolean saveNote(Set<Long> matchesIds, String note);
+    boolean addNote(Set<Long> matchesIds, String note);
 }

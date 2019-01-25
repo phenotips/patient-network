@@ -238,5 +238,5 @@ public interface MatchingNotificationResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/save-note")
-    Response saveNote(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("note") String note);
+    Response addNote(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("note") String note);
 }

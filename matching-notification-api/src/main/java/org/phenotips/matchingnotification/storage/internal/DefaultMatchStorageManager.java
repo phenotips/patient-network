@@ -546,7 +546,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean saveNote(List<PatientMatch> matches, String note)
+    public boolean addNote(List<PatientMatch> matches, String note)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
