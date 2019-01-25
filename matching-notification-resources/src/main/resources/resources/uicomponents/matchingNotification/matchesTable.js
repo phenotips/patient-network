@@ -1169,9 +1169,16 @@ var PhenoTips = (function (PhenoTips) {
     _afterProcessTableHideApsentServerIdsFromFilter : function()
     {
         $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-        	//count matches with this server id
-            var serverID = (selectEl.value == "local") ? "" : selectEl.value;
-            var matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
+            //count matches with this server id
+            var serverID = selectEl.value;
+            var matchesForServer = [];
+            if (selectEl.value == "local") {
+                // local matches
+                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === "" && match.matched.serverId === ""); });
+            } else {
+                // remote matches
+                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
+            }
             var countEl = selectEl.next('.matches-count').update(' (' + matchesForServer.length + ')');
         }.bind(this));
     },
