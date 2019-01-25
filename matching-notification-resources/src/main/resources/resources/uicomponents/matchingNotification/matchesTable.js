@@ -966,7 +966,7 @@ var PhenoTips = (function (PhenoTips) {
             for (var i = 0 ; i < genes.size() ; i++) {
                 var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
                 if (otherPatientGenes.indexOf(gene) > -1) {
-                    td += '<li class="bold">' + gene + '</li>';
+                    td += '<li class="matched">' + gene + '</li>';
                 } else {
                     td += '<li>' + gene + '</li>';
                 }
@@ -1016,7 +1016,7 @@ var PhenoTips = (function (PhenoTips) {
 
             var phenotypesClass = '';
             if (otherPatientPhenotypesNames.size() > 0 && otherPatientPhenotypesNames.indexOf(phenotypesArray[i].name) > -1) {
-                phenotypesClass = ' class="bold"';
+                phenotypesClass = ' class="matched"';
             }
 
             td += (!observed ? this._NOT_OBSERVED + ' ' : '') + '<span' + phenotypesClass + '>' + phenotypesArray[i].name + '</span>';
