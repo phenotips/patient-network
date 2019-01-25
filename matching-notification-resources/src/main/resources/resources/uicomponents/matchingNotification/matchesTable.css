@@ -450,6 +450,14 @@ label.score {
 .comment-text {
   padding: 5px!important;
 }
-.bold {
-  font-weight: bold;
+.phenotypes-div ul li {
+  margin: 2px 2px 2px 0;
+  padding: 0.5em;
+  display: inline-block;
+  line-height: 1.2em !important;
+}
+.matched {
+  background-color: #EEE;
+  vertical-align: top;
+  border-radius: 4px 4px;
 }
