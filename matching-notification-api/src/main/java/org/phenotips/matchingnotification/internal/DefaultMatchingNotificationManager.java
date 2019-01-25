@@ -284,7 +284,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveNote(Set<Long> matchesIds, String note)
+    public boolean addNote(Set<Long> matchesIds, String note)
     {
         boolean successful = false;
         try {
@@ -292,7 +292,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             filterNonUsersMatches(matches);
 
-            successful = this.matchStorageManager.saveNote(matches, note);
+            successful = this.matchStorageManager.addNote(matches, note);
         } catch (Exception e) {
             this.logger.error("Error while saving a note for matches {} as {}",
                 Joiner.on(",").join(matchesIds), note, e);

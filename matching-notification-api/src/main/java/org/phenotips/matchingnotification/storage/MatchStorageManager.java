@@ -108,7 +108,7 @@ public interface MatchStorageManager
      * @param note note text
      * @return true if successful
      */
-    boolean saveNote(List<PatientMatch> matches, String note);
+    boolean addNote(List<PatientMatch> matches, String note);
 
     /**
      * Deletes all matches (including those that users have been notified about, and MME matches)
