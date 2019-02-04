@@ -22,7 +22,9 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.Message.RecipientType;
@@ -128,9 +130,11 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
     {
         super.setTo();
         try {
-            Address userEmail = getUserEmails();
-            if (userEmail != null) {
-                this.mimeMessage.addRecipient(RecipientType.CC, userEmail);
+            Set<Address> userEmails = getUserEmails();
+            for (Address email : userEmails) {
+                if (email != null) {
+                    this.mimeMessage.addRecipient(RecipientType.CC, email);
+                }
             }
         } catch (Exception ex) {
             // do nothing
@@ -142,24 +146,31 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
     {
         super.setFrom();
         try {
-            Address userEmails = getUserEmails();
+            Set<Address> userEmails = getUserEmails();
             if (userEmails != null) {
-                Address[] address = {userEmails};
-                this.mimeMessage.setReplyTo(address);
+                Address[] address = new Address[userEmails.size()];
+                this.mimeMessage.setReplyTo(userEmails.toArray(address));
             }
         } catch (Exception ex) {
             // do nothing
         }
     }
 
-    private Address getUserEmails()
+    private Set<Address> getUserEmails()
     {
         String userEmail = USERMANAGER.getCurrentUser().getAttribute(USER_PROPERTY_EMAIL).toString();
-        if (StringUtils.isNotBlank(userEmail)) {
-            InternetAddress replyTo = new InternetAddress();
-            replyTo.setAddress(userEmail);
-            return replyTo;
+        Set<Address> emails = new HashSet<>();
+
+        for (String parsedEmail : StringUtils.split(userEmail, ",|;")) {
+            if (StringUtils.isNotBlank(parsedEmail)) {
+                try {
+                    InternetAddress email = new InternetAddress(parsedEmail.trim());
+                    emails.add(email);
+                } catch (Exception ex) {
+                    LOGGER.error("Error parsing email [{}]: {}", parsedEmail, ex.getMessage(), ex);
+                }
+            }
         }
-        return null;
+        return emails;
     }
 }
