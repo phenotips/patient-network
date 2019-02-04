@@ -1179,7 +1179,7 @@ var PhenoTips = (function (PhenoTips) {
                 // remote matches
                 matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
             }
-            var countEl = selectEl.next('.matches-count').update(' (' + matchesForServer.length + ')');
+            var countEl = selectEl.up().down('.matches-count').update(' (' + matchesForServer.length + ')');
         }.bind(this));
     },
 
