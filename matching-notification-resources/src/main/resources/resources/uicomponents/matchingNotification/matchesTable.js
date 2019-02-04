@@ -1008,18 +1008,19 @@ var PhenoTips = (function (PhenoTips) {
         var td = '';
         for (var i = 0 ; i < phenotypesArray.size() ; i++) {
             var observed = phenotypesArray[i].observed != "no";
-            td += '<li>'
-            if (asFreeText) {
-                td += '<div>';
-                td += '<span class="fa fa-exclamation-triangle" title="' + this._NONE_STANDART_PHENOTYPE + '"/> ';
-            }
 
             var phenotypesClass = '';
             if (otherPatientPhenotypesNames.size() > 0 && otherPatientPhenotypesNames.indexOf(phenotypesArray[i].name) > -1) {
                 phenotypesClass = ' class="matched"';
             }
 
-            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + '<span' + phenotypesClass + '>' + phenotypesArray[i].name + '</span>';
+            td += '<li' + phenotypesClass + '>';
+            if (asFreeText) {
+                td += '<div>';
+                td += '<span class="fa fa-exclamation-triangle" title="' + this._NONE_STANDART_PHENOTYPE + '"/> ';
+            }
+
+            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + phenotypesArray[i].name;
             if (asFreeText) {
                 td += '</div>';
             }
