@@ -53,7 +53,7 @@ table#matchesTable {
 .matches-table ul {
   margin-top: 0px;
   margin-bottom: 0px;
-  margin-left: 1em;
+  margin-left: 0.5em;
   list-style: none;
 }
 
@@ -450,13 +450,12 @@ label.score {
 .comment-text {
   padding: 5px!important;
 }
-.phenotypes-div ul li {
-  margin: 2px 2px 2px 0;
-  padding: 0.5em;
+.phenotypes-div ul li, .genes-div ul li {
+  margin: 2px 2px 4px 0;
+  padding: 0.3em;
   line-height: 1.2em !important;
 }
 .matched {
   background-color: #EEE;
   border-radius: 4px 4px;
-  display: inline-block;
 }
