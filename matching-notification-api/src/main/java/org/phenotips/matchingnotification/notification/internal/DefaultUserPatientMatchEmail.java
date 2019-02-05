@@ -132,9 +132,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
         try {
             Set<Address> userEmails = getUserEmails();
             for (Address email : userEmails) {
-                if (email != null) {
-                    this.mimeMessage.addRecipient(RecipientType.CC, email);
-                }
+                this.mimeMessage.addRecipient(RecipientType.CC, email);
             }
         } catch (Exception ex) {
             // do nothing
@@ -147,10 +145,8 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
         super.setFrom();
         try {
             Set<Address> userEmails = getUserEmails();
-            if (userEmails != null) {
-                Address[] address = new Address[userEmails.size()];
-                this.mimeMessage.setReplyTo(userEmails.toArray(address));
-            }
+            Address[] address = new Address[userEmails.size()];
+            this.mimeMessage.setReplyTo(userEmails.toArray(address));
         } catch (Exception ex) {
             // do nothing
         }
@@ -161,7 +157,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
         String userEmail = USERMANAGER.getCurrentUser().getAttribute(USER_PROPERTY_EMAIL).toString();
         Set<Address> emails = new HashSet<>();
 
-        for (String parsedEmail : StringUtils.split(userEmail, ",|;")) {
+        for (String parsedEmail : StringUtils.split(userEmail, ",|;| ")) {
             if (StringUtils.isNotBlank(parsedEmail)) {
                 try {
                     InternetAddress email = new InternetAddress(parsedEmail.trim());
