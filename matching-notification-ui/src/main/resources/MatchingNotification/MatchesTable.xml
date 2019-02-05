@@ -157,7 +157,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;input type="text" id="email-filter"&gt;
               &lt;/li&gt;
               &lt;li&gt;&lt;br&gt;
-                &lt;label&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;
+                &lt;label&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter.hint'))"&gt;&lt;/span&gt;
