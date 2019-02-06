@@ -157,7 +157,7 @@ public class DefaultUserPatientMatchEmail extends AbstractPatientMatchEmail
         String userEmail = USERMANAGER.getCurrentUser().getAttribute(USER_PROPERTY_EMAIL).toString();
         Set<Address> emails = new HashSet<>();
 
-        for (String parsedEmail : StringUtils.split(userEmail, ",|;| ")) {
+        for (String parsedEmail : StringUtils.split(userEmail, ",; ")) {
             if (StringUtils.isNotBlank(parsedEmail)) {
                 try {
                     InternetAddress email = new InternetAddress(parsedEmail.trim());
