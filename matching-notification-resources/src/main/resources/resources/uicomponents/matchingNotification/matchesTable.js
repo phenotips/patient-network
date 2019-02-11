@@ -1350,6 +1350,15 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+    _hideAllNotesDialogs: function()
+    {
+        this._tableElement.select('.notes-container').each(function (elm) {
+            var textarea = elm.down('textarea');
+            elm.up('td').down('.notes span.fa').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+            elm.addClassName('hidden');
+        });
+    },
+
     _afterProcessTableNotes : function()
     {
         this._tableElement.select('.button.notes').each(function (elm) {
@@ -1360,9 +1369,10 @@ var PhenoTips = (function (PhenoTips) {
             notes_container.addClassName('hidden');
 
             elm.on('click', function(event) {
+                this._hideAllNotesDialogs();
                 notes_container.toggleClassName('hidden');
                 !notes_container.hasClassName('hidden') && textarea.focus();
-            });
+            }.bind(this));
 
             var hideTool = elm.up('td').down('.notes-container .hide-tool');
             hideTool.on('click', function(event) {
