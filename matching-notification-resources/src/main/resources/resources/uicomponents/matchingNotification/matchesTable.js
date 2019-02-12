@@ -1146,27 +1146,22 @@ var PhenoTips = (function (PhenoTips) {
     {
         var td = '<td name="contact">';
         td += this._getContactButtonHTML(match);
-
         var hasHistory = match.notificationHistory && match.notificationHistory.size() > 0;
-        // show notification history
-        // if no notification history and not admin, show "mark user-contacted" button
-        if (hasHistory || !match.contacted && !this._isAdmin) {
-            //add notification history icon
-            td += '<span class="fa fa-history notification-history ' + ((!hasHistory && !match.userContacted) ? 'secondary' : '')
-                + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
-                + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
-                + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
-            // add "mark user-contacted" button only if not admin and no one contacted through Phenomecentral yet
-            // in other words, if there is no "contact" type records in this match notification history
-            if (!match.contacted && !this._isAdmin) {
-                td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
-            }
-            // add notification history table if there is any history
-            if (hasHistory) {
-                td += this._generateNotificationHistoryTable(match.notificationHistory);
-            }
-            td += '</div>';
+        //add notification history icon
+        td += '<span class="fa fa-history notification-history ' + ((!hasHistory && !match.userContacted) ? 'secondary' : '')
+            + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
+            + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
+            + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
+        // add "mark as contacted outside PC" button only if no one contacted through PhenomeCentral yet
+        // in other words, if there is no "contact" type records in this match notification history
+        if (!match.contacted) {
+            td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
         }
+        // add notification history table if there is any history
+        if (hasHistory) {
+            td += this._generateNotificationHistoryTable(match.notificationHistory);
+        }
+        td += '</div>';
 
         td += '</td>';
         return td;
