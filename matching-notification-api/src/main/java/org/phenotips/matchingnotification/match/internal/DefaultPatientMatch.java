@@ -319,9 +319,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setNotes(String notes)
+    public void setNotes(JSONObject notes)
     {
-        this.notes = notes;
+        this.notes = (notes != null) ? notes.toString() : null;
     }
 
     @Override
@@ -375,7 +375,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public String getNotes()
+    public String getNote()
     {
         try {
             JSONObject allNotes = (this.notes != null) ? new JSONObject(this.notes)
@@ -396,6 +396,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             // error parsing notes or new record JSON string to JSON object happened
         }
         return null;
+    }
+
+    @Override
+    public JSONObject getNotes()
+    {
+        try {
+            return new JSONObject(this.notes);
+        } catch (JSONException | NullPointerException ex) {
+            return null;
+        }
     }
 
     @Override
@@ -508,7 +518,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("href", this.isLocal() ? "" : this.getHref());
         json.put("comment", this.getComment());
         json.put("notificationHistory", this.notificationHistory);
-        json.put("notes", this.getNotes());
+        json.put("notes", this.getNote());
 
         return json;
     }
