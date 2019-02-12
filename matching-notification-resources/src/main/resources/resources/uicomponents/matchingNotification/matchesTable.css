@@ -253,6 +253,9 @@ ul.filters label {
   -ms-user-select: none;
   user-select: none;
 }
+.xTooltip.comment-container, .xTooltip.notes-container {
+  width: 20em;
+}
 .xTooltip.comment-container {
   background-color: #F6F8F9;
 }
