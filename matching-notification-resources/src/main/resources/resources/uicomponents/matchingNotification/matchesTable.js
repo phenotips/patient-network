@@ -1286,23 +1286,28 @@ var PhenoTips = (function (PhenoTips) {
         });
     },
 
+    _afterProcessSingleNotificationHistory : function(elm)
+    {
+        var history_container = elm.up('td').down('.notification-history-container');
+
+        // hide comment container on table update
+        history_container.addClassName('hidden');
+
+        elm.on('click', function(event) {
+            this._hideAllNotificationHistoryDialogs();
+            history_container.toggleClassName('hidden');
+        }.bind(this));
+
+        var hideTool = elm.up('td').down('.hide-tool');
+        hideTool.on('click', function(event) {
+            history_container.addClassName('hidden');
+        });
+    },
+
     _afterProcessTableNotificationHistory : function()
     {
         this._tableElement.select('.notification-history').each(function (elm) {
-            var history_container = elm.up('td').down('.notification-history-container');
-
-            // hide comment container on table update
-            history_container.addClassName('hidden');
-
-            elm.on('click', function(event) {
-                this._hideAllNotificationHistoryDialogs();
-                history_container.toggleClassName('hidden');
-            }.bind(this));
-
-            var hideTool = elm.up('td').down('.hide-tool');
-            hideTool.on('click', function(event) {
-                history_container.addClassName('hidden');
-            });
+            this._afterProcessSingleNotificationHistory(elm);
         }.bind(this));
     },
 
@@ -1402,6 +1407,22 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+    _afterProcessSingleContactButton : function(elm)
+    {
+        elm.on('click', function(event) {
+            event.stop();
+            this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
+        }.bind(this));
+    },
+
+    _afterProcessSingleUserContactedButton : function(elm)
+    {
+        elm.on('click', function(event) {
+            event.stop();
+            this._markUserContacted(event);
+        }.bind(this));
+    },
+
     _afterProcessTableInitNotificationEmails : function()
     {
         $$('input[type=checkbox][class="notify"]').each(function (elm) {
@@ -1415,17 +1436,11 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         $$('.contact-button').each(function (elm) {
-            elm.on('click', function(event) {
-                event.stop();
-                this._contactDialog.launchContactDialog(elm.dataset.matchid, elm.dataset.patientid, elm.dataset.serverid);
-            }.bind(this));
+            this._afterProcessSingleContactButton(elm);
         }.bind(this));
 
         $$('.mark-user-contacted-button').each(function (elm) {
-            elm.on('click', function(event) {
-                event.stop();
-                this._markUserContacted(event);
-            }.bind(this));
+            this._afterProcessSingleUserContactedButton(elm);
         }.bind(this));
     },
 
@@ -1510,6 +1525,7 @@ var PhenoTips = (function (PhenoTips) {
                 // add data about patients to notification response (which currently only has matchIDs, but not patient IDs
                 // involved - which may include only one of the two patients in a match, or both)
                 var notificationResult = this._addPatientDataToResults(response.responseJSON.results, matchIDs);
+                notificationResult["successNotificationHistories"] = response.responseJSON.successNotificationHistories || '';
 
                 // highlight table cells/rows as notified/failed to notify
                 this._updateTableAfterNotification(notificationResult, true);
@@ -1577,6 +1593,7 @@ var PhenoTips = (function (PhenoTips) {
 
         if (notificationResult.success && notificationResult.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
+            properties.successNotificationHistories = notificationResult.successNotificationHistories || '';
             this._setState(notificationResult.success, properties, notificationResult.notifiedPatients);
         }
         if (notificationResult.failed && notificationResult.failed.length > 0) {
@@ -1614,57 +1631,41 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         matchesToSet.each( function(match, index) {
+            var matchIndex = this._matches.indexOf(match);
+            var cachedIndex = this._cachedMatches.indexOf(match);
+
             if (properties.hasOwnProperty('notified')) {
-                // update macthes status
-                if (notifiedPatients && notifiedPatients.hasOwnProperty('isAdminNotification')) {
-                    this._matches[this._matches.indexOf(match)].adminNotified = true;
-                    this._cachedMatches[this._cachedMatches.indexOf(match)].adminNotified = true;
-                } else {
-                    this._matches[this._matches.indexOf(match)].contacted = true;
-                    this._cachedMatches[this._cachedMatches.indexOf(match)].contacted = true;
+                if (properties.successNotificationHistories && Object.keys(properties.successNotificationHistories).indexOf(match.id.toString()) > -1) {
+                    this._matches[matchIndex].notificationHistory = JSON.stringify(properties.successNotificationHistories[match.id]);
+                    this._matches[matchIndex].notificationHistory = this._organiseNotificationHistory(this._matches[matchIndex]);
+                    this._cachedMatches[cachedIndex].notificationHistory = JSON.stringify(properties.successNotificationHistories[match.id]);
+                    this._cachedMatches[cachedIndex].notificationHistory = this._organiseNotificationHistory(this._cachedMatches[cachedIndex]);
                 }
-                // updating contact button
+
+                if (properties.hasOwnProperty('userContacted')) {
+                    this._matches[matchIndex].userContacted = properties.userContacted;
+                    this._cachedMatches[cachedIndex].userContacted = properties.userContacted;
+                }
+
+                // re-generate whole contact <td>
                 var contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
-                if (contactTd && contactTd.down('.contact-button')) {
-                    if (properties.notified) {
-                        contactTd.down('.contact-button').addClassName('secondary');
-                    } else {
-                        contactTd.down('.contact-button').removeClassName('secondary');
-                    }
-                }
-            }
-
-            if (properties.hasOwnProperty('userContacted')) {
-                this._matches[this._matches.indexOf(match)].userContacted = properties.userContacted;
-                this._cachedMatches[this._cachedMatches.indexOf(match)].userContacted = properties.userContacted;
-
-                // updating mark user-contacted button
-                var historyButtonContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .mark-user-contacted-button-container');
-                if (historyButtonContainer) {
-                    historyButtonContainer.update(this._getMarkUserContactedHTML(match));
-                    historyButtonContainer.down('.mark-user-contacted-button') && historyButtonContainer.down('.mark-user-contacted-button').on('click', function(event) {
-                        event.stop();
-                        this._markUserContacted(event);
-                    }.bind(this));
-                }
-
-                // updating notification history button
-                var notificationHistoryIcon = this._tableElement.down('tr[data-matchid="' + match.id +'"] .fa.notification-history');
-                if (notificationHistoryIcon) {
-                    if (properties.userContacted) {
-                        contactTd.down('.notification-history').removeClassName('secondary');
-                    } else {
-                        var hasHistory = match.notificationHistory && match.notificationHistory.size() > 0;
-                        if (!hasHistory) {
-                            contactTd.down('.notification-history').addClassName('secondary');
-                        }
-                    }
+                contactTd && contactTd.remove();
+                var newContactTd = this._getContact(this._matches[matchIndex]);
+                this._tableElement.down('tr[data-matchid="' + match.id +'"]').insert(newContactTd);
+                contactTd = this._tableElement.down('tr[data-matchid="' + match.id +'"] td[name="contact"]');
+                if (contactTd) {
+                    var history = contactTd.down('.notification-history');
+                    history && this._afterProcessSingleNotificationHistory(history);
+                    var contactButton = contactTd.down('.contact-button');
+                    contactButton && this._afterProcessSingleContactButton(contactButton);
+                    var userContactedButton = contactTd.down('.mark-user-contacted-button');
+                    userContactedButton && this._afterProcessSingleUserContactedButton(userContactedButton);
                 }
             }
 
             if (properties.hasOwnProperty('status')) {
-                this._matches[this._matches.indexOf(match)].status = properties.status;
-                this._cachedMatches[this._cachedMatches.indexOf(match)].status = properties.status;
+                this._matches[matchIndex].status = properties.status;
+                this._cachedMatches[cachedIndex].status = properties.status;
             }
 
             if (properties.hasOwnProperty('state')) {
@@ -1699,8 +1700,8 @@ var PhenoTips = (function (PhenoTips) {
             }
 
             if (properties.hasOwnProperty('comment')) {
-                this._matches[this._matches.indexOf(match)].comment = properties.comment;
-                this._cachedMatches[this._cachedMatches.indexOf(match)].comment = properties.comment;
+                this._matches[matchIndex].comment = properties.comment;
+                this._cachedMatches[cachedIndex].comment = properties.comment;
             }
             // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this));
