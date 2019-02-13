@@ -1317,6 +1317,18 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+    _hideAllCommentsDialogs: function(item)
+    {
+        this._tableElement.select('.comment-container').each(function (elm) {
+            if (item && elm === item) {
+                return;
+            }
+            var textarea = elm.down('textarea');
+            elm.up('td').down('.comment span.fa').className = (textarea.value) ?  "fa fa-comment" : "fa fa-comment-o";
+            elm.addClassName('hidden');
+        });
+    },
+
     _afterProcessTableComments : function()
     {
         this._tableElement.select('.button.comment').each(function (elm) {
@@ -1328,8 +1340,10 @@ var PhenoTips = (function (PhenoTips) {
 
             elm.on('click', function(event) {
                 comment_container.toggleClassName('hidden');
+                this._hideAllNotesDialogs();
+                this._hideAllCommentsDialogs(comment_container);
                 !comment_container.hasClassName('hidden') && textarea.focus();
-            });
+            }.bind(this));
 
             var hideTool = elm.up('td').down('.comment-container .hide-tool');
             hideTool.on('click', function(event) {
@@ -1350,9 +1364,12 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
-    _hideAllNotesDialogs: function()
+    _hideAllNotesDialogs: function(item)
     {
         this._tableElement.select('.notes-container').each(function (elm) {
+            if (item && elm === item) {
+                return;
+            }
             var textarea = elm.down('textarea');
             elm.up('td').down('.notes span.fa').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
             elm.addClassName('hidden');
@@ -1369,7 +1386,8 @@ var PhenoTips = (function (PhenoTips) {
             notes_container.addClassName('hidden');
 
             elm.on('click', function(event) {
-                this._hideAllNotesDialogs();
+                this._hideAllNotesDialogs(notes_container);
+                this._hideAllCommentsDialogs();
                 notes_container.toggleClassName('hidden');
                 !notes_container.hasClassName('hidden') && textarea.focus();
             }.bind(this));
