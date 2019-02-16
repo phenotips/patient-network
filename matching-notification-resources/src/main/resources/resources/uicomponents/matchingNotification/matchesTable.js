@@ -1152,11 +1152,8 @@ var PhenoTips = (function (PhenoTips) {
             + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
             + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
             + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
-        // add "mark as contacted outside PC" button only if no one contacted through PhenomeCentral yet
-        // in other words, if there is no "contact" type records in this match notification history
-        if (!match.contacted) {
-            td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
-        }
+        // add "mark as contacted outside PC" button
+        td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';
         // add notification history table if there is any history
         if (hasHistory) {
             td += this._generateNotificationHistoryTable(match.notificationHistory);
@@ -1279,9 +1276,12 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableNotificationHistory();
     },
 
-    _hideAllNotificationHistoryDialogs: function()
+    _hideAllNotificationHistoryDialogs: function(item)
     {
         this._tableElement.select('.notification-history-container').each(function (elm) {
+            if (item && item === elm) {
+                return;
+            }
             elm.addClassName('hidden');
         });
     },
@@ -1294,7 +1294,7 @@ var PhenoTips = (function (PhenoTips) {
         history_container.addClassName('hidden');
 
         elm.on('click', function(event) {
-            this._hideAllNotificationHistoryDialogs();
+            this._hideAllNotificationHistoryDialogs(history_container);
             history_container.toggleClassName('hidden');
         }.bind(this));
 
