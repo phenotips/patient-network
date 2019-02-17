@@ -831,6 +831,9 @@ var PhenoTips = (function (PhenoTips) {
         columns.each(function(column, index) {
             switch(column.dataset.column) {
                 case 'status':
+                    tr += this._getStatusTd(match, true);
+                    break;
+                case 'notes':
                     tr += this._getStatusTd(match);
                     break;
                 case 'referencePatient':
@@ -859,19 +862,21 @@ var PhenoTips = (function (PhenoTips) {
         return tr;
     },
 
-    _getStatusTd : function(match)
+    _getStatusTd : function(match, isAdminOrGroupAdmin)
     {
         var td = '<td class="status-column">';
-        td += '<select class="status" data-matchid="' + match.id +'">'
-            + '<option value="uncategorized" '+ (match.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
-            + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
-            + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
-            + '</select>';
-        var icon = (match.comment && match.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
-        td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
-        td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
-            +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
-            + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
+        if (isAdminOrGroupAdmin) {
+            td += '<select class="status" data-matchid="' + match.id +'">'
+                + '<option value="uncategorized" '+ (match.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+                + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
+                + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
+                + '</select>';
+            var icon = (match.comment && match.comment != "") ? "fa fa-comment" : "fa fa-comment-o";
+            td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
+            td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span><div><textarea rows="5" cols="20"></textarea></div>'
+                +'<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+                + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span></div>';
+        }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
         td += '<span class="buttonwrapper" title="' + this._NOTES_TITLE + '"><a class="button notes" href="#"><span class="' + icon + '"> </span></a></span>';
