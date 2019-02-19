@@ -36,8 +36,9 @@ var PhenoTips = (function (PhenoTips) {
         this._utils = new utils(this._tableElement);
 
         $('show-matches-button').on('click', this._showMatches.bind(this));
-        $('send-notifications-button').addClassName("disabled");
-        $('send-notifications-button').on('click', this._sendNotification.bind(this));
+        this._notificationsButton = $('send-notifications-button');
+        this._notificationsButton.hide();
+        this._notificationsButton.on('click', this._sendNotification.bind(this));
         $('expand_all').on('click', this._expandAllClicked.bind(this));
 
         this._overallScoreSlider = this._initializeScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
@@ -489,7 +490,7 @@ var PhenoTips = (function (PhenoTips) {
             onCreate : function () {
                 $("panels-livetable-ajax-loader").show();
                 this._utils.clearHint('send-notifications-messages');
-                $('send-notifications-button').addClassName("disabled");
+                this._notificationsButton.hide();
             }.bind(this),
             onSuccess : function (response) {
                 if (response.responseJSON) {
@@ -820,7 +821,7 @@ var PhenoTips = (function (PhenoTips) {
             tableBody.insert(tr);
         }.bind(this));
 
-        this._afterProcessTable();
+        this._afterProcessTable(matchesForPage);
     },
 
     _rowWriter : function(rowIndex, match, columns, cellWriter)
@@ -1279,13 +1280,13 @@ var PhenoTips = (function (PhenoTips) {
 
 // -- AFTER PROCESS TABLE
 
-    _afterProcessTable : function()
+    _afterProcessTable : function(matchesForPage)
     {
         this._afterProcessTablePatientsDivs();
         this._afterProcessTableRegisterCollapisbleDivs();
         this._afterProcessTableStatusListeners();
         this._afterProcessTableCollapseEmails();
-        this._afterProcessTableInitNotificationEmails();
+        this._afterProcessTableInitNotificationEmails(matchesForPage);
         this._afterProcessTableHideApsentServerIdsFromFilter();
         this._afterProcessTableComments();
         this._afterProcessTableNotes();
@@ -1501,14 +1502,20 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
-    _afterProcessTableInitNotificationEmails : function()
+    _afterProcessTableInitNotificationEmails : function(matchesForPage)
     {
+        if (matchesForPage.length > 0 ) {
+            this._notificationsButton.show();
+        } else {
+            this._notificationsButton.hide();
+        }
+
         $$('input[type=checkbox][class="notify"]').each(function (elm) {
             elm.on('click', function(event) {
                 if (this._getMarkedToNotify().length > 0) {
-                    $('send-notifications-button').removeClassName("disabled");
+                    this._notificationsButton.removeClassName("disabled");
                 } else {
-                    $('send-notifications-button').addClassName("disabled");
+                    this._notificationsButton.addClassName("disabled");
                 }
             }.bind(this));
         }.bind(this));
@@ -1567,11 +1574,15 @@ var PhenoTips = (function (PhenoTips) {
 
 //-- NOTIFICATION
 
-    _sendNotification : function()
+    _sendNotification : function(event)
     {
+        event.stop();
+        if (!this._matches) {
+            return;
+        }
         var ids = this._getMarkedToNotify();
         if (ids.length == 0) {
-            this._utils.showFailure('show-matches-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
+            this._utils.showFailure('send-notifications-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
             return;
         }
         this._notifyMatchByIDs(ids);
@@ -1585,7 +1596,7 @@ var PhenoTips = (function (PhenoTips) {
             parameters : {'ids' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");
-                $('send-notifications-button').addClassName("disabled");
+                this._notificationsButton.addClassName("disabled");
                 this._utils.showSent('send-notifications-messages');
             }.bind(this),
             onSuccess : function (response) {
