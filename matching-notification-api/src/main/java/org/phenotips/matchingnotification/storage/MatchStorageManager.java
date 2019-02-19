@@ -41,9 +41,12 @@ public interface MatchStorageManager
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
      * @param onlyCurrentUserAccessible when true only matches that current user has access to are returned
+     * @param fromDate only matches found on or after the specified date (0 by default)
+     * @param toDate only matches found on or before the specified date (current date by default)
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible);
+    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible,
+        String fromDate, String toDate);
 
     /**
      * Load all matches with ids in {@code matchesIds}.
