@@ -29,6 +29,8 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -256,23 +258,52 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     @SuppressWarnings("unchecked")
     public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
-        boolean onlyCurrentUserAccessible)
+        boolean onlyCurrentUserAccessible, final String fromDate, final String toDate)
     {
         // ...else it is more complicated: need to return all matches, but
         // also exclude un-notified matches that have a similar match that have been notified
         //
         // This is because if owners of a match were notified, the notified version of the match
-        // will be stored as-is in the database, but new verisons of the match will still keep being
-        // placed in the DB, resulting in two similar matche sin the DB:
+        // will be stored as-is in the database, but new versions of the match will still keep being
+        // placed in the DB, resulting in two similar matches in the DB:
         // first: patientA - patientB - notified - <data at the moment of notification>
         // second: patientA - patientB - NOT notified - <data as of last match check>
 
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
-            Query query = session.createQuery(HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE);
+            String queryString = HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE;
+
+            if (StringUtils.isNotBlank(fromDate)) {
+                queryString += " and foundTimestamp >= :fromTimestamp";
+            }
+
+            if (StringUtils.isNotBlank(toDate)) {
+                queryString += " and foundTimestamp <= :toTimestamp";
+            }
+
+            Query query = session.createQuery(queryString);
             query.setParameter("minScore", score);
             query.setParameter("phenScore", phenScore);
             query.setParameter("genScore", genScore);
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            if (StringUtils.isNotBlank(fromDate)) {
+                try {
+                    Timestamp timestampFrom = new Timestamp(sdf.parse(fromDate).getTime());
+                    query.setTimestamp("fromTimestamp", timestampFrom);
+                } catch (Exception e) {
+                    // do nothing
+                }
+            }
+
+            if (StringUtils.isNotBlank(toDate)) {
+                try {
+                    Timestamp timestampTo = new Timestamp(sdf.parse(toDate).getTime());
+                    query.setTimestamp("toTimestamp", timestampTo);
+                } catch (Exception e) {
+                    // do nothing
+                }
+            }
 
             List<PatientMatch> result = query.list();
 
