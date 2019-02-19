@@ -1391,6 +1391,7 @@ var PhenoTips = (function (PhenoTips) {
             notes_container.addClassName('hidden');
 
             elm.on('click', function(event) {
+                event.stop();
                 this._hideAllNotesDialogs(notes_container);
                 this._hideAllCommentsDialogs();
                 notes_container.toggleClassName('hidden');

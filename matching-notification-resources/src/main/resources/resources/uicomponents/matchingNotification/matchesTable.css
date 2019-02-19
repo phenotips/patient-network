@@ -276,6 +276,7 @@ a.button.comment, a.button.notes {
 td.status-column {
   white-space: nowrap;
   padding-right: 0px;
+  text-align: center;
 }
 select.status {
   padding: .3em 1px .3em 1px;
