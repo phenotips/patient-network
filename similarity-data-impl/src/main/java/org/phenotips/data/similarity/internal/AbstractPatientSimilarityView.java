@@ -284,6 +284,9 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
     private boolean isUserOwner(Patient patient)
     {
         User user = userManager.getCurrentUser();
+        if (user == null) {
+            return false;
+        }
         DocumentReference userRef = user.getProfileDocument();
         if (patient != null && accessHelper.getOwner(patient) != null
             && userRef.equals(accessHelper.getOwner(patient).getUser())) {
