@@ -78,7 +78,6 @@ public interface MatchingNotificationResource
      * @param score only matches with general score higher or equal to this value are returned
      * @param phenScore only matches with phenotypic score higher or equal to this value are returned
      * @param genScore only matches with genotypic score higher or equal to this value are returned
-     * @param onlyNotified when true only loads matches that have been notified
      * @param fromDate only matches found on or after the specified date (0 by default)
      * @param toDate only matches found on or before the specified date (current date by default)
      * @return a response containing a JSON object with a list of matches
@@ -90,7 +89,6 @@ public interface MatchingNotificationResource
     Response getMatches(@FormParam("score") @DefaultValue("0.5") double score,
         @FormParam("phenScore") @DefaultValue("0") double phenScore,
         @FormParam("genScore") @DefaultValue("0.1") double genScore,
-        @FormParam("onlyNotified") @DefaultValue("false") boolean onlyNotified,
         @FormParam("fromDate") @DefaultValue("") String fromDate,
         @FormParam("toDate") @DefaultValue("") String toDate);
 

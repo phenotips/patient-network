@@ -116,7 +116,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Override
     public Response getMatches(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final boolean onlyNotified, final String fromDate, final String toDate)
+        @Nullable final double genScore, final String fromDate, final String toDate)
     {
         final Request request = this.container.getRequest();
         final int reqNo = NumberUtils.toInt((String) request.getProperty(REQ_NO), 1);
@@ -124,7 +124,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
 
         try {
-            return getMatchesResponse(useScore, phenScore, genScore, onlyNotified, reqNo, fromDate, toDate);
+            return getMatchesResponse(useScore, phenScore, genScore, reqNo, fromDate, toDate);
         } catch (final SecurityException e) {
             this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -307,7 +307,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final boolean onlyNotified, final int reqNo, final String fromDate,
+        @Nullable final double genScore, final int reqNo, final String fromDate,
         final String toDate)
     {
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
