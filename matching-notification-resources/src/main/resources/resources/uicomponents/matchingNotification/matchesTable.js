@@ -521,8 +521,7 @@ var PhenoTips = (function (PhenoTips) {
 
         var options = { 'score'        : score,
                         'phenScore'    : phenScore,
-                        'genScore'     : genScore,
-                        'onlyNotified' : false };
+                        'genScore'     : genScore};
         return options;
     },
 
