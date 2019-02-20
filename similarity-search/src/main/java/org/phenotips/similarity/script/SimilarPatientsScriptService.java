@@ -18,6 +18,7 @@
 package org.phenotips.similarity.script;
 
 import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
@@ -47,6 +48,10 @@ public class SimilarPatientsScriptService implements ScriptService
     @Inject
     private SimilarPatientsFinder finder;
 
+    /** Provides access to patient data. */
+    @Inject
+    private PatientRepository patients;
+
     /**
      * Returns a list of patients similar to a reference patient.
      * See {@link SimilarPatientsFinder#findSimilarPatients(Patient)}.
@@ -57,7 +62,11 @@ public class SimilarPatientsScriptService implements ScriptService
      */
     public List<PatientSimilarityView> findSimilarPatients(Patient referencePatient)
     {
-        return this.finder.findSimilarPatients(referencePatient);
+        // re-fetch the patient to get an instance of "internal" patient
+        // (as opposed to a "secure" patient which does not provide enough data to do the matchfinding)
+        Patient referenceIntPatient = this.patients.get(referencePatient.getId());
+
+        return this.finder.findSimilarPatients(referenceIntPatient);
     }
 
     /**

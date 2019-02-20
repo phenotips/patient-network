@@ -69,8 +69,6 @@ public class DefaultPatientMatchResourceTest
 
     private static final String MATCH_3 = "match3";
 
-    private static final String SECURE = "secure";
-
     private static final String ID = "id";
 
     private static final String OWNER = "owner";
@@ -141,7 +139,7 @@ public class DefaultPatientMatchResourceTest
         this.component = this.mocker.getComponentUnderTest();
         // Set up all injected classes.
         this.logger = this.mocker.getMockedLogger();
-        this.repository = this.mocker.getInstance(PatientRepository.class, SECURE);
+        this.repository = this.mocker.getInstance(PatientRepository.class);
         this.similarPatientsFinder = this.mocker.getInstance(SimilarPatientsFinder.class);
 
         // Mock the reference patient.

@@ -23,7 +23,6 @@ import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
-import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Owner;
@@ -154,20 +153,23 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
     private List<PatientSimilarityView> find(Patient referencePatient, String requiredConsentId, boolean prototypes)
     {
-        this.logger.debug("Searching for patients similar to [{}] using access level {}",
-            referencePatient.getId(), this.accessLevelThreshold.getName());
+        this.logger.debug("Searching for patients similar to [{}] using visibility level {}",
+            referencePatient.getId(), this.visibilityLevelThreshold.getName());
         SolrQuery query = generateQuery(referencePatient, prototypes);
         if (query == null) {
             return Collections.emptyList();
         }
         SolrDocumentList docs = search(query);
         List<PatientSimilarityView> results = new ArrayList<>(docs.size());
-        // re-fetching patient to force it to be instance of internal Patient, not SecurePatient
-        Patient referenceIntPatient = this.patients.get(referencePatient.getId());
-        Family family = this.familyRepository.getFamilyForPatient(referenceIntPatient);
-        Owner refOwner = this.permissionsManager.getEntityAccess(referenceIntPatient).getOwner();
+        Family family = (referencePatient.getDocumentReference() == null)
+                        ? null
+                        : this.familyRepository.getFamilyForPatient(referencePatient);
+        Owner refOwner = (referencePatient.getDocumentReference() == null)
+                        ? null
+                        : this.permissionsManager.getEntityAccess(referencePatient).getOwner();
         EntityReference refOwnerRef = (refOwner != null) ? refOwner.getUser() : null;
 
+        this.logger.debug("Found {} potential matches", docs.size());
         for (SolrDocument doc : docs) {
             String name = (String) doc.getFieldValue("document");
             Patient matchPatient = this.patients.get(name);
@@ -177,9 +179,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
 
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            this.logger.debug("Found match: [{}] with score: {}, accessLevel: {}, accessCompare: {}",
-                name, result.getScore(), result.getAccess().getName(),
-                this.accessLevelThreshold.compareTo(result.getAccess()));
+            this.logger.debug("Found match: [{}] with score: {}", name, result.getScore());
             if (result.getScore() > 0) {
                 results.add(result);
             }

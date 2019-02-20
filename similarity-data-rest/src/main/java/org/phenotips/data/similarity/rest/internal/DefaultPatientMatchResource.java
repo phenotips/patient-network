@@ -62,9 +62,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
 
     private static final String LIMIT = "maxResults";
 
-    /** The secure patient repository. */
     @Inject
-    @Named("secure")
     private PatientRepository repository;
 
     /** The similar patients finder. */
