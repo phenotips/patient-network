@@ -90,11 +90,6 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     @Inject
     private FamilyRepository familyRepository;
 
-    /** The minimal access level needed for including a patient in the result. */
-    @Inject
-    @Named("match")
-    private AccessLevel accessLevelThreshold;
-
     /** The minimal visibility level needed for including a patient in the result. */
     @Inject
     @Named("matchable")
@@ -204,7 +199,6 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     private boolean filterPatient(Patient matchPatient, Family family, EntityReference refOwner,
         String requiredConsentId)
     {
-        EntityAccess access = this.permissionsManager.getEntityAccess(matchPatient);
         if (matchPatient == null) {
             // Leftover patient in the index, should be removed
             return true;
@@ -213,18 +207,15 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         if (family != null && family.isMember(matchPatient)) {
             return true;
         }
-        // filter out patients of the same owner
-        Owner matchOwner = access.getOwner();
-        if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
-            return true;
-        }
         // check consents, if required
         if (requiredConsentId != null && !this.consentManager.hasConsent(matchPatient, requiredConsentId)) {
             return true;
         }
-        // filter out patients with access level less than defined access level threshold
-        AccessLevel patientAccessLevel = access.getAccessLevel();
-        if (this.accessLevelThreshold.compareTo(patientAccessLevel) > 0) {
+
+        EntityAccess access = this.permissionsManager.getEntityAccess(matchPatient);
+        // filter out patients of the same owner
+        Owner matchOwner = access.getOwner();
+        if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
             return true;
         }
         // filter out patients with visibility level less than defined visibility level threshold
