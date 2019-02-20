@@ -78,8 +78,10 @@ public interface MatchingNotificationResource
      * @param score only matches with general score higher or equal to this value are returned
      * @param phenScore only matches with phenotypic score higher or equal to this value are returned
      * @param genScore only matches with genotypic score higher or equal to this value are returned
-     * @param fromDate only matches found on or after the specified date (0 by default)
-     * @param toDate only matches found on or before the specified date (current date by default)
+     * @param fromDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or after this date
+     *        will be returned; if {@code null} or an empty string, then no lower limit on the match date is considered
+     * @param toDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or before this date
+     *        will be returned; if {@code null} or an empty string, then no upper limit on the match date is considered
      * @return a response containing a JSON object with a list of matches
      */
     @POST
