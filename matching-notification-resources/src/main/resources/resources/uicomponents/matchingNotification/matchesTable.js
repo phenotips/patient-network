@@ -37,6 +37,7 @@ var PhenoTips = (function (PhenoTips) {
 
         $('show-matches-button').on('click', this._showMatches.bind(this));
         this._notificationsButton = $('send-notifications-button');
+        this._notificationsButton.disabled = true;
         this._notificationsButton.hide();
         this._notificationsButton.on('click', this._sendNotification.bind(this));
         $('expand_all').on('click', this._expandAllClicked.bind(this));
@@ -1513,9 +1514,9 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[type=checkbox][class="notify"]').each(function (elm) {
             elm.on('click', function(event) {
                 if (this._getMarkedToNotify().length > 0) {
-                    this._notificationsButton.removeClassName("disabled");
+                    this._notificationsButton.disabled = false;
                 } else {
-                    this._notificationsButton.addClassName("disabled");
+                    this._notificationsButton.disabled = true;
                 }
             }.bind(this));
         }.bind(this));
@@ -1576,27 +1577,17 @@ var PhenoTips = (function (PhenoTips) {
 
     _sendNotification : function(event)
     {
-        event.stop();
-        if (!this._matches) {
+        var matchIDs = this._getMarkedToNotify();
+        if (matchIDs.length == 0) {
             return;
         }
-        var ids = this._getMarkedToNotify();
-        if (ids.length == 0) {
-            this._utils.showFailure('send-notifications-messages', "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify.noContactSelected'))");
-            return;
-        }
-        this._notifyMatchByIDs(ids);
-    },
-
-    _notifyMatchByIDs : function(matchIDs)
-    {
         // console.log("Sending " + idsToNotify);
         var idsToNotify = JSON.stringify({ ids: matchIDs});
         new Ajax.Request(this._ajaxURL + 'send-admin-local-notifications', {
             parameters : {'ids' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");
-                this._notificationsButton.addClassName("disabled");
+                this._notificationsButton.disabled = true;
                 this._utils.showSent('send-notifications-messages');
             }.bind(this),
             onSuccess : function (response) {
