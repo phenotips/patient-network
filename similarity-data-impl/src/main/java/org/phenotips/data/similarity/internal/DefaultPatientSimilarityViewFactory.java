@@ -19,7 +19,9 @@ package org.phenotips.data.similarity.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
+import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
@@ -80,6 +82,11 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
     @Named("match")
     protected AccessLevel matchAccess;
 
+    /** The minimal visibility level needed for including a patient in the result. */
+    @Inject
+    @Named("matchable")
+    protected Visibility matchVisibility;
+
     /** Provides access to the term vocabulary. */
     @Inject
     protected VocabularyManager vocabularyManager;
@@ -132,8 +139,22 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
         if (match == null || reference == null) {
             throw new IllegalArgumentException("Similar patients require both a match and a reference");
         }
-        AccessType access = new DefaultAccessType(this.permissions.getEntityAccess(match).getAccessLevel(),
-            this.viewAccess, this.matchAccess);
+
+        // FIXME: a patient may have visibility level "matchable" but have access level below "match".
+        //        this does not allow MME code to return matchable patients, and so a workaround is
+        //        implemented below. The workaround should be removed if the condition is no longer possible
+        //        - or the entire system need to be redone to use visibility instead of access
+        EntityAccess entityAccess = this.permissions.getEntityAccess(match);
+        AccessLevel useAccess = entityAccess.getAccessLevel();
+        Visibility visibility = entityAccess.getVisibility();
+        if (useAccess.compareTo(this.matchAccess) < 0 && visibility.compareTo(this.matchVisibility) >= 0) {
+            // matches which are not matchable are filtered out elsewhere. But for MME requests which are
+            // done as a guest user (who has no acceess to all patients), need to make sure the match can
+            // be processed and returned, for which there should be at least "match" access level
+            useAccess = this.matchAccess;
+        }
+
+        AccessType access = new DefaultAccessType(useAccess, this.viewAccess, this.matchAccess);
         return getCachedPatientSimilarityView(match, reference, access);
     }
 
