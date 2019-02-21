@@ -543,9 +543,6 @@ var PhenoTips = (function (PhenoTips) {
             this.resultsSummary.hide();
         } else {
             this._matches = this._cachedMatches.filter( (filter) ? filter : this._advancedFilter);
-            if (!this._matches || this._matches.length == 0) {
-                return;
-            }
 
             this.pagination.show();
             this.resultsSummary.show();
@@ -812,7 +809,7 @@ var PhenoTips = (function (PhenoTips) {
         var matchesForPage = this._matches.slice(begin, end);
         this.paginator.refreshPagination(this._maxResults);
 
-        var firstItemRangeNo = begin + 1;
+        var firstItemRangeNo = (end == 0) ? 0 : begin + 1;
         var lastItemRangeNo = end;
         var tableSummary = this._PAGE_COUNT_TEMPLATE.replace(/___caseRange___/g, firstItemRangeNo + "-" + lastItemRangeNo).replace(/___totalCases___/g, this.totalResultsCount).replace(/___numCasesPerPage___/g, "");
         this._displaySummary(tableSummary, $('panels-livetable-limits'), true);
