@@ -156,6 +156,7 @@ var PhenoTips = (function(PhenoTips) {
                     var notificationResult = response.responseJSON.results;
                     notificationResult.notifiedPatients = {};
                     notificationResult.notifiedPatients[matchID] = [ subjectPatientId ];
+                    notificationResult.successNotificationHistories = response.responseJSON.successNotificationHistories || '';
 
                     var event = { 'notificationResult' : notificationResult };
                     document.fire("match:contacted:byuser", event);

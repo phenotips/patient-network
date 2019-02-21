@@ -156,15 +156,20 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
         // create result JSON. The successfullyNotified list is used to take care of a case
         // where there is match that was supposed to be notified but no response was received on it.
+        JSONObject notificationHistory = new JSONObject();
         List<Long> successfullyNotified = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
             if (response.isSuccessul()) {
-                successfullyNotified.add(response.getPatientMatch().getId());
+                PatientMatch match = response.getPatientMatch();
+                Long matchId = match.getId();
+                successfullyNotified.add(matchId);
+                notificationHistory.put(matchId.toString(), match.getNotificationHistory());
             }
         }
 
         JSONObject result = this.successfulIdsToJSON(new ArrayList<>(idsList.keySet()),
             successfullyNotified);
+        result.put("successNotificationHistories", notificationHistory);
         return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
@@ -190,6 +195,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             if (notificationResult.isSuccessul()) {
                 result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
                     Collections.singletonList(numericMatchId));
+                PatientMatch match = notificationResult.getPatientMatch();
+                JSONObject notificationHistory = new JSONObject();
+                notificationHistory.put(match.getId().toString(), match.getNotificationHistory());
+                result.put("successNotificationHistories", notificationHistory);
             } else {
                 result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
                     Collections.<Long>emptyList());
