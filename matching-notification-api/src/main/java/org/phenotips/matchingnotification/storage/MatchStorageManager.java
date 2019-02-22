@@ -23,6 +23,7 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -41,14 +42,14 @@ public interface MatchStorageManager
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
      * @param onlyCurrentUserAccessible when true only matches that current user has access to are returned
-     * @param fromDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or after this date
-     *        will be returned; if {@code null} or an empty string, then no lower limit on the match date is considered
-     * @param toDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or before this date
-     *        will be returned; if {@code null} or an empty string, then no upper limit on the match date is considered
+     * @param fromDate if passed a Date, then only matches found on or after this date will be returned;
+     *        if {@code null}, then no lower limit on the match date is considered
+     * @param toDate if passed a Date, then only matches found on or before this date will be returned;
+     *        if {@code null}, then no upper limit on the match date is considered
      * @return a list of matches
      */
     List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible,
-        String fromDate, String toDate);
+        Date fromDate, Date toDate);
 
     /**
      * Load all matches with ids in {@code matchesIds}.

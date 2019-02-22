@@ -37,9 +37,12 @@ import org.xwiki.users.UserManager;
 
 import java.security.AccessControlException;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -118,13 +121,34 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     public Response getMatches(@Nullable final double score, @Nullable final double phenScore,
         @Nullable final double genScore, final String fromDate, final String toDate)
     {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        Date from = null;
+        if (StringUtils.isNotBlank(fromDate)) {
+            try {
+                from = sdf.parse(fromDate);
+            } catch (ParseException e) {
+                this.slf4Jlogger.error("Failed to parse fromDate parameter from: " + fromDate);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+        }
+
+        Date to = null;
+        if (StringUtils.isNotBlank(toDate)) {
+            try {
+                to = sdf.parse(toDate);
+            } catch (ParseException e) {
+                this.slf4Jlogger.error("Failed to parse toDate parameter from: " + toDate);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+        }
+
         final Request request = this.container.getRequest();
         final int reqNo = NumberUtils.toInt((String) request.getProperty(REQ_NO), 1);
 
         double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
 
         try {
-            return getMatchesResponse(useScore, phenScore, genScore, reqNo, fromDate, toDate);
+            return getMatchesResponse(useScore, phenScore, genScore, reqNo, from, to);
         } catch (final SecurityException e) {
             this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -280,8 +304,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final int reqNo, final String fromDate,
-        final String toDate)
+        @Nullable final double genScore, final int reqNo, final Date fromDate, final Date toDate)
     {
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
 
