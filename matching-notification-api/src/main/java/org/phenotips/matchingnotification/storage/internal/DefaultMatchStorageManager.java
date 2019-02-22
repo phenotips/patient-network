@@ -30,9 +30,9 @@ import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -258,7 +258,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     @SuppressWarnings("unchecked")
     public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
-        boolean onlyCurrentUserAccessible, final String fromDate, final String toDate)
+        boolean onlyCurrentUserAccessible, final Date fromDate, final Date toDate)
     {
         // ...else it is more complicated: need to return all matches, but
         // also exclude un-notified matches that have a similar match that have been notified
@@ -273,11 +273,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         try {
             String queryString = HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE;
 
-            if (StringUtils.isNotBlank(fromDate)) {
+            if (fromDate != null) {
                 queryString += " and foundTimestamp >= :fromTimestamp";
             }
 
-            if (StringUtils.isNotBlank(toDate)) {
+            if (toDate != null) {
                 queryString += " and foundTimestamp <= :toTimestamp";
             }
 
@@ -286,23 +286,16 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             query.setParameter("phenScore", phenScore);
             query.setParameter("genScore", genScore);
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-            if (StringUtils.isNotBlank(fromDate)) {
-                try {
-                    Timestamp timestampFrom = new Timestamp(sdf.parse(fromDate).getTime());
-                    query.setTimestamp("fromTimestamp", timestampFrom);
-                } catch (Exception e) {
-                    // do nothing
-                }
+            if (fromDate != null) {
+                Timestamp timestampFrom = new Timestamp(fromDate.getTime());
+                query.setTimestamp("fromTimestamp", timestampFrom);
+
             }
 
-            if (StringUtils.isNotBlank(toDate)) {
-                try {
-                    Timestamp timestampTo = new Timestamp(sdf.parse(toDate).getTime());
-                    query.setTimestamp("toTimestamp", timestampTo);
-                } catch (Exception e) {
-                    // do nothing
-                }
+            if (toDate != null) {
+                // need to add 1 day in ms to include all matches made that day
+                Timestamp timestampTo = new Timestamp(toDate.getTime() + 86400000);
+                query.setTimestamp("toTimestamp", timestampTo);
             }
 
             List<PatientMatch> result = query.list();
