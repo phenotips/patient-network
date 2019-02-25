@@ -322,7 +322,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setNotes(JSONObject notes)
+    public void setNotes(JSONArray notes)
     {
         this.notes = (notes != null) ? notes.toString() : null;
     }
@@ -385,12 +385,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public String getNote()
     {
         try {
-            JSONObject allNotes = (this.notes != null) ? new JSONObject(this.notes)
-                : new JSONObject();
-            JSONArray records = allNotes.optJSONArray(NOTES);
-            if (records == null) {
+            if (this.notes == null) {
                 return null;
             }
+            JSONArray records = (this.notes != null) ? new JSONArray(this.notes)
+                : new JSONArray();
 
             String currentUserId = USER_MANAGER.getCurrentUser().getId();
             for (Object record : records) {
@@ -400,16 +399,16 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
                 }
             }
         } catch (JSONException ex) {
-            // error parsing notes or new record JSON string to JSON object happened
+            // error parsing notes or new record JSON string to JSON array happened
         }
         return null;
     }
 
     @Override
-    public JSONObject getNotes()
+    public JSONArray getNotes()
     {
         try {
-            return new JSONObject(this.notes);
+            return new JSONArray(this.notes);
         } catch (JSONException | NullPointerException ex) {
             return null;
         }
