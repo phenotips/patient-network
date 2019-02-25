@@ -121,6 +121,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private static final String HQL_QUERY_REMOTE_MATCHES =
         "select count(*) from DefaultPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
 
+    private static final int ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24;
+
     /** Handles persistence. */
     @Inject
     private HibernateSessionFactory sessionFactory;
@@ -294,7 +296,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
             if (toDate != null) {
                 // need to add 1 day in ms to include all matches made that day
-                Timestamp timestampTo = new Timestamp(toDate.getTime() + 86400000);
+                Timestamp timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
                 query.setTimestamp("toTimestamp", timestampTo);
             }
 
