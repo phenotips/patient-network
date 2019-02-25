@@ -661,7 +661,7 @@ var PhenoTips = (function (PhenoTips) {
                 match.matched = match.notMyCase
             }
 
-            match.notificationHistory = this._organiseNotificationHistory(match);
+            this._organiseNotificationHistory(match);
         }.bind(this));
 
         // new data - forget current sorting preferences
@@ -674,40 +674,32 @@ var PhenoTips = (function (PhenoTips) {
     _organiseNotificationHistory : function(match)
     {
         if (!match.notificationHistory) {
-            return null;
+            return;
         }
+
+        // whether match was contacted by user outside of the PhenomeCentral
+        match.userContacted = !!match.notificationHistory["user-contacted"];
 
         var records = [];
-        try {
-            var history = JSON.parse(match.notificationHistory);
+        if (match.notificationHistory.interactions && match.notificationHistory.interactions.size() > 0) {
+            // we go from bottom of array to top to put most recent notifications first
+            for (var i=match.notificationHistory.interactions.length-1; i >= 0; i--) {
+                var record = match.notificationHistory.interactions[i];
+                if (record.to && record.to.emails && record.to.emails.size() > 0) {
 
-            if (history) {
-                // whether match was contacted by user outside of the PhenomeCentral
-                match.userContacted = !!history["user-contacted"];
-                if (history.interactions && history.interactions.size() > 0) {
-
-                    // we go from bottom of array to top to put most recent notifications first
-                    for (var i=history.interactions.length-1; i >= 0; i--) {
-                        var record = history.interactions[i];
-                        if (record.to && record.to.emails && record.to.emails.size() > 0) {
-
-                            if (record.type == "notification") {
-                                match.adminNotified = true;
-                            }
-                            if (record.type == "contact") {
-                                match.contacted = true;
-                            }
-
-                            records.push(record);
-                        }
+                    if (record.type == "notification") {
+                        match.adminNotified = true;
                     }
+                    if (record.type == "contact") {
+                        match.contacted = true;
+                    }
+
+                    records.push(record);
                 }
             }
-        } catch(e) {
-            console.log("Syntax error parsing match.notificationHistory JSON from string for match ID: "+ match.id +" history string: "+ match.notificationHistory);
         }
 
-        return records;
+        match.notificationHistory = records;
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -1821,10 +1813,10 @@ var PhenoTips = (function (PhenoTips) {
 
             if (properties.hasOwnProperty('notified')) {
                 if (properties.successNotificationHistories && Object.keys(properties.successNotificationHistories).indexOf(match.id.toString()) > -1) {
-                    this._matches[matchIndex].notificationHistory = JSON.stringify(properties.successNotificationHistories[match.id]);
-                    this._matches[matchIndex].notificationHistory = this._organiseNotificationHistory(this._matches[matchIndex]);
-                    this._cachedMatches[cachedIndex].notificationHistory = JSON.stringify(properties.successNotificationHistories[match.id]);
-                    this._cachedMatches[cachedIndex].notificationHistory = this._organiseNotificationHistory(this._cachedMatches[cachedIndex]);
+                    this._matches[matchIndex].notificationHistory = properties.successNotificationHistories[match.id];
+                    this._organiseNotificationHistory(this._matches[matchIndex]);
+                    this._cachedMatches[cachedIndex].notificationHistory = properties.successNotificationHistories[match.id];
+                    this._organiseNotificationHistory(this._cachedMatches[cachedIndex]);
                 }
 
                 if (properties.hasOwnProperty('userContacted')) {
