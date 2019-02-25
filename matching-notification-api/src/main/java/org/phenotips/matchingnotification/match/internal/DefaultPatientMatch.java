@@ -523,7 +523,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("phenotypicScore", this.getPhenotypeScore());
         json.put("href", this.isLocal() ? "" : this.getHref());
         json.put("comments", this.getComments());
-        json.put("notificationHistory", this.notificationHistory);
+        json.put("notificationHistory", this.getNotificationHistory());
         json.put("notes", this.getNote());
 
         return json;
