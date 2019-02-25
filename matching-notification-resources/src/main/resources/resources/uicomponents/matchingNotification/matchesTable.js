@@ -2039,7 +2039,7 @@ var PhenoTips = (function (PhenoTips) {
                 }
                 var results = response.responseJSON.results;
                 if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'state': 'success', 'note' : note});
+                    this._setState(results.success, {'state': 'success', 'notes' : note});
                 } else if (results.failed && results.failed.length > 0) {
                     this._utils.showFailure('show-matches-messages', "Saving notes failed");
                 }
