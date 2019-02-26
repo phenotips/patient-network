@@ -253,12 +253,16 @@ ul.filters label {
   -ms-user-select: none;
   user-select: none;
 }
+table.comments-table {
+  margin: .5em 0;
+}
 .xTooltip.comment-container, .xTooltip.notes-container {
-  width: 20em;
+  width: 22em;
   text-align: left;
+  border: 1px solid #666;
 }
 .xTooltip.comment-container {
-  background-color: #F6F8F9;
+  background-color: #eaeaea;
 }
 .xTooltip.comment-container textarea, .xTooltip.notes-container textarea {
   margin-bottom: 5px;
@@ -386,12 +390,11 @@ label.score {
   border: 0;
   border-bottom: 1px solid #D7DEE3;
   font-size: .9em;
-  padding: 3px 4px;
-  background-color: #F6F8F9;
+  padding: 12px 4px 0px 4px;
+  font-weight: bold;
 }
 .notification-history-table td, .comments-table td {
   border: 0;
-  border-bottom: 1px solid #D7DEE3;
   color: #636B75;
   font-size: .95em;
   padding: 3px 8px;
@@ -448,20 +451,12 @@ td[name="contact"] {
 }
 .xHint {
   color: #369;
-  font-size: 87%;
-  white-space: -moz-pre-wrap !important;
-  white-space: -pre-wrap;
-  white-space: -o-pre-wrap;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  white-space: -webkit-pre-wrap;
+  font-size: 82%;
   white-space: normal;
+  line-height: 12px;
 }
 .notes-container h4 {
   margin: 0;
-}
-.comment-text {
-  padding: 5px!important;
 }
 .phenotypes-div ul li, .genes-div ul li {
   margin: 2px 2px 4px 0;
@@ -472,7 +467,8 @@ td[name="contact"] {
   background-color: #EEE;
   border-radius: 4px 4px;
 }
-.comment-text {
-  color: #565656;
-  background-color: #eaeaea;
+.comments-table .comment-text {
+  color: #292929;
+  white-space: normal;
+  text-align: justify;
 }
