@@ -887,19 +887,21 @@ var PhenoTips = (function (PhenoTips) {
             if (match.comments) {
                 commentsTable = this._generateCommentsTable(match.comments);
             }
-            td += '<div class="xTooltip comment-container"><span class="hide-tool" title="Hide">×</span>'
+            td += '<div class="xPopup comment-container"><span class="hide-tool" title="Hide">×</span>'
                 + '<div class="nhdialog-title">' + this._COMMENTS_TITLE + '</div>'
                 + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
-                + '<div><textarea rows="5" cols="20"></textarea></div>';
+                + '<div><textarea rows="3" cols="20"></textarea></div>';
             td +='<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
                 + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span>' + commentsTable + '</div>';
         }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
         td += '<span class="buttonwrapper" title="' + this._NOTES_TITLE + '"><a class="button notes" href="#"><span class="' + icon + '"> </span></a></span>';
-        td += '<div class="xTooltip notes-container"><span class="hide-tool" title="Hide">×</span><div><h4>' + this._NOTES_TITLE + '</h4><p class="xHint">'
-            + this._NOTES_HINT + '</p><textarea rows="5" cols="20"></textarea></div>'
-            +'<span class="buttonwrapper"><a class="button save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+        td += '<div class="xPopup notes-container"><span class="hide-tool" title="Hide">×</span>'
+            + '<div class="nhdialog-title">' + this._NOTES_TITLE + '</div>'
+            + '<p class="xHint">' + this._NOTES_HINT + '</p>'
+            + '<div><textarea rows="5" cols="20"></textarea></div>'
+            + '<span class="buttonwrapper"><a class="button save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
             + this._NOTES_SAVE + '</a></span></div>';
         td += '</td>';
         return td;
@@ -1255,7 +1257,7 @@ var PhenoTips = (function (PhenoTips) {
         //add notification history icon
         td += '<span class="fa fa-history notification-history ' + ((!hasHistory && !match.userContacted) ? 'secondary' : '')
             + '" title="' + this._NOTIFICATION_HISTORY_TITLE + '"> </span>'
-            + '<div class="xTooltip notification-history-container"><span class="hide-tool" title="Hide">×</span>'
+            + '<div class="xPopup notification-history-container"><span class="hide-tool" title="Hide">×</span>'
             + '<div class="nhdialog-title">' + this._NOTIFICATION_HISTORY_TITLE + '</div>';
         // add "mark as contacted outside PC" button
         td += '<div class="mark-user-contacted-button-container">' + this._getMarkUserContactedHTML(match) + '</div>';

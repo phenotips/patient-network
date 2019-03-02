@@ -256,15 +256,32 @@ ul.filters label {
 table.comments-table {
   margin: .5em 0;
 }
-.xTooltip.comment-container, .xTooltip.notes-container {
+.xPopup {
+  background: #FFFFFF;
+  border-radius: 0 1em 1em;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  color: #404040;
+  display: inline-block;
+  margin: 0.7em 0 0 -0.3em;
+  padding: 0.75em 1em;
+  position: absolute;
+  z-index: 25;
+}
+.xPopup .hide-tool {
+  cursor: pointer;
+  float: right;
+  margin-right: -0.5em;
+  margin-top: -0.6em;
+}
+.xPopup.comment-container, .xPopup.notes-container {
   width: 22em;
   text-align: left;
   border: 1px solid #666;
 }
-.xTooltip.comment-container {
-  background-color: #eaeaea;
+.xPopup.comment-container {
+  background-color: #eceff1;
 }
-.xTooltip.comment-container textarea, .xTooltip.notes-container textarea {
+.xPopup.comment-container textarea, .xPopup.notes-container textarea {
   margin-bottom: 5px;
   margin-top: 10px;
 }
@@ -421,9 +438,9 @@ label.score {
   font-size: .9em;
   float: right;
 }
-.xTooltip.notification-history-container {
+.xPopup.notification-history-container {
   margin: .5em 2.5em 0 0;
-  border: 2px solid black;
+  border: 1px solid black;
   border-radius: .5em 0 .5em .5em;
   color: black;
   text-align: left;
