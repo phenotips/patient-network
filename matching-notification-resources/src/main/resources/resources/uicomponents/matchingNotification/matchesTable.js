@@ -892,8 +892,8 @@ var PhenoTips = (function (PhenoTips) {
                 + '<div class="nhdialog-title">' + this._COMMENTS_TITLE + '</div>'
                 + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
                 + '<div><textarea rows="3" cols="20"></textarea></div>';
-            td +='<span class="buttonwrapper"><a class="button save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
-                + this._SAVE_COMMENT_BUTTON_LABEL + '</a></span>' + commentsTable + '</div>';
+            td +='<span class="buttonwrapper"><button class="save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+                + this._SAVE_COMMENT_BUTTON_LABEL + '</button></span>' + commentsTable + '</div>';
         }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
@@ -1436,6 +1436,7 @@ var PhenoTips = (function (PhenoTips) {
             var comment_container = elm.up('td').down('.comment-container');
             var textarea = comment_container.down('textarea');
             var saveButton = elm.up('td').down('.save-comment');
+            saveButton.disable();
             var commentMatch = this._matches.filter( function(match) { return String(match.id) === saveButton.dataset.matchid; } );
             var records = commentMatch && commentMatch[0] && commentMatch[0].comments || '';
 
@@ -1455,8 +1456,16 @@ var PhenoTips = (function (PhenoTips) {
                 comment_container.addClassName('hidden');
             });
 
+            textarea.on('input', function(event) {
+                if (textarea.value.trim()){
+                    saveButton.enable();
+                } else {
+                    saveButton.disable();
+                }
+            });
+
             saveButton.on('click', function(event) {
-                event.stop();
+                saveButton.disable();
                 this._saveComment(event);
             }.bind(this));
 

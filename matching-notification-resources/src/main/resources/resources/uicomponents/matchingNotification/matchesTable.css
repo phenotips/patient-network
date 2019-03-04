@@ -284,6 +284,8 @@ table.comments-table {
 .xPopup.comment-container textarea, .xPopup.notes-container textarea {
   margin-bottom: 5px;
   margin-top: 10px;
+  resize: vertical;
+  min-height: 45px;
 }
 a.button.comment, a.button.notes {
   background-image: none;
