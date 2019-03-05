@@ -45,7 +45,7 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
  * from multiple users. Existing comments will be migrated to be contained in the JSON object.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.2
  */
 @Component
 @Named("R74693PatientNetwork377")
