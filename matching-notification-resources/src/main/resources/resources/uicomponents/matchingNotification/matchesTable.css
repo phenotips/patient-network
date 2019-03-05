@@ -116,12 +116,17 @@ table#matchesTable {
 #show-matches-button {
   margin: 10px 40px 0 0;
 }
-
+#send-notifications-button {
+  margin-top: 10px;
+}
 #pagination-info {
   display: inline-block;
 }
-#pagination-matching-notifications {
+.pagination-matching-notifications {
   margin-top: 10px;
+  display: inline-block;
+  float: right;
+  margin-bottom: 5px;
 }
 .matches-table .first-header-row, .matches-table .second-header-row {
   text-align: -webkit-center;

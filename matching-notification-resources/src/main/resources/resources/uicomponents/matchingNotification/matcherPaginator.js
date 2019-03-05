@@ -1,47 +1,60 @@
 var PhenoTips = (function(PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.MatcherPaginator = Class.create({
-    initialize: function(table, domNode, max) {
+    initialize: function(table, domNodes, max) {
       var _this = this;
       this.table = table;
       this.max = max;
-      this.pagesNode = domNode.down(".xwiki-livetable-pagination-content");
-      var prevPagination = domNode.down(".prevPagination");
-      var nextPagination = domNode.down(".nextPagination");
-      prevPagination && prevPagination.observe("click", function(ev) {
-        _this.gotoPrevPage(ev);
+      this.pagesNodes = [];
+      domNodes.each(function(elem){
+          _this.pagesNodes.push(elem.down(".xwiki-livetable-pagination-content"));
       });
-      nextPagination && nextPagination.observe("click", function(ev) {
-        _this.gotoNextPage(ev);
+
+      this.pagesNodes.each(function(elem){
+          elem.down(".prevPagination") && elem.down(".prevPagination").observe("click", function(ev) {
+              _this.gotoPrevPage(ev);
+          });
+          elem.down(".nextPagination") && elem.down(".nextPagination").observe("click", function(ev) {
+              _this.gotoNextPage(ev);
+        });
       });
+
     },
-    refreshPagination: function(maxResults) {
+    refreshPagination: function() {
       var _this = this;
-      this.pagesNode.innerHTML = "";
+      this.pagesNodes.each(function(elem){
+          elem.innerHTML = "";
+      });
       var pages = this.table.totalPages;
-      var currentMax = (maxResults) ? maxResults : this.max;
+      var currentMax = (!this.max) ? pages : this.max;
       var currentPage = this.table.page;
       var startPage = Math.floor(currentPage / currentMax) * currentMax - 1;
 
       // always display the first page
       if (startPage>1) {
-         this.pagesNode.insert(_this.createPageLink(1, false));
-         if (startPage>2) {
-            this.pagesNode.insert(" ... ");
-         }
+          this.pagesNodes.each(function(elem){
+              elem.insert(_this.createPageLink(1, false));
+          });
+          if (startPage>2) {
+             this.pagesNodes.invoke("insert", " ... ");
+          }
       }
       // display pages
       for (var i=(startPage<=0) ? 1 : startPage;i<=Math.min(startPage + currentMax + 1, pages);i++) {
          var selected = (currentPage == i);
-         this.pagesNode.insert(_this.createPageLink(i, selected));
-         this.pagesNode.insert(" ");
+         this.pagesNodes.each(function(elem){
+             elem.insert(_this.createPageLink(i, selected));
+         });
+         this.pagesNodes.invoke("insert", " ");
       }
       // always display the last page.
       if (i<pages) {
         if (i+1 <= pages) {
-          this.pagesNode.insert(" ... ");
+            this.pagesNodes.invoke("insert", " ... ");
         }
-        this.pagesNode.insert(_this.createPageLink(pages, false));
+        this.pagesNodes.each(function(elem){
+            elem.insert(_this.createPageLink(pages, false));
+        });
       }
 
       this._updateArrowsState(currentPage, pages);
@@ -93,11 +106,13 @@ var PhenoTips = (function(PhenoTips) {
       }
     },
     _switchClassName: function(addName, removeName) {
-      if (!this.pagesNode.up().previous('.controlPagination')) {
-        return;
-      }
-      var page = this.pagesNode.up().previous('.controlPagination').down('.' + removeName);
-      page && page.addClassName(addName).removeClassName(removeName);
+      this.pagesNodes.each(function(item) {
+          if (!item.up().previous('.controlPagination')) {
+            return;
+          }
+          var page = item.up().previous('.controlPagination').down('.' + removeName);
+          page && page.addClassName(addName).removeClassName(removeName);
+      });
     }
   });
   return PhenoTips;

@@ -24,12 +24,13 @@ var PhenoTips = (function (PhenoTips) {
 
         this._offset = 1;
         this._maxResults = 50;
+        this._maxPagesShown = 10;
         this._minScore = 0;
         this.page = 1;
-        this.pagination = $('pagination-matching-notifications');
-        this.pagination && this.pagination.hide();
+        this.paginations = $$('.pagination-matching-notifications');
+        this.paginations.invoke("hide");
         this.resultsSummary = $('panels-livetable-limits');
-        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.pagination, this._maxResults);
+        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.paginations, this._maxPagesShown);
 
         this._isAdmin = $('isAdmin');
 
@@ -552,12 +553,12 @@ var PhenoTips = (function (PhenoTips) {
         tableBody.update('');
 
         if (!this._cachedMatches || this._cachedMatches.length == 0) {
-            this.pagination.hide();
+            this.paginations.invoke("hide");
             this.resultsSummary.hide();
         } else {
             this._matches = this._cachedMatches.filter( (filter) ? filter : this._advancedFilter);
 
-            this.pagination.show();
+            this.paginations.invoke("show");
             this.resultsSummary.show();
 
             this.totalResultsCount = this._matches.length;
@@ -817,7 +818,7 @@ var PhenoTips = (function (PhenoTips) {
         var begin = this._maxResults*(this.page - 1);
         var end = Math.min(this.page*this._maxResults, this.totalResultsCount);
         var matchesForPage = this._matches.slice(begin, end);
-        this.paginator.refreshPagination(this._maxResults);
+        this.paginator.refreshPagination();
 
         var firstItemRangeNo = (end == 0) ? 0 : begin + 1;
         var lastItemRangeNo = end;
