@@ -236,11 +236,22 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;div class="xwiki-livetable-pagination" id="pagination-info"&gt;
       &lt;span id="panels-livetable-limits" class="xwiki-livetable-limits"&gt;&lt;/span&gt;
       &lt;span id="panels-livetable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$services.localization.render('platform.livetable.loading')" /&gt;$services.localization.render('platform.livetable.loading')&lt;/span&gt;
+    &lt;/div&gt;
 ## ERROR MESSAGE CONTAINER
       &lt;div id="show-matches-messages"&gt;&lt;/div&gt;
-    &lt;/div&gt;
 ## Global search
     &lt;div class="hidden" id="global-search"&gt;&lt;input type="text" id="global-search-input" placeholder="$services.localization.render('phenotips.matchingNotifications.table.globalSearch.placeholder')"&gt;&lt;/div&gt;
+## Pagination
+    &lt;div class="xwiki-livetable-pagination pagination-matching-notifications"&gt;
+      &lt;span class="controlPagination"&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+      &lt;/span&gt;
+      &lt;span class="pagination"&gt;
+        &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+        &lt;span class="xwiki-livetable-pagination-content" &gt;&lt;/span&gt;
+      &lt;/span&gt;
+    &lt;/div&gt;
 ## TABLE--BODY
     &lt;table id="matchesTable" class="matches-table"&gt;
       &lt;thead&gt;
@@ -286,18 +297,17 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;/table&gt;
 
 ## Pagination
-    &lt;div class="xwiki-livetable-pagination" id="pagination-matching-notifications"&gt;
+    &lt;div class="xwiki-livetable-pagination pagination-matching-notifications"&gt;
       &lt;span class="controlPagination"&gt;
-        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
-        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+        &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
       &lt;/span&gt;
       &lt;span class="pagination"&gt;
         &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
-        &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+        &lt;span class="xwiki-livetable-pagination-content" &gt;&lt;/span&gt;
       &lt;/span&gt;
     &lt;/div&gt;
 ##--SEND NOTIFICATION BUTTON
-    &lt;br/&gt;
     &lt;div #if(!$hasAdmin)class="hidden"#end&gt;
       &lt;span class="buttonwrapper"&gt;
         &lt;button id="send-notifications-button"&gt;&lt;span class="fa fa-envelope" &gt;&lt;/span&gt;
