@@ -901,8 +901,8 @@ var PhenoTips = (function (PhenoTips) {
             + '<div class="nhdialog-title">' + this._NOTES_TITLE + '</div>'
             + '<p class="xHint">' + this._NOTES_HINT + '</p>'
             + '<div><textarea rows="5" cols="20"></textarea></div>'
-            + '<span class="buttonwrapper"><a class="button save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
-            + this._NOTES_SAVE + '</a></span></div>';
+            + '<span class="buttonwrapper"><button class="save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+            + this._NOTES_SAVE + '</button></span></div>';
         td += '</td>';
         return td;
     },
@@ -1506,9 +1506,17 @@ var PhenoTips = (function (PhenoTips) {
                 notes_container.addClassName('hidden');
             });
 
+            textarea.on('input', function(event) {
+                if (textarea.value.trim()){
+                    saveButton.enable();
+                } else {
+                    saveButton.disable();
+                }
+            });
+
             var saveButton = elm.up('td').down('.save-notes');
+            saveButton.disable();
             saveButton.on('click', function(event) {
-                event.stop();
                 elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
                 notes_container.addClassName('hidden');
                 this._saveNote(event);
