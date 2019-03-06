@@ -459,7 +459,6 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         recipients.put(EMAIL_RECIPIENTS_CC, cc);
         recipients.put(EMAIL_RECIPIENTS_FROM, from);
         recipients.put(EMAIL_RECIPIENTS_RECIPIENT, this.getPatientContactInfo(this.subjectPatient.getPatient()));
-        recipients.put(EMAIL_SUBJECT_PATIENT_ID, this.subjectPatient.getPatient().getId());
         recipients.put(EMAIL_RECIPIENTS_SENDER, this.getSenderContactInfo());
         result.put(EMAIL_RECIPIENTS_KEY, recipients);
 

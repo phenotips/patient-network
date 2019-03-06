@@ -341,7 +341,6 @@ public interface PatientMatch
      *                  "emails":["patcat@catrescuecentre.kom"]
      *                },
      *         "cc":  ["mary@blueberry.com"],
-     *         "subjectPatientId":"P000005"
      *         "type":"contact",
      *         "date":"2018/12/06 14:58"
      *       }
