@@ -88,10 +88,6 @@ table#matchesTable {
   margin-top: 0.8em;
 }
 
-#send-notifications-messages {
-  vertical-align: top;
-}
-
 #score-filter-validation-message {
   font-size: 83%;
   float: left;
