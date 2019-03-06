@@ -1517,6 +1517,7 @@ var PhenoTips = (function (PhenoTips) {
             var saveButton = elm.up('td').down('.save-notes');
             saveButton.disable();
             saveButton.on('click', function(event) {
+                saveButton.disable();
                 elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
                 notes_container.addClassName('hidden');
                 this._saveNote(event);
