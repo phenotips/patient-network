@@ -891,7 +891,7 @@ var PhenoTips = (function (PhenoTips) {
                 + '<div class="nhdialog-title">' + this._COMMENTS_TITLE + '</div>'
                 + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
                 + '<div><textarea rows="3" cols="20"></textarea></div>';
-            td +='<span class="buttonwrapper"><button class="save-comment" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+            td +='<span class="buttonwrapper"><button class="save-comment" data-matchid="' + match.id + '"><span class="fa fa-save"> </span>'
                 + this._SAVE_COMMENT_BUTTON_LABEL + '</button></span>' + commentsTable + '</div>';
         }
         // notes icon
@@ -901,7 +901,7 @@ var PhenoTips = (function (PhenoTips) {
             + '<div class="nhdialog-title">' + this._NOTES_TITLE + '</div>'
             + '<p class="xHint">' + this._NOTES_HINT + '</p>'
             + '<div><textarea rows="5" cols="20"></textarea></div>'
-            + '<span class="buttonwrapper"><button class="save-notes" data-matchid="' + match.id + '" href="#"><span class="fa fa-save"> </span>'
+            + '<span class="buttonwrapper"><button class="save-notes" data-matchid="' + match.id + '"><span class="fa fa-save"> </span>'
             + this._NOTES_SAVE + '</button></span></div>';
         td += '</td>';
         return td;
