@@ -176,19 +176,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     this.logger.error("A list of matches for local patient {} also constains matches for patient {}",
                         patientId, refPatientID);
                 }
-
-                // if the same un-notified match already exists, we preserve the original comment and match found date
-                List<PatientMatch> sameExistingMatches = this.loadMatchesBetweenPatients(match.getReferencePatientId(),
-                    match.getReferenceServerId(), match.getMatchedPatientId(), match.getMatchedServerId());
-                for (PatientMatch existingMatch : sameExistingMatches) {
-                    if (!existingMatch.isNotified()) {
-                        match.setFoundTimestamp(existingMatch.getFoundTimestamp());
-                        match.setStatus(existingMatch.getStatus());
-                        match.setComments(existingMatch.getComments());
-                        match.setNotificationHistory(existingMatch.getNotificationHistory());
-                        match.setNotes(existingMatch.getNotes());
-                    }
-                }
+                preserveOriginalMatchMetaInfo(match);
             }
 
             for (String ptId : refPatients) {
@@ -232,6 +220,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                 }
                 PatientMatch match = isIncoming ? new DefaultPatientMatch(similarityView, serverId, "")
                     : new DefaultPatientMatch(similarityView, "", serverId);
+                preserveOriginalMatchMetaInfo(match);
                 matchesToSave.add(match);
             }
 
@@ -255,6 +244,22 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
         return transactionCompleted;
+    }
+
+    private void preserveOriginalMatchMetaInfo(PatientMatch match)
+    {
+        // if the same un-notified match already exists, we preserve the original match meta info
+        List<PatientMatch> sameExistingMatches = this.loadMatchesBetweenPatients(match.getReferencePatientId(),
+            match.getReferenceServerId(), match.getMatchedPatientId(), match.getMatchedServerId());
+        for (PatientMatch existingMatch : sameExistingMatches) {
+            if (!existingMatch.isNotified()) {
+                match.setFoundTimestamp(existingMatch.getFoundTimestamp());
+                match.setStatus(existingMatch.getStatus());
+                match.setComments(existingMatch.getComments());
+                match.setNotificationHistory(existingMatch.getNotificationHistory());
+                match.setNotes(existingMatch.getNotes());
+            }
+        }
     }
 
     @Override
