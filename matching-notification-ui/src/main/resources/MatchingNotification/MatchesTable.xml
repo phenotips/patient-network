@@ -300,7 +300,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;br/&gt;
     &lt;div #if(!$hasAdmin)class="hidden"#end&gt;
       &lt;span class="buttonwrapper"&gt;
-        &lt;button id="send-notifications-button" href="#"&gt;&lt;span class="fa fa-envelope" &gt;&lt;/span&gt;
+        &lt;button id="send-notifications-button"&gt;&lt;span class="fa fa-envelope" &gt;&lt;/span&gt;
           &lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notify.label'))&lt;/span&gt;
         &lt;/button&gt;
       &lt;/span&gt;
