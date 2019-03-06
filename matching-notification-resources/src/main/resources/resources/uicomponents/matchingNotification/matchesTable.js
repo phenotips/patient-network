@@ -688,7 +688,7 @@ var PhenoTips = (function (PhenoTips) {
                     // we go from bottom of array to top to put most recent notifications first
                     for (var i=history.interactions.length-1; i >= 0; i--) {
                         var record = history.interactions[i];
-                        if (record.to && record.to.emails && record.to.emails.size() > 0 && record.subjectPatientId) {
+                        if (record.to && record.to.emails && record.to.emails.size() > 0) {
 
                             if (record.type == "notification") {
                                 match.adminNotified = true;
