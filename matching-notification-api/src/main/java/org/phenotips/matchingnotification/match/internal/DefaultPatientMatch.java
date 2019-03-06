@@ -80,8 +80,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final String USER_CONTACTED = "user-contacted";
 
-    private static final String NOTES = "notes";
-
     private static final UserManager USER_MANAGER;
 
     /*
@@ -332,15 +330,12 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     {
         try {
             String currentUserId = USER_MANAGER.getCurrentUser().getId();
-            JSONObject allNotes = (this.notes != null) ? new JSONObject(this.notes)
-                : new JSONObject();
-            JSONArray records = allNotes.optJSONArray(NOTES);
+            JSONArray records = (this.notes != null) ? new JSONArray(this.notes) : new JSONArray();
             JSONObject newRecord = new JSONObject();
             newRecord.put("user", currentUserId);
             newRecord.put("note", note);
 
-            if (records == null) {
-                records = new JSONArray();
+            if (records.isEmpty()) {
                 records.put(newRecord);
             } else {
                 boolean updated = false;
@@ -358,8 +353,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
                 }
             }
 
-            allNotes.put(NOTES, records);
-            this.notes = allNotes.toString();
+            this.notes = records.toString();
         } catch (JSONException ex) {
             // error parsing notes or new record JSON string to JSON object happened
         }
