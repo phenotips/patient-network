@@ -10,7 +10,7 @@ var PhenoTips = (function(PhenoTips) {
           _this.pagesNodes.push(elem.down(".xwiki-livetable-pagination-content"));
       });
 
-      this.pagesNodes.each(function(elem){
+      domNodes.each(function(elem){
           elem.down(".prevPagination") && elem.down(".prevPagination").observe("click", function(ev) {
               _this.gotoPrevPage(ev);
           });
