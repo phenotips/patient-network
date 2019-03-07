@@ -87,6 +87,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     private static final String MATCHID_STRING = "matchId";
 
+    private static final SimpleDateFormat DATE_TIME_SDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+    private static final SimpleDateFormat DATE_SDF = new SimpleDateFormat("yyyy/MM/dd");
+
+    private static final int ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24 - 1;
+
     @Inject
     private PatientMatchExport patientMatchExport;
 
@@ -121,11 +127,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     public Response getMatches(@Nullable final double score, @Nullable final double phenScore,
         @Nullable final double genScore, final String fromDate, final String toDate)
     {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         Date from = null;
         if (StringUtils.isNotBlank(fromDate)) {
             try {
-                from = sdf.parse(fromDate);
+                from = DATE_SDF.parse(fromDate);
             } catch (ParseException e) {
                 this.slf4Jlogger.error("Failed to parse fromDate parameter from: " + fromDate);
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -135,7 +140,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         Date to = null;
         if (StringUtils.isNotBlank(toDate)) {
             try {
-                to = sdf.parse(toDate);
+                to = DATE_SDF.parse(toDate);
             } catch (ParseException e) {
                 this.slf4Jlogger.error("Failed to parse toDate parameter from: " + toDate);
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -343,6 +348,23 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             matchesJson = buildMatchesJSONArray(matches);
             matchesJson.put(REQ_NO, reqNo);
         }
+
+        JSONObject params = new JSONObject();
+        params.put("minScore", score);
+        params.put("minPhenScore", phenScore);
+        params.put("minGenScore", genScore);
+
+        if (fromDate != null) {
+            params.put("fromDate", DATE_TIME_SDF.format(fromDate));
+        }
+
+        if (toDate != null) {
+            // need to add 1 day without the last millisecond in ms
+            // to let user know that we include all matches found that day
+            Timestamp timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
+            params.put("toDate", DATE_TIME_SDF.format(timestampTo));
+        }
+        matchesJson.put("parameters", params);
         return Response.ok(matchesJson, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
@@ -358,7 +380,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         final JSONObject matchesJson = this.patientMatchExport.toJSON(matches);
         return new JSONObject()
             .put(RESULTS_LABEL, matchesJson.optJSONArray("matches"))
-            .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length());
+            .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length())
+            .put("dateGenerated", DATE_TIME_SDF.format(new Date()));
     }
 
     private JSONObject successfulIdsToJSON(Collection<Long> allIds, Collection<Long> successfulIds)
