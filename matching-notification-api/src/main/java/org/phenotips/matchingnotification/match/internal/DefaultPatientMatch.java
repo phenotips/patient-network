@@ -382,8 +382,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             if (this.notes == null) {
                 return null;
             }
-            JSONArray records = (this.notes != null) ? new JSONArray(this.notes)
-                : new JSONArray();
+
+            JSONArray records = new JSONArray(this.notes);
 
             String currentUserId = USER_MANAGER.getCurrentUser().getId();
             for (Object record : records) {
