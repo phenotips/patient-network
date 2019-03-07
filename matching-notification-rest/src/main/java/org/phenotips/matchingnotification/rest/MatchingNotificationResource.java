@@ -75,9 +75,9 @@ public interface MatchingNotificationResource
      * <dd>the request number, must be an integer; default value is set to 1</dd>
      * </dl>
      *
-     * @param score only matches with general score higher or equal to this value are returned
-     * @param phenScore only matches with phenotypic score higher or equal to this value are returned
-     * @param genScore only matches with genotypic score higher or equal to this value are returned
+     * @param minScore only matches with general score higher or equal to this value are returned
+     * @param minPhenScore only matches with phenotypic score higher or equal to this value are returned
+     * @param minGenScore only matches with genotypic score higher or equal to this value are returned
      * @param fromDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or after this date
      *        will be returned; if {@code null} or an empty string, then no lower limit on the match date is considered
      * @param toDate if passed a date in the {@code yyyy/MM/dd} format, then only matches found on or before this date
@@ -88,15 +88,15 @@ public interface MatchingNotificationResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/show-matches")
-    Response getMatches(@FormParam("score") @DefaultValue("0.5") double score,
-        @FormParam("phenScore") @DefaultValue("0") double phenScore,
-        @FormParam("genScore") @DefaultValue("0.1") double genScore,
+    Response getMatches(@FormParam("minScore") @DefaultValue("0.5") double minScore,
+        @FormParam("minPhenScore") @DefaultValue("0") double minPhenScore,
+        @FormParam("minGenScore") @DefaultValue("0.1") double minGenScore,
         @FormParam("fromDate") @DefaultValue("") String fromDate,
         @FormParam("toDate") @DefaultValue("") String toDate);
 
     /**
-     * Sends email notifications for each match using the "admin" email emplate.
-     * All patient IDs are assumed ot be local IDs, and all recepients must/will be local users.
+     * Sends email notifications for each match using the "admin" email template.
+     * All patient IDs are assumed to be local IDs, and all recipients must/will be local users.
      *
      * Example:
      * <pre>
@@ -117,10 +117,10 @@ public interface MatchingNotificationResource
     Response sendAdminNotificationsToLocalUsers();
 
     /**
-     * Sends a email notification for a given match using the "user" email emplate.
+     * Sends a email notification for a given match using the "user" email template.
      * The target patient/user may be either local or remote (MME).
      *
-     * @param matchId the id of the match that the other user shoulbe notified about
+     * @param matchId the id of the match that the other user should be notified about
      * @param patientId the id of the patient that is the subject of the email
      * @param serverId the server that hosts the patient
      * @param emailText (optional) custom text edited/created by the user

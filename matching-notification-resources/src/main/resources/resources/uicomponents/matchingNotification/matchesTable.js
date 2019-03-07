@@ -539,9 +539,9 @@ var PhenoTips = (function (PhenoTips) {
         var phenScore = (Math.ceil(this._phenScoreSlider.value*20)/20).toFixed(2);
         var genScore = (Math.ceil(this._genScoreSlider.value*20)/20).toFixed(2);
 
-        var options = { 'score'        : score,
-                        'phenScore'    : phenScore,
-                        'genScore'     : genScore};
+        var options = { 'minScore'        : score,
+                        'minPhenScore'    : phenScore,
+                        'minGenScore'     : genScore};
         return options;
     },
 
