@@ -339,8 +339,20 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     {
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
 
+        Timestamp timestampFrom = null;
+        if (fromDate != null) {
+            timestampFrom = new Timestamp(fromDate.getTime());
+        }
+
+        Timestamp timestampTo = null;
+        if (toDate != null) {
+            // need to add 1 day without the last millisecond in ms
+            // to let user know that we include all matches found that day
+            timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
+        }
+
         List<PatientMatch> matches = this.matchStorageManager.loadMatches(
-            score, phenScore, genScore, loadOnlyUserMatches, fromDate, toDate);
+            score, phenScore, genScore, loadOnlyUserMatches, timestampFrom, timestampTo);
 
         JSONObject matchesJson = new JSONObject();
 
@@ -355,16 +367,14 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         params.put("minGenScore", genScore);
 
         if (fromDate != null) {
-            params.put("fromDate", DATE_TIME_SDF.format(fromDate));
+            params.put("fromDate", DATE_TIME_SDF.format(timestampFrom));
         }
 
         if (toDate != null) {
-            // need to add 1 day without the last millisecond in ms
-            // to let user know that we include all matches found that day
-            Timestamp timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
             params.put("toDate", DATE_TIME_SDF.format(timestampTo));
         }
         matchesJson.put("parameters", params);
+        matchesJson.put("dateGenerated", DATE_TIME_SDF.format(new Date()));
         return Response.ok(matchesJson, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
@@ -380,8 +390,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         final JSONObject matchesJson = this.patientMatchExport.toJSON(matches);
         return new JSONObject()
             .put(RESULTS_LABEL, matchesJson.optJSONArray("matches"))
-            .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length())
-            .put("dateGenerated", DATE_TIME_SDF.format(new Date()));
+            .put(RETURNED_SIZE_LABEL, matchesJson.optJSONArray("matches").length());
     }
 
     private JSONObject successfulIdsToJSON(Collection<Long> allIds, Collection<Long> successfulIds)

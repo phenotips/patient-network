@@ -32,7 +32,6 @@ import org.xwiki.users.UserManager;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -120,8 +119,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     /** A query used to get the number of all remote matches. */
     private static final String HQL_QUERY_REMOTE_MATCHES =
         "select count(*) from DefaultPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
-
-    private static final int ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24;
 
     /** Handles persistence. */
     @Inject
@@ -265,7 +262,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     @Override
     @SuppressWarnings("unchecked")
     public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
-        boolean onlyCurrentUserAccessible, final Date fromDate, final Date toDate)
+        boolean onlyCurrentUserAccessible, final Timestamp fromDate, final Timestamp toDate)
     {
         // ...else it is more complicated: need to return all matches, but
         // also exclude un-notified matches that have a similar match that have been notified
@@ -294,15 +291,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             query.setParameter("genScore", genScore);
 
             if (fromDate != null) {
-                Timestamp timestampFrom = new Timestamp(fromDate.getTime());
-                query.setTimestamp("fromTimestamp", timestampFrom);
-
+                query.setTimestamp("fromTimestamp", fromDate);
             }
 
             if (toDate != null) {
-                // need to add 1 day in ms to include all matches made that day
-                Timestamp timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
-                query.setTimestamp("toTimestamp", timestampTo);
+                query.setTimestamp("toTimestamp", toDate);
             }
 
             List<PatientMatch> result = query.list();
