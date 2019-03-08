@@ -89,7 +89,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     private static final SimpleDateFormat DATE_TIME_SDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
-    private static final SimpleDateFormat DATE_SDF = new SimpleDateFormat("yyyy/MM/dd");
+    private static final SimpleDateFormat DATE_SDF = new SimpleDateFormat("yyyy-MM-dd");
 
     private static final int ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24 - 1;
 
