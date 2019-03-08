@@ -70,10 +70,6 @@ public interface MatchingNotificationResource
     /**
      * Returns a JSON object containing all matches or matches owned by logged user (if not admin), filtered by
      * parameters. The following additional parameters may be specified:
-     * <dl>
-     * <dt>reqNo</dt>
-     * <dd>the request number, must be an integer; default value is set to 1</dd>
-     * </dl>
      *
      * @param minScore only matches with general score higher or equal to this value are returned
      * @param minPhenScore only matches with phenotypic score higher or equal to this value are returned

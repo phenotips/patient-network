@@ -57,7 +57,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,8 +73,6 @@ import org.json.JSONObject;
 public class DefaultMatchingNotificationResource extends XWikiResource implements MatchingNotificationResource
 {
     private static final Double MIN_MATCH_SCORE_FOR_NONADMIN_USERS = 0.3;
-
-    private static final String REQ_NO = "reqNo";
 
     private static final String IDS_STRING = "ids";
 
@@ -147,13 +144,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             }
         }
 
-        final Request request = this.container.getRequest();
-        final int reqNo = NumberUtils.toInt((String) request.getProperty(REQ_NO), 1);
-
         double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
 
         try {
-            return getMatchesResponse(useScore, phenScore, genScore, reqNo, from, to);
+            return getMatchesResponse(useScore, phenScore, genScore, from, to);
         } catch (final SecurityException e) {
             this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -335,7 +329,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
-        @Nullable final double genScore, final int reqNo, final Date fromDate, final Date toDate)
+        @Nullable final double genScore, final Date fromDate, final Date toDate)
     {
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
 
@@ -358,7 +352,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
         if (!matches.isEmpty()) {
             matchesJson = buildMatchesJSONArray(matches);
-            matchesJson.put(REQ_NO, reqNo);
         }
 
         JSONObject params = new JSONObject();
