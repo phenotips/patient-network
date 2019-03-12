@@ -217,7 +217,7 @@
           this._disclaimerDialog = new PhenoTips.widgets.ModalPopup(this._disclaimerContainer, false, {'title': "$escapetool.javascript($services.localization.render('phenotips.similarCases.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
         }
         this._omimPrototypeMode = ((options.omimSection || "") != "");
-        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.container.next('.xwiki-livetable-pagination'), this._maxResults);
+        this.paginator = new PhenoTips.widgets.MatcherPaginator(this, [this.container.next('.xwiki-livetable-pagination')], this._maxResults);
         var serverSuffix = this._mmeServer &amp;&amp; ('-' + this._mmeServer) || "";
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.similarCases.tableHeader'))";
         this.page = 1;
