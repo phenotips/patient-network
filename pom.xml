@@ -35,7 +35,7 @@
   <scm>
     <connection>scm:git:git://github.com/phenotips/patient-network.git</connection>
     <developerConnection>scm:git:git@github.com:phenotips/patient-network.git</developerConnection>
-    <url>https://github.com/phenotips/remote-matching.git/tree/stable-1.1.x/</url>
+    <url>https://github.com/phenotips/patient-network/tree/master/</url>
     <tag>HEAD</tag>
   </scm>
 
