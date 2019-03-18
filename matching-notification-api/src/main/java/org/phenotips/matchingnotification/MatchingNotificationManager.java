@@ -114,15 +114,6 @@ public interface MatchingNotificationManager
     boolean setStatus(Set<Long> matchesIds, String status);
 
     /**
-     * Marks all matches with ids in {@code matchesIds} as notified or not notified.
-     *
-     * @param matchesIds list of ids of matches to mark as notified.
-     * @param isNotified boolean notified status to set for matches
-     * @return true if successful
-     */
-    boolean setNotifiedStatus(Set<Long> matchesIds, boolean isNotified);
-
-    /**
      * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
      *
      * @param matchesIds list of ids of matches to mark as user-contacted.

@@ -72,15 +72,6 @@ public interface MatchStorageManager
         String patientId2, String serverId2);
 
     /**
-     * Marks all matches in {@code matches} as notified or not notified.
-     *
-     * @param matches list of matches to mark as notified.
-     * @param isNotified boolean notified status to set for matches
-     * @return true if successful
-     */
-    boolean setNotifiedStatus(List<PatientMatch> matches, boolean isNotified);
-
-    /**
      * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
      *
      * @param matches list of matches to mark as user-contacted.

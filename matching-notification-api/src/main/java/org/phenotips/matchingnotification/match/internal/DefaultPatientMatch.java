@@ -62,8 +62,8 @@ import org.slf4j.LoggerFactory;
 @Entity
 @Table(name = "patient_matching")
 @org.hibernate.annotations.Table(appliesTo = "patient_matching",
-    indexes = { @Index(name = "filterIndex", columnNames = { "notified", "score" }),
-    @Index(name = "propertiesIndex", columnNames = { "notified", "status" }) })
+    indexes = { @Index(name = "scoreIndex",
+                       columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"}) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
@@ -92,10 +92,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     @Basic
     private Timestamp foundTimestamp;
-
-    @Basic
-    @Index(name = "notifiedIndex")
-    private Boolean notified;
 
     @Basic
     private Timestamp notifiedTimestamp;
@@ -261,7 +257,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
         this.notifiedTimestamp = null;
-        this.notified = false;
         this.notificationHistory = null;
         this.comments = null;
         this.notes = null;
@@ -413,24 +408,9 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setNotified(boolean isNotified)
-    {
-        this.notified = isNotified;
-        if (isNotified) {
-            this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
-        }
-    }
-
-    @Override
     public Timestamp getNotifiedTimestamp()
     {
         return this.notifiedTimestamp;
-    }
-
-    @Override
-    public Boolean isNotified()
-    {
-        return this.notified;
     }
 
     @Override
@@ -514,7 +494,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
         json.put("notifiedTimestamp", this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
-        json.put("notified", this.isNotified());
         json.put("status", this.getStatus());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
@@ -718,6 +697,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void setNotificationHistory(JSONObject notificationHistory)
     {
         this.notificationHistory = (notificationHistory != null) ? notificationHistory.toString() : null;
+        this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
     }
 
     @Override
@@ -733,20 +713,22 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
             records.put(notificationRecord);
             history.put(JSON_KEY_INTERACTIONS, records);
-            this.notificationHistory = history.toString();
+
+            this.setNotificationHistory(history);
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
         }
     }
 
     @Override
-    public void setUserContacted(boolean isUserContacted)
+    public void setExternallyContacted(boolean isExternallyContacted)
     {
         try {
             JSONObject history = (this.notificationHistory != null) ? new JSONObject(this.notificationHistory)
                 : new JSONObject();
-            history.put(USER_CONTACTED, isUserContacted);
-            this.notificationHistory = history.toString();
+            history.put(USER_CONTACTED, isExternallyContacted);
+
+            this.setNotificationHistory(history);
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
         }

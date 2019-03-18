@@ -61,18 +61,6 @@ public interface PatientMatch
     String getMatchedServerId();
 
     /**
-     * @return whether notifications regarding this match were sent.
-     */
-    Boolean isNotified();
-
-    /**
-     * Marks whether notifications regarding this match were sent or not.
-     *
-     * @param isNotified boolean indicator whether notifications regarding this match were sent or not
-     */
-    void setNotified(boolean isNotified);
-
-    /**
      * @return true only if match is rejected.
      * @deprecated use {@link #getStatus()} instead
      */
@@ -311,7 +299,7 @@ public interface PatientMatch
     String getMatchedDetails();
 
     /**
-     * @return timestamp the match was notified
+     * @return the time the match was last notified or contacted
      */
     Timestamp getNotifiedTimestamp();
 
@@ -351,7 +339,7 @@ public interface PatientMatch
     /**
      * Add a record to the notification history in case user contacted regarding this match outside of PhenomeCentral.
      *
-     * @param isUserContacted boolean indicator whether contact regarding this match was done or not
+     * @param isExternallyContacted boolean indicator whether contact regarding this match was done or not
      */
-    void setUserContacted(boolean isUserContacted);
+    void setExternallyContacted(boolean isExternallyContacted);
 }
