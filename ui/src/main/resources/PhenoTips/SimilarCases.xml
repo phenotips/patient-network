@@ -563,8 +563,8 @@
       // if case is solved - show link to pubmed articles
       if (r.solved &amp;&amp; r.pubmedIds &amp;&amp; r.pubmedIds.size() &gt; 0) {
         var container = new Element("span");
-        var icon = this.Utils.generateIcon('leanpub');
         for (var i=0; i &lt; r.pubmedIds.length; i++) {
+          var icon = this.Utils.generateIcon('leanpub');
           var contactInfo = new Element("a", {
             "href"  : "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + r.pubmedIds[i].trim(),
             "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))",
