@@ -74,47 +74,24 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
     /** A query used to delete all outgoing MME matches for the given local patient (ID == localId)
-     *  and givenremote server (ID == remoteServerId). */
+     *  and given remote server (ID == remoteServerId). */
     private static final String HQL_DELETE_ALL_OUTGOING_MATCHES_FOR_LOCAL_PATIENT =
-        "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+        "delete DefaultPatientMatch where notificationHistory IS NULL and status != 'rejected'"
             + " and referenceServerId = '' and referencePatientId = :localId"
             + " and matchedServerId = :remoteServerId";
 
     /** A query used to delete all incoming MME matches for the given remote patient (ID == remoteId)
-     *  and givenremote server (ID == remoteServerId). */
+     *  and given remote server (ID == remoteServerId). */
     private static final String HQL_DELETE_ALL_INCOMING_MATCHES_FOR_REMOTE_PATIENT =
-        "delete DefaultPatientMatch where notified = false and status != 'rejected'"
+        "delete DefaultPatientMatch where notificationHistory IS NULL and status != 'rejected'"
             + " and referenceServerId = :remoteServerId and referencePatientId = :remoteId";
 
     /**
-     *  A sub-query for the query below, to find matches similar to the given match, but that has been notified.
-     *  A special case is when there is a similar local match, but where matched and reference patients are reversed.
-     */
-    private static final String HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED =
-        "from DefaultPatientMatch as m2 where m2.notified = true"
-            + " and ("
-            + " ("
-            + "  m.referencePatientId = m2.referencePatientId"
-            + "  and m.referenceServerId = m2.referenceServerId"
-            + "  and m.matchedPatientId = m2.matchedPatientId"
-            + "  and m.matchedServerId = m2.matchedServerId"
-            + " ) or ("
-            + "  m.referencePatientId = m2.matchedPatientId"
-            + "  and m.matchedPatientId = m2.referencePatientId"
-            + "  and m.matchedServerId = m2.referenceServerId"
-            + "  and m.referenceServerId = m2.matchedServerId)"
-            + ")";
-
-    /**
-     * A query to find all matches with a score greater than given (score == minScore).
-     *
-     * One complication is that for notified matches there may be both a notified and an un-notified versions
-     * of the match, so need to show only one of them (the notified one).
+     * A query to find all matches with a score(s) greater than given.
      * */
     private static final String HQL_QUERY_FIND_ALL_MATCHES_BY_SCORE =
         "from DefaultPatientMatch as m where"
-            + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore and"
-            + " (m.notified = true or (not exists (" + HQL_QUERY_SAME_PATIENT_BUT_NOTIFIED + ")))";
+            + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
 
     /** A query used to get the number of all remote matches. */
     private static final String HQL_QUERY_REMOTE_MATCHES =
@@ -177,7 +154,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             }
 
             for (String ptId : refPatients) {
-                this.deleteLocalMatchesForLocalPatient(session, ptId, false, false);
+                this.deleteLocalMatchesForLocalPatient(session, ptId);
             }
             this.saveMatches(session, matches);
             transactionCompleted = true;
@@ -249,13 +226,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         List<PatientMatch> sameExistingMatches = this.loadMatchesBetweenPatients(match.getReferencePatientId(),
             match.getReferenceServerId(), match.getMatchedPatientId(), match.getMatchedServerId());
         for (PatientMatch existingMatch : sameExistingMatches) {
-            if (!existingMatch.isNotified()) {
-                match.setFoundTimestamp(existingMatch.getFoundTimestamp());
-                match.setStatus(existingMatch.getStatus());
-                match.setComments(existingMatch.getComments());
-                match.setNotificationHistory(existingMatch.getNotificationHistory());
-                match.setNotes(existingMatch.getNotes());
-            }
+            match.setFoundTimestamp(existingMatch.getFoundTimestamp());
+            match.setStatus(existingMatch.getStatus());
+            match.setComments(existingMatch.getComments());
+            match.setNotificationHistory(existingMatch.getNotificationHistory());
+            match.setNotes(existingMatch.getNotes());
         }
     }
 
@@ -451,27 +426,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean setNotifiedStatus(List<PatientMatch> matches, boolean isNotified)
-    {
-        Session session = this.beginTransaction();
-        boolean transactionCompleted = false;
-
-        try {
-            for (PatientMatch match : matches) {
-                match.setNotified(isNotified);
-                session.update(match);
-            }
-            transactionCompleted = true;
-        } catch (Exception ex) {
-            String status = isNotified ? "notified" : "unnotified";
-            this.logger.error("Error marking matches as {}: [{}]", status, ex.getMessage(), ex);
-        } finally {
-            transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
-        }
-        return transactionCompleted;
-    }
-
-    @Override
     public boolean setUserContacted(List<PatientMatch> matches, boolean isUserContacted)
     {
         Session session = this.beginTransaction();
@@ -479,7 +433,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         try {
             for (PatientMatch match : matches) {
-                match.setUserContacted(isUserContacted);
+                match.setExternallyContacted(isUserContacted);
                 session.update(match);
             }
             transactionCompleted = true;
@@ -654,12 +608,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         return transactionCompleted;
     }
 
-    private void deleteLocalMatchesForLocalPatient(Session session, String patientId,
-        boolean deleteNotified, boolean deleteRejected)
+    private void deleteLocalMatchesForLocalPatient(Session session, String patientId)
     {
-        Query query = session.createQuery(HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT
-            + (deleteNotified ? "" : " and notified = false")
-            + (deleteRejected ? "" : " and status != 'rejected'"));
+        Query query = session.createQuery(HQL_DELETE_LOCAL_MATCHES_FOR_LOCAL_PATIENT);
         query.setParameter("localId", patientId);
 
         int numDeleted = query.executeUpdate();
