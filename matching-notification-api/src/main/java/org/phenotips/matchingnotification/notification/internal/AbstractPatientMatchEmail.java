@@ -489,7 +489,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         JSONObject info = new JSONObject();
         User user = USERMANAGER.getCurrentUser();
         info.put("id", user.getId());
-        info.put("name", user.getUsername());
+        info.put("name", user.getName());
         info.put("institution", user.getAttribute("company") != null ? user.getAttribute("company").toString() : null);
         return info;
     }
