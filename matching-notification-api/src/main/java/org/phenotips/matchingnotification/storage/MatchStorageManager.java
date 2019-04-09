@@ -21,10 +21,11 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.stability.Unstable;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -58,18 +59,6 @@ public interface MatchStorageManager
      * @return list of matches
      */
     List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds);
-
-    /**
-     * Load all matches where reference/matched patient ID is same as one of parameters.
-     *
-     * @param patientId1 id of reference/matched patient to load matches for
-     * @param serverId1 id of the server that hosts patientId1
-     * @param patientId2 id of reference/matched patient to load matches for
-     * @param serverId2 id of the server that hosts patientId2
-     * @return list of matches
-     */
-    List<PatientMatch> loadMatchesBetweenPatients(String patientId1, String serverId1,
-        String patientId2, String serverId2);
 
     /**
      * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
@@ -109,7 +98,7 @@ public interface MatchStorageManager
 
     /**
      * Deletes all matches (including those that users have been notified about, and MME matches)
-     * for the given local patient.
+     * for the given local patient (e.g. when a patient is deleted).
      *
      * @param patientId local patient ID for whom to delete matches.
      * @return true if successful
@@ -117,39 +106,27 @@ public interface MatchStorageManager
     boolean deleteMatchesForLocalPatient(String patientId);
 
     /**
-     * Converts a list of local  SimilarityViews into a list of PatientMatches, keeping only those matches
-     * which should be saved into the notification table (i.e. filters out self-matches).
-     *
-     * FIXME: this method should be part of saveLocalMatches(), however a larger refactoring is needed
-     *        for that, since one of the two codepaths that use saveLocalMatches() needs a filtered list of
-     *        matches (while another one does not). We should unify both codepaths.
-     *
-     * @param matches a list of matches assumed ot be matches between local patients
-     * @return a list of PatientMatches
-     */
-    @Unstable
-    List<PatientMatch> getMatchesToBePlacedIntoNotificationTable(List<PatientSimilarityView> matches);
-
-    /**
      * Saves a list of local matches.
      *
-     * @param matches list of similarity views
+     * @param similarityViews list of matches as "similarity views" between two local patients
      * @param patientId local patient ID for whom to save matches
-     * @return true if successful
+     * @return null if saved failed, otherwise a mapping from similarity views to saved PatientMatches
      */
-    boolean saveLocalMatches(List<PatientMatch> matches, String patientId);
+    Map<PatientSimilarityView, PatientMatch>
+        saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote outgoing/incoming request.
      *
-     * @param similarityViews list of similarity views
+     * @param similarityViews list of similarity views between a local patient and a remote patient
      * @param patientId remote patient ID for whom to save matches
      * @param serverId id of remote server
      * @param isIncoming whether we are saving results of incoming (then true) or outgoing request
-     * @return true if successful
+     * @return null if saved failed, otherwise a mapping from similarity views to saved PatientMatches
      */
-    boolean saveRemoteMatches(List<? extends PatientSimilarityView> similarityViews, String patientId, String serverId,
-        boolean isIncoming);
+    Map<PatientSimilarityView, PatientMatch>
+        saveRemoteMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId,
+                String serverId, boolean isIncoming);
 
     /**
      * Calculates the number of matches that were found by all remote outgoing/incoming requests where at least one
