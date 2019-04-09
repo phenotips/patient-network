@@ -177,25 +177,6 @@ public interface MatchingNotificationResource
     Response setStatus(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("status") String status);
 
     /**
-     * Returns a JSON object containing a single match ID found by 4 parameters: reference patient ID,
-     * matched patient ID, reference server ID, matched server ID.
-     *
-     * @param referencePatientId id of reference patient to load matches for
-     * @param referenceServerId id of the server that hosts reference patient
-     * @param matchedPatientId id of matched patient to load matches for
-     * @param matchedServerId id of the server that hosts matched patient
-     * @return a single matchID
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/get-matchid")
-    Response getLastOutgoingMatchId(@FormParam("referencePatientId") String referencePatientId,
-        @FormParam("referenceServerId") String referenceServerId,
-        @FormParam("matchedPatientId") String matchedPatientId,
-        @FormParam("matchedServerId") String matchedServerId);
-
-    /**
      * Marks matches, with ids given in parameter, as user-contacted or not user-contacted. Example:
      *
      * <pre>
