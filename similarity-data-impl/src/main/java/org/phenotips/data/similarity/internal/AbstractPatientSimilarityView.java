@@ -294,4 +294,28 @@ public abstract class AbstractPatientSimilarityView implements PatientSimilarity
         }
         return false;
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AbstractPatientSimilarityView other = (AbstractPatientSimilarityView) o;
+        if (this.match.getId() != other.match.getId()
+            || this.reference.getId() != other.reference.getId()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        String id = this.match.getId() + "__" + this.reference.getId();
+        return id.hashCode();
+    }
 }
