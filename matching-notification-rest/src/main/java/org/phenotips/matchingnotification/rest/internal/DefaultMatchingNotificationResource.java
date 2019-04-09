@@ -351,7 +351,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         JSONObject matchesJson = new JSONObject();
 
         if (!matches.isEmpty()) {
+            long toJSONStartTime = System.currentTimeMillis();
+
             matchesJson = buildMatchesJSONArray(matches);
+
+            this.slf4Jlogger.error("Building matches JSON array took [{}] ms (array contains [{}] matches)",
+                (System.currentTimeMillis() - toJSONStartTime), matchesJson.optInt("returnedCount"));
         }
 
         JSONObject params = new JSONObject();
@@ -446,40 +451,5 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     {
         return this.auth.hasAccess(this.users.getCurrentUser(), Right.ADMIN,
             this.resolver.resolve("", EntityType.WIKI));
-    }
-
-    @Override
-    public Response getLastOutgoingMatchId(String referencePatientId, String referenceServerId,
-        String matchedPatientId, String matchedServerId)
-    {
-        if (StringUtils.isBlank(referencePatientId) || StringUtils.isBlank(matchedPatientId)) {
-            this.slf4Jlogger
-                .error("One of the requested patient ids parameter is blank and thus not a valid input JSON");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        List<PatientMatch> matches = this.matchStorageManager.loadMatchesBetweenPatients(
-            referencePatientId, referenceServerId, matchedPatientId, matchedServerId);
-
-        JSONObject matchIDJson = new JSONObject();
-
-        if (!matches.isEmpty()) {
-            matchIDJson.put(MATCHID_STRING, getLastOutgoingMatchId(matches));
-        }
-        return Response.ok(matchIDJson, MediaType.APPLICATION_JSON_TYPE).build();
-    }
-
-    private Long getLastOutgoingMatchId(List<PatientMatch> matches)
-    {
-        Long id = null;
-        Timestamp lastTime = null;
-        for (PatientMatch match : matches) {
-            if ((match.isOutgoing() || match.isLocal())
-                && (lastTime == null || lastTime.before(match.getFoundTimestamp()))) {
-                id = match.getId();
-                lastTime = match.getFoundTimestamp();
-            }
-        }
-        return id;
     }
 }
