@@ -63,7 +63,9 @@ import org.slf4j.LoggerFactory;
 @Table(name = "patient_matching")
 @org.hibernate.annotations.Table(appliesTo = "patient_matching",
     indexes = { @Index(name = "scoreIndex",
-                       columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"}) })
+                       columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"}),
+                @Index(name = "patientIndex",
+                       columnNames = {"referencePatientId", "referenceServerId", "matchedServerId"}) })
 public class DefaultPatientMatch implements PatientMatch, Lifecycle
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
