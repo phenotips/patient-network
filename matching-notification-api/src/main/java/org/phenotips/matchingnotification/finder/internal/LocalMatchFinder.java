@@ -28,6 +28,7 @@ import org.xwiki.component.annotation.Component;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -69,11 +70,12 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
 
         List<PatientSimilarityView> localMatches = this.finder.findSimilarPatients(patient);
 
-        List<PatientMatch> matches = this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(localMatches);
+        Map<PatientSimilarityView, PatientMatch> savedMatches =
+                this.matchStorageManager.saveLocalMatches(localMatches, patient.getId());
 
-        this.matchStorageManager.saveLocalMatches(matches, patient.getId());
-
-        matchesList.addAll(matches);
+        if (savedMatches != null && savedMatches.size() > 0) {
+            matchesList.addAll(savedMatches.values());
+        }
 
         return MatchRunStatus.OK;
     }

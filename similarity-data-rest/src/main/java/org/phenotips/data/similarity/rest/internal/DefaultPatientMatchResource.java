@@ -131,8 +131,7 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     {
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
 
-        this.matchStorageManager.saveLocalMatches(
-            this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+        this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
         final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
         try {
