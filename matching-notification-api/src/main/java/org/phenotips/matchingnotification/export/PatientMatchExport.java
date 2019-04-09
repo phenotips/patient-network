@@ -17,7 +17,6 @@
  */
 package org.phenotips.matchingnotification.export;
 
-import org.phenotips.matchingnotification.internal.MatchesByPatient;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
 import org.xwiki.component.annotation.Component;
@@ -25,9 +24,7 @@ import org.xwiki.component.annotation.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Singleton;
 
@@ -54,26 +51,10 @@ public class PatientMatchExport
     {
         JSONObject matchesJSON = new JSONObject();
 
-        Set<PatientMatch> usedAsEquivalent = new HashSet<>();
-
         // Build a list of JSONObject-s representing matches
-        MatchesByPatient mbp = new MatchesByPatient(matches);
-        List<JSONObject> matchesObjects = new ArrayList<>(mbp.size());
-        for (PatientMatch match : mbp) {
-            if (usedAsEquivalent.contains(match)) {
-                continue;
-            }
-            if (match.isLocal()) {
-                PatientMatch equivalent = mbp.getEquivalentMatch(match);
-                if (equivalent != null) {
-                    matchesObjects.add(this.createJSONFromMatches(match, equivalent));
-                    usedAsEquivalent.add(equivalent);
-                } else {
-                    matchesObjects.add(match.toJSON());
-                }
-            } else {
-                matchesObjects.add(match.toJSON());
-            }
+        List<JSONObject> matchesObjects = new ArrayList<>(matches.size());
+        for (PatientMatch match : matches) {
+            matchesObjects.add(match.toJSON());
         }
 
         // Sort by score
@@ -95,15 +76,5 @@ public class PatientMatchExport
         matchesJSON.put(MATCHES, matchesJSONArray);
 
         return matchesJSON;
-    }
-
-    private JSONObject createJSONFromMatches(PatientMatch m1, PatientMatch m2)
-    {
-        JSONObject json = m1.toJSON();
-        JSONArray newId = new JSONArray();
-        newId.put(m1.getId());
-        newId.put(m2.getId());
-        json.put("id", newId);
-        return json;
     }
 }
