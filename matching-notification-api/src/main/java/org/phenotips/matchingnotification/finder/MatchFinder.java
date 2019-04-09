@@ -17,8 +17,6 @@
  */
 package org.phenotips.matchingnotification.finder;
 
-import org.phenotips.matchingnotification.match.PatientMatch;
-
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
@@ -42,7 +40,7 @@ public interface MatchFinder
      * @param serverIds a list of servers to be used for matches search indicated by their ids. Servers which
      *                  are not supported by the given matcher will be silently ignored.
      * @param onlyUpdatedAfterLastRun if true, only considers patients updated after the last time matcher was run
-     * @return list of matches
+     * @return number of matches found
      */
-    List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun);
+    int findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun);
 }

@@ -106,12 +106,11 @@ public abstract class AbstractMatchFinder implements MatchFinder
             List<PatientMatch> matchesList);
 
     @Override
-    public List<PatientMatch> findMatches(List<String> patientIds, Set<String> serverIds,
-            boolean onlyUpdatedAfterLastRun)
+    public int findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun)
     {
-        List<PatientMatch> patientMatches = new LinkedList<>();
-
         Set<String> supportedServers = this.getSupportedServerIdList();
+
+        int totalMatchesFound = 0;
 
         for (String serverId : serverIds) {
             try {
@@ -123,28 +122,35 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
                 int numPatientsTestedForMatches = 0;
                 int numErrors = 0;
-                int totalMatchesFound = 0;
                 long totalRunTime = 0;
 
+                int numPatients = 0;
                 for (String patientId : patientIds) {
+                    numPatients++;
+
                     Patient patient = this.getPatientIfShouldBeUsed(patientId, onlyUpdatedAfterLastRun, lastRunTime);
                     if (patient == null) {
                         continue;
                     }
 
-                    int matchesBefore = patientMatches.size();
                     long startTime = System.currentTimeMillis();
+
+                    List<PatientMatch> patientMatches = new LinkedList<>();
 
                     MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
 
                     totalRunTime += (System.currentTimeMillis() - startTime);
-                    totalMatchesFound += (patientMatches.size() - matchesBefore);
+                    totalMatchesFound += patientMatches.size();
 
                     if (matcherStatus != MatchRunStatus.NOT_RUN) {
                         numPatientsTestedForMatches++;
                     }
                     if (matcherStatus == MatchRunStatus.ERROR) {
                         numErrors++;
+                    }
+
+                    if (numPatients % 100 == 0) {
+                        this.logger.error("Processed {} patients, found {} matches", numPatients, totalMatchesFound);
                     }
                 }
 
@@ -155,7 +161,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
             }
         }
 
-        return patientMatches;
+        return totalMatchesFound;
     }
 
     /*
