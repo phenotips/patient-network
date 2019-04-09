@@ -83,6 +83,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
     private static final UserManager USER_MANAGER;
 
+    private static final double DOUBLE_COMPARE_EPSILON = 0.0000001;
+
     /*
      * Attributes of the match
      */
@@ -236,8 +238,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         Set<String> matchedGenes = similarityView.getMatchingGenes();
         // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId,
-            matchedGenes);
+        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId,
+                matchedGenes);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
@@ -252,7 +254,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         }
         this.matchedPatientId = this.limitStringLength(matchedPatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId, matchedGenes);
+        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId,
+                matchedGenes);
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
@@ -531,6 +534,27 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
+    public boolean hasSameMatchData(PatientMatch other)
+    {
+        return isEquivalent(other)
+            && sameScore(other)
+            && StringUtils.equals(this.getMatchedDetails(), other.getMatchedDetails())
+            && StringUtils.equals(this.getReferenceDetails(), other.getReferenceDetails());
+    }
+
+    /**
+     * Compares match scores of this match and other match.
+     * @param other other match
+     * @return true if all match scores are the same
+     */
+    public boolean sameScore(PatientMatch other)
+    {
+        return Math.abs(this.getScore() - other.getScore()) > DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getPhenotypeScore() - other.getPhenotypeScore()) > DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getGenotypeScore() - other.getGenotypeScore()) > DOUBLE_COMPARE_EPSILON;
+    }
+
+    @Override
     public int hashCode()
     {
         String forhash = this.getReferencePatientId() + SEPARATOR
@@ -558,6 +582,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public boolean onSave(Session arg0) throws CallbackException
     {
+        this.reorderLocalPatientsForStorage();
         return false;
     }
 
@@ -755,6 +780,33 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             this.comments = records.toString();
         } catch (JSONException ex) {
             // error parsing notes or new record JSON string to JSON object happened
+        }
+    }
+
+    /**
+     *
+     */
+    private void reorderLocalPatientsForStorage()
+    {
+        if (StringUtils.isBlank(this.referenceServerId) && StringUtils.isBlank(this.matchedServerId)
+            && this.referencePatientId.compareTo(this.matchedPatientId) > 0) {
+
+            // can't have a nice swap() method in Java
+
+            String tempPatient = this.referencePatientId;
+            String tempServer = this.referenceServerId;
+            String tempDetails = this.referenceDetails;
+            PatientInMatch tempPatientInMatch = this.referencePatientInMatch;
+
+            this.referencePatientId = this.matchedPatientId;
+            this.referenceServerId = this.matchedServerId;
+            this.referenceDetails = this.matchedDetails;
+            this.referencePatientInMatch = this.matchedPatientInMatch;
+
+            this.matchedPatientId = tempPatient;
+            this.matchedServerId = tempServer;
+            this.matchedDetails = tempDetails;
+            this.matchedPatientInMatch = tempPatientInMatch;
         }
     }
 }
