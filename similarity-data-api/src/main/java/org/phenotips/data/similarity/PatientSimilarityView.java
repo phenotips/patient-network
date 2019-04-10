@@ -22,6 +22,8 @@ import org.phenotips.data.permissions.AccessLevel;
 
 import org.xwiki.stability.Unstable;
 
+import java.util.Set;
+
 import org.json.JSONArray;
 
 /**
@@ -75,4 +77,12 @@ public interface PatientSimilarityView extends Patient
      * @return a JSON array of feature matches, empty if none to display
      */
     JSONArray getFeatureMatchesJSON();
+
+    /**
+     * Get the genes that are candidates for the match between the two patients, based on both manually entered genes
+     * and exome data of the patients.
+     *
+     * @return a (potentially-empty) set of gene names
+     */
+    Set<String> getMatchingGenes();
 }
