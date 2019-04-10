@@ -287,6 +287,12 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     }
 
     @Override
+    public Set<String> getMatchingGenes()
+    {
+        return getMatchedGenes().getMatchingGenes();
+    }
+
+    @Override
     public double getPhenotypeScore()
     {
         if (this.match == null || this.reference == null) {

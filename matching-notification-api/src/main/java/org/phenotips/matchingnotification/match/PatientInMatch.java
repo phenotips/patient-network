@@ -110,7 +110,7 @@ public interface PatientInMatch
     /**
      * @return the content of details columns for the patient in the match table
      */
-    String getDetailsColumn();
+    JSONObject getDetailsColumnJSON();
 
     /**
      * @return mode of inheritance

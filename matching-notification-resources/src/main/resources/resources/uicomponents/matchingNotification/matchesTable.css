@@ -492,3 +492,8 @@ td[name="contact"] {
   white-space: normal;
   text-align: justify;
 }
+.exome-gene {
+  color: #369;
+  font-size: .8em;
+  font-style: italic;
+}
