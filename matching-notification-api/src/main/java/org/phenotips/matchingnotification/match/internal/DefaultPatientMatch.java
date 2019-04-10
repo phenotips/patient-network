@@ -34,6 +34,7 @@ import org.xwiki.users.UserManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -236,8 +237,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         Patient referencePatient = similarityView.getReference();
         this.referencePatientId = this.limitStringLength(referencePatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.referenceServerId = (referenceServerId == null) ? "" : referenceServerId;
+
+        Set<String> matchedGenes = similarityView.getMatchingGenes();
         // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId);
+        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId,
+            matchedGenes);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
@@ -252,7 +256,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         }
         this.matchedPatientId = this.limitStringLength(matchedPatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId);
+        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId, matchedGenes);
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
@@ -278,8 +282,8 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             this.matchedPatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED));
 
         // After reordering!
-        this.referenceDetails = this.referencePatientInMatch.getDetailsColumn();
-        this.matchedDetails = this.matchedPatientInMatch.getDetailsColumn();
+        this.referenceDetails = this.referencePatientInMatch.getDetailsColumnJSON().toString();
+        this.matchedDetails = this.matchedPatientInMatch.getDetailsColumnJSON().toString();
     }
 
     /** To protect from remote servers using extremely long href or patient IDs. */
