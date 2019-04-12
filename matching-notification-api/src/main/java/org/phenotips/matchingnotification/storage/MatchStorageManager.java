@@ -185,4 +185,14 @@ public interface MatchStorageManager
      * @return true if successful
      */
     boolean updateNotes(PatientMatch match, String note);
+
+    /**
+     * Returns the saved match ID that corresponds to the {@code PatientSimilarityView} match representation.
+     *
+     * @param match {@code PatientSimilarityView} match representation
+     * @param referenceServerId ID of reference server
+     * @param matchedServerId ID of matched server
+     * @return a saved match ID
+     */
+    Long getMatchId(PatientSimilarityView match, String referenceServerId, String matchedServerId);
 }

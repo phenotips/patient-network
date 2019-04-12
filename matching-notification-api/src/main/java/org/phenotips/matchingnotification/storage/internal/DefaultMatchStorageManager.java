@@ -723,4 +723,23 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
         return null;
     }
+
+    @Override
+    public Long getMatchId(PatientSimilarityView match, String referenceServerId, String matchedServerId)
+    {
+        String matchedPatientId = match.getId();
+        String referencePatientId = match.getReference().getId();
+        if (StringUtils.isBlank(matchedPatientId) || StringUtils.isBlank(referencePatientId)) {
+            return null;
+        }
+
+        List<PatientMatch> matches = this.loadMatchesBetweenPatients(
+            referencePatientId, referenceServerId, matchedPatientId, matchedServerId);
+
+        if (!matches.isEmpty()) {
+            return matches.get(0).getId();
+        }
+
+        return null;
+    }
 }

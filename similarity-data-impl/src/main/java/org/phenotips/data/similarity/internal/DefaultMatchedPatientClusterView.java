@@ -24,6 +24,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -58,19 +59,24 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
     /** @see #getMatches() */
     private final List<? extends PatientSimilarityView> matches;
 
+    private final Map<PatientSimilarityView, Long> matchesIdsMap;
+
     /**
      * Default constructor that takes in a reference {@code patient}, and its {@code matches}.
      *
      * @param patient the reference {@link Patient} object
      * @param matches a list of {@link PatientSimilarityView} objects representing patients matching {@code patient}
+     * @param matchesIds a map of {@link PatientSimilarityView} objects to the IDs of corresponding matches saved in DB
      */
     public DefaultMatchedPatientClusterView(
         @Nonnull final Patient patient,
-        @Nullable final List<? extends PatientSimilarityView> matches)
+        @Nullable final List<? extends PatientSimilarityView> matches,
+        @Nullable final Map<PatientSimilarityView, Long> matchesIds)
     {
         Validate.notNull(patient, "The reference patient should not be null.");
         this.reference = patient;
         this.matches = CollectionUtils.isNotEmpty(matches) ? matches : Collections.<PatientSimilarityView>emptyList();
+        this.matchesIdsMap = matchesIds;
 
         // Sort by score
         Collections.sort(this.matches, new Comparator<PatientSimilarityView>()
@@ -121,7 +127,7 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
             throw new IndexOutOfBoundsException("fromIndex(" + fromIndex + ") > numMatches(" + size() + ")");
         }
         final JSONObject referenceJson = this.reference.toJSON();
-        final JSONArray matchesJson = buildMatchesJSONArray(fromIndex, maxResults);
+        JSONArray matchesJson = buildMatchesJSONArray(fromIndex, maxResults);
         return new JSONObject()
             .put(QUERY_LABEL, referenceJson)
             .put(TOTAL_SIZE_LABEL, size())
@@ -134,17 +140,20 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
      * Builds a JSON representation of {@link #getMatches()}.
      *
      * @param fromIndex the starting index for match to convert (inclusive, zero-based)
-     * @param toIndex the last index for match to convert (inclusive, zero-based)
+     * @param maxResults the limit for the number of matches to return
      * @return a {@link JSONArray} of {@link #getMatches()}
      */
     private JSONArray buildMatchesJSONArray(final int fromIndex, final int maxResults)
     {
-        final JSONArray matchesJson = new JSONArray();
+        JSONArray matchesJson = new JSONArray();
 
         final int toIndex = (maxResults < 0) ? size() : Math.min(size(), fromIndex + maxResults);
 
         for (int i = fromIndex; i < toIndex; i++) {
-            final JSONObject matchJson = this.matches.get(i).toJSON();
+            JSONObject matchJson = this.matches.get(i).toJSON();
+            if (this.matchesIdsMap != null) {
+                matchJson.put("matchId", this.matchesIdsMap.get(this.matches.get(i)));
+            }
             matchesJson.put(matchJson);
         }
         return matchesJson;
@@ -169,4 +178,5 @@ public class DefaultMatchedPatientClusterView implements MatchedPatientClusterVi
     {
         return Objects.hash(this.reference, this.matches);
     }
+
 }

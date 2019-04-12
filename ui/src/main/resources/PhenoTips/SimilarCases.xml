@@ -172,8 +172,6 @@
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.Matcher = Class.create({
     matchServiceURL : XWiki.contextPath + "/rest/patients/___patient_id___/similar-cases",
-    matchContactURL : XWiki.contextPath + "/rest/patients/matching-notification/preview-user-match-email",
-    getMatchIdURL   : XWiki.contextPath + "/rest/patients/matching-notification/get-matchid",
     _UNKNOWN_INFO_MARKER : "unknown",
     _RESULTS_TABLE_MARKER : "similarity-results",
     _SUMMARY_MARKER : "summary",
@@ -601,7 +599,7 @@
         var _this = this;
         contactInfo.observe('click', function (event) {
           event.stop();
-          _this._getMatchId(r.id);
+          _this._contactDialog.launchContactDialog(r.matchId, r.id, _this._mmeServer);
         });
       }
       contactInfo.insert({top: " "});
@@ -649,42 +647,11 @@
       if (r.owner.url.indexOf("://") &lt; 0) {
         contactInfo.observe('click', function (event) {
           event.stop();
-          _this._getMatchId(r.id);
+          _this._contactDialog.launchContactDialog(r.matchId, r.id, _this._mmeServer);
         });
       }
 
       return contactInfo.insert({top: " "}).insert({top: icon});
-    },
-
-    _getMatchId : function (matchedPatientId) {
-      var _this = this;
-      var matchPId = matchedPatientId;
-      new Ajax.Request(this.getMatchIdURL, {
-        contentType : 'application/json',
-        parameters : {
-          'referencePatientId': XWiki.currentDocument.page,
-          'referenceServerId' : "", //local PC server
-          'matchedPatientId': matchedPatientId,
-          'matchedServerId' : _this._mmeServer
-        },
-        onCreate : function() {
-        },
-        onSuccess : function(response) {
-          if (response &amp;&amp; response.responseJSON &amp;&amp; response.responseJSON.matchId) {
-            _this._contactDialog.launchContactDialog(response.responseJSON.matchId, matchPId, _this._mmeServer);
-          }
-        },
-        onFailure : function(response) {
-          var failureReason = response.responseText || response.statusText;
-          if (response.statusText == '' /* No response */ || response.status == 12031 /* In IE */) {
-             failureReason = 'Server not responding';
-          }
-          _this._errorDialog.showError('', failureReason);
-        },
-        on0 : function (response) {
-          _this._errorDialog.showError('', response);
-        }
-      });
     },
 
     _displayResultRelevance : function (r, fieldName) {

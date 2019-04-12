@@ -23,6 +23,7 @@ import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.DefaultMatchedPatientClusterView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
+import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
@@ -31,7 +32,11 @@ import org.xwiki.container.Container;
 import org.xwiki.container.Request;
 import org.xwiki.rest.XWikiResource;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -131,12 +136,22 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     {
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
 
-        this.matchStorageManager.saveLocalMatches(
-            this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+        List<PatientMatch> matchesToSave = this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches);
+        this.matchStorageManager.saveLocalMatches(matchesToSave, patient.getId());
 
-        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
+        Collection<String> savedMatchedPatientIds = new LinkedList<>();
+        matchesToSave.stream()
+            .forEach(match -> savedMatchedPatientIds.add(match.getMatchedPatientId()));
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        Map<PatientSimilarityView, Long> matchIds = new HashMap();
+        matches.stream()
+            .filter(match -> savedMatchedPatientIds.contains(match.getId()))
+            .forEach(match -> matchIds.put(match, this.matchStorageManager.getMatchId(match, null, null)));
+
+        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches, matchIds);
         try {
-            final JSONObject matchesJson = cluster.toJSON(offset - 1, limit);
+            JSONObject matchesJson = cluster.toJSON(offset - 1, limit);
             matchesJson.put(REQ_NO, reqNo);
             return Response.ok(matchesJson, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (final IndexOutOfBoundsException e) {

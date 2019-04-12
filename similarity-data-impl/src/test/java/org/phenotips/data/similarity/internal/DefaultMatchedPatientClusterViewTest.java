@@ -145,13 +145,13 @@ public class DefaultMatchedPatientClusterViewTest
         when(this.patient5.getDocumentReference()).thenReturn(this.doc5);
 
         this.matchList = Arrays.asList(this.patient1, this.patient2, this.patient3, this.patient4, this.patient5);
-        this.matchesCV = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
+        this.matchesCV = new DefaultMatchedPatientClusterView(this.reference, this.matchList, null);
     }
 
     @Test(expected = NullPointerException.class)
     public void instantiatingClassWithNullPatientThrowsException()
     {
-        new DefaultMatchedPatientClusterView(null, this.matchList);
+        new DefaultMatchedPatientClusterView(null, this.matchList, null);
     }
 
     @Test
@@ -163,7 +163,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void getMatchesReturnsEmptyListIfNoMatchesSet()
     {
-        final MatchedPatientClusterView matches = new DefaultMatchedPatientClusterView(this.reference, null);
+        final MatchedPatientClusterView matches = new DefaultMatchedPatientClusterView(this.reference, null, null);
         Assert.assertTrue(matches.getMatches().isEmpty());
     }
 
@@ -182,7 +182,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void sizeIsZeroIfMatchesIsNull()
     {
-        final MatchedPatientClusterView matches = new DefaultMatchedPatientClusterView(this.reference, null);
+        final MatchedPatientClusterView matches = new DefaultMatchedPatientClusterView(this.reference, null, null);
         Assert.assertEquals(0, matches.size());
     }
 
@@ -190,7 +190,7 @@ public class DefaultMatchedPatientClusterViewTest
     public void sizeIsZeroIfMatchesIsEmpty()
     {
         final MatchedPatientClusterView matches = new DefaultMatchedPatientClusterView(this.reference,
-            Collections.<PatientSimilarityView>emptyList());
+            Collections.<PatientSimilarityView>emptyList(), null);
         Assert.assertEquals(0, matches.size());
     }
 
@@ -282,7 +282,7 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void equalsReturnsTrueForTwoDifferentObjectsWithSameData()
     {
-        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
+        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList, null);
         Assert.assertTrue(v2.equals(this.matchesCV));
     }
 
@@ -295,7 +295,8 @@ public class DefaultMatchedPatientClusterViewTest
     @Test
     public void equalsReturnsFalseForTwoDifferentObjectsWithDifferentReference()
     {
-        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(mock(Patient.class), this.matchList);
+        final MatchedPatientClusterView v2 =
+            new DefaultMatchedPatientClusterView(mock(Patient.class), this.matchList, null);
         Assert.assertFalse(v2.equals(this.matchesCV));
     }
 
@@ -303,14 +304,14 @@ public class DefaultMatchedPatientClusterViewTest
     public void equalsReturnsFalseForTwoDifferentObjectsWithDifferentMatchList()
     {
         final List<PatientSimilarityView> m2 = Arrays.asList(this.patient1, this.patient2, this.patient3);
-        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, m2);
+        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, m2, null);
         Assert.assertFalse(v2.equals(this.matchesCV));
     }
 
     @Test
     public void hashCodeIsTheSameForTwoObjectsWithSameData()
     {
-        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList);
+        final MatchedPatientClusterView v2 = new DefaultMatchedPatientClusterView(this.reference, this.matchList, null);
         Assert.assertEquals(v2.hashCode(), this.matchesCV.hashCode());
     }
 }
