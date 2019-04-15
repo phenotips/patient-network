@@ -309,11 +309,6 @@ public interface PatientMatch
     String getMatchedDetails();
 
     /**
-     * @return the time the match was last notified or contacted
-     */
-    Timestamp getNotifiedTimestamp();
-
-    /**
      * @return the match notification history JSON.
      */
     JSONObject getNotificationHistory();
