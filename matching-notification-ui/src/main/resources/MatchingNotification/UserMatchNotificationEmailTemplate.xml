@@ -114,6 +114,11 @@ $services.localization.render('phenotips.matchingNotifications.email.table.genes
 #foreach ($gene in $!subjectPatient.candidateGenes)
 * $!gene
 #end
+#foreach ($gene in $subjectPatient.matchedExomeGenes)
+#if(!$subjectPatient.candidateGenes.contains($gene))
+* $!gene $services.localization.render('phenotips.matchingNotifications.table.exomeGene.label')
+#end
+#end
 $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label')
 #foreach ($!phenotype in $!subjectPatient.phenotypes.predefined)
 #if ($!phenotype.observed == 'no')
@@ -146,6 +151,11 @@ My patient: $myPatient.patientId#if("$!subjectPatient.serverId" == "") ($xwiki.g
 $services.localization.render('phenotips.matchingNotifications.email.table.genes.label')
 #foreach ($gene in $!myPatient.candidateGenes)
 * $!gene
+#end
+#foreach ($gene in $!myPatient.matchedExomeGenes)
+#if(!$myPatient.candidateGenes.contains($gene))
+* $!gene $services.localization.render('phenotips.matchingNotifications.table.exomeGene.label')
+#end
 #end
 $services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label')
 #foreach ($!phenotype in $!myPatient.phenotypes.predefined)

@@ -281,6 +281,12 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     @Override
+    public Set<String> getMatchedExomeGenes()
+    {
+        return this.matchedExomeGenes;
+    }
+
+    @Override
     public PhenotypesMap getPhenotypes()
     {
         return this.phenotypes;
