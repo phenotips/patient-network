@@ -184,14 +184,17 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             // there are 4 cases:
             //
             // 1) existing match is equivalent (has same match data) to one of the new matches
-            //     -> do nothing
+            //     -> do nothing with the DB
+            //     -> put existing match to matchMapping so that it has the right ID
             //
             // 2) existing match is similar to one of the new matches, but not the same
             //     -> copy metadata to new match (found timestamp, notes, history, etc.)
+            //     -> copy old match to history
             //     -> remove old match
             //     -> save new match
             //
             // 3) existing match has no equivalent among new matches
+            //     -> copy old match to history
             //     -> remove old match
             //
             // 4) new match has no equivalent among existing matches
@@ -199,12 +202,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
             List<PatientMatch> matchesToSave = new LinkedList<>();
 
-            for (PatientMatch match : matchMapping.values()) {
+            for (Map.Entry<PatientSimilarityView, PatientMatch> entry : matchMapping.entrySet()) {
+                PatientMatch match = entry.getValue();
                 if (matchesByMatchedPatient.containsKey(match.getMatchedPatientId())) {
                     PatientMatch existingMatch = matchesByMatchedPatient.get(match.getMatchedPatientId());
 
                     if (existingMatch.hasSameMatchData(match)) {
-                        // case #1: no need to do anything
+                        // case #1: assign existing match to matchMapping, but no need to do anything with the DB
+                        matchMapping.put(entry.getKey(), existingMatch);
                         matchesByMatchedPatient.remove(match.getMatchedPatientId());
                     } else {
                         // case #2: clone metadata, save new match. Keep existing match in matchesByMatchedPatient
@@ -214,7 +219,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     }
                 } else {
                     // case #4: new match
-                    //this.logger.error("[debug] new match");
                     matchesToSave.add(match);
                 }
             }
