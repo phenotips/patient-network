@@ -97,9 +97,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Basic
     private Timestamp foundTimestamp;
 
-    @Basic
-    private Timestamp notifiedTimestamp;
-
     /**
      * @deprecated use {@link status} instead
      */
@@ -261,7 +258,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
-        this.notifiedTimestamp = null;
         this.notificationHistory = null;
         this.comments = null;
         this.notes = null;
@@ -413,12 +409,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public Timestamp getNotifiedTimestamp()
-    {
-        return this.notifiedTimestamp;
-    }
-
-    @Override
     public String getReferencePatientId()
     {
         return this.referencePatientId;
@@ -497,7 +487,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
-        json.put("notifiedTimestamp", this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
         json.put("status", this.getStatus());
         json.put("score", this.getScore());
@@ -724,7 +713,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     public void setNotificationHistory(JSONObject notificationHistory)
     {
         this.notificationHistory = (notificationHistory != null) ? notificationHistory.toString() : null;
-        this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
     }
 
     @Override
