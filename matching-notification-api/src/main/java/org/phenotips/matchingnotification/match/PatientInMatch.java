@@ -86,6 +86,11 @@ public interface PatientInMatch
     Set<String> getCandidateGenes();
 
     /**
+     * @return a set of matched exome genes for patient.
+     */
+    Set<String> getMatchedExomeGenes();
+
+    /**
      * @return phenotypes map
      */
     PhenotypesMap getPhenotypes();
