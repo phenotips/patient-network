@@ -1659,6 +1659,9 @@
     color: $theme.notificationErrorColor;
     font-size: .87em;
 }
+.match-details .variants-data a:visited {
+    color: #000000 !important;
+}
 .match-details table.phenotype-matches .query,
 .match-details table.phenotype-matches .result {
   text-align: left;
