@@ -167,19 +167,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         boolean transactionCompleted = false;
 
         try {
-            // load existing matches between this patient and other patients on the matchedServerId
-            List<PatientMatch> existingMatches =
-                    this.loadMatchesForPatientAndServer(patientId, referenceServerId, matchedServerId);
-
-            // to speed up searches group matches by the ID of the other (not patientId) patient in a match
-            Map<String, PatientMatch> matchesByMatchedPatient = new HashMap<>();
-            for (PatientMatch match : existingMatches) {
-                if (match.getReferencePatientId().equals(patientId)) {
-                    matchesByMatchedPatient.put(match.getMatchedPatientId(), match);
-                } else {
-                    matchesByMatchedPatient.put(match.getReferencePatientId(), match);
-                }
-            }
+            // get existing matches between this patient and other patients on the matchedServerId;
+            // to speed up searches matches are returned as a mapping between otherPatientId and a match
+            Map<String, PatientMatch> existingMatchesByMatchedPatient =
+                    getExistingMatchesByPatient(patientId, referenceServerId, matchedServerId);
 
             // there are 4 cases:
             //
@@ -204,13 +195,17 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
             for (Map.Entry<PatientSimilarityView, PatientMatch> entry : matchMapping.entrySet()) {
                 PatientMatch match = entry.getValue();
-                if (matchesByMatchedPatient.containsKey(match.getMatchedPatientId())) {
-                    PatientMatch existingMatch = matchesByMatchedPatient.get(match.getMatchedPatientId());
+                if (match == null) {
+                    // this SimilarityView should not be saved in the DB, so can be ignored
+                    continue;
+                }
+                if (existingMatchesByMatchedPatient.containsKey(match.getMatchedPatientId())) {
+                    PatientMatch existingMatch = existingMatchesByMatchedPatient.get(match.getMatchedPatientId());
 
                     if (existingMatch.hasSameMatchData(match)) {
                         // case #1: assign existing match to matchMapping, but no need to do anything with the DB
                         matchMapping.put(entry.getKey(), existingMatch);
-                        matchesByMatchedPatient.remove(match.getMatchedPatientId());
+                        existingMatchesByMatchedPatient.remove(match.getMatchedPatientId());
                     } else {
                         // case #2: clone metadata, save new match. Keep existing match in matchesByMatchedPatient
                         //          so that it gets saved to history table and gets removed
@@ -228,7 +223,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             // newly found matches, or which have equivalent but need to be removed because match data has changed.
             //
             // => so matchesByMatchedPatient has all the matches that need to be removed now, and only such matches.
-            this.deleteMatches(session, matchesByMatchedPatient.values());
+            this.deleteMatches(session, existingMatchesByMatchedPatient.values());
 
             // add new matches
             this.saveMatches(session, matchesToSave);
@@ -240,6 +235,34 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
         return transactionCompleted ? matchMapping : null;
+    }
+
+    /**
+     * For a given patient returns all patients from the specified server matching it, as a map
+     * otherPatientId -> PatientMatch.
+     *
+     * @param patientId ID of the patient that we want to get matches for
+     * @param referenceServerId server ID of the server that hold that patient
+     * @param matchedServerId only matches with patients located on the server with this ID are returned
+     * @return a map otherPatientId -> PatientMatch
+     */
+    Map<String, PatientMatch> getExistingMatchesByPatient(String patientId, String referenceServerId,
+            String matchedServerId)
+    {
+        List<PatientMatch> existingMatches =
+                this.loadMatchesForPatientAndServer(patientId, referenceServerId, matchedServerId);
+
+        // to speed up searches group matches by the ID of the other (not patientId) patient in a match
+        Map<String, PatientMatch> matchesByMatchedPatient = new HashMap<>();
+        for (PatientMatch match : existingMatches) {
+            if (match.getReferencePatientId().equals(patientId)) {
+                matchesByMatchedPatient.put(match.getMatchedPatientId(), match);
+            } else {
+                matchesByMatchedPatient.put(match.getReferencePatientId(), match);
+            }
+        }
+
+        return matchesByMatchedPatient;
     }
 
     private boolean validateAllMatchesForSingleReferencePatient(
