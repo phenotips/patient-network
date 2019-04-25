@@ -1484,8 +1484,12 @@
   vertical-align: baseline !important;
   padding: .5em;
 }
-.similarity-results .details table th.phenotype-category, .similarity-results .details table th.gene {
+.similarity-results .details table th.phenotype-category {
   text-align: center;
+}
+.similarity-results .details table th.gene {
+  text-align: left;
+  padding-left: 46%;
 }
 .similarity-results .details .negative {
   color: $theme.notificationErrorColor;
