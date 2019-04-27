@@ -86,6 +86,11 @@ public interface PatientInMatch
     Set<String> getCandidateGenes();
 
     /**
+     * @return a set of matched exome genes for patient.
+     */
+    Set<String> getMatchedExomeGenes();
+
+    /**
      * @return phenotypes map
      */
     PhenotypesMap getPhenotypes();
@@ -110,7 +115,7 @@ public interface PatientInMatch
     /**
      * @return the content of details columns for the patient in the match table
      */
-    String getDetailsColumn();
+    JSONObject getDetailsColumnJSON();
 
     /**
      * @return mode of inheritance

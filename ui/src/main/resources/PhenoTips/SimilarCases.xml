@@ -563,8 +563,8 @@
       // if case is solved - show link to pubmed articles
       if (r.solved &amp;&amp; r.pubmedIds &amp;&amp; r.pubmedIds.size() &gt; 0) {
         var container = new Element("span");
-        var icon = this.Utils.generateIcon('leanpub');
         for (var i=0; i &lt; r.pubmedIds.length; i++) {
+          var icon = this.Utils.generateIcon('leanpub');
           var contactInfo = new Element("a", {
             "href"  : "http://www.ncbi.nlm.nih.gov/pubmed/?term=" + r.pubmedIds[i].trim(),
             "title" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.pubcase.link'))",
@@ -1486,6 +1486,9 @@
 }
 .similarity-results .details table th.phenotype-category, .similarity-results .details table th.gene {
   text-align: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  position: relative; /* Allow absolute positioning of buttons within this container */
 }
 .similarity-results .details .negative {
   color: $theme.notificationErrorColor;
@@ -1639,7 +1642,9 @@
 }
 
 .variants-toggle {
-  float: right;
+  position: absolute;
+  right: 0;
+  margin-top: -3px; /*Accounting for the width of the border (1px) and the padding top (2px) to align the text of the button with the gene name */
 }
 .match-details .variants-data .segmented-bar .segmented-unit-fill {
     background-color: $theme.notificationErrorColor;

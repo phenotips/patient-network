@@ -59,6 +59,7 @@ var PhenoTips = (function (PhenoTips) {
         this._SAVED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))";
         this._REJECTED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
+        this._EXOME_GENE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.exomeGene.label'))";
         this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.title'))";
@@ -715,7 +716,15 @@ var PhenoTips = (function (PhenoTips) {
     _organiseGenes : function(match)
     {
         var matchGenes = match.matched.genes.clone();
+        if (match.matched.matchedExomeGenes) {
+            matchGenes = matchGenes.concat(match.matched.matchedExomeGenes);
+        }
+
         var referenceGenes = match.reference.genes.clone();
+        if (match.reference.matchedExomeGenes) {
+            referenceGenes = referenceGenes.concat(match.reference.matchedExomeGenes);
+        }
+
         var commonGenes = matchGenes.intersect(referenceGenes);
         match.matched.genes = commonGenes.concat(matchGenes).uniq();
         match.reference.genes = commonGenes.concat(referenceGenes).uniq();
@@ -992,7 +1001,7 @@ var PhenoTips = (function (PhenoTips) {
 
         td += this._getAgeOfOnset(patient.age_of_onset);
         td += this._getModeOfInheritance(patient.mode_of_inheritance);
-        td += this._getGenesDiv(patient.genes, patient.hasExomeData, patient.genesStatus, otherPatient.genes);
+        td += this._getGenesDiv(patient.genes, patient.matchedExomeGenes, patient.hasExomeData, otherPatient.hasExomeData, patient.genesStatus, otherPatient.genes);
         td += this._getPhenotypesDiv(patient.phenotypes, otherPatient.phenotypes);
 
         // End collapsible div
@@ -1006,7 +1015,7 @@ var PhenoTips = (function (PhenoTips) {
         return td;
     },
 
-    _getGenesDiv : function(genes, hasExomeData, genesStatus, otherPatientGenes)
+    _getGenesDiv : function(genes, exomeGenes, hasExomeData, otherPatientHasExomeData, genesStatus, otherPatientGenes)
     {
         var td = '<div class="genes-div">';
         var genesTitle = this._GENES;
@@ -1018,16 +1027,23 @@ var PhenoTips = (function (PhenoTips) {
             var status = genesStatus == "solved" ? this._CAUSAL_GENE_STATUS : genesStatus;
             td += ' (' + status + ')';
         }
-        if (hasExomeData) {
-            td += '<span class="exome-subtitle">' + this._HAS_EXOME_DATA + '</span>';
+
+        if (hasExomeData || otherPatientHasExomeData) {
+            var hasExome = (hasExomeData) ? this._HAS_EXOME_DATA : '&nbsp;';
+            td += '<span class="exome-subtitle">' + hasExome + '</span>';
         }
+
         td += '</p>';
         if (genes.size() != 0) {
             td += '<ul>';
             for (var i = 0 ; i < genes.size() ; i++) {
                 var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
                 if (otherPatientGenes.indexOf(gene) > -1) {
-                    td += '<li class="matched">' + gene + '</li>';
+                    td += '<li class="matched">' + gene;
+                    if (exomeGenes && exomeGenes.indexOf(gene) > -1) {
+                        td += ' ' + '<span class="exome-gene">' + this._EXOME_GENE + '</span>';
+                    }
+                    td += '</li>';
                 } else {
                     td += '<li>' + gene + '</li>';
                 }

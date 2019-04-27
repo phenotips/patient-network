@@ -169,7 +169,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.filterHasExome'))&lt;br&gt;
                 &lt;label&gt;
-                  &lt;input name="exome-filter" type="checkbox" value="hasExome" #if(!$hasAdmin) checked #end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.yes'))&lt;br&gt;
+                  &lt;input name="exome-filter" type="checkbox" value="hasExome" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.yes'))&lt;br&gt;
                 &lt;/label&gt;&lt;label&gt;
                   &lt;input name="exome-filter" type="checkbox" value="hasNoExome" checked &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.no'))&lt;/label&gt;&lt;br&gt;
               &lt;/li&gt;

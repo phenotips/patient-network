@@ -55,6 +55,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -86,6 +87,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final String GENES = "genes";
 
+    private static final String MATCHED_EXOME_GENES = "matchedExomeGenes";
+
     private static final String PHENOTYPES = "phenotypes";
 
     private static final String AGE_ON_ONSET = "age_of_onset";
@@ -103,6 +106,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     private String href;
 
     private Set<String> genes;
+
+    private Set<String> matchedExomeGenes;
 
     private PhenotypesMap phenotypes;
 
@@ -149,8 +154,9 @@ public class DefaultPatientInMatch implements PatientInMatch
      * @param match the match that contains the patient this object represents
      * @param patient the patient that this object represents
      * @param serverId id of server where patient is found
+     * @param matchedGenes all matched genes between two patients
      */
-    public DefaultPatientInMatch(PatientMatch match, Patient patient, String serverId)
+    public DefaultPatientInMatch(PatientMatch match, Patient patient, String serverId, Set<String> matchedGenes)
     {
         this.patient = patient;
         this.patientId = patient.getId();
@@ -158,17 +164,17 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         this.setAccess();
         this.populateContactInfo(null);
-        this.readDetails(patient);
+        this.readDetails(patient, matchedGenes);
     }
 
     /**
-     * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumn. This is used
+     * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumnJSON. This is used
      * when a PatientMatch is retrieved from the DB.
      *
      * @param match the match that contains the patient this object represents
      * @param patientId the id of the patient that this object represents
      * @param serverId id of server where patient is found
-     * @param patientDetails the result of a previous call to getDetailsColumn.
+     * @param patientDetails the result of a previous call to getDetailsColumnJSON.
      */
     public DefaultPatientInMatch(PatientMatch match, String patientId, String serverId, String patientDetails)
     {
@@ -227,15 +233,11 @@ public class DefaultPatientInMatch implements PatientInMatch
      * All data exported here should be imported in {@link rebuildDetails()}.
      */
     @Override
-    public String getDetailsColumn()
-    {
-        return getDetailsColumnJSON().toString();
-    }
-
-    private JSONObject getDetailsColumnJSON()
+    public JSONObject getDetailsColumnJSON()
     {
         JSONObject json = new JSONObject();
         json.put(GENES, this.genes);
+        json.put(MATCHED_EXOME_GENES, this.matchedExomeGenes);
         json.put(PHENOTYPES, this.phenotypes.toJSON());
         json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
         json.put(AGE_ON_ONSET, this.ageOfOnset);
@@ -276,6 +278,12 @@ public class DefaultPatientInMatch implements PatientInMatch
     public Set<String> getCandidateGenes()
     {
         return this.genes;
+    }
+
+    @Override
+    public Set<String> getMatchedExomeGenes()
+    {
+        return this.matchedExomeGenes;
     }
 
     @Override
@@ -356,15 +364,16 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     /*
-     * Data read from {@code patientDetails} was exported in {@link getDetailsColumn}. However, it is possible that some
-     * data is missing in case more details added in newer versions. So, it is ok for some values to be missing (but not
-     * genes or phenotypes).
+     * Data read from {@code patientDetails} was exported in {@link getDetailsColumnJSON}. However, it is possible that
+     * some data is missing in case more details added in newer versions. So, it is ok for some values to be missing
+     * (but not genes or phenotypes).
      */
     private void rebuildDetails(String patientDetails)
     {
         JSONObject json = new JSONObject(patientDetails);
 
         this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
+        this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(MATCHED_EXOME_GENES)));
         this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
@@ -381,9 +390,10 @@ public class DefaultPatientInMatch implements PatientInMatch
         return Collections.unmodifiableSet(set);
     }
 
-    private void readDetails(Patient patient)
+    private void readDetails(Patient patient, Set<String> matchedGenes)
     {
         this.genes = this.getGenes(patient);
+        this.matchedExomeGenes = this.getMatchedExomeGenes(matchedGenes);
         this.phenotypes = new DefaultPhenotypesMap(patient);
 
         PatientData<List<SolrVocabularyTerm>> globalControllers = patient.getData("global-qualifiers");
@@ -395,6 +405,20 @@ public class DefaultPatientInMatch implements PatientInMatch
     {
         if (this.genotype != null && this.genotype.hasGenotypeData()) {
             Set<String> set = getGeneSymbols(this.genotype.getCandidateGenes());
+            return Collections.unmodifiableSet(set);
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    private Set<String> getMatchedExomeGenes(Set<String> matchedGenes)
+    {
+        if (this.hasExomeData()) {
+            // we assume that matched exome genes are all that are not candidate/solved
+            Set<String> exomeGenes = matchedGenes.stream()
+                .filter(gene -> !this.genes.contains(gene))
+                .collect(Collectors.toSet());
+            Set<String> set = getGeneSymbols(exomeGenes);
             return Collections.unmodifiableSet(set);
         } else {
             return Collections.emptySet();

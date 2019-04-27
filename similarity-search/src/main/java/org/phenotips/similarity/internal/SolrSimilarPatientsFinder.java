@@ -213,11 +213,6 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         }
 
         EntityAccess access = this.permissionsManager.getEntityAccess(matchPatient);
-        // filter out patients of the same owner
-        Owner matchOwner = access.getOwner();
-        if (refOwner != null && matchOwner != null && refOwner.equals(matchOwner.getUser())) {
-            return true;
-        }
         // filter out patients with visibility level less than defined visibility level threshold
         Visibility patientVisibility = access.getVisibility();
         if (this.visibilityLevelThreshold.compareTo(patientVisibility) > 0) {
