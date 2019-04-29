@@ -21,7 +21,8 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.groups.Group;
 import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
+import org.phenotips.matchingnotification.match.internal.CurrentPatientMatch;
+import org.phenotips.matchingnotification.match.internal.HistoricPatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 
 import org.xwiki.component.annotation.Component;
@@ -69,21 +70,21 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 {
     /** A query used to delete matches by IDs.  */
     private static final String HQL_DELETE_MATCHES_BY_IDS =
-        "delete DefaultPatientMatch where id in :idlist";
+        "delete CurrentPatientMatch where id in :idlist";
 
     /** A query used to delete all matches (including MME) for the given local patient (ID == localId). */
     private static final String HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT =
-        "delete DefaultPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
+        "delete CurrentPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
             + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
     /** A query to find all matches with a score(s) greater than given. */
     private static final String HQL_FIND_ALL_MATCHES_BY_SCORE =
-        "from DefaultPatientMatch as m where"
+        "from CurrentPatientMatch as m where"
             + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
 
     /** A query used to get the number of all remote matches. */
     private static final String HQL_GET_NUMBER_OF_REMOTE_MATCHES =
-        "select count(*) from DefaultPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
+        "select count(*) from CurrentPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
 
     /** Handles persistence. */
     @Inject
@@ -132,7 +133,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         Map<PatientSimilarityView, PatientMatch> matchMapping = new HashMap<>();
 
         for (PatientSimilarityView similarityView : similarityViews) {
-            PatientMatch match = new DefaultPatientMatch(similarityView, referenceServerId, matchedServerId);
+            PatientMatch match = new CurrentPatientMatch(similarityView, referenceServerId, matchedServerId);
 
             // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
             // and they break match count calculation if they are included
@@ -433,6 +434,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             return 0;
         }
 
+        // first copy matches being removed to the history table
+        this.copyToHistory(session, matches);
+
         Query query = session.createQuery(HQL_DELETE_MATCHES_BY_IDS);
         query.setParameterList("idlist", this.getMatchIds(matches));
         int numDeleted = query.executeUpdate();
@@ -440,6 +444,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             this.logger.error("A request to delete {} matches only removed {}", matches.size(), numDeleted);
         }
         return numDeleted;
+    }
+
+    private void copyToHistory(Session session, Collection<PatientMatch> matches)
+    {
+        for (PatientMatch match : matches) {
+            PatientMatch copyForHistoryTable = new HistoricPatientMatch(match);
+            session.save(copyForHistoryTable);
+        }
     }
 
     private Collection<Long> getMatchIds(Collection<PatientMatch> matches)
