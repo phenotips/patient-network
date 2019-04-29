@@ -31,7 +31,6 @@ import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +47,6 @@ import javax.inject.Singleton;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -421,8 +419,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds)
     {
         if (matchesIds != null && matchesIds.size() > 0) {
-            return this.loadMatchesByCriteria(
-                new Criterion[] { Restrictions.in("id", matchesIds.toArray()) });
+            return this.loadMatchesByCriteria(Restrictions.in("id", matchesIds.toArray()));
         } else {
             return Collections.emptyList();
         }
@@ -491,9 +488,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                         this.patientIsMatch(referencePatientId, referenceServerId),
                         Restrictions.eq("referenceServerId", this.getStoredServerId(null)));
 
-                return this.loadMatchesByCriteria(new Criterion[] { Restrictions.or(directMatch, reverseMatch) });
+                return this.loadMatchesByCriteria(Restrictions.or(directMatch, reverseMatch));
             } else {
-                return this.loadMatchesByCriteria(new Criterion[] { directMatch });
+                return this.loadMatchesByCriteria(directMatch);
             }
         } else {
             return Collections.emptyList();
@@ -521,21 +518,19 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @SuppressWarnings("unchecked")
-    private List<PatientMatch> loadMatchesByCriteria(Criterion[] criteriaToApply)
+    private List<PatientMatch> loadMatchesByCriteria(Criterion criteriaToApply)
     {
+        if (criteriaToApply == null) {
+            return null;
+        }
+
         List<PatientMatch> matches = null;
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
-            Criteria criteria = session.createCriteria(PatientMatch.class);
-            if (criteriaToApply != null) {
-                for (Criterion c : criteriaToApply) {
-                    criteria.add(c);
-                }
-            }
-            matches = criteria.list();
+            matches = session.createCriteria(PatientMatch.class).add(criteriaToApply).list();
         } catch (HibernateException ex) {
             this.logger.error("Error loading matches by criteria. Criteria: {},  ERROR: [{}]",
-                Arrays.toString(criteriaToApply), ex);
+                    criteriaToApply.toString(), ex);
         } finally {
             session.close();
         }
