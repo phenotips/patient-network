@@ -246,7 +246,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
      * @param matchedServerId only matches with patients located on the server with this ID are returned
      * @return a map otherPatientId -> PatientMatch
      */
-    Map<String, PatientMatch> getExistingMatchesByPatient(String patientId, String referenceServerId,
+    private Map<String, PatientMatch> getExistingMatchesByPatient(String patientId, String referenceServerId,
             String matchedServerId)
     {
         List<PatientMatch> existingMatches =
@@ -471,16 +471,17 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     this.patientIsReference(referencePatientId, referenceServerId),
                     Restrictions.eq("matchedServerId", this.getStoredServerId(matchedServerId)));
 
-            if (!StringUtils.isBlank(matchedServerId) && !StringUtils.isBlank(referenceServerId)) {
-                return this.loadMatchesByCriteria(
-                    new Criterion[] { directMatch });
-            } else {
+            if (StringUtils.isBlank(matchedServerId) && StringUtils.isBlank(referenceServerId)) {
+                // for local matches: search for either A-to-B or B-to-A
+
                 // referencePatientId is "match patient"
                 Criterion reverseMatch = Restrictions.and(
                         this.patientIsMatch(referencePatientId, referenceServerId),
-                        Restrictions.eq("referenceServerId", this.getStoredServerId(matchedServerId)));
+                        Restrictions.eq("referenceServerId", this.getStoredServerId(null)));
 
                 return this.loadMatchesByCriteria(new Criterion[] { Restrictions.or(directMatch, reverseMatch) });
+            } else {
+                return this.loadMatchesByCriteria(new Criterion[] { directMatch });
             }
         } else {
             return Collections.emptyList();
