@@ -17,7 +17,8 @@
  */
 package org.phenotips.matchingnotification.storage.internal;
 
-import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
+import org.phenotips.matchingnotification.match.internal.CurrentPatientMatch;
+import org.phenotips.matchingnotification.match.internal.HistoricPatientMatch;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.observation.EventListener;
@@ -63,6 +64,7 @@ public class ORMRegistrationHandler implements EventListener
     public void onEvent(Event event, Object source, Object data)
     {
         Configuration configuration = this.sessionFactory.getConfiguration();
-        configuration.addAnnotatedClass(DefaultPatientMatch.class);
+        configuration.addAnnotatedClass(CurrentPatientMatch.class);
+        configuration.addAnnotatedClass(HistoricPatientMatch.class);
     }
 }

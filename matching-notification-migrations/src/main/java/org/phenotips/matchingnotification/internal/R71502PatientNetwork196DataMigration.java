@@ -23,7 +23,7 @@ import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
-import org.phenotips.matchingnotification.match.internal.DefaultPatientMatch;
+import org.phenotips.matchingnotification.match.internal.CurrentPatientMatch;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -134,7 +134,7 @@ public class R71502PatientNetwork196DataMigration extends AbstractHibernateDataM
                     // re-compute the match with just fetched two local patients
                     PatientSimilarityView similarityView = this.factory.makeSimilarPatient(matchedPatient.getPatient(),
                         referencePatient.getPatient());
-                    PatientMatch newMatch = new DefaultPatientMatch(similarityView, null, null);
+                    PatientMatch newMatch = new CurrentPatientMatch(similarityView, null, null);
                     updateMatch(match, newMatch);
                     session.update(match);
                 }
