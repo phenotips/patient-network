@@ -40,7 +40,11 @@ import org.hibernate.classic.Lifecycle;
     indexes = { @Index(name = "scoreIndex",
                        columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"}),
                 @Index(name = "patientIndex",
-                       columnNames = {"referencePatientId", "referenceServerId", "matchedServerId"}) })
+                       columnNames = {"referencePatientId", "referenceServerId", "matchedServerId"}),
+                @Index(name = "referencePatientIndex",
+                       columnNames = {"referencePatientId"}),
+                @Index(name = "matchedPatientIndex",
+                       columnNames = {"matchedPatientId"})})
 public class CurrentPatientMatch extends AbstractPatientMatch implements PatientMatch, Lifecycle
 {
     /**

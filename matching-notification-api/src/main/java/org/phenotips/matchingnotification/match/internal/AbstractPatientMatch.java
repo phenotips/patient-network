@@ -46,7 +46,6 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.CallbackException;
 import org.hibernate.Session;
-import org.hibernate.annotations.Index;
 import org.hibernate.classic.Lifecycle;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -97,7 +96,6 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
     protected Boolean rejected;
 
     @Basic
-    @Index(name = "statusIndex")
     protected String status;
 
     @Basic
@@ -138,14 +136,12 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
      * Attributes of reference patient
      */
     @Basic
-    @Index(name = "referencePatientIndex")
     protected String referencePatientId;
 
     /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
      * but getters return it as `null`
      */
     @Basic
-    @Index(name = "referenceServerIndex")
     protected String referenceServerId;
 
     @Basic
@@ -159,14 +155,12 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
      * Attributes of matched patient
      */
     @Basic
-    @Index(name = "matchedPatientIndex")
     protected String matchedPatientId;
 
     /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
      * but getters return it as `null`
      */
     @Basic
-    @Index(name = "matchedServerIndex")
     protected String matchedServerId;
 
     @Basic
