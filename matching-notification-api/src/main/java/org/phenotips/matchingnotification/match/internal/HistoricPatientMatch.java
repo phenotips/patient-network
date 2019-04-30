@@ -32,10 +32,8 @@ import org.hibernate.classic.Lifecycle;
 @Entity
 @Table(name = "patient_matching_history")
 @org.hibernate.annotations.Table(appliesTo = "patient_matching_history",
-    indexes = { @Index(name = "scoreIndex",
-                       columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"}),
-                @Index(name = "patientIndex",
-                       columnNames = {"referencePatientId", "referenceServerId", "matchedServerId"}) })
+    indexes = { @Index(name = "historyIndex",
+                       columnNames = {"score", "genotypeScore", "phenotypeScore", "foundTimestamp"})})
 public class HistoricPatientMatch extends AbstractPatientMatch implements PatientMatch, Lifecycle
 {
     /**
