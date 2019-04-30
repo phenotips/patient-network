@@ -61,40 +61,40 @@ public interface MatchStorageManager
     List<PatientMatch> loadMatchesByIds(Set<Long> matchesIds);
 
     /**
-     * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
+     * Marks a {@code match} as user-contacted or not.
      *
-     * @param matches list of matches to mark as user-contacted.
-     * @param isUserContacted boolean user-contacted status to set for matches
+     * @param match match to mark as user-contacted.
+     * @param isUserContacted boolean user-contacted status to set for a match
      * @return true if successful
      */
-    boolean setUserContacted(List<PatientMatch> matches, boolean isUserContacted);
+    boolean setUserContacted(PatientMatch match, boolean isUserContacted);
 
     /**
-     * Sets status to all matches in {@code matches} to a passed status string.
+     * Sets {@code status} to a {@code match}.
      *
-     * @param matches list of matches to mark as notified.
-     * @param status whether the matches should be marked as saved, rejected or uncategorized
+     * @param match match to mark as notified.
+     * @param status whether a match should be marked as saved, rejected or uncategorized
      * @return true if successful
      */
-    boolean setStatus(List<PatientMatch> matches, String status);
+    boolean setStatus(PatientMatch match, String status);
 
     /**
-     * Saves comment to all matches in {@code matches} to a passed status string.
+     * Saves {@code comment} to a {@code match}.
      *
-     * @param matches list of matches to save comment.
+     * @param match match to save comment.
      * @param comment comment text
      * @return true if successful
      */
-    boolean saveComment(List<PatientMatch> matches, String comment);
+    boolean saveComment(PatientMatch match, String comment);
 
     /**
-     * Saves a note to all matches in {@code matches}.
+     * Saves a {@code note} to a {@code match}.
      *
-     * @param matches list of matches to save note to.
+     * @param match match to save note to.
      * @param note note text
      * @return true if successful
      */
-    boolean addNote(List<PatientMatch> matches, String note);
+    boolean addNote(PatientMatch match, String note);
 
     /**
      * Deletes all matches (including those that users have been notified about, and MME matches)
