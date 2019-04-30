@@ -193,7 +193,7 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
     }
 
     /**
-     * Build a DefaultPatientMatch from a PatientSimilarityView.
+     * Create a PatientMatch from a PatientSimilarityView.
      *
      * @param similarityView the object to read match from
      * @param referenceServerId id of server where reference patient is found
@@ -515,9 +515,9 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
      */
     public boolean sameScore(PatientMatch other)
     {
-        return Math.abs(this.getScore() - other.getScore()) > DOUBLE_COMPARE_EPSILON
-            && Math.abs(this.getPhenotypeScore() - other.getPhenotypeScore()) > DOUBLE_COMPARE_EPSILON
-            && Math.abs(this.getGenotypeScore() - other.getGenotypeScore()) > DOUBLE_COMPARE_EPSILON;
+        return Math.abs(this.getScore() - other.getScore()) < DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getPhenotypeScore() - other.getPhenotypeScore()) < DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getGenotypeScore() - other.getGenotypeScore()) < DOUBLE_COMPARE_EPSILON;
     }
 
     @Override
