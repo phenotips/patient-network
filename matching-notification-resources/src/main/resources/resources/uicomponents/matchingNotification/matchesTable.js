@@ -1892,9 +1892,9 @@ var PhenoTips = (function (PhenoTips) {
                 }
             }
 
-            if (properties.hasOwnProperty('comments') && Object.keys(properties.comments).indexOf(match.id.toString()) > -1) {
-                this._matches[matchIndex].comments = properties.comments[match.id];
-                this._cachedMatches[cachedIndex].comments = properties.comments[match.id];
+            if (properties.hasOwnProperty('comments')) {
+                this._matches[matchIndex].comments = properties.comments;
+                this._cachedMatches[cachedIndex].comments = properties.comments;
                 // update comments table in pop-up
                 var commentsContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .comment-container');
                 if (commentsContainer) {
@@ -1926,25 +1926,18 @@ var PhenoTips = (function (PhenoTips) {
         if (!target) return;
         var matchId = String(target.dataset.matchid);
         var status = target.value;
-        var ids = matchId.split(",");
 
-        new Ajax.Request(this._ajaxURL + 'set-status', {
-            contentType : 'application/json',
-            parameters : {'matchesIds'    : ids,
-                          'status'        : status
-            },
-            onSuccess : function (response) {
-                if (!response.responseJSON || !response.responseJSON.results) {
-                    this._utils.showFailure('show-matches-messages');
+        new Ajax.Request(this._ajaxURL + '/' + matchId + "?method=PATCH", {
+            contentType: 'application/json',
+            parameters : {'status' : status},
+            onSuccess  : function (response) {
+                if (!response.responseJSON) {
+                    this._setState([matchId], { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Setting status `" + status + "` failed");
                     return;
                 }
-                var results = response.responseJSON.results;
-                if (results.success && results.success.length > 0) {
-                    this._setState(results.success, { 'status': status, 'state': 'success' });
-                } else if (results.failed && results.failed.length > 0) {
-                    this._setState(results.failed, { 'state': 'failed' });
-                    this._utils.showFailure('show-matches-messages', "Setting status `" + status + "` failed");
-                }
+
+                this._setState([matchId], { 'status': status, 'state': 'success' });
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');
@@ -1962,26 +1955,20 @@ var PhenoTips = (function (PhenoTips) {
         var button = target.up('.buttonwrapper').down('.mark-user-contacted-button');
         if (!button) return;
         var matchId = String(button.dataset.matchid);
-        var ids = matchId.split(",");
         // new user-contacted status to set to is a negation of the current one
         var newUserContactedStatus = !JSON.parse(button.dataset.usercontacted);
 
-        new Ajax.Request(this._ajaxURL + 'mark-user-contacted', {
+        new Ajax.Request(this._ajaxURL + '/' + matchId + "?method=PATCH", {
             contentType : 'application/json',
-            parameters : {'matchesIds' : ids,
-                          'isUserContacted' : newUserContactedStatus},
-            onSuccess : function (response) {
-                if (!response.responseJSON || !response.responseJSON.results) {
-                    this._utils.showFailure('show-matches-messages');
+            parameters  : {'isUserContacted' : newUserContactedStatus},
+            onSuccess   : function (response) {
+                if (!response.responseJSON) {
+                    this._setState([matchId], { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Mark matches user-contacted status to " + newUserContactedStatus + " failed");
                     return;
                 }
-                var results = response.responseJSON.results;
-                if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'notified': newUserContactedStatus, 'userContacted': newUserContactedStatus, 'state': 'success'});
-                } else if (results.failed && results.failed.length > 0) {
-                    this._setState(results.failed, { 'state': 'failed' });
-                    this._utils.showFailure('show-matches-messages', "Mark matches user-contacted status to " + newUserContactedStatus + " failed");
-                }
+
+                this._setState([matchId], {'notified': true, 'userContacted': newUserContactedStatus, 'state': 'success'});
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');
@@ -1999,24 +1986,19 @@ var PhenoTips = (function (PhenoTips) {
         var comment = target.up('.comment-container').down('textarea').value;
         if (!comment) return;
         var matchId = String(target.dataset.matchid);
-        var ids = matchId.split(",");
 
-        new Ajax.Request(this._ajaxURL + 'save-comment', {
+        new Ajax.Request(this._ajaxURL + '/' + matchId + "?method=PATCH", {
             contentType : 'application/json',
-            parameters : {'matchesIds'    : ids,
-                          'comment'       : encodeURI(comment)
-            },
-            onSuccess : function (response) {
-                if (!response.responseJSON || !response.responseJSON.results) {
-                    this._utils.showFailure('show-matches-messages');
+            parameters  : { 'comment': encodeURI(comment) },
+            onSuccess   : function (response) {
+                if (!response.responseJSON) {
+                    this._setState([matchId], { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Saving comment failed");
                     return;
                 }
-                var results = response.responseJSON.results;
-                if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'state': 'success', 'comments' : results.comments});
-                } else if (results.failed && results.failed.length > 0) {
-                    this._utils.showFailure('show-matches-messages', "Saving comment failed");
-                }
+
+                var updatedMatch = response.responseJSON;
+                this._setState([matchId], {'state': 'success', 'comments' : updatedMatch.comments});
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');
@@ -2033,24 +2015,19 @@ var PhenoTips = (function (PhenoTips) {
         if (!target) return;
         var matchId = String(target.dataset.matchid);
         var note = target.up('.notes-container').down('textarea').value;
-        var ids = matchId.split(",");
 
-        new Ajax.Request(this._ajaxURL + 'save-note', {
+        new Ajax.Request(this._ajaxURL + '/' + matchId + "?method=PATCH", {
             contentType : 'application/json',
-            parameters : {'matchesIds' : ids,
-                          'note'       : encodeURI(note)
-            },
-            onSuccess : function (response) {
-                if (!response.responseJSON || !response.responseJSON.results) {
-                    this._utils.showFailure('show-matches-messages');
+            parameters  : {'note' : encodeURI(note) },
+            onSuccess   : function (response) {
+                if (!response.responseJSON) {
+                    this._setState([matchId], { 'state': 'failed' });
+                    this._utils.showFailure('show-matches-messages', "Saving notes failed");
                     return;
                 }
-                var results = response.responseJSON.results;
-                if (results.success && results.success.length > 0) {
-                    this._setState(results.success, {'state': 'success', 'notes' : note});
-                } else if (results.failed && results.failed.length > 0) {
-                    this._utils.showFailure('show-matches-messages', "Saving notes failed");
-                }
+
+                var updatedMatch = response.responseJSON;
+                this._setState([matchId], {'state': 'success', 'notes' : updatedMatch.notes});
             }.bind(this),
             onFailure : function (response) {
                 this._utils.showFailure('show-matches-messages');

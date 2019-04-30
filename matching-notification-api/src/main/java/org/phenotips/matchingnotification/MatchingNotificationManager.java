@@ -25,7 +25,6 @@ import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -52,7 +51,7 @@ public interface MatchingNotificationManager
      * @param subjectServerId the id of the server that holds the given patient. Is only needed to distinguish two
      *                        patients with the same ID
      * @param customEmailText (optional) email text to be used
-     * @param customEmailSubject (optional) emial subject to be used
+     * @param customEmailSubject (optional) email subject to be used
      *
      * @return status of the notification as PatientMatchNotificationResponse
      */
@@ -61,7 +60,7 @@ public interface MatchingNotificationManager
 
     /**
      * Returns the contents of the email that will be send as a notification for match with the given id,
-     * with the recepient being the owner of the given patient on the given server.
+     * with the recipient being the owner of the given patient on the given server.
      *
      * @param matchId match id
      * @param subjectPatientId the id of the patient that is the subject of the email (can be either of
@@ -105,38 +104,38 @@ public interface MatchingNotificationManager
         String remoteId);
 
     /**
-     * Sets status to all matches with ids in {@code matchesIds} to a passed status string.
+     * Sets status for a match that has the given {@code matchId internal ID}.
      *
-     * @param matchesIds list of ids of matches to set status
+     * @param matchId the internal ID of the match of interest
      * @param status whether matches should be set as saved, rejected or uncategorized
-     * @return true if successful
+     * @return updated match
      */
-    boolean setStatus(Set<Long> matchesIds, String status);
+    PatientMatch setStatus(Long matchId, String status);
 
     /**
      * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
      *
-     * @param matchesIds list of ids of matches to mark as user-contacted.
+     * @param matchId the internal ID of the match of interest
      * @param isUserContacted boolean user-contacted status to set for matches
-     * @return true if successful
+     * @return updated match
      */
-    boolean setUserContacted(Set<Long> matchesIds, boolean isUserContacted);
+    PatientMatch setUserContacted(Long matchId, boolean isUserContacted);
 
     /**
-     * Saves comment to all matches with ids in {@code matchesIds} to a passed comment string.
+     * Saves comment for a match that has the given {@code matchId internal ID}.
      *
-     * @param matchesIds list of ids of matches to save comment
+     * @param matchId the internal ID of the match of interest
      * @param comment comment text
-     * @return list of updated matches
+     * @return updated match
      */
-    List<PatientMatch> saveComment(Set<Long> matchesIds, String comment);
+    PatientMatch saveComment(Long matchId, String comment);
 
     /**
-     * Saves note to all matches with ids in {@code matchesIds}.
+     * Saves note for a match that has the given {@code matchId internal ID}.
      *
-     * @param matchesIds list of ids of matches to save note to
+     * @param matchId the internal ID of the match of interest
      * @param note note text
-     * @return true if successful
+     * @return updated match
      */
-    boolean addNote(Set<Long> matchesIds, String note);
+    PatientMatch addNote(Long matchId, String note);
 }

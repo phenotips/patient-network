@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.rest;
 
 import org.phenotips.data.rest.PatientsResource;
+import org.phenotips.rest.PATCH;
 import org.phenotips.rest.ParentResource;
 import org.phenotips.rest.Relation;
 
@@ -25,6 +26,7 @@ import org.xwiki.stability.Unstable;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -159,65 +161,22 @@ public interface MatchingNotificationResource
         @FormParam("subjectServerId") String serverId);
 
     /**
-     * Marks matches, with ids given in parameter, as saved, rejected or uncategorized. Example:
+     * Update match status, user-contacted state, comment or note.
      *
-     * <pre>
-     * Input: ["1", "2"], "saved"
-     * Output: {"results": {"success": [1,2]}}
-     * </pre>
-     *
-     * @param matchesIds List of matches IDs to change the status for
-     * @param status whether matches status should be set as 'saved', 'rejected' or 'uncategorized'
-     * @return result JSON
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/set-status")
-    Response setStatus(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("status") String status);
-
-    /**
-     * Marks matches, with ids given in parameter, as user-contacted or not user-contacted. Example:
-     *
-     * <pre>
-     * Input: ["1", "2"], "true"
-     * Output: {"results": {"success": [1,2]}}
-     * </pre>
-     *
-     * @param matchesIds List of matches IDs to change the status for
-     * @param isUserContacted boolean user-contacted status to set for matches
-     * @return result JSON
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/mark-user-contacted")
-    Response setUserContacted(@FormParam("matchesIds") Set<Long> matchesIds,
-        @FormParam("isUserContacted") @DefaultValue("false") boolean isUserContacted);
-
-    /**
-     * Saves comment for matches, with ids given in parameter.
-     *
-     * @param matchesIds List of matches IDs to change the status for
+     * @param matchId the internal ID of the matchId of interest
+     * @param status whether match status should be set as 'saved', 'rejected' or 'uncategorized'
+     * @param isUserContacted boolean user-contacted status to set for the match
      * @param comment comment text
-     * @return result JSON
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/save-comment")
-    Response saveComment(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("comment") String comment);
-
-    /**
-     * Saves note for matches, with ids given in parameter.
-     *
-     * @param matchesIds List of matches IDs to save note for
      * @param note note text
-     * @return result JSON
+     * @return updated match JSON
      */
-    @POST
+    @PATCH
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/save-note")
-    Response addNote(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("note") String note);
+    @Path("/{matchId}")
+    Response updateMatch(@PathParam("matchId") Long matchId,
+        @Nullable @FormParam("status") String status,
+        @Nullable @FormParam("isUserContacted") Boolean isUserContacted,
+        @Nullable @FormParam("comment") String comment,
+        @Nullable @FormParam("note") String note);
 }
