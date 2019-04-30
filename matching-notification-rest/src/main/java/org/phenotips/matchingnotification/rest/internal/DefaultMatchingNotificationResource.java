@@ -262,70 +262,41 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response setStatus(final Set<Long> matchesIds, final String status)
+    public Response updateMatch(Long matchId, String status, Boolean isUserContacted, String comment, String note)
     {
-        if (matchesIds.isEmpty()) {
-            this.slf4Jlogger.error("The requested ids list is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (StringUtils.isBlank(status)) {
-            this.slf4Jlogger.error("The 'status' request parameter is blank");
+        if (matchId == null) {
+            this.slf4Jlogger.error("The requested match id is blank");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        boolean success = this.matchingNotificationManager.setStatus(matchesIds, status);
-        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
-            : Collections.<Long>emptyList());
-        return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
-    }
+        try {
+            PatientMatch match = null;
 
-    @Override
-    public Response setUserContacted(final Set<Long> matchesIds, boolean isUserContacted)
-    {
-        if (matchesIds.isEmpty()) {
-            this.slf4Jlogger.error("The requested ids list is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            if (!StringUtils.isBlank(status)) {
+                match = this.matchingNotificationManager.setStatus(matchId, status);
+            }
+
+            if (isUserContacted != null) {
+                match = this.matchingNotificationManager.setUserContacted(matchId, isUserContacted);
+            }
+
+            if (!StringUtils.isBlank(comment)) {
+                match = this.matchingNotificationManager.saveComment(matchId, comment);
+            }
+
+            if (!StringUtils.isBlank(note)) {
+                match = this.matchingNotificationManager.addNote(matchId, note);
+            }
+
+            if (match != null) {
+                return Response.ok(match.toJSON(), MediaType.APPLICATION_JSON_TYPE).build();
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final AccessControlException e) {
+            this.slf4Jlogger.error("No rights to modify match with id [{}]", matchId);
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
-
-        boolean success = this.matchingNotificationManager.setUserContacted(matchesIds, isUserContacted);
-        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
-            : Collections.<Long>emptyList());
-        return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
-    }
-
-    @Override
-    public Response saveComment(final Set<Long> matchesIds, final String comment)
-    {
-        if (matchesIds.isEmpty()) {
-            this.slf4Jlogger.error("The requested ids list is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (StringUtils.isBlank(comment)) {
-            this.slf4Jlogger.error("The 'comment' request parameter is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        List<PatientMatch> successfulMatches = this.matchingNotificationManager.saveComment(matchesIds, comment);
-        JSONObject result = this.successfulMatchesCommentsToJSON(new LinkedList<>(matchesIds), successfulMatches);
-        return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
-    }
-
-    @Override
-    public Response addNote(Set<Long> matchesIds, String note)
-    {
-        if (matchesIds.isEmpty()) {
-            this.slf4Jlogger.error("The requested ids list is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (StringUtils.isBlank(note)) {
-            this.slf4Jlogger.error("The 'note' request parameter is blank");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        boolean success = this.matchingNotificationManager.addNote(matchesIds, note);
-        JSONObject result = this.successfulIdsToJSON(matchesIds, success ? matchesIds
-            : Collections.<Long>emptyList());
-        return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
     private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
@@ -398,24 +369,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         Collection<Long> failedIds = new LinkedList<>(allIds);
         failedIds.removeAll(successfulIds);
         result.put("failed", failedIds);
-        JSONObject reply = new JSONObject();
-        reply.put("results", result);
-        return reply;
-    }
-
-    private JSONObject successfulMatchesCommentsToJSON(Collection<Long> allIds, List<PatientMatch> successfulMatches)
-    {
-        JSONObject result = new JSONObject();
-        Collection<Long> failedIds = new LinkedList<>(allIds);
-        JSONObject comments = new JSONObject();
-        for (PatientMatch match : successfulMatches) {
-            failedIds.remove(match.getId());
-            comments.put(match.getId().toString(), match.getComments());
-        }
-        allIds.removeAll(failedIds);
-        result.put("success", allIds);
-        result.put("failed", failedIds);
-        result.put("comments", comments);
         JSONObject reply = new JSONObject();
         reply.put("results", result);
         return reply;

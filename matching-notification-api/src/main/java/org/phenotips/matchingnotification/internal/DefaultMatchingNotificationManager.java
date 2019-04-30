@@ -36,9 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,8 +45,6 @@ import javax.inject.Singleton;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Joiner;
 
 /**
  * @version $Id$
@@ -205,85 +201,57 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean setStatus(Set<Long> matchesIds, String status)
+    public PatientMatch setStatus(Long matchId, String status)
     {
-        boolean successful = false;
-        try {
-            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-            filterNonUsersMatches(matches);
-
-            successful = this.matchStorageManager.setStatus(matches, status);
-        } catch (Exception e) {
-            this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
+        PatientMatch match = this.getMatch(matchId);
+        if (match != null && this.matchStorageManager.setStatus(match, status)) {
+            return match;
         }
-        return successful;
+        return null;
     }
 
     @Override
-    public boolean setUserContacted(Set<Long> matchesIds, boolean isUserContacted)
+    public PatientMatch setUserContacted(Long matchId, boolean isUserContacted)
     {
-        boolean successful = false;
-        try {
-            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-            filterNonUsersMatches(matches);
-
-            successful = this.matchStorageManager.setUserContacted(matches, isUserContacted);
-        } catch (Exception e) {
-            String status = isUserContacted ? "Error while marking matches as user-contacted"
-                : "Error while marking matches as not user-contacted";
-            this.logger.error(status, Joiner.on(",").join(matchesIds), e);
+        PatientMatch match = this.getMatch(matchId);
+        if (match != null && this.matchStorageManager.setUserContacted(match, isUserContacted)) {
+            return match;
         }
-        return successful;
+        return null;
     }
 
     @Override
-    public List<PatientMatch> saveComment(Set<Long> matchesIds, String comment)
+    public PatientMatch saveComment(Long matchId, String comment)
     {
-        try {
-            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-            filterNonUsersMatches(matches);
-
-            if (this.matchStorageManager.saveComment(matches, comment)) {
-                return matches;
-            }
-        } catch (Exception e) {
-            this.logger.error("Error while setting comment for matches {} as {}",
-                Joiner.on(",").join(matchesIds), comment, e);
+        PatientMatch match = this.getMatch(matchId);
+        if (match != null && this.matchStorageManager.saveComment(match, comment)) {
+            return match;
         }
-        return Collections.emptyList();
+        return null;
     }
 
     @Override
-    public boolean addNote(Set<Long> matchesIds, String note)
+    public PatientMatch addNote(Long matchId, String note)
     {
-        boolean successful = false;
-        try {
-            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-            filterNonUsersMatches(matches);
-
-            successful = this.matchStorageManager.addNote(matches, note);
-        } catch (Exception e) {
-            this.logger.error("Error while saving a note for matches {} as {}",
-                Joiner.on(",").join(matchesIds), note, e);
+        PatientMatch match = this.getMatch(matchId);
+        if (match != null && this.matchStorageManager.addNote(match, note)) {
+            return match;
         }
-        return successful;
+        return null;
     }
 
-    /**
-     * Filters out matches that user does not own or has access to.
-     */
-    private void filterNonUsersMatches(List<PatientMatch> matches)
+    private PatientMatch getMatch(Long matchId)
     {
-        ListIterator<PatientMatch> iterator = matches.listIterator();
-        while (iterator.hasNext()) {
-            if (!currentUserHasViewAccess(iterator.next())) {
-                iterator.remove();
-            }
+        List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
+        if (matches.size() == 0) {
+            this.logger.error("No matches found for matchId " + matchId);
+            return null;
         }
+        PatientMatch match = matches.get(0);
+        if (!currentUserHasViewAccess(match)) {
+            throw new AccessControlException("Current user has no rights to notify matchId " + matchId);
+        }
+        return match;
     }
 
     private boolean currentUserHasViewAccess(PatientMatch match)

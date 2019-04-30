@@ -543,16 +543,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean setUserContacted(List<PatientMatch> matches, boolean isUserContacted)
+    public boolean setUserContacted(PatientMatch match, boolean isUserContacted)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
-            for (PatientMatch match : matches) {
-                match.setExternallyContacted(isUserContacted);
-                session.update(match);
-            }
+            match.setExternallyContacted(isUserContacted);
+            session.update(match);
             transactionCompleted = true;
         } catch (Exception ex) {
             String status = isUserContacted ? "Error while marking match as user-contacted"
@@ -601,16 +599,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean setStatus(List<PatientMatch> matches, String status)
+    public boolean setStatus(PatientMatch match, String status)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
-            for (PatientMatch match : matches) {
-                match.setStatus(status);
-                session.update(match);
-            }
+            match.setStatus(status);
+            session.update(match);
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error saving matches statuses: [{}]", ex.getMessage(), ex);
@@ -621,16 +617,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean saveComment(List<PatientMatch> matches, String comment)
+    public boolean saveComment(PatientMatch match, String comment)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
-            for (PatientMatch match : matches) {
-                match.updateComments(comment);
-                session.update(match);
-            }
+            match.updateComments(comment);
+            session.update(match);
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error saving matches comments: [{}]", ex.getMessage(), ex);
@@ -641,16 +635,14 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean addNote(List<PatientMatch> matches, String note)
+    public boolean addNote(PatientMatch match, String note)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
         try {
-            for (PatientMatch match : matches) {
-                match.updateNotes(note);
-                session.update(match);
-            }
+            match.updateNotes(note);
+            session.update(match);
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error saving matches note: [{}]", ex.getMessage(), ex);
