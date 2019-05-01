@@ -18,7 +18,7 @@ var PhenoTips = (function (PhenoTips) {
     initialize : function (utils)
     {
         this._tableElement = $('matchesTable');
-        this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/";
+        this._ajaxURL = XWiki.contextPath + "/rest/matches";
         this._tableCollabsed = true;
         $("panels-livetable-ajax-loader").hide();
 
@@ -1696,8 +1696,8 @@ var PhenoTips = (function (PhenoTips) {
         }
         // console.log("Sending " + idsToNotify);
         var idsToNotify = JSON.stringify({ ids: matchIDs});
-        new Ajax.Request(this._ajaxURL + 'send-admin-local-notifications', {
-            parameters : {'ids' : idsToNotify},
+        new Ajax.Request(this._ajaxURL, {
+            parameters : {'matchesToNotify' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");
                 this._notificationsButton.disabled = true;

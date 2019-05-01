@@ -76,6 +76,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     private static final String IDS_STRING = "ids";
 
+    private static final String MATCHESTONOTIFY_STRING = "matchesToNotify";
+
     private static final String RESULTS_LABEL = "results";
 
     private static final String RETURNED_SIZE_LABEL = "returnedCount";
@@ -166,7 +168,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
 
         final Request request = this.container.getRequest();
-        final String ids = (String) request.getProperty(IDS_STRING);
+        final String ids = (String) request.getProperty(MATCHESTONOTIFY_STRING);
 
         if (StringUtils.isBlank(ids)) {
             this.slf4Jlogger.error("The requested ids parameter is blank and thus not a valid input JSON");
@@ -197,14 +199,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response sendUserNotification(String matchId, String patientId, String serverId,
+    public Response sendUserNotification(Long matchId, String patientId, String serverId,
         String emailText, String emailSubject)
     {
         try {
-            Long numericMatchId = Long.parseLong(matchId);
-
             PatientMatchNotificationResponse notificationResult =
-                this.matchingNotificationManager.sendUserNotification(numericMatchId, patientId, serverId,
+                this.matchingNotificationManager.sendUserNotification(matchId, patientId, serverId,
                     StringUtils.isBlank(emailText) ? null : emailText,
                     StringUtils.isBlank(emailSubject) ? null : emailSubject);
 
@@ -216,16 +216,16 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
             JSONObject result;
             if (notificationResult.isSuccessul()) {
-                result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
-                    Collections.singletonList(numericMatchId));
+                result = this.successfulIdsToJSON(Collections.singletonList(matchId),
+                    Collections.singletonList(matchId));
                 PatientMatch match = notificationResult.getPatientMatch();
                 JSONObject notificationHistory = new JSONObject();
                 notificationHistory.put(match.getId().toString(), match.getNotificationHistory());
                 result.put("successNotificationHistories", notificationHistory);
             } else {
-                result = this.successfulIdsToJSON(Collections.singletonList(numericMatchId),
-                    Collections.<Long>emptyList());
+                result = this.successfulIdsToJSON(Collections.singletonList(matchId), Collections.<Long>emptyList());
             }
+
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (AccessControlException ex) {
             this.slf4Jlogger.error("No rights to notify match id [{}]", matchId);
@@ -242,13 +242,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response getEmailToBeSent(String matchId, String patientId, String serverId)
+    public Response getEmailToBeSent(Long matchId, String patientId, String serverId)
     {
         try {
-            Long numericMatchId = Long.parseLong(matchId);
-
-            JSONObject result = this.matchingNotificationManager.getUserEmailContent(
-                numericMatchId, patientId, serverId);
+            JSONObject result = this.matchingNotificationManager.getUserEmailContent(matchId, patientId, serverId);
 
             return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (NumberFormatException ex) {

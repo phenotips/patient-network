@@ -2,7 +2,7 @@ var PhenoTips = (function(PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.MatcherContactDialog = Class.create({
     initialize: function() {
-        this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/";
+        this._ajaxURL = XWiki.contextPath + "/rest/matches/";
 
         this._CONTACT_DIALOG_TITLE = "$escapetool.xml($services.localization.render('phenotips.similarCases.contactDialogTitle'))";
         this._CONTACT_DIALOG_HEADER = "$escapetool.xml($services.localization.render('phenotips.myMatches.contact.dialog.header'))";
@@ -95,12 +95,11 @@ var PhenoTips = (function(PhenoTips) {
 
     launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
     {
-        new Ajax.Request(this._ajaxURL + "preview-user-match-email", {
+        new Ajax.Request(this._ajaxURL + matchId + "?method=GET", {
             contentType:'application/json',
             parameters : {
-                  'matchId': matchId,
-                  'subjectPatientId' : subjectPatientId,
-                  'subjectServerId' : subjectServerId
+                'subjectPatientId' : subjectPatientId,
+                'subjectServerId' : subjectServerId
             },
             onCreate : function() {
                 this.matchId = matchId;
@@ -138,11 +137,10 @@ var PhenoTips = (function(PhenoTips) {
 
     _notifyUserMatch: function(matchID, subjectPatientId, subjectServerId, emailText, emailSubject)
     {
-        new Ajax.Request(this._ajaxURL + 'send-user-notifications', {
+        new Ajax.Request(this._ajaxURL + matchID, {
             contentType : 'application/json',
-            parameters : {'matchId': matchID,
-                          'subjectPatientId': subjectPatientId,
-                          'subjectServerId': subjectServerId,
+            parameters : {'subjectPatientId' : subjectPatientId,
+                          'subjectServerId' : subjectServerId,
                           'emailText': emailText,
                           'emailSubject': emailSubject},
             onSuccess : function (response) {
