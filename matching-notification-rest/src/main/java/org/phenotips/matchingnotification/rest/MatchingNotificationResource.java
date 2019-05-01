@@ -30,9 +30,11 @@ import javax.annotation.Nullable;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -45,7 +47,7 @@ import javax.ws.rs.core.Response;
  * @since 1.1
  */
 @Unstable("New API introduced in 1.1")
-@Path("/patients/matching-notification")
+@Path("/matches")
 @Relation("https://phenotips.org/rel/matchingNotification")
 @ParentResource(PatientsResource.class)
 public interface MatchingNotificationResource
@@ -111,7 +113,6 @@ public interface MatchingNotificationResource
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/send-admin-local-notifications")
     Response sendAdminNotificationsToLocalUsers();
 
     /**
@@ -128,8 +129,8 @@ public interface MatchingNotificationResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/send-user-notifications")
-    Response sendUserNotification(@FormParam("matchId") String matchId,
+    @Path("/{matchId}")
+    Response sendUserNotification(@PathParam("matchId") Long matchId,
         @FormParam("subjectPatientId") String patientId,
         @FormParam("subjectServerId") String serverId,
         @FormParam("emailText") @DefaultValue("") String emailText,
@@ -140,7 +141,7 @@ public interface MatchingNotificationResource
      *
      * @param matchId the id of the match that should be used to generate the email
      * @param patientId the id of the patient that is the subject of the email (can be either of
-     *                  the two patients involved in the specified match)
+     *        the two patients involved in the specified match)
      * @param serverId the server that hosts the patient
      * @return a response containing a JSON object, in the following format:
      *     <pre>
@@ -152,11 +153,11 @@ public interface MatchingNotificationResource
      *     where text is a string, and type is the type of content as string (for now only
      *     "text/plain" is supported) TODO: support text/html as well
      */
-    @POST
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/preview-user-match-email")
-    Response getEmailToBeSent(@FormParam("matchId") String matchId,
+    @Produces(MediaType.TEXT_HTML)
+    @Path("/{matchId}")
+    Response getEmailToBeSent(@PathParam("matchId") Long matchId,
         @FormParam("subjectPatientId") String patientId,
         @FormParam("subjectServerId") String serverId);
 
