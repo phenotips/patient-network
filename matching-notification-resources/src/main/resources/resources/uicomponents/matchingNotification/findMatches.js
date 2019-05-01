@@ -14,7 +14,7 @@ var PhenoTips = (function (PhenoTips) {
 
         initialize : function (utils)
         {
-            this._ajaxURL = XWiki.contextPath + "/rest/patients/matching-notification/refresh-matches";
+            this._ajaxURL = XWiki.contextPath + "/rest/matches";
 
             this._utils = new utils();
 
@@ -108,8 +108,8 @@ var PhenoTips = (function (PhenoTips) {
             // disable all find matches buttons while matching is running...
             $$('.find-matches-button').each( function(elm) { elm.disable() } );
 
-            new Ajax.Request(this._ajaxURL, {
-            	contentType:'application/json',
+            new Ajax.Request(this._ajaxURL + "?method=PUT", {
+                contentType: 'application/json',
                 parameters : { "onlyCheckPatientsUpdatedAfterLastRun" : onlyCheckPatientsUpdatedAfterLastRun,
                                "serverIds" : servers
                 },
