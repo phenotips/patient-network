@@ -501,7 +501,7 @@ var PhenoTips = (function (PhenoTips) {
         var options = this._generateOptions();
         if (!options) return;
 
-        new Ajax.Request(this._ajaxURL + 'show-matches', {
+        new Ajax.Request(this._ajaxURL + "?method=GET", {
             contentType:'application/json',
             parameters : options,
             onCreate : function () {
