@@ -23,6 +23,7 @@ import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.internal.PhenoTipsGene;
 import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Owner;
@@ -317,7 +318,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
                 geneName = geneName.trim();
                 String status = gene.getStatus();
                 // Treat empty status as candidate
-                if (StringUtils.isBlank(status) || "solved".equals(status) || "candidate".equals(status)) {
+                if (StringUtils.isBlank(status) || "solved".equals(status) || status.startsWith("candidate")) {
                     genesToSearch.add(geneName);
                 }
             }
@@ -325,7 +326,10 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         if (!genesToSearch.isEmpty()) {
             String geneQuery = getQueryFromTerms(genesToSearch);
             q.append(" solved_genes:" + geneQuery);
-            q.append(" candidate_genes:" + geneQuery);
+            List<String> statusValues = PhenoTipsGene.getStatusValues();
+            statusValues.stream()
+                        .filter(item -> item.startsWith("candidate"))
+                        .forEach(item -> q.append(" " + item + ":" + geneQuery));
         }
     }
 
