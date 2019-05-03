@@ -373,7 +373,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         JSONObject json = new JSONObject(patientDetails);
 
         this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
-        this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(MATCHED_EXOME_GENES)));
+        this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.optJSONArray(MATCHED_EXOME_GENES)));
         this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
@@ -382,6 +382,9 @@ public class DefaultPatientInMatch implements PatientInMatch
     // Returns an unmodifiable set of Strings
     private static Set<String> jsonArrayToSet(JSONArray jsonArray)
     {
+        if (jsonArray == null) {
+            return Collections.emptySet();
+        }
         Set<String> set = new HashSet<>();
         Iterator<Object> iterator = jsonArray.iterator();
         while (iterator.hasNext()) {
