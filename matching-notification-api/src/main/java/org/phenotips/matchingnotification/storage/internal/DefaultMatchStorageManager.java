@@ -75,6 +75,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         "delete CurrentPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
             + " or (matchedServerId ='' and matchedPatientId = :localId)";
 
+    /** A query used to delete all matches (including MME) for the given local patient (ID == localId). */
+    private static final String HQL_DELETE_ALL_HISTORIC_MATCHES_FOR_LOCAL_PATIENT =
+        "delete HistoricPatientMatch where (referenceServerId = '' and referencePatientId = :localId)"
+            + " or (matchedServerId ='' and matchedPatientId = :localId)";
+
     /** A query to find all matches with a score(s) greater than given. */
     private static final String HQL_FIND_ALL_MATCHES_BY_SCORE =
         "from CurrentPatientMatch as m where"
@@ -707,11 +712,15 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         try {
             Query query = session.createQuery(HQL_DELETE_ALL_MATCHES_FOR_LOCAL_PATIENT);
             query.setParameter("localId", patientId);
-
             int numDeleted = query.executeUpdate();
-            transactionCompleted = true;
+            this.logger.error("Removed all [{}] stored matches for patient [{}]", numDeleted, patientId);
 
-            this.logger.debug("Removed all [{}] stored matches for patient [{}]", numDeleted, patientId);
+            query = session.createQuery(HQL_DELETE_ALL_HISTORIC_MATCHES_FOR_LOCAL_PATIENT);
+            query.setParameter("localId", patientId);
+            numDeleted = query.executeUpdate();
+            this.logger.error("Removed all [{}] stored historic matches for patient [{}]", numDeleted, patientId);
+
+            transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error deleting matches for local patients: [{}]", ex.getMessage(), ex);
         } finally {
