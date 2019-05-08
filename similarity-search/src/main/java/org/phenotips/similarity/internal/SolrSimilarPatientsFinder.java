@@ -25,7 +25,6 @@ import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
 import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
-import org.phenotips.data.permissions.Owner;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityViewFactory;
@@ -39,7 +38,6 @@ import org.phenotips.vocabulary.VocabularyTerm;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.model.reference.EntityReference;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,6 +46,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -75,8 +74,10 @@ import org.slf4j.Logger;
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initializable
 {
-    /** The number of records to fully score. */
-    private static final int SEED_QUERY_SIZE = 50;
+    /** The number of records that have similar phenotypes that SOLR should find. */
+    private static final int SOLR_SEED_QUERY_SIZE_FOR_PHENOTYPE_SIMILARITY = 50;
+
+    private static final double MIN_SCORE_TO_CONSIDER_NON_ZERO = 0.001;
 
     /** Logging helper object. */
     @Inject
@@ -139,43 +140,34 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return find(referencePatient, null, true);
     }
 
-    @Override
-    public long countSimilarPatients(Patient referencePatient)
-    {
-        SolrQuery query = generateQuery(referencePatient, false);
-        return count(query);
-    }
-
     private List<PatientSimilarityView> find(Patient referencePatient, String requiredConsentId, boolean prototypes)
     {
         this.logger.debug("Searching for patients similar to [{}] using visibility level {}",
             referencePatient.getId(), this.visibilityLevelThreshold.getName());
-        SolrQuery query = generateQuery(referencePatient, prototypes);
-        if (query == null) {
-            return Collections.emptyList();
+
+        Set<String> patientDocuments = this.findAllMatchingPatients(referencePatient, prototypes);
+        this.logger.debug("Found {} potential matches", patientDocuments.size());
+
+        List<PatientSimilarityView> results = new ArrayList<>(patientDocuments.size());
+        if (patientDocuments.size() == 0) {
+            return results;
         }
-        SolrDocumentList docs = search(query);
-        List<PatientSimilarityView> results = new ArrayList<>(docs.size());
+
+        // get reference patient's family once, to be used multiple times in the loop below
         Family family = (referencePatient.getDocumentReference() == null)
                         ? null
                         : this.familyRepository.getFamilyForPatient(referencePatient);
-        Owner refOwner = (referencePatient.getDocumentReference() == null)
-                        ? null
-                        : this.permissionsManager.getEntityAccess(referencePatient).getOwner();
-        EntityReference refOwnerRef = (refOwner != null) ? refOwner.getUser() : null;
 
-        this.logger.debug("Found {} potential matches", docs.size());
-        for (SolrDocument doc : docs) {
-            String name = (String) doc.getFieldValue("document");
-            Patient matchPatient = this.patients.get(name);
+        for (String patientDocumentName : patientDocuments) {
+            Patient matchPatient = this.patients.get(patientDocumentName);
 
-            if (filterPatient(matchPatient, family, refOwnerRef, requiredConsentId)) {
+            if (filterPatient(matchPatient, family, requiredConsentId)) {
                 continue;
             }
 
             PatientSimilarityView result = this.factory.makeSimilarPatient(matchPatient, referencePatient);
-            this.logger.debug("Found match: [{}] with score: {}", name, result.getScore());
-            if (result.getScore() > 0) {
+            this.logger.debug("Found match: [{}] with score: {}", patientDocumentName, result.getScore());
+            if (result.getScore() > MIN_SCORE_TO_CONSIDER_NON_ZERO) {
                 results.add(result);
             }
         }
@@ -195,9 +187,51 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return results;
     }
 
-    @SuppressWarnings({ "checkstyle:NPathComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:ReturnCount" })
-    private boolean filterPatient(Patient matchPatient, Family family, EntityReference refOwner,
-        String requiredConsentId)
+    /**
+     * Finds ALL patients with matching genes and at most SOLR_SEED_QUERY_SIZE_FOR_PHENOTYPE_SIMILARITY
+     * patients with matching phenotypes (selected as most similar according to SOLR).
+     *
+     * No check is performed to see if a document is accessible, matchable, etc.
+     *
+     * @param referencePatient reference patient to find matches for
+     * @param prototypes if true, OMIM disorder prototypes are included in results
+     * @return a list of patient document names for patients which are similar to the reference patient
+     *         (patient itself is not returned)
+     */
+    private Set<String> findAllMatchingPatients(Patient referencePatient, boolean prototypes)
+    {
+        Set<String> results = new HashSet<>();
+
+        // 1. find at most SOLR_SEED_QUERY_SIZE_FOR_PHENOTYPE_SIMILARITY patients matching by
+        //    phenotypes (disregarding all other data)
+        SolrQuery queryP = generatePhenotypeQuery(referencePatient, prototypes);
+        if (queryP != null) {
+            queryP.setRows(SOLR_SEED_QUERY_SIZE_FOR_PHENOTYPE_SIMILARITY);
+            SolrDocumentList docsMatchedOnPhenotypes = search(queryP);
+            this.logger.error("Found {} potential matches using phenotype search", docsMatchedOnPhenotypes.size());
+
+            for (SolrDocument doc : docsMatchedOnPhenotypes) {
+                results.add((String) doc.getFieldValue("document"));
+            }
+        }
+
+
+        // 2. find all patients with matching genes (disregarding all other data),
+        //    and merge the resulting list of patients with the patients found in step 1.
+        SolrQuery queryG = generateGenotypeQuery(referencePatient, prototypes);
+        if (queryG != null) {
+            SolrDocumentList docsMatchedOnGenotype = search(queryG);
+            this.logger.error("Found {} potential matches using genotype search", docsMatchedOnGenotype.size());
+
+            for (SolrDocument doc : docsMatchedOnGenotype) {
+                results.add((String) doc.getFieldValue("document"));
+            }
+        }
+
+        return results;
+    }
+
+    private boolean filterPatient(Patient matchPatient, Family family, String requiredConsentId)
     {
         if (matchPatient == null) {
             // Leftover patient in the index, should be removed
@@ -222,34 +256,70 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
     }
 
     /**
-     * Generates a Solr query that tries to match patients similar to the reference.
+     * Generates a Solr query that tries to match patients similar to the reference
+     * based on reference patient phenotypes.
      *
      * @param referencePatient the reference patient
      * @return a query populated with terms from the patient phenotype
      */
-    private SolrQuery generateQuery(Patient referencePatient, boolean prototypes)
+    private SolrQuery generatePhenotypeQuery(Patient referencePatient, boolean prototypes)
     {
-        SolrQuery query = new SolrQuery();
-        StringBuilder q = new StringBuilder();
         // Whitespace-delimiter terms querying the extended phenotype field
-        Collection<String> termIds = getPresentPhenotypeTerms(referencePatient);
-        if (!termIds.isEmpty()) {
-            q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
+        Collection<String> termIds = this.getPresentPhenotypeTerms(referencePatient);
+        if (termIds.isEmpty()) {
+            return null;
         }
 
-        PatientData<Gene> allGenes = referencePatient.getData("genes");
-        appendGenesToQuery(allGenes, q);
+        StringBuilder q = this.generateBaseQuery(referencePatient, prototypes);
+        q.append(" extended_phenotype:" + getQueryFromTerms(termIds));
+
+        SolrQuery query = new SolrQuery();
+        query.add(CommonParams.Q, q.toString());
+        this.logger.error("SOLRQUERY generated for matching patient based on phenotypes [{}]: {}",
+                referencePatient.getId(), query.toString());
+        return query;
+    }
+
+    /**
+     * Generates a Solr query that tries to match patients similar to the reference
+     * based on reference patient genes.
+     *
+     * @param referencePatient the reference patient
+     * @return a query populated with terms from the patient genes
+     */
+    private SolrQuery generateGenotypeQuery(Patient referencePatient, boolean prototypes)
+    {
+        Collection<String> genesToSearch = this.getGenesToSearch(referencePatient);
+        if (genesToSearch.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder q = this.generateBaseQuery(referencePatient, prototypes);
+        String geneQuery = getQueryFromTerms(genesToSearch);
+        q.append(" solved_genes:" + geneQuery);
+        q.append(" candidate_genes:" + geneQuery);
+
+        SolrQuery query = new SolrQuery();
+        query.add(CommonParams.Q, q.toString());
+        this.logger.error("SOLRQUERY generated for matching patient based on genes [{}]: {}",
+                referencePatient.getId(), query.toString());
+        return query;
+    }
+
+    private StringBuilder generateBaseQuery(Patient referencePatient, boolean prototypes)
+    {
+        StringBuilder q = new StringBuilder();
 
         // Ignore the reference patient itself (unless reference patient is a temporary in-memory only
         // patient, e.g. a RemoteMatchingPatient created from remote patient data obtained via remote-matching API)
         if (referencePatient.getDocumentReference() != null) {
             q.append(" -document:" + ClientUtils.escapeQueryChars(referencePatient.getDocumentReference().toString()));
         }
+
+        // include or ignore OMIM prototypes based on prorotype parameter
         q.append(prototypes ? " +" : " -").append("document:xwiki\\:data.MIM*");
-        query.add(CommonParams.Q, q.toString());
-        this.logger.debug("SOLRQUERY generated for matching patient [{}]: {}", referencePatient.getId(),
-            query.toString());
-        return query;
+
+        return q;
     }
 
     /**
@@ -260,29 +330,12 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
      */
     private SolrDocumentList search(SolrQuery query)
     {
-        query.setRows(SEED_QUERY_SIZE);
         try {
             return this.server.query(query).getResults();
         } catch (IOException | SolrServerException ex) {
-            this.logger.warn("Failed to query the patients index: {}", ex.getMessage());
+            this.logger.error("Failed to query the patients index: [{}]", ex.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Performs a search in the Solr index, returning only the total number of matches found.
-     *
-     * @param query the query prepared with {@link #generateQuery(Patient, boolean)}
-     * @return the total number of document matched by the query, {@code 0} if none match
-     */
-    private long count(SolrQuery query)
-    {
-        query.setRows(0);
-        SolrDocumentList response = search(query);
-        if (response != null) {
-            return response.getNumFound();
-        }
-        return 0;
     }
 
     private Collection<String> getPresentPhenotypeTerms(Patient patient)
@@ -304,29 +357,26 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         return termIds;
     }
 
-    private void appendGenesToQuery(PatientData<Gene> allGenes, StringBuilder q)
+    private Collection<String> getGenesToSearch(Patient patient)
     {
-        Collection<String> genesToSearch = new ArrayList<>();
+        List<String> genesToSearch = new ArrayList<>();
+
+        PatientData<Gene> allGenes = patient.getData("genes");
         if (allGenes != null && allGenes.size() > 0 && allGenes.isIndexed()) {
             for (Gene gene : allGenes) {
-                String geneName = gene.getId();
-                if (StringUtils.isBlank(geneName)) {
+                String geneId = gene.getId().trim();
+                if (StringUtils.isBlank(geneId)) {
                     continue;
                 }
-
-                geneName = geneName.trim();
                 String status = gene.getStatus();
                 // Treat empty status as candidate
                 if (StringUtils.isBlank(status) || "solved".equals(status) || "candidate".equals(status)) {
-                    genesToSearch.add(geneName);
+                    genesToSearch.add(geneId);
                 }
             }
         }
-        if (!genesToSearch.isEmpty()) {
-            String geneQuery = getQueryFromTerms(genesToSearch);
-            q.append(" solved_genes:" + geneQuery);
-            q.append(" candidate_genes:" + geneQuery);
-        }
+
+        return genesToSearch;
     }
 
     private String getQueryFromTerms(Collection<String> terms)
