@@ -66,14 +66,4 @@ public interface SimilarPatientsFinder
      *         reference patient is invalid
      */
     List<PatientSimilarityView> findSimilarPrototypes(Patient referencePatient);
-
-    /**
-     * @deprecated Checks how many patients similar to a reference patient exist, and returns their count.
-     *     Only matchable patients are counted. No consents are checked.
-     *
-     * @param referencePatient the reference patient, must not be {@code null}
-     * @return the number of similar patients found in the database, or {@code 0} if the reference patient is invalid
-     */
-    @Deprecated
-    long countSimilarPatients(Patient referencePatient);
 }
