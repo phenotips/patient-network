@@ -215,11 +215,16 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             }
         }
 
-
         // 2. find all patients with matching genes (disregarding all other data),
         //    and merge the resulting list of patients with the patients found in step 1.
         SolrQuery queryG = generateGenotypeQuery(referencePatient, prototypes);
         if (queryG != null) {
+
+            // there should be no limit on the number of returned "genetic" matches,
+            // but unfortunately SOLR has a built-in limit of 10, and there is no way to
+            // completely disable the limit. So using DB size as the limit for the number of rows
+            queryG.setRows(this.getSolrIndexSize().intValue());
+
             SolrDocumentList docsMatchedOnGenotype = search(queryG);
             this.logger.error("Found {} potential matches using genotype search", docsMatchedOnGenotype.size());
 
@@ -389,5 +394,19 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             escaped.add(ClientUtils.escapeQueryChars(term));
         }
         return "(" + StringUtils.join(escaped, " ") + ")";
+    }
+
+    private Long getSolrIndexSize()
+    {
+        try {
+            SolrQuery q = new SolrQuery("*:*");
+            // don't actually request any data
+            q.setRows(0);
+            long indexSize = this.server.query(q).getResults().getNumFound();
+            return indexSize;
+        } catch (IOException | SolrServerException ex) {
+            this.logger.error("Failed to get patients index size: [{}]", ex.getMessage());
+            return null;
+        }
     }
 }
