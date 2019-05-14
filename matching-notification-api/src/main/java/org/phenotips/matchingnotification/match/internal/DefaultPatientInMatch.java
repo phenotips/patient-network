@@ -85,6 +85,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final GroupManager GROUP_MANAGER;
 
+    private static final AccessLevel VIEW;
+
     private static final String GENES = "genes";
 
     private static final String MATCHED_EXOME_GENES = "matchedExomeGenes";
@@ -126,6 +128,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         EntityAccessManager pa = null;
         UserManager um = null;
         GroupManager gm = null;
+        AccessLevel v = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             pgm = ccm.getInstance(PatientGenotypeManager.class);
@@ -135,6 +138,7 @@ public class DefaultPatientInMatch implements PatientInMatch
             pa = ccm.getInstance(EntityAccessManager.class);
             um = ccm.getInstance(UserManager.class);
             gm = ccm.getInstance(GroupManager.class);
+            v = ccm.getInstance(AccessLevel.class, "view");
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -145,6 +149,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         ACCESS_HELPER = pa;
         USER_MANAGER = um;
         GROUP_MANAGER = gm;
+        VIEW = v;
     }
 
     /**
@@ -301,7 +306,10 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public String getExternalId()
     {
-        return isLocal() ? this.patient.getExternalId() : "";
+        if (isLocal() && this.access.compareTo(VIEW) >= 0) {
+            return this.patient.getExternalId();
+        }
+        return "";
     }
 
     @Override
