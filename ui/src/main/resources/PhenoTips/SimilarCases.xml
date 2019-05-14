@@ -36,8 +36,62 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
-  <content/>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+(% class="" id="similar-cases-container"%)(((##
+#if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
+  #if (!$services.patientconsents.hasConsent($doc.getName(), "real"))
+    #break
+  #end
+  #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
+  #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
+    #set ($patient = $services.patients.get($doc.name))
+    #set ($patientAccess = $services.permissions.getEntityAccess($patient.id))
+    #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
+      ## Can see similar cases for this patient
+      $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
+      $xwiki.ssx.use('PhenoTips.SimilarCases')##
+      $xwiki.ssx.use('PhenoTips.PatientSheetCode')##
+      $xwiki.jsx.use($doc.fullName, {'minify' : false})##
+      #set ($max_results = "$!{suggestionsConfig.getProperty('max_results').value}")
+      #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
+      ##
+      (% class="clear clinical-info similarity-info chapter"%)(((##
+      == $escapetool.xml($services.localization.render('phenotips.similarCases.title')) ==
+      {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
+      (% class="similar-cases-category similar-cases-local" %)(((
+      === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
+      (% class="similarity-results-container-local" %)(((
+        (% class="similarity-results-container" id="similar-patients-container" %)((()))##
+        ## Pagination
+        $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
+        $xwiki.ssfx.use('uicomponents/matchingNotification/contactDialog.css')##
+        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPaginator.js', true)##
+        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPageSizer.js', true)##
+        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherContactDialog.js', true)##
+        $xwiki.jsfx.use('uicomponents/matchingNotification/notificationDialog.js', true)##
+        {{html clean=false}}&lt;span class="xwiki-livetable-pagination" id="pagination-similar-cases"&gt;&lt;span class="controlPagination"&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
+            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
+          &lt;/span&gt;
+          &lt;span class="pagination"&gt;
+            &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
+            &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
+          &lt;/span&gt;&lt;/span&gt;
+        {{/html}})))##
+      )))
+      ## Allow to plug in other data sources
+      #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
+        (% class="similar-cases-category" %)(((
+        {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
+        )))
+      #end
+    #end## can see similar patients
+  #end## suggestions enabled
+#end## action == view
+)))
+{{/velocity}}
+  </content>
   <class>
     <name>PhenoTips.SimilarCases</name>
     <customClass/>
@@ -1090,23 +1144,93 @@
   });
 
   var init = function() {
-    var maxResults = $('similarity_results__max_results');
-    var minScore = $('similarity_results__min_score');
-    $$('.similarity-results-container').each(function (container) {
-      var serviceInfo = container.down('input[name="service"]');
-      var mmeServer = container.down('input[name="mmeServer"]');
-      var omimSection = container.down('input[name="omimSection"]');
-      var serviceDisclaimer = container.down('input[name="serviceDisclaimer"]');
-      new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
-        enableRefresh: true,
-        serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
-        maxResults: maxResults &amp;&amp; maxResults.value,
-        minScore: minScore &amp;&amp; minScore.value,
-        mmeServer: mmeServer &amp;&amp; mmeServer.value,
-        omimSection: omimSection &amp;&amp; omimSection.value,
-        serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
+    // Quick hack to confirm we're on a patient page and widgets.Matcher is not initialized yet:
+    if (!$('patient-record-actions') || $('similar-cases-tab')) {
+      return;
+    }
+
+    var onSimilarCasesPage = $('similar-cases-container');
+
+    if (!onSimilarCasesPage && $('patient-consents-json')) {
+      // Check all required conscents:
+      // if not all required conscents are granted - do not generate Similar Cases tab
+      var consents = [];
+      try {
+        consents = JSON.parse($('patient-consents-json').value);
+      } catch(err) {
+        console &amp;&amp; console.log(err);
+      }
+      var requiredNotGranted = consents.filter( function(consent) { return consent.isRequired &amp;&amp; consent.status == "no"; } );
+      if (requiredNotGranted.length &gt; 0) {
+        return;
+      }
+    }
+
+    var _generateSimilarCasesTab = function (isActive) {
+      return _generateTab(
+        'similar-cases-tab', // element id
+        isActive,
+        'Similar Cases', //displayed text
+        XWiki.currentDocument.getURL('view', 'sheet=PhenoTips.SimilarCases&amp;returnTo=' + XWiki.contextaction) // url for inactive tabs
+      );
+    };
+
+    var _generateInactivePatientsTab = function () {
+      return _generateTab(
+        'document-title',
+        false,
+        XWiki.currentDocument.page,
+        XWiki.currentDocument.getURL(XWiki.contextaction)
+      );
+    };
+
+    var _generateTab = function (id, isActive, text, url) {
+      var elt = new Element('div', {'class' : 'title-tab' + (isActive? ' active' : ''), id : id});
+      if (isActive) {
+        var title = new Element('h1').update(text)
+        elt.update(title);
+      } else {
+        var link = new Element('a', {'href' : url});
+        link.update(text);
+        elt.update(link);
+      }
+      return elt;
+    };
+
+    if (onSimilarCasesPage) {
+      // Change patient's page tab to be inactive
+      $('document-title') &amp;&amp; $('document-title').remove();
+      $('document-head') &amp;&amp; $('document-head').insert({top:_generateInactivePatientsTab()});
+    }
+    // Add a new tab in the title bar
+    $('document-head') &amp;&amp; $('document-title').insert({after: _generateSimilarCasesTab(onSimilarCasesPage)});
+
+    $('similar-cases-tab').observe('click', function(event) {
+      event.stop();
+      PhenoTips.widgets.FormUtils.getFormState().saveIfFormDirty( function () {
+        window.location = event.findElement().href;
       });
     });
+
+    if (onSimilarCasesPage) {
+      var maxResults = $('similarity_results__max_results');
+      var minScore = $('similarity_results__min_score');
+      $$('.similarity-results-container').each(function (container) {
+        var serviceInfo = container.down('input[name="service"]');
+        var mmeServer = container.down('input[name="mmeServer"]');
+        var omimSection = container.down('input[name="omimSection"]');
+        var serviceDisclaimer = container.down('input[name="serviceDisclaimer"]');
+        new PhenoTips.widgets.Matcher(new XWiki.Document().page, container, {
+          enableRefresh: true,
+          serviceURL: serviceInfo &amp;&amp; serviceInfo.value,
+          maxResults: maxResults &amp;&amp; maxResults.value,
+          minScore: minScore &amp;&amp; minScore.value,
+          mmeServer: mmeServer &amp;&amp; mmeServer.value,
+          omimSection: omimSection &amp;&amp; omimSection.value,
+          serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
+        });
+      });
+    }
   };
 
   (XWiki &amp;&amp; XWiki.domIsLoaded &amp;&amp; init()) || document.observe("xwiki:dom:loaded", init);
@@ -1122,7 +1246,7 @@
       <parse>1</parse>
     </property>
     <property>
-      <use>onDemand</use>
+      <use>always</use>
     </property>
   </object>
   <object>
@@ -1240,7 +1364,7 @@
       <parse>0</parse>
     </property>
     <property>
-      <use>onDemand</use>
+      <use>currentPage</use>
     </property>
   </object>
   <object>
@@ -1529,7 +1653,7 @@
       <parse>1</parse>
     </property>
     <property>
-      <use>onDemand</use>
+      <use>currentPage</use>
     </property>
   </object>
   <object>
@@ -1682,139 +1806,5 @@
       <use>currentPage</use>
     </property>
   </object>
-  <object>
-    <name>PhenoTips.SimilarCases</name>
-    <number>0</number>
-    <className>XWiki.UIExtensionClass</className>
-    <guid>6319e3f0-cdcb-47fa-9563-19058b4bf336</guid>
-    <class>
-      <name>XWiki.UIExtensionClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <content>
-        <disabled>0</disabled>
-        <name>content</name>
-        <number>3</number>
-        <prettyName>Extension Content</prettyName>
-        <rows>10</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </content>
-      <extensionPointId>
-        <disabled>0</disabled>
-        <name>extensionPointId</name>
-        <number>1</number>
-        <prettyName>Extension Point ID</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </extensionPointId>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>2</number>
-        <prettyName>Extension ID</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parameters>
-        <disabled>0</disabled>
-        <name>parameters</name>
-        <number>4</number>
-        <prettyName>Extension Parameters</prettyName>
-        <rows>10</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </parameters>
-      <scope>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>scope</name>
-        <number>5</number>
-        <prettyName>Extension Scope</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators> ,|</separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>wiki=Current Wiki|user=Current User|global=Global</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </scope>
-    </class>
-    <property>
-      <content>{{velocity}}
-#if ($xcontext.action == 'view' &amp;&amp; $xwiki.hasAccessLevel('view', $xcontext.user, 'PhenoTips.SimilarCases'))
-  #if (!$services.patientconsents.hasConsent($doc.getName(), "real"))
-    #break
-  #end
-  #set ($suggestionsConfig = $xwiki.getDocument("${doc.space}.SimilarCasesConfiguration").getObject('PhenoTips.SimilarCases'))
-  #if ($suggestionsConfig &amp;&amp; "$!{suggestionsConfig.getProperty('enable').value}" == '1')
-    #set ($patient = $services.patients.get($doc.name))
-    #set ($patientAccess = $services.permissions.getEntityAccess($patient.id))
-    #if (!($patient.features.isEmpty() &amp;&amp; $patient.genes.isEmpty()) &amp;&amp; $patientAccess.getVisibility().compareTo($services.permissions.resolveVisibility('matchable')) &gt;= 0)
-      ## Can see similar cases for this patient
-      $xwiki.jsx.use('PhenoTips.SimilarCases', {'minify' : false})##
-      $xwiki.ssx.use('PhenoTips.SimilarCases')##
-      $xwiki.jsx.use($doc.fullName, {'minify' : false})##
-      #set ($max_results = "$!{suggestionsConfig.getProperty('max_results').value}")
-      #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
-      ##
-      (% class="clear clinical-info similarity-info chapter"%)(((##
-      == $escapetool.xml($services.localization.render('phenotips.similarCases.title')) ==
-      {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
-      (% class="similar-cases-category similar-cases-local" %)(((
-      === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
-      (% class="similarity-results-container-local" %)(((
-        (% class="similarity-results-container" id="similar-patients-container" %)((()))##
-        ## Pagination
-        $xwiki.ssfx.use('js/xwiki/table/livetable.css', true)##
-        $xwiki.ssfx.use('uicomponents/matchingNotification/contactDialog.css')##
-        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPaginator.js', true)##
-        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherPageSizer.js', true)##
-        $xwiki.jsfx.use('uicomponents/matchingNotification/matcherContactDialog.js', true)##
-        $xwiki.jsfx.use('uicomponents/matchingNotification/notificationDialog.js', true)##
-        {{html clean=false}}&lt;span class="xwiki-livetable-pagination" id="pagination-similar-cases"&gt;&lt;span class="controlPagination"&gt;
-            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPagePrevTitle'))" class="prevPagination" id="pagination-prev" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPagePrevTitle')&lt;/span&gt;&lt;/a&gt;
-            &lt;a title="$escapetool.xml($services.localization.render('platform.livetable.paginationPageNextTitle'))" class="nextPagination" id="pagination-next" href="#"&gt;&lt;span class="hidden"&gt;$services.localization.render('platform.livetable.paginationPageNextTitle')&lt;/span&gt;&lt;/a&gt;
-          &lt;/span&gt;
-          &lt;span class="pagination"&gt;
-            &lt;span class="xwiki-livetable-pagination-text"&gt;$services.localization.render('platform.livetable.paginationPage')&lt;/span&gt;
-            &lt;span class="xwiki-livetable-pagination-content" id="pagination-content"&gt;&lt;/span&gt;
-          &lt;/span&gt;&lt;/span&gt;
-        {{/html}})))##
-      )))
-      ## Allow to plug in other data sources
-      #foreach ($e in $services.uix.getExtensions("org.phenotips.patientSheet.similarCases"))
-        (% class="similar-cases-category" %)(((
-        {{html clean=false}}$services.rendering.render($e.execute(), 'xhtml/1.0'){{/html}}
-        )))
-      #end
-    #end## can see similar patients
-  #end## suggestions enabled
-#end## action == view
-{{/velocity}}</content>
-    </property>
-    <property>
-      <extensionPointId>org.phenotips.patientSheet.after</extensionPointId>
-    </property>
-    <property>
-      <name>org.phenotips.patientSheet.similarCases</name>
-    </property>
-    <property>
-      <parameters/>
-    </property>
-    <property>
-      <scope>wiki</scope>
-    </property>
-  </object>
+
 </xwikidoc>
