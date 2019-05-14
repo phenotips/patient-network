@@ -208,7 +208,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
         if (queryP != null) {
             queryP.setRows(SOLR_SEED_QUERY_SIZE_FOR_PHENOTYPE_SIMILARITY);
             SolrDocumentList docsMatchedOnPhenotypes = search(queryP);
-            this.logger.error("Found {} potential matches using phenotype search", docsMatchedOnPhenotypes.size());
+            this.logger.debug("Found {} potential matches using phenotype search", docsMatchedOnPhenotypes.size());
 
             for (SolrDocument doc : docsMatchedOnPhenotypes) {
                 results.add((String) doc.getFieldValue("document"));
@@ -226,7 +226,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
             queryG.setRows(this.getSolrIndexSize().intValue());
 
             SolrDocumentList docsMatchedOnGenotype = search(queryG);
-            this.logger.error("Found {} potential matches using genotype search", docsMatchedOnGenotype.size());
+            this.logger.debug("Found {} potential matches using genotype search", docsMatchedOnGenotype.size());
 
             for (SolrDocument doc : docsMatchedOnGenotype) {
                 results.add((String) doc.getFieldValue("document"));
@@ -280,7 +280,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
         SolrQuery query = new SolrQuery();
         query.add(CommonParams.Q, q.toString());
-        this.logger.error("SOLRQUERY generated for matching patient based on phenotypes [{}]: {}",
+        this.logger.debug("SOLRQUERY generated for matching patient based on phenotypes [{}]: {}",
                 referencePatient.getId(), query.toString());
         return query;
     }
@@ -306,7 +306,7 @@ public class SolrSimilarPatientsFinder implements SimilarPatientsFinder, Initial
 
         SolrQuery query = new SolrQuery();
         query.add(CommonParams.Q, q.toString());
-        this.logger.error("SOLRQUERY generated for matching patient based on genes [{}]: {}",
+        this.logger.debug("SOLRQUERY generated for matching patient based on genes [{}]: {}",
                 referencePatient.getId(), query.toString());
         return query;
     }
