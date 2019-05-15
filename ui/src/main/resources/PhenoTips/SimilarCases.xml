@@ -451,7 +451,7 @@
 
     displaySummary : function (message, container, isHeader) {
       var c = container || this.container;
-      var summary = new Element("p", {class: this._SUMMARY_MARKER});
+      var summary = new Element("p", {'class': this._SUMMARY_MARKER});
       if (isHeader &amp;&amp; this.page) {
         summary.update(message);
         new PhenoTips.widgets.MatcherPageSizer(this, summary, null, this._maxResults)
