@@ -57,7 +57,6 @@
       #set ($min_score = "$!{suggestionsConfig.getProperty('min_score').value}")
       ##
       (% class="clear clinical-info similarity-info chapter"%)(((##
-      == $escapetool.xml($services.localization.render('phenotips.similarCases.title')) ==
       {{html clean=false}}&lt;div class="hidden"&gt;&lt;input type="hidden" id="similarity_results__max_results" value="${max_results}"/&gt;&lt;input type="hidden" id="similarity_results__min_score" value="${min_score}"/&gt;&lt;/div&gt;{{/html}}##
       (% class="similar-cases-category similar-cases-local" %)(((
       === $escapetool.xml($services.localization.render('phenotips.similarCases.subtitle')) ===
@@ -1143,36 +1142,26 @@
     }
   });
 
-  var init = function() {
-    // Quick hack to confirm we're on a patient page and widgets.Matcher is not initialized yet:
-    if (!$('patient-record-actions') || $('similar-cases-tab')) {
-      return;
-    }
-
-    var onSimilarCasesPage = $('similar-cases-container');
-
-    if (!onSimilarCasesPage && $('patient-consents-json')) {
-      // Check all required conscents:
-      // if not all required conscents are granted - do not generate Similar Cases tab
-      var consents = [];
-      try {
-        consents = JSON.parse($('patient-consents-json').value);
-      } catch(err) {
-        console &amp;&amp; console.log(err);
-      }
-      var requiredNotGranted = consents.filter( function(consent) { return consent.isRequired &amp;&amp; consent.status == "no"; } );
-      if (requiredNotGranted.length &gt; 0) {
-        return;
-      }
-    }
+  var generateTabs = function (onSimilarCasesPage) {
 
     var _generateSimilarCasesTab = function (isActive) {
-      return _generateTab(
+      var tab = _generateTab(
         'similar-cases-tab', // element id
         isActive,
-        'Similar Cases', //displayed text
-        XWiki.currentDocument.getURL('view', 'sheet=PhenoTips.SimilarCases&amp;returnTo=' + XWiki.contextaction) // url for inactive tabs
+        "$escapetool.javascript($services.localization.render('phenotips.similarCases.title'))", //displayed text
+        XWiki.currentDocument.getURL('view', 'sheet=PhenoTips.SimilarCases') // url for inactive tabs
       );
+
+      if (!isActive) {
+        tab.observe('click', function(event) {
+          event.stop();
+          PhenoTips.widgets.FormUtils.getFormState().saveIfFormDirty( function () {
+            window.location = event.findElement().href;
+          });
+        });
+      }
+
+      return tab;
     };
 
     var _generateInactivePatientsTab = function () {
@@ -1197,22 +1186,55 @@
       return elt;
     };
 
+    var _hideElement = function (id) {
+      $(id) &amp;&amp; $(id).hide();
+    };
+
     if (onSimilarCasesPage) {
+      $('body').addClassName('matching-patients');
       // Change patient's page tab to be inactive
+      $('document-head') &amp;&amp; $('document-title').insert({after: _generateInactivePatientsTab()});
       $('document-title') &amp;&amp; $('document-title').remove();
-      $('document-head') &amp;&amp; $('document-head').insert({top:_generateInactivePatientsTab()});
+      ['document-authors', 'patient-record-actions', $$('.bottombuttons')[0]].each(_hideElement);
     }
+
     // Add a new tab in the title bar
     $('document-head') &amp;&amp; $('document-title').insert({after: _generateSimilarCasesTab(onSimilarCasesPage)});
+  };
 
-    $('similar-cases-tab').observe('click', function(event) {
-      event.stop();
-      PhenoTips.widgets.FormUtils.getFormState().saveIfFormDirty( function () {
-        window.location = event.findElement().href;
-      });
+  var fetchConsents = function(callback) {
+    // Get local concents via REST and check if "real" consent is granted
+    new Ajax.Request(XWiki.contextPath + "/rest/patients/" + XWiki.currentDocument.page + "/consents?method=get", {
+      onSuccess : function(response) {
+        var consents = response.responseJSON;
+        if (!consents || consents.length == 0) {
+          return;
+        }
+        // if "real" consent not granted - generate tab
+        var realGranted = consents.filter( function(consent) { return consent.id == "real" &amp;&amp; consent.status == "yes"; } );
+        if (realGranted.length &gt; 0) {
+          callback(false);
+        }
+      }
     });
+  };
+
+  var init = function() {
+    // Quick hack to confirm we're on a patient page and widgets.Matcher is not initialized yet:
+    if (!$('patient-record-actions') || $('similar-cases-tab')) {
+      return;
+    }
+
+    var onSimilarCasesPage = $('similar-cases-container');
 
     if (onSimilarCasesPage) {
+      // redirect to patient page if no containers are generated
+      if ($$('.similarity-results-container').length == 0) {
+        window.location = XWiki.currentDocument.getURL(XWiki.contextaction);
+      }
+
+      generateTabs(onSimilarCasesPage);
+
       var maxResults = $('similarity_results__max_results');
       var minScore = $('similarity_results__min_score');
       $$('.similarity-results-container').each(function (container) {
@@ -1230,6 +1252,31 @@
           serviceDisclaimer: serviceDisclaimer &amp;&amp; serviceDisclaimer.value
         });
       });
+    } else {
+      // Matched patiens tab is not active
+      // generate the tab for similar cases only if the "real" conscent is granted
+
+      // if consents are already available from the patient page
+      if ($('patient-consents-json')) {
+        // Check all required "real" conscent:
+        var consents = [];
+        try {
+          consents = JSON.parse($('patient-consents-json').value);
+        } catch(err) {
+          console &amp;&amp; console.log(err);
+        }
+
+        if (!consents || consents.length == 0) {
+          return;
+        }
+
+        var realGranted = consents.filter( function(consent) { return consent.id == "real" &amp;&amp; consent.status == "yes"; } );
+        if (realGranted.length &gt; 0) {
+          generateTabs(onSimilarCasesPage);
+        }
+      } else {
+        fetchConsents(generateTabs)
+      }
     }
   };
 
@@ -1459,6 +1506,7 @@
 .similarity-results-container {
   clear: both;
   min-height: 3em;
+  margin-bottom: .5em;
 }
 .similarity-results-button-container {
   float: right;
@@ -1644,6 +1692,12 @@
 .match-type .block {
   display: inline-block;
   width: 100%;
+}
+.similarity-results-container-local {
+  margin-top: -3em;
+}
+.similarity-results-container-local .similarity-results-container {
+  padding-top: 1em;
 }</code>
     </property>
     <property>
@@ -1806,5 +1860,128 @@
       <use>currentPage</use>
     </property>
   </object>
+  <object>
+    <name>PhenoTips.SimilarCases</name>
+    <number>3</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>fbd8e808-942d-40f2-9478-ef83760355c8</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage=Always on this page|onDemand=On demand|always=Always on this wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#template("colorThemeInit.vm")
 
+.space-data.matching-patients #mainContentArea {
+  border-top: .4em solid $theme.menuGradientColor;
+}
+.space-data.matching-patients #document-head {
+  margin-top: -3.3em;
+}
+.space-data #document-head .title-tab {
+  margin: 0 0 0 1px !important;
+}
+.space-data #document-head .title-tab:not(.active) {
+  background-color: $theme.buttonPrimaryBackgroundColor;
+  background-image: none;
+  #css3_backgroundLinearGradient({
+     'to': 'bottom',
+     'colors': [
+      {'color': $theme.buttonPrimaryGradientColor, 'position': '0%'},
+      {'color': $theme.buttonPrimaryBackgroundColor, 'position': '100%'}
+    ]
+  })
+  font-weight: normal;
+}
+.space-data #document-head .title-tab a {
+  color: $theme.buttonPrimaryTextColor;
+}
+.space-data #document-head .title-tab a:hover {
+  color: $theme.buttonPrimaryTextColor;
+}
+.space-data #document-title.active {
+  margin-left: 0;
+}
+</code>
+    </property>
+    <property>
+      <name>Tab style</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>always</use>
+    </property>
+  </object>
 </xwikidoc>
