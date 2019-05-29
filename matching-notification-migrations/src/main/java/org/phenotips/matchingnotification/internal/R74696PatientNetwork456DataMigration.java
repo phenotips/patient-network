@@ -26,6 +26,7 @@ import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
@@ -49,6 +50,15 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 @Singleton
 public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataMigration
 {
+    // the "d.comments IS NULL" check is a safeguard, since in the production DB there should be no matches
+    // that have comments and have a notified copy of a match (and in fact there are none as of last check)
+    private static final String SQL_DELETE_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH =
+        "delete from patient_matching d where d.comments IS NULL and d.notified = false and exists"
+        + " (select * from patient_matching d2 where"
+        + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
+        + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
+        + " and d2.notified = true)";
+
     private static final String HQL_DELETE_DUPLICATE_LOCAL_MATCHES =
         "delete from CurrentPatientMatch d where d.matchedServerId = '' and d.referenceServerId = ''"
         + " and d.referencePatientId > d.matchedPatientId and exists"
@@ -58,6 +68,7 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
 
     private static final String NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH =
         "update CurrentPatientMatch set referencePatientId = matchedPatientId, matchedPatientId = referencePatientId"
+        + ", referenceDetails = matchedDetails, matchedDetails = referenceDetails"
         + " where referencePatientId > matchedPatientId";
 
     /** Logging helper object. */
@@ -71,7 +82,7 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
     @Override
     public String getDescription()
     {
-        return "Remove duplicate local matches and normalize order of patients in a match";
+        return "Remove duplicate matches and normalize order of patients in a local match";
     }
 
     @Override
@@ -87,17 +98,25 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
         Transaction t = session.beginTransaction();
 
         try {
+            // the query below depends on a "notified" column in the DB, however the column is no
+            // longer mapped to a field in the class, so can't use HQL to address the column
+            // (and thus have to use raw SQL)
+            SQLQuery qRemoveUnnotifiedCopy =
+                    session.createSQLQuery(SQL_DELETE_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH);
+            int numRemoved = qRemoveUnnotifiedCopy.executeUpdate();
+            this.logger.error("Deleted [{}] un-notified copies of a notified match", numRemoved);
+
             Query qDeduplicate = session.createQuery(HQL_DELETE_DUPLICATE_LOCAL_MATCHES);
             int numDeleted = qDeduplicate.executeUpdate();
-            this.logger.error("Deleted [{}] duplicate [A->B]/[B->A] matches", numDeleted);
+            this.logger.error("Deleted [{}] duplicate [A->B]/[B->A] local matches", numDeleted);
 
             Query qNormalize = session.createQuery(NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH);
             int numNormalized = qNormalize.executeUpdate();
-            this.logger.error("Normalized [{}] matches [A->B where A>B] to [B->A]", numNormalized);
+            this.logger.error("Normalized [{}] local matches [A->B where A>B] to [B->A]", numNormalized);
 
             t.commit();
         } catch (HibernateException ex) {
-            this.logger.error("Failed to de-duplicate and normalize local matches: [{}]", ex.getMessage());
+            this.logger.error("Failed to de-duplicate and normalize matches: [{}]", ex.getMessage());
             if (t != null) {
                 t.rollback();
             }
