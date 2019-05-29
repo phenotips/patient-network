@@ -33,6 +33,7 @@ import org.xwiki.component.annotation.Component;
 import java.security.AccessControlException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,14 +87,17 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         for (PatientMatchEmail email : emails) {
 
-            List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
+            PatientMatchNotificationResponse notificationResult = this.notifier.notify(email);
 
-            List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
+            if (notificationResult.isSuccessul()) {
+                Collection<PatientMatch> updatedMatches =
+                    this.updateNotificationHistory(notificationResult, email, "notification");
+                notificationResult.setPatientMatches(updatedMatches);
+            }
 
-            this.updateNotificationHistory(successfulMatches, email, "notification");
-
-            responses.addAll(notificationResults);
+            responses.add(notificationResult);
         }
+
         return responses;
     }
 
@@ -117,21 +121,35 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         PatientMatchEmail email = this.notifier.createUserEmail(match,
             subjectPatientId, subjectServerId, customEmailtext, customEmailSubject);
 
-        List<PatientMatchNotificationResponse> notificationResults = this.notifier.notify(email);
+        PatientMatchNotificationResponse notificationResult = this.notifier.notify(email);
 
-        if (notificationResults.size() == 0) {
+        if (notificationResult == null) {
             this.logger.error("No notification result when sending user email");
             return null;
         }
 
-        List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
+        if (notificationResult.isSuccessul()) {
+            this.updateNotificationHistory(notificationResult, email, "contact");
+        }
 
-        this.updateNotificationHistory(successfulMatches, email, "contact");
-
-        return notificationResults.get(0);
+        return notificationResult;
     }
 
-    private void updateNotificationHistory(List<PatientMatch> matches, PatientMatchEmail email, String type)
+    private Collection<PatientMatch> updateNotificationHistory(PatientMatchNotificationResponse notificationResult,
+        PatientMatchEmail email, String type)
+    {
+        Collection<PatientMatch> successfulMatches = notificationResult.getPatientMatches();
+
+        JSONObject json = getNotificationHistoryJSON(email, type);
+
+        Collection<PatientMatch> updatedMatches = new LinkedList<>();
+        for (PatientMatch match : successfulMatches) {
+            updatedMatches.addAll(this.matchStorageManager.updateNotificationHistory(match, json));
+        }
+        return updatedMatches;
+    }
+
+    private JSONObject getNotificationHistoryJSON(PatientMatchEmail email, String type)
     {
         JSONObject json = new JSONObject();
         json.put("type", type);
@@ -151,27 +169,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         json.put("cc", mimeJSON.optJSONArray(AbstractPatientMatchEmail.EMAIL_RECIPIENTS_CC));
         json.put("subjectPatientId", mimeJSON.optString(AbstractPatientMatchEmail.EMAIL_SUBJECT_PATIENT_ID));
 
-        for (PatientMatch notifiedMatch : matches) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
-            json.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
-            if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json)) {
-                this.logger.error("Error saving [{}] history for match [{}]", type, notifiedMatch.getId());
-            }
-        }
-    }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+        json.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
 
-    private List<PatientMatch> getSuccessfulNotifications(List<PatientMatchNotificationResponse> notificationResults)
-    {
-        List<PatientMatch> successfulMatches = new LinkedList<>();
-        for (PatientMatchNotificationResponse response : notificationResults) {
-            PatientMatch match = response.getPatientMatch();
-            if (response.isSuccessul()) {
-                successfulMatches.add(match);
-            } else {
-                this.logger.error("Error on sending email for match {}: {}.", match, response.getErrorMessage());
-            }
-        }
-        return successfulMatches;
+        return json;
     }
 
     @Override
