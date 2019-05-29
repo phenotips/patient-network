@@ -62,7 +62,7 @@ public interface PatientMatchNotifier
      * Sends notification for an email.
      *
      * @param email an email to send
-     * @return list of {@link PatientMatchNotificationResponse} for the matches associated with the email
+     * @return {@link PatientMatchNotificationResponse} for the matches associated with the email
      */
-    List<PatientMatchNotificationResponse> notify(PatientMatchEmail email);
+    PatientMatchNotificationResponse notify(PatientMatchEmail email);
 }

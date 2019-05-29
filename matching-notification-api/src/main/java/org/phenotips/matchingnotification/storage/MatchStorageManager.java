@@ -141,9 +141,9 @@ public interface MatchStorageManager
      *
      * @param match subject match
      * @param notificationRecord the new notification record JSON
-     * @return true if successful
+     * @return collection of successfully updated matches
      */
-    boolean updateNotificationHistory(PatientMatch match, JSONObject notificationRecord);
+    Collection<PatientMatch> updateNotificationHistory(PatientMatch match, JSONObject notificationRecord);
 
     /**
      * Updates match notes string property with new note record.

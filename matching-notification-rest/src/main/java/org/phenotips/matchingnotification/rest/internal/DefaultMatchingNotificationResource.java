@@ -185,10 +185,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         List<Long> successfullyNotified = new LinkedList<>();
         for (PatientMatchNotificationResponse response : notificationResults) {
             if (response.isSuccessul()) {
-                PatientMatch match = response.getPatientMatch();
-                Long matchId = match.getId();
-                successfullyNotified.add(matchId);
-                notificationHistory.put(matchId.toString(), match.getNotificationHistory());
+                Collection<PatientMatch> matches = response.getPatientMatches();
+                for (PatientMatch match : matches) {
+                    Long matchId = match.getId();
+                    successfullyNotified.add(matchId);
+                    notificationHistory.put(matchId.toString(), match.getNotificationHistory());
+                }
             }
         }
 
@@ -228,7 +230,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             if (notificationResult.isSuccessul()) {
                 result = this.successfulIdsToJSON(Collections.singletonList(matchId),
                     Collections.singletonList(matchId));
-                PatientMatch match = notificationResult.getPatientMatch();
+
+                Collection<PatientMatch> matches = notificationResult.getPatientMatches();
+                PatientMatch match = matches.iterator().next();
+
                 JSONObject notificationHistory = new JSONObject();
                 notificationHistory.put(match.getId().toString(), match.getNotificationHistory());
                 result.put("successNotificationHistories", notificationHistory);
