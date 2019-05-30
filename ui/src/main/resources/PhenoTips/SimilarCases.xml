@@ -1254,7 +1254,7 @@
       });
     } else {
       // Matched patiens tab is not active
-      // generate the tab for similar cases only if the "real" conscent is granted
+      // generate the tab for similar cases only if the "real" consent is granted
 
       // if consents are already available from the patient page
       if ($('patient-consents-json')) {
