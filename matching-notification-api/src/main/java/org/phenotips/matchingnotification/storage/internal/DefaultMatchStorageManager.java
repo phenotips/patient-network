@@ -251,7 +251,11 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         for (PatientMatch existingMatch : sameExistingMatches) {
             if (!existingMatch.isNotified()) {
                 match.setFoundTimestamp(existingMatch.getFoundTimestamp());
-                match.setStatus(existingMatch.getStatus());
+                if (!"rejected".equals(existingMatch.getStatus())) {
+                    // rejected matches are preserved and not deleted, so new match should not be marked as rejected
+                    // as it never got reviewed and actually is never used (see bug PN-484; proper fix in PN-401)
+                    match.setStatus(existingMatch.getStatus());
+                }
                 match.setComments(existingMatch.getComments());
                 match.setNotificationHistory(existingMatch.getNotificationHistory());
                 match.setNotes(existingMatch.getNotes());
