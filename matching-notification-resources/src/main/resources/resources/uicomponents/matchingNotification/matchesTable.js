@@ -2004,7 +2004,7 @@ var PhenoTips = (function (PhenoTips) {
         new Ajax.Request(this._ajaxURL + 'save-comment', {
             contentType : 'application/json',
             parameters : {'matchesIds'    : ids,
-                          'comment'       : comment
+                          'comment'       : encodeURI(comment)
             },
             onSuccess : function (response) {
                 if (!response.responseJSON || !response.responseJSON.results) {
@@ -2037,8 +2037,8 @@ var PhenoTips = (function (PhenoTips) {
 
         new Ajax.Request(this._ajaxURL + 'save-note', {
             contentType : 'application/json',
-            parameters : {'matchesIds'    : ids,
-                          'note'       : note
+            parameters : {'matchesIds' : ids,
+                          'note'       : encodeURI(note)
             },
             onSuccess : function (response) {
                 if (!response.responseJSON || !response.responseJSON.results) {
