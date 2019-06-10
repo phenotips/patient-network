@@ -1826,12 +1826,13 @@ var PhenoTips = (function (PhenoTips) {
         matchesToSet.each( function(match, index) {
             var matchIndex = this._matches.indexOf(match);
             var cachedIndex = this._cachedMatches.indexOf(match);
+            var matchIds = String(match.id).split(",");
 
             if (properties.hasOwnProperty('notified')) {
-                if (properties.successNotificationHistories && Object.keys(properties.successNotificationHistories).indexOf(match.id.toString()) > -1) {
-                    this._matches[matchIndex].notificationHistory = properties.successNotificationHistories[match.id];
+                if (properties.successNotificationHistories && this._utils.listsIntersect(Object.keys(properties.successNotificationHistories), matchIds)) {
+                    this._matches[matchIndex].notificationHistory = properties.successNotificationHistories[matchIds[0]];
                     this._organiseNotificationHistory(this._matches[matchIndex]);
-                    this._cachedMatches[cachedIndex].notificationHistory = properties.successNotificationHistories[match.id];
+                    this._cachedMatches[cachedIndex].notificationHistory = properties.successNotificationHistories[matchIds[0]];
                     this._organiseNotificationHistory(this._cachedMatches[cachedIndex]);
                 }
 
@@ -1870,12 +1871,11 @@ var PhenoTips = (function (PhenoTips) {
                 //        be highlighted, so no real functionality loss happens
                 //
                 // TODO: simplify logic related to match.id once the duality of match.id is resolved on the back-end
-                var matchIdArray = String(match.id).split(",");
-                if (notifiedPatients && this._utils.listsIntersect(Object.keys(notifiedPatients), matchIdArray) && match.reference.patientId != match.matched.patientId) {
+                if (notifiedPatients && this._utils.listsIntersect(Object.keys(notifiedPatients), matchIds) && match.reference.patientId != match.matched.patientId) {
                     // highlight only cells with contacted emails
                     // use custom highligh css class, since the color used to highlight the enitre row is too bleak to notice within a single cell
                     var highllightCSSClass = (properties.state == "failure") ? "failure" : "notified";
-                    matchIdArray.each(function(matchId) {
+                    matchIds.each(function(matchId) {
                         if (notifiedPatients.hasOwnProperty(matchId)) {
                             notifiedPatients[matchId].each(function(patientId) {
                                 if (match.reference.patientId == patientId) {
@@ -1892,9 +1892,9 @@ var PhenoTips = (function (PhenoTips) {
                 }
             }
 
-            if (properties.hasOwnProperty('comments') && Object.keys(properties.comments).indexOf(match.id.toString()) > -1) {
-                this._matches[matchIndex].comments = properties.comments[match.id];
-                this._cachedMatches[cachedIndex].comments = properties.comments[match.id];
+            if (properties.hasOwnProperty('comments') && this._utils.listsIntersect(Object.keys(properties.comments), matchIds)) {
+                this._matches[matchIndex].comments = properties.comments[matchIds[0]];
+                this._cachedMatches[cachedIndex].comments = properties.comments[matchIds[0]];
                 // update comments table in pop-up
                 var commentsContainer = this._tableElement.down('tr[data-matchid="' + match.id +'"] .comment-container');
                 if (commentsContainer) {
