@@ -18,20 +18,21 @@
 
 package org.phenotips.matchingnotification.internal;
 
-import org.phenotips.matchingnotification.match.PatientMatch;
-
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.EntityReferenceSerializer;
+
+import java.math.BigInteger;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import com.xpn.xwiki.XWikiException;
@@ -52,19 +53,15 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 @Singleton
 public class R74693PatientNetwork377DataMigration extends AbstractHibernateDataMigration
 {
+    private static final String SQL_ALL_MATCHES_WITH_COMMENTS =
+        "select id, comment from patient_matching where comment is NOT NULL";
+
+    private static final String SQL_UPDATE_COMMENTS =
+            "update patient_matching set comments = :comments where id = :id";
+
     /** Logging helper object. */
     @Inject
     private Logger logger;
-
-    /** Resolves unprefixed document names to the current wiki. */
-    @Inject
-    @Named("current")
-    private DocumentReferenceResolver<String> resolver;
-
-    /** Serializes the PatientMatch class name. */
-    @Inject
-    @Named("compactwiki")
-    private EntityReferenceSerializer<String> serializer;
 
     /** Handles persistence. */
     @Inject
@@ -89,13 +86,31 @@ public class R74693PatientNetwork377DataMigration extends AbstractHibernateDataM
         Transaction t = session.beginTransaction();
 
         try {
-            Query q1 = session.createQuery("update " + PatientMatch.class.getCanonicalName()
-                + " set comments = concat('[{ comment:', comment, '}]') where comment <> ''");
-            q1.executeUpdate();
+            // using raw SQL query here because the "comment" field that the query depends on
+            // is longer mapped to the corresponding JAVA class (and thus HQL can not be used)
+            SQLQuery qMatchesWithComments = session.createSQLQuery(SQL_ALL_MATCHES_WITH_COMMENTS);
+            @SuppressWarnings("unchecked")
+            List<Object[]> matches = qMatchesWithComments.list();
+
+            for (Object[] fields : matches) {
+                BigInteger id = (BigInteger) fields[0];
+                String comment = (String) fields[1];
+
+                // using JSONObject to properly escape the comment body and get a proper JSON string
+                JSONObject newComment = new JSONObject();
+                newComment.put("comment", comment);
+                JSONArray comments = new JSONArray();
+                comments.put(newComment);
+
+                SQLQuery qUpdate = session.createSQLQuery(SQL_UPDATE_COMMENTS);
+                qUpdate.setParameter("id", id.intValue());
+                qUpdate.setParameter("comments", comments.toString());
+                qUpdate.executeUpdate();
+            }
 
             t.commit();
         } catch (HibernateException ex) {
-            this.logger.error("Failed to modify comment column: [{}]", ex.getMessage());
+            this.logger.error("Failed to migrate comment column: [{}]", ex.getMessage());
             if (t != null) {
                 t.rollback();
             }
