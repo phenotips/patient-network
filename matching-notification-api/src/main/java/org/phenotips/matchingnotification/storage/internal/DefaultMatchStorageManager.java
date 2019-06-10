@@ -86,6 +86,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         "from CurrentPatientMatch as m where"
             + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
 
+    /** A query to find all matches for a local patient with a score(s) greater than given. */
+    private static final String HQL_FIND_ALL_MATCHES_FOR_PATIENT_BY_SCORE =
+        "from CurrentPatientMatch as m where (referencePatientId = :patientId and referenceServerId = ''"
+            + " or matchedPatientId = :patientId and matchedServerId ='')"
+            + " and score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
+
     /** A query used to get the number of all remote matches. */
     private static final String HQL_GET_NUMBER_OF_REMOTE_MATCHES =
         "select count(*) from CurrentPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
@@ -108,8 +114,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     private Logger logger = LoggerFactory.getLogger(DefaultMatchStorageManager.class);
 
     @Override
-    public Map<PatientSimilarityView, PatientMatch>
-        saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId)
+    public List<PatientMatch> saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews,
+        String patientId)
     {
         Predicate<PatientMatch> filterOutSameOwnerMatches = match -> {
             return (match.getReference().getEmails().size() > 0) && CollectionUtils.isEqualCollection(
@@ -120,8 +126,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public Map<PatientSimilarityView, PatientMatch> saveRemoteMatches(
-            Collection<? extends PatientSimilarityView> similarityViews,
+    public List<PatientMatch> saveRemoteMatches(Collection<? extends PatientSimilarityView> similarityViews,
             String patientId, String serverId, boolean isIncoming)
     {
         String referenceServerId = isIncoming ? serverId : "";
@@ -150,8 +155,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         return matchMapping;
     }
 
-    private Map<PatientSimilarityView, PatientMatch>
-        saveMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId,
+    private List<PatientMatch> saveMatches(Collection<? extends PatientSimilarityView> similarityViews,
+        String patientId,
             String referenceServerId, String matchedServerId, Predicate<PatientMatch> filter)
     {
         this.logger.debug("[debug] saving [{}] matches for patient [{}] @ server [{}]...",
@@ -170,6 +175,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
+        List<PatientMatch> matchesToSave = new LinkedList<>();
 
         try {
             // get existing matches between this patient and other patients on the matchedServerId;
@@ -195,8 +201,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             //
             // 4) new match has no equivalent among existing matches
             //     -> save new match
-
-            List<PatientMatch> matchesToSave = new LinkedList<>();
 
             for (Map.Entry<PatientSimilarityView, PatientMatch> entry : matchMapping.entrySet()) {
                 PatientMatch match = entry.getValue();
@@ -239,7 +243,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         } finally {
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-        return transactionCompleted ? matchMapping : null;
+        return transactionCompleted ? matchesToSave : null;
     }
 
     /**
@@ -295,7 +299,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
+    public List<PatientMatch> loadMatches(String patientId, double score, double phenScore, double genScore,
         boolean onlyCurrentUserAccessible, final Timestamp fromDate, final Timestamp toDate)
     {
         // ...else it is more complicated: need to return all matches, but
@@ -310,6 +314,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
             String queryString = HQL_FIND_ALL_MATCHES_BY_SCORE;
+            if (StringUtils.isNotBlank(patientId)) {
+                queryString = HQL_FIND_ALL_MATCHES_FOR_PATIENT_BY_SCORE;
+            }
 
             if (fromDate != null) {
                 queryString += " and foundTimestamp >= :fromTimestamp";
@@ -323,6 +330,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             query.setParameter("minScore", score);
             query.setParameter("phenScore", phenScore);
             query.setParameter("genScore", genScore);
+
+            if (StringUtils.isNotBlank(patientId)) {
+                query.setParameter("patientId", patientId);
+            }
 
             if (fromDate != null) {
                 query.setTimestamp("fromTimestamp", fromDate);

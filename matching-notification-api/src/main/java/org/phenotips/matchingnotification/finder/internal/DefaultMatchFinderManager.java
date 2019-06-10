@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.finder.internal;
 
+import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.matchingnotification.finder.MatchFinder;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
@@ -33,6 +34,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,22 @@ public class DefaultMatchFinderManager implements MatchFinderManager
             this.logger.debug("Starting matchFinder with priority = [{}]", matchFinder.getPriority());
             matchFinder.findMatches(patients, serverIds, onlyCheckPatientsUpdatedAfterLastRun);
         }
+    }
+
+    @Override
+    public Response findMatchesForPatient(Patient patient, String serverId)
+    {
+        this.logger.error("Finding matches for patient [{}] for server [{}]", patient.getId(), serverId);
+
+        for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
+            Set<String> supportedServers = matchFinder.getSupportedServerIdList();
+            if (!supportedServers.contains(serverId)) {
+                continue;
+            }
+
+            return matchFinder.findMatches(patient, serverId);
+        }
+        return null;
     }
 
     /**

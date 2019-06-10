@@ -87,9 +87,9 @@ public interface MatchingNotificationManager
      * @param patientId remote patient ID for whom to save matches
      *        (needed only to know which existing matches to remove/replace)
      * @param remoteId id of remote server which sent the incoming request and houses the given patient
-     * @return true if successful
+     * @return null if saving failed, otherwise list of saved PatientMatches
      */
-    boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+    List<PatientMatch> saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
         String remoteId);
 
     /**
@@ -99,9 +99,9 @@ public interface MatchingNotificationManager
      * @param patientId local patient ID for whom to save matches
      *        (needed only to know which existing matches to remove/replace)
      * @param remoteId id of remote server contacted to find matches for the given local patient
-     * @return true if successful
+     * @return null if saving failed, otherwise list of saved PatientMatches
      */
-    boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
+    List<PatientMatch> saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
         String remoteId);
 
     /**

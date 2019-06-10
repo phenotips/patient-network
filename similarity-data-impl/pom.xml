@@ -27,24 +27,15 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.58</coverage.instructionRatio>
+    <coverage.instructionRatio>0.54</coverage.instructionRatio>
   </properties>
 
   <artifactId>patient-similarity-data-impl</artifactId>
   <name>PhenoTips - Patient network - Default implementation for the similar patients APIs</name>
   <dependencies>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-    </dependency>
-    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>matching-notification-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -143,10 +134,6 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>

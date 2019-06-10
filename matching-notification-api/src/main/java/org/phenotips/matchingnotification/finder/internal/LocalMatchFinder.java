@@ -28,12 +28,12 @@ import org.xwiki.component.annotation.Component;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.Response;
 
 /**
  * @version $Id$
@@ -58,25 +58,24 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     }
 
     @Override
-    protected Set<String> getSupportedServerIdList()
+    public Set<String> getSupportedServerIdList()
     {
         return SUPPORTED_SERVER_IDS;
     }
 
     @Override
-    protected MatchRunStatus specificFindMatches(Patient patient, String serverId, List<PatientMatch> matchesList)
+    protected Response specificFindMatches(Patient patient, String serverId, List<PatientMatch> matchesList)
     {
         this.logger.debug("Finding local matches for patient {}.", patient.getId());
 
         List<PatientSimilarityView> localMatches = this.finder.findSimilarPatients(patient);
 
-        Map<PatientSimilarityView, PatientMatch> savedMatches =
-                this.matchStorageManager.saveLocalMatches(localMatches, patient.getId());
+        List<PatientMatch> savedMatches = this.matchStorageManager.saveLocalMatches(localMatches, patient.getId());
 
-        if (savedMatches != null && savedMatches.size() > 0) {
-            matchesList.addAll(savedMatches.values());
+        if (savedMatches != null) {
+            matchesList.addAll(savedMatches);
         }
 
-        return MatchRunStatus.OK;
+        return Response.status(Response.Status.OK).build();
     }
 }

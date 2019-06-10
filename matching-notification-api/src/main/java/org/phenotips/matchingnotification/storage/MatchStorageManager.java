@@ -25,7 +25,6 @@ import org.xwiki.component.annotation.Role;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -39,6 +38,8 @@ public interface MatchStorageManager
     /**
      * Loads matches filtered by the parameters.
      *
+     * @param patientId the patient ID
+     *        if {@code null}, then all matches will be returned
      * @param score threshold for matches
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
@@ -49,7 +50,8 @@ public interface MatchStorageManager
      *        if {@code null}, then no upper limit on the match date is considered
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible,
+    List<PatientMatch> loadMatches(String patientId, double score, double phenScore, double genScore,
+        boolean onlyCurrentUserAccessible,
         Timestamp fromDate, Timestamp toDate);
 
     /**
@@ -110,10 +112,9 @@ public interface MatchStorageManager
      *
      * @param similarityViews list of matches as "similarity views" between two local patients
      * @param patientId local patient ID for whom to save matches
-     * @return null if saved failed, otherwise a mapping from similarity views to saved PatientMatches
+     * @return null if saving failed, otherwise list of saved PatientMatches
      */
-    Map<PatientSimilarityView, PatientMatch>
-        saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId);
+    List<PatientMatch> saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId);
 
     /**
      * Saves a list of matches that were found by a remote outgoing/incoming request.
@@ -122,10 +123,9 @@ public interface MatchStorageManager
      * @param patientId remote patient ID for whom to save matches
      * @param serverId id of remote server
      * @param isIncoming whether we are saving results of incoming (then true) or outgoing request
-     * @return null if saved failed, otherwise a mapping from similarity views to saved PatientMatches
+     * @return null if saving failed, otherwise list of saved PatientMatches
      */
-    Map<PatientSimilarityView, PatientMatch>
-        saveRemoteMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId,
+    List<PatientMatch> saveRemoteMatches(Collection<? extends PatientSimilarityView> similarityViews, String patientId,
                 String serverId, boolean isIncoming);
 
     /**

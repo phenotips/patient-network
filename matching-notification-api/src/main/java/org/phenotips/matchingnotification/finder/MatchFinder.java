@@ -17,10 +17,14 @@
  */
 package org.phenotips.matchingnotification.finder;
 
+import org.phenotips.data.Patient;
+
 import org.xwiki.component.annotation.Role;
 
 import java.util.List;
 import java.util.Set;
+
+import javax.ws.rs.core.Response;
 
 /**
  * @version $Id$
@@ -34,7 +38,12 @@ public interface MatchFinder
     int getPriority();
 
     /**
-     * Finds matches for a given patient updated after the last time the match finder was run.
+     * @return list of supported servers for matches search
+     */
+    Set<String> getSupportedServerIdList();
+
+    /**
+     * Finds matches for all patients.
      *
      * @param patientIds List of local patients IDs
      * @param serverIds a list of servers to be used for matches search indicated by their ids. Servers which
@@ -43,4 +52,13 @@ public interface MatchFinder
      * @return number of matches found
      */
     int findMatches(List<String> patientIds, Set<String> serverIds, boolean onlyUpdatedAfterLastRun);
+
+    /**
+     * Finds matches for a given patient.
+     *
+     * @param patient local reference patient
+     * @param serverId the remote or local server to be queried for matching patients
+     * @return a response containing a success message or an error code if unsuccessful
+     */
+    Response findMatches(Patient patient, String serverId);
 }

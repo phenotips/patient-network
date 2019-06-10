@@ -19,6 +19,13 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._tableElement = $('matchesTable');
         this._ajaxURL = XWiki.contextPath + "/rest/matches";
+
+        this._loadMatchesURL = this._ajaxURL;
+        this._onSimilarCasesPage = $('similar-cases-container');
+        if (this._onSimilarCasesPage) {
+            this._loadMatchesURL = XWiki.contextPath + "/rest/matches/patients/" + XWiki.currentDocument.page;
+        }
+
         this._tableCollabsed = true;
         $("panels-livetable-ajax-loader").hide();
 
@@ -36,16 +43,18 @@ var PhenoTips = (function (PhenoTips) {
 
         this._utils = new utils(this._tableElement);
 
-        $('show-matches-button').on('click', this._showMatches.bind(this));
+        $('show-matches-button') && $('show-matches-button').on('click', this._showMatches.bind(this));
         this._notificationsButton = $('send-notifications-button');
         this._notificationsButton.disabled = true;
         this._notificationsButton.hide();
         this._notificationsButton.on('click', this._sendNotification.bind(this));
         $('expand_all').on('click', this._expandAllClicked.bind(this));
 
-        this._overallScoreSlider = this._initializeScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
-        this._phenScoreSlider = this._initializeScoreSlider('show-matches-phen-score', 0, 0);
-        this._genScoreSlider = this._initializeScoreSlider('show-matches-gen-score', 0, 0.1);
+        if (!this._onSimilarCasesPage) {
+            this._overallScoreSlider = this._initializeScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
+            this._phenScoreSlider = this._initializeScoreSlider('show-matches-phen-score', 0, 0);
+            this._genScoreSlider = this._initializeScoreSlider('show-matches-gen-score', 0, 0.1);
+        }
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
         this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
@@ -107,7 +116,7 @@ var PhenoTips = (function (PhenoTips) {
 
         document.observe("match:contacted:byuser", this._handleUserNotifiedUpdate.bind(this));
 
-        if (!this._isAdmin) {
+        if (!this._isAdmin || this._onSimilarCasesPage) {
             this._showMatches();
         }
 
@@ -120,6 +129,8 @@ var PhenoTips = (function (PhenoTips) {
         $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
 
         Event.observe(window, 'resize', this._buildTable.bind(this));
+
+        Event.observe(document, "matches:refreshed", this._showMatches.bind(this));
     },
 
     _initializeScoreSlider: function(id, minScore, initialScore) {
@@ -473,10 +484,14 @@ var PhenoTips = (function (PhenoTips) {
             var key = this._utils.getCookieKey(filtersElt.up('.entity-directory').id);
             if (filtersElt.hasClassName('collapsed')) {
                 XWiki.cookies.create(key, 'hidden', '');
-                $('advanced-filters-header').hide();
+                if (!this._onSimilarCasesPage) {
+                    $('advanced-filters-header').hide();
+                }
             } else {
                 XWiki.cookies.erase(key);
-                $('advanced-filters-header').show();
+                if (!this._onSimilarCasesPage) {
+                    $('advanced-filters-header').show();
+                }
             }
         }
     },
@@ -511,8 +526,8 @@ var PhenoTips = (function (PhenoTips) {
         var options = this._generateOptions();
         if (!options) return;
 
-        new Ajax.Request(this._ajaxURL + "?method=GET", {
-            contentType:'application/json',
+        new Ajax.Request(this._loadMatchesURL + "?method=GET", {
+            contentType: 'application/json',
             parameters : options,
             onCreate : function () {
                 $("panels-livetable-ajax-loader").show();
@@ -546,9 +561,9 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score = (Math.ceil(this._overallScoreSlider.value*20)/20).toFixed(2);
-        var phenScore = (Math.ceil(this._phenScoreSlider.value*20)/20).toFixed(2);
-        var genScore = (Math.ceil(this._genScoreSlider.value*20)/20).toFixed(2);
+        var score     = this._overallScoreSlider ? (Math.ceil(this._overallScoreSlider.value*20)/20).toFixed(2) : 0.1;
+        var phenScore = this._phenScoreSlider ? (Math.ceil(this._phenScoreSlider.value*20)/20).toFixed(2) : 0;
+        var genScore  = this._genScoreSlider ? (Math.ceil(this._genScoreSlider.value*20)/20).toFixed(2) : 0;
 
         var options = { 'minScore'        : score,
                         'minPhenScore'    : phenScore,
@@ -664,7 +679,7 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseGenes(match);
 
             // For user only: out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
-            match.notMyCase = (!this._isAdmin) ? this._getNotMyCase(match) : null;
+            match.notMyCase = this._getNotMyCase(match);
 
             // swap "reference" and "matched" if they are not in right place based on "notMyCase" if determined
             if (match.notMyCase != null && match.reference == match.notMyCase) {
@@ -1309,6 +1324,20 @@ var PhenoTips = (function (PhenoTips) {
     // out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
     _getNotMyCase : function(match)
     {
+        if (this._onSimilarCasesPage) {
+            if (match.matched.patientId == XWiki.currentDocument.page && match.matched.serverId == '') {
+                return match.reference;
+            }
+            if (match.reference.patientId == XWiki.currentDocument.page && match.reference.serverId == '') {
+                return match.matched;
+            }
+            return null;
+        }
+
+        if (this._isAdmin) {
+            return null;
+        }
+
         // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
         if (match.reference.ownership["userIsOwner"]) {
             // user directly owns "match.reference" => "matched" is match.matched (we know user never owns both patients in a match from this table)
@@ -1336,13 +1365,12 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientToBeContactedByCurrentNonAdminUser : function(match)
     {
-        if (!this._accessAtLeastEdit(match.reference) && !this._accessAtLeastEdit(match.matched)) {
-            // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as user-contacted
+        if (this._isAdmin) {
             return null;
         }
 
-        // the main part: figure out which of the two patients should be contacted
-        if (match.notMyCase == null) {
+        if (!this._accessAtLeastEdit(match.reference) && !this._accessAtLeastEdit(match.matched)) {
+            // user does not have at least edit access to any of the patients in the match: do not allow to contact or mark as user-contacted
             return null;
         }
 

@@ -199,17 +199,17 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
-        String remoteId)
+    public List<PatientMatch> saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews,
+        String patientId, String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, true) != null;
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, true);
     }
 
     @Override
-    public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
-        String remoteId)
+    public List<PatientMatch> saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews,
+        String patientId, String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, false) != null;
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, false);
     }
 
     @Override

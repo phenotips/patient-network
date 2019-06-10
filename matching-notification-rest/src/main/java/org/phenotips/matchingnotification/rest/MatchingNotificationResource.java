@@ -72,6 +72,23 @@ public interface MatchingNotificationResource
         onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
+     * Finds matches for a provided {@code patientId patient} for the selected server (local matches or MME matches).
+     *
+     * All matches will be stored in the matching notification table (if a match between the same two patients
+     * is already in the table, it will be replaced by the new match, in effect "refreshing" the match).
+     *
+     * @param patientId the internal identifier for a local reference patient; must be specified
+     * @param serverId the remote or local server to be queried for matching patients; must be specified
+     * @return a response containing a success message or an error code if unsuccessful
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/patients/{patientId}")
+    Response refreshMatchesForPatient(@PathParam("patientId") String patientId,
+        @FormParam("serverId") String serverId);
+
+    /**
      * Returns a JSON object containing all matches or matches owned by logged user (if not admin), filtered by
      * parameters. The following additional parameters may be specified:
      *
@@ -88,6 +105,31 @@ public interface MatchingNotificationResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     Response getMatches(@FormParam("minScore") @DefaultValue("0.5") double minScore,
+        @FormParam("minPhenScore") @DefaultValue("0") double minPhenScore,
+        @FormParam("minGenScore") @DefaultValue("0.1") double minGenScore,
+        @FormParam("fromDate") @DefaultValue("") String fromDate,
+        @FormParam("toDate") @DefaultValue("") String toDate);
+
+    /**
+     * Returns a JSON object containing all matches for a provided {@code reference patient}, filtered by
+     * parameters. The following additional parameters may be specified:
+     *
+     * @param patientId the patient identifier whose matches we want to load
+     * @param minScore only matches with general score higher or equal to this value are returned
+     * @param minPhenScore only matches with phenotypic score higher or equal to this value are returned
+     * @param minGenScore only matches with genotypic score higher or equal to this value are returned
+     * @param fromDate if passed a date in the {@code yyyy-MM-dd} format, then only matches found on or after this date
+     *        will be returned; if {@code null} or an empty string, then no lower limit on the match date is considered
+     * @param toDate if passed a date in the {@code yyyy-MM-dd} format, then only matches found on or before this date
+     *        will be returned; if {@code null} or an empty string, then no upper limit on the match date is considered
+     * @return a response containing a JSON object with a list of matches
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/patients/{patientId}")
+    Response getMatchesForPatient(@PathParam("patientId") String patientId,
+        @FormParam("minScore") @DefaultValue("0.5") double minScore,
         @FormParam("minPhenScore") @DefaultValue("0") double minPhenScore,
         @FormParam("minGenScore") @DefaultValue("0.1") double minGenScore,
         @FormParam("fromDate") @DefaultValue("") String fromDate,

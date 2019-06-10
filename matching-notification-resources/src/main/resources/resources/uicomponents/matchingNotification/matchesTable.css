@@ -85,7 +85,7 @@ table#matchesTable {
 }
 
 #show-matches-messages {
-  margin-top: 0.8em;
+  margin: 0.5em;
 }
 
 #score-filter-validation-message {
@@ -169,8 +169,6 @@ input.notify , td span.fa.fa-envelope {
 .xwiki-livetable-pagination {
   color: #636B75;
   font-size: 90%;
-  line-height: 22px;
-  border: 0px;
 }
 .xwiki-livetable-loader {
   padding-top: 3px;
@@ -386,7 +384,7 @@ div[name="notification-email-long"], div[name="owner-info"] {
   background-color: #bfbfbf;
   margin-left: 0.9em;
 }
-label.score {
+#matches-directory label.score, .matching-patients #similar-cases-container label.score {
   box-sizing: border-box;
   display: inline-block;
   font-size: .8em;
