@@ -20,12 +20,15 @@ package org.phenotips.matchingnotification.internal;
 
 import org.xwiki.component.annotation.Component;
 
+import java.math.BigInteger;
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -38,9 +41,18 @@ import com.xpn.xwiki.store.migration.XWikiDBVersion;
 import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 
 /**
- * Migration for PatientNetwork issue PN-456: local matches should be de-duplicated:
- * given A-to-B and B-to-A matches, only A-to-B match should be left, where A < B alphanumericaly
- * (to match how matching notification works after PN-401 is implemented).
+ * Migration for PatientNetwork issue PN-456: the clean up of the matching notification database
+ * to remove various duplicate matches, and have all matches in the format current code needs:
+ *
+ * 1) local matches are de-duplicated: given A-to-B and B-to-A matches, only one of them should be left
+ *    (plus see 2) below)
+ *
+ * 2) local B-to-A matches where B > A alphanumerically should be converted to A-to-B matches,
+ *    where A < B alphanumericaly (to match how matching notification works after PN-401 is implemented).
+ *
+ * 2) not notified copies of a notified match (which are not used by either old or new code) are removed
+ *
+ * 3) not rejected copies of a rejected match (which are not used by either old or new code) are removed
  *
  * @version $Id$
  * @since 1.3m1
@@ -50,26 +62,47 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 @Singleton
 public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataMigration
 {
-    // the "d.comments IS NULL" check is a safeguard, since in the production DB there should be no matches
-    // that have comments and have a notified copy of a match (and in fact there are none as of last check)
-    private static final String SQL_DELETE_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH =
-        "delete from patient_matching d where d.comments IS NULL and d.notified = false and exists"
-        + " (select * from patient_matching d2 where"
+    // The query below depends on a "notified" column in the DB, however the column is no
+    // longer mapped to a field in the class, so can't use HQL to address the column
+    // (and thus have to use raw SQL)
+    //
+    // Also MariaDB & MySQL do not allow to update a table that is used in a sub-query ("ERROR 1093"),
+    // so can not find the matchs and delete them in a single "delete where exists" query,
+    // and need a separate "select" and "delete" queries
+    private static final String SQL_GET_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH =
+        "select id, referencePatientId, matchedPatientId, referenceServerId, matchedServerId, notified"
+        + " from patient_matching as d where d.notified = false and exists"
+        + " (select * from patient_matching as d2 where"
         + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
         + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
         + " and d2.notified = true)";
 
-    private static final String HQL_DELETE_DUPLICATE_LOCAL_MATCHES =
-        "delete from CurrentPatientMatch d where d.matchedServerId = '' and d.referenceServerId = ''"
+    private static final String SQL_GET_NON_REJECTED_COPIES_OF_A_REJECTED_MATCH =
+        "select id, referencePatientId, matchedPatientId, referenceServerId, matchedServerId, status"
+        + " from patient_matching as d where d.status = 'uncategorized' and exists"
+        + " (select * from patient_matching as d2 where"
+        + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
+        + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
+        + " and d2.status = 'rejected')";
+
+    private static final String SQL_GET_INVERSE_COPIES_OF_LOCAL_MATCHES =
+        "select id, referencePatientId, matchedPatientId, referenceServerId, matchedServerId"
+        + " from patient_matching as d where d.matchedServerId = '' and d.referenceServerId = ''"
         + " and d.referencePatientId > d.matchedPatientId and exists"
-        + " (from CurrentPatientMatch d2 where"
+        + " (select * from patient_matching as d2 where"
         + " d2.referencePatientId = d.matchedPatientId and d2.matchedPatientId = d.referencePatientId"
         + " and d2.matchedServerId = '' and d2.referenceServerId = '')";
 
-    private static final String NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH =
-        "update CurrentPatientMatch set referencePatientId = matchedPatientId, matchedPatientId = referencePatientId"
-        + ", referenceDetails = matchedDetails, matchedDetails = referenceDetails"
-        + " where referencePatientId > matchedPatientId";
+    // inspired by https://stackoverflow.com/questions/37649/swapping-column-values-in-mysql
+    private static final String SQL_NORMALIZE_ORDER_OF_PATIENTS_IN_LOCAL_MATCHES =
+        "update patient_matching set referencePatientId = (@tempId:=referencePatientId),"
+        + " referencePatientId = matchedPatientId, matchedPatientId = @tempId,"
+        + " referenceDetails = (@tempDetails:=referenceDetails),"
+        + " referenceDetails = matchedDetails, matchedDetails = @tempDetails"
+        + " where referencePatientId > matchedPatientId and referenceServerId = '' and matchedServerId = ''";
+
+    private static final String SQL_DELETE_MATCHES_BY_IDS =
+        "delete from patient_matching where id in :idlist";
 
     /** Logging helper object. */
     @Inject
@@ -98,19 +131,16 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
         Transaction t = session.beginTransaction();
 
         try {
-            // the query below depends on a "notified" column in the DB, however the column is no
-            // longer mapped to a field in the class, so can't use HQL to address the column
-            // (and thus have to use raw SQL)
-            SQLQuery qRemoveUnnotifiedCopy =
-                    session.createSQLQuery(SQL_DELETE_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH);
-            int numRemoved = qRemoveUnnotifiedCopy.executeUpdate();
-            this.logger.error("Deleted [{}] un-notified copies of a notified match", numRemoved);
+            this.removeMatchesBasedOnQuery(session, SQL_GET_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH,
+                    "un-notified copies of a notified match");
 
-            Query qDeduplicate = session.createQuery(HQL_DELETE_DUPLICATE_LOCAL_MATCHES);
-            int numDeleted = qDeduplicate.executeUpdate();
-            this.logger.error("Deleted [{}] duplicate [A->B]/[B->A] local matches", numDeleted);
+            this.removeMatchesBasedOnQuery(session, SQL_GET_NON_REJECTED_COPIES_OF_A_REJECTED_MATCH,
+                    "non-rejected copies of a rejected match");
 
-            Query qNormalize = session.createQuery(NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH);
+            this.removeMatchesBasedOnQuery(session, SQL_GET_INVERSE_COPIES_OF_LOCAL_MATCHES,
+                    "inverse [A->B]/[B->A] copies of local matches");
+
+            SQLQuery qNormalize = session.createSQLQuery(SQL_NORMALIZE_ORDER_OF_PATIENTS_IN_LOCAL_MATCHES);
             int numNormalized = qNormalize.executeUpdate();
             this.logger.error("Normalized [{}] local matches [A->B where A>B] to [B->A]", numNormalized);
 
@@ -122,6 +152,42 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
             }
         } finally {
             session.close();
+        }
+    }
+
+    private void removeMatchesBasedOnQuery(Session session, String queryString, String description)
+    {
+        SQLQuery query = session.createSQLQuery(queryString);
+        @SuppressWarnings("unchecked")
+        List<Object[]> matches = query.list();
+        if (matches != null) {
+            this.logger.error("Found [{}] {}", matches.size(), description);
+            this.deleteMatches(session, this.getMatchIDs(matches));
+        }
+    }
+
+    // the assumption is that id is the first field in the Object[] array
+    private List<Long> getMatchIDs(List<Object[]> matches)
+    {
+        List<Long> ids = new LinkedList<>();
+        for (Object[] fields : matches) {
+            BigInteger id = (BigInteger) fields[0];
+            ids.add(id.longValue());
+        }
+        return ids;
+    }
+
+    private void deleteMatches(Session session, List<Long> matchIDs)
+    {
+        if (matchIDs.size() == 0) {
+            return;
+        }
+
+        SQLQuery query = session.createSQLQuery(SQL_DELETE_MATCHES_BY_IDS);
+        query.setParameterList("idlist", matchIDs);
+        int numDeleted = query.executeUpdate();
+        if (numDeleted != matchIDs.size()) {
+            this.logger.error("A request to delete {} matches only removed {}", matchIDs.size(), numDeleted);
         }
     }
 }
