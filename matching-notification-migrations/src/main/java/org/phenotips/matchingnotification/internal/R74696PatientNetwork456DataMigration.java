@@ -25,7 +25,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -38,9 +37,18 @@ import com.xpn.xwiki.store.migration.XWikiDBVersion;
 import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 
 /**
- * Migration for PatientNetwork issue PN-456: local matches should be de-duplicated:
- * given A-to-B and B-to-A matches, only A-to-B match should be left, where A < B alphanumericaly
- * (to match how matching notification works after PN-401 is implemented).
+ * Migration for PatientNetwork issue PN-456: the clean up of the matching notificstion database
+ * to remove various duplicate matches, and have all matches in the format current code needs:
+ *
+ * 1) local matches are de-duplicated: given A-to-B and B-to-A matches, only one of them should be left
+ *    (plus see 2) below)
+ *
+ * 2) local B-to-A matches where B > A alphanumerically should be converted to A-to-B matches,
+ *    where A < B alphanumericaly (to match how matching notification works after PN-401 is implemented).
+ *
+ * 2) not notified copies of a notified match (which are not used by either old or new code) are removed
+ *
+ * 3) not rejected copies of a rejected match (which are not used by either old or new code) are removed
  *
  * @version $Id$
  * @since 1.3m1
@@ -50,26 +58,31 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 @Singleton
 public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataMigration
 {
-    // the "d.comments IS NULL" check is a safeguard, since in the production DB there should be no matches
-    // that have comments and have a notified copy of a match (and in fact there are none as of last check)
     private static final String SQL_DELETE_NON_NOTIFIED_COPIES_OF_A_NOTIFIED_MATCH =
-        "delete from patient_matching d where d.comments IS NULL and d.notified = false and exists"
+        "delete from patient_matching d where d.notified = false and exists"
         + " (select * from patient_matching d2 where"
         + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
         + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
         + " and d2.notified = true)";
 
-    private static final String HQL_DELETE_DUPLICATE_LOCAL_MATCHES =
-        "delete from CurrentPatientMatch d where d.matchedServerId = '' and d.referenceServerId = ''"
+    private static final String SQL_DELETE_NON_REJECTED_COPIES_OF_A_REJECTED_MATCH =
+        "delete from patient_matching d and d.status = 'uncategorized' and exists"
+        + " (select * from patient_matching d2 where"
+        + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
+        + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
+        + " and d2.status = 'rejected')";
+
+    private static final String SQL_DELETE_INVERSE_COPIES_OF_LOCAL_MATCHES =
+        "delete from patient_matching d where d.matchedServerId = '' and d.referenceServerId = ''"
         + " and d.referencePatientId > d.matchedPatientId and exists"
         + " (from CurrentPatientMatch d2 where"
         + " d2.referencePatientId = d.matchedPatientId and d2.matchedPatientId = d.referencePatientId"
         + " and d2.matchedServerId = '' and d2.referenceServerId = '')";
 
-    private static final String NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH =
-        "update CurrentPatientMatch set referencePatientId = matchedPatientId, matchedPatientId = referencePatientId"
+    private static final String SQL_NORMALIZE_ORDER_OF_PATIENTS_IN_LOCAL_MATCHES =
+        "update patient_matching set referencePatientId = matchedPatientId, matchedPatientId = referencePatientId"
         + ", referenceDetails = matchedDetails, matchedDetails = referenceDetails"
-        + " where referencePatientId > matchedPatientId";
+        + " where referencePatientId > matchedPatientId and referenceServerId = '' and matchedServerId = ''";
 
     /** Logging helper object. */
     @Inject
@@ -106,11 +119,16 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
             int numRemoved = qRemoveUnnotifiedCopy.executeUpdate();
             this.logger.error("Deleted [{}] un-notified copies of a notified match", numRemoved);
 
-            Query qDeduplicate = session.createQuery(HQL_DELETE_DUPLICATE_LOCAL_MATCHES);
-            int numDeleted = qDeduplicate.executeUpdate();
-            this.logger.error("Deleted [{}] duplicate [A->B]/[B->A] local matches", numDeleted);
+            SQLQuery qRemoveUnrejectedCopy =
+                    session.createSQLQuery(SQL_DELETE_NON_REJECTED_COPIES_OF_A_REJECTED_MATCH);
+            numRemoved = qRemoveUnrejectedCopy.executeUpdate();
+            this.logger.error("Deleted [{}] non-rejected copies of a rejected match", numRemoved);
 
-            Query qNormalize = session.createQuery(NORMALIZE_ORDER_OF_PATIENTS_IN_A_MATCH);
+            SQLQuery qDeduplicate = session.createSQLQuery(SQL_DELETE_INVERSE_COPIES_OF_LOCAL_MATCHES);
+            numRemoved = qDeduplicate.executeUpdate();
+            this.logger.error("Deleted [{}] inverse [A->B]/[B->A] copies of local matches", numRemoved);
+
+            SQLQuery qNormalize = session.createSQLQuery(SQL_NORMALIZE_ORDER_OF_PATIENTS_IN_LOCAL_MATCHES);
             int numNormalized = qNormalize.executeUpdate();
             this.logger.error("Normalized [{}] local matches [A->B where A>B] to [B->A]", numNormalized);
 
