@@ -17,9 +17,13 @@
  */
 package org.phenotips.matchingnotification.finder;
 
+import org.phenotips.data.Patient;
+
 import org.xwiki.component.annotation.Role;
 
 import java.util.Set;
+
+import javax.ws.rs.core.Response;
 
 /**
  * @version $Id$
@@ -32,11 +36,22 @@ public interface MatchFinderManager
      * For each patient each matcher used will check if the patient can be matched using the matcher
      * (e.g. patient is "matchable", or a "matchable" consent is granted, etc.).
      *
-     * As a side effect, all matches that are found will be stored in the matching notification table.
+     * All matches that are found will be stored in the matching notification table.
      *
      * @param serverIds a list of servers to be used for matches search indicated by their ids.
      * @param onlyCheckPatientsUpdatedAfterLastRun if true, the selected matcher(s) will only re-check
      *            patients which have been modified after the last time that matcher was run
      */
     void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun);
+
+    /**
+     * Finds matches for s local patient on the selected server.
+     *
+     * All matches that are found will be stored in the matching notification table.
+     *
+     * @param patient local reference patient
+     * @param serverId server to be used for matches search
+     * @return a response containing a success message or an error code if unsuccessful
+     */
+    Response findMatchesForPatient(Patient patient, String serverId);
 }

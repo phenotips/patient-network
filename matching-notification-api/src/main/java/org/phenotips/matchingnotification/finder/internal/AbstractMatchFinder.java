@@ -29,6 +29,7 @@ import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
+import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -78,11 +80,16 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    protected List<Integer> notRun = Arrays.asList(Response.Status.FORBIDDEN.getStatusCode(),
+        Response.Status.NO_CONTENT.getStatusCode(), Response.Status.SERVICE_UNAVAILABLE.getStatusCode(),
+        Response.Status.CONFLICT.getStatusCode());
+
+    protected List<Integer> error = Arrays.asList(Response.Status.UNAUTHORIZED.getStatusCode(),
+        Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode(), Response.Status.NOT_ACCEPTABLE.getStatusCode(),
+        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
     @Inject
     protected MatchStorageManager matchStorageManager;
-
-    protected enum MatchRunStatus
-    { NOT_RUN, OK, ERROR };
 
     @Inject
     private Provider<XWikiContext> provider;
@@ -100,9 +107,7 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
     private DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
-    protected abstract Set<String> getSupportedServerIdList();
-
-    protected abstract MatchRunStatus specificFindMatches(Patient patient, String serverId,
+    protected abstract Response specificFindMatches(Patient patient, String serverId,
             List<PatientMatch> matchesList);
 
     @Override
@@ -137,15 +142,15 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
                     List<PatientMatch> patientMatches = new LinkedList<>();
 
-                    MatchRunStatus matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
+                    Response matcherStatus = this.specificFindMatches(patient, serverId, patientMatches);
 
                     totalRunTime += (System.currentTimeMillis() - startTime);
                     totalMatchesFound += patientMatches.size();
 
-                    if (matcherStatus != MatchRunStatus.NOT_RUN) {
+                    if (!this.notRun.contains(matcherStatus.getStatus())) {
                         numPatientsTestedForMatches++;
                     }
-                    if (matcherStatus == MatchRunStatus.ERROR) {
+                    if (this.error.contains(matcherStatus.getStatus())) {
                         numErrors++;
                     }
 
@@ -155,13 +160,20 @@ public abstract class AbstractMatchFinder implements MatchFinder
                 }
 
                 this.recordEndMatchesSearch(serverId, numPatientsTestedForMatches,
-                        numErrors, totalMatchesFound, totalRunTime);
+                    numErrors, totalMatchesFound, totalRunTime);
             } catch (Exception ex) {
                 this.logger.error("Error finding matches using server [{}]: [{}]", serverId, ex.getMessage(), ex);
             }
         }
 
         return totalMatchesFound;
+    }
+
+    @Override
+    public Response findMatches(Patient patient, String serverId)
+    {
+        List<PatientMatch> patientMatches = new LinkedList<>();
+        return this.specificFindMatches(patient, serverId, patientMatches);
     }
 
     /*

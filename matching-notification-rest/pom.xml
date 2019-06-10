@@ -40,7 +40,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>patient-data-api</artifactId>
+      <version>${phenotips.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>matching-notification-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>patient-similarity-search</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

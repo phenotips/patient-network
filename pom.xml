@@ -79,7 +79,6 @@
     <module>similarity-data-impl</module>
     <module>similarity-genotype-view</module>
     <module>similarity-phenotype-view</module>
-    <module>similarity-data-rest</module>
     <module>similarity-search</module>
     <module>ui</module>
     <module>matching-notification-resources</module>

@@ -85,8 +85,10 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
       &lt;div class="xwiki-livetable-topfilters-tip" id="matching-filters"&gt;
         &lt;div class="xwiki-livetable-topfilters-container"&gt;
           &lt;div class="xform"&gt;
-            &lt;span class='buttonwrapper'&gt;
-              &lt;a class='button toggle-filters' href='#' id="toggle-filters-button"&gt;{{icon name='search' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.matchingNotifications.table.matchesSearch.heading')&lt;/span&gt;{{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}&lt;/a&gt;
+            #if("${doc.space}" != "data")&lt;span class='buttonwrapper'&gt;
+              &lt;a class='button toggle-filters' href='#' id="toggle-filters-button"&gt;
+              {{icon name='search' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.matchingNotifications.table.matchesSearch.heading')&lt;/span&gt;
+              {{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}&lt;/a&gt;
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
               &lt;li&gt;
@@ -122,9 +124,9 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;div&gt;
                 &lt;span class="buttonwrapper"&gt;&lt;a class="button" id="show-matches-button" href="#"&gt;&lt;span class="fa fa-refresh"&gt; &lt;/span&gt;&lt;span&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.search.label'))&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;
               &lt;/div&gt;
-            &lt;/ul&gt;
+            &lt;/ul&gt;#end
             &lt;span id="advanced-filters-header" class='buttonwrapper'&gt;
-              &lt;a class='button toggle-filters secondary-filters' href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt;&lt;/a&gt;
+              &lt;a class='button toggle-filters #if("${doc.space}" != "data")secondary-filters'#else' id="toggle-filters-button"#end href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt; #if("${doc.space}" == "data"){{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}#end&lt;/a&gt;
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end&gt;
@@ -193,7 +195,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="saved" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.saved'))&lt;/label&gt;&lt;br&gt;
                 &lt;label&gt;&lt;input name="status-filter" type="checkbox" value="uncategorized" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.uncategorized'))&lt;/label&gt;
               &lt;/li&gt;
-              &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.ownershipFilter'))&lt;br&gt;
+              &lt;li #if("${doc.space}" == "data")class="hidden"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.ownershipFilter'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="me" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_me'))&lt;/label&gt;
                   &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.me.hint'))"&gt;&lt;/span&gt;
                 &lt;br&gt;
@@ -203,7 +205,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="others" #if($hasAdmin || $isAdminOfGroup)checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_other'))&lt;/label&gt;
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.others.hint'))"&gt;&lt;/span&gt;
                 &lt;br&gt;
-                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="public" &gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_public'))&lt;/label&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="public" #if("${doc.space}" == "data")checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_public'))&lt;/label&gt;
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.public.hint'))"&gt;&lt;/span&gt;
               &lt;/li&gt;
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notifiedStatusFilter'))&lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.notifiedFilter.hint'))"&gt;&lt;/span&gt;&lt;br&gt;
