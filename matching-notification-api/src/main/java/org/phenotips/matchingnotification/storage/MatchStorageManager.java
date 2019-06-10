@@ -39,6 +39,8 @@ public interface MatchStorageManager
     /**
      * Loads matches filtered by the parameters.
      *
+     * @param patientId the patient ID
+     *        if {@code null}, then all matches will be returned
      * @param score threshold for matches
      * @param phenScore only matches with phenotypical score higher or equal to this value are returned
      * @param genScore only matches with genotypical score higher or equal to this value are returned
@@ -49,7 +51,8 @@ public interface MatchStorageManager
      *        if {@code null}, then no upper limit on the match date is considered
      * @return a list of matches
      */
-    List<PatientMatch> loadMatches(double score, double phenScore, double genScore, boolean onlyCurrentUserAccessible,
+    List<PatientMatch> loadMatches(String patientId, double score, double phenScore, double genScore,
+        boolean onlyCurrentUserAccessible,
         Timestamp fromDate, Timestamp toDate);
 
     /**

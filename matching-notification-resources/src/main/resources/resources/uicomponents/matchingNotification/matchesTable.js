@@ -19,6 +19,13 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._tableElement = $('matchesTable');
         this._ajaxURL = XWiki.contextPath + "/rest/matches";
+
+        this._loadMatchesURL = this._ajaxURL;
+        this._onSimilarCasesPage = $('similar-cases-container');
+        if (this._onSimilarCasesPage) {
+            this._loadMatchesURL = this._ajaxURL + "/" + XWiki.currentDocument.page;
+        }
+
         this._tableCollabsed = true;
         $("panels-livetable-ajax-loader").hide();
 
@@ -501,8 +508,9 @@ var PhenoTips = (function (PhenoTips) {
         var options = this._generateOptions();
         if (!options) return;
 
-        new Ajax.Request(this._ajaxURL + "?method=GET", {
-            contentType:'application/json',
+        new Ajax.Request(this._loadMatchesURL, {
+            method     : "GET",
+            contentType: 'application/json',
             parameters : options,
             onCreate : function () {
                 $("panels-livetable-ajax-loader").show();
@@ -654,7 +662,7 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseGenes(match);
 
             // For user only: out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
-            match.notMyCase = (!this._isAdmin) ? this._getNotMyCase(match) : null;
+            match.notMyCase = this._getNotMyCase(match);
 
             // swap "reference" and "matched" if they are not in right place based on "notMyCase" if determined
             if (match.notMyCase != null && match.reference == match.notMyCase) {
@@ -1287,6 +1295,17 @@ var PhenoTips = (function (PhenoTips) {
     // out of the two patients in a match ("reference" and "matched") returns the one that is "not mine"
     _getNotMyCase : function(match)
     {
+        if (this._onSimilarCasesPage) {
+            if (match.matched.patientId == XWiki.currentDocument.page && match.matched.serverId == '') {
+                return match.reference;
+            }
+            return null;
+        }
+
+        if (this._isAdmin) {
+            return null;
+        }
+
         // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
         if (match.reference.ownership["userIsOwner"]) {
             // user directly owns "match.reference" => "matched" is match.matched (we know user never owns both patients in a match from this table)

@@ -95,6 +95,31 @@ public interface MatchingNotificationResource
         @QueryParam("toDate") @DefaultValue("") String toDate);
 
     /**
+     * Returns a JSON object containing all matches for a provided {@code reference patient}, filtered by
+     * parameters. The following additional parameters may be specified:
+     *
+     * @param patientId the patient identifier whose matches we want to load
+     * @param minScore only matches with general score higher or equal to this value are returned
+     * @param minPhenScore only matches with phenotypic score higher or equal to this value are returned
+     * @param minGenScore only matches with genotypic score higher or equal to this value are returned
+     * @param fromDate if passed a date in the {@code yyyy-MM-dd} format, then only matches found on or after this date
+     *        will be returned; if {@code null} or an empty string, then no lower limit on the match date is considered
+     * @param toDate if passed a date in the {@code yyyy-MM-dd} format, then only matches found on or before this date
+     *        will be returned; if {@code null} or an empty string, then no upper limit on the match date is considered
+     * @return a response containing a JSON object with a list of matches
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{patientId}")
+    Response getMatchesForPatient(@PathParam("patientId") String patientId,
+        @QueryParam("minScore") @DefaultValue("0.5") double minScore,
+        @QueryParam("minPhenScore") @DefaultValue("0") double minPhenScore,
+        @QueryParam("minGenScore") @DefaultValue("0.1") double minGenScore,
+        @QueryParam("fromDate") @DefaultValue("") String fromDate,
+        @QueryParam("toDate") @DefaultValue("") String toDate);
+
+    /**
      * Sends email notifications for each match using the "admin" email template.
      * All patient IDs are assumed to be local IDs, and all recipients must/will be local users.
      *

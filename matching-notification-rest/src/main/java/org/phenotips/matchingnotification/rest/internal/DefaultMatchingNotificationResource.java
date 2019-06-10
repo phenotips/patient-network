@@ -126,37 +126,18 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     public Response getMatches(@Nullable final double score, @Nullable final double phenScore,
         @Nullable final double genScore, final String fromDate, final String toDate)
     {
-        Date from = null;
-        if (StringUtils.isNotBlank(fromDate)) {
-            try {
-                from = DATE_SDF.parse(fromDate);
-            } catch (ParseException e) {
-                this.slf4Jlogger.error("Failed to parse fromDate parameter from: " + fromDate);
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
+        return getMatches(null, score, phenScore, genScore, fromDate, toDate);
+    }
+
+    @Override
+    public Response getMatchesForPatient(final String patientId, @Nullable final double score,
+        @Nullable final double phenScore, @Nullable final double genScore, final String fromDate, final String toDate)
+    {
+        if (StringUtils.isBlank(patientId)) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        Date to = null;
-        if (StringUtils.isNotBlank(toDate)) {
-            try {
-                to = DATE_SDF.parse(toDate);
-            } catch (ParseException e) {
-                this.slf4Jlogger.error("Failed to parse toDate parameter from: " + toDate);
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
-        }
-
-        double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
-
-        try {
-            return getMatchesResponse(useScore, phenScore, genScore, from, to);
-        } catch (final SecurityException e) {
-            this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (final Exception e) {
-            this.slf4Jlogger.error("Unexpected exception while generating matches JSON: {}", e.getMessage(), e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        return getMatches(patientId, score, phenScore, genScore, fromDate, toDate);
     }
 
     @Override
@@ -301,7 +282,44 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
     }
 
-    private Response getMatchesResponse(@Nullable final double score, @Nullable final double phenScore,
+    private Response getMatches(@Nullable final String reference, @Nullable final double score,
+        @Nullable final double phenScore, @Nullable final double genScore, final String fromDate, final String toDate)
+    {
+        Date from = null;
+        if (StringUtils.isNotBlank(fromDate)) {
+            try {
+                from = DATE_SDF.parse(fromDate);
+            } catch (ParseException e) {
+                this.slf4Jlogger.error("Failed to parse fromDate parameter from: " + fromDate);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+        }
+
+        Date to = null;
+        if (StringUtils.isNotBlank(toDate)) {
+            try {
+                to = DATE_SDF.parse(toDate);
+            } catch (ParseException e) {
+                this.slf4Jlogger.error("Failed to parse toDate parameter from: " + toDate);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+        }
+
+        double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
+
+        try {
+            return getMatchesResponse(reference, useScore, phenScore, genScore, from, to);
+        } catch (final SecurityException e) {
+            this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch (final Exception e) {
+            this.slf4Jlogger.error("Unexpected exception while generating matches JSON: {}", e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private Response getMatchesResponse(@Nullable final String patientId, @Nullable final double score,
+        @Nullable final double phenScore,
         @Nullable final double genScore, final Date fromDate, final Date toDate)
     {
         boolean loadOnlyUserMatches = !isCurrentUserAdmin();
@@ -318,7 +336,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             timestampTo = new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLISECONDS);
         }
 
-        List<PatientMatch> matches = this.matchStorageManager.loadMatches(
+        List<PatientMatch> matches = this.matchStorageManager.loadMatches(patientId,
             score, phenScore, genScore, loadOnlyUserMatches, timestampFrom, timestampTo);
 
         JSONObject matchesJson = new JSONObject();

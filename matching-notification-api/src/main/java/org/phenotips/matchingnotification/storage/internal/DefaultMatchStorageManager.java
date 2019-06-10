@@ -86,6 +86,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         "from CurrentPatientMatch as m where"
             + " score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
 
+    /** A query to find all matches for a local patient with a score(s) greater than given. */
+    private static final String HQL_FIND_ALL_MATCHES_FOR_PATIENT_BY_SCORE =
+        "from CurrentPatientMatch as m where (referencePatientId = :patientId and referenceServerId = ''"
+            + " or matchedPatientId = :patientId and matchedServerId ='')"
+            + " and score >= :minScore and phenotypeScore >= :phenScore and genotypeScore >= :genScore";
+
     /** A query used to get the number of all remote matches. */
     private static final String HQL_GET_NUMBER_OF_REMOTE_MATCHES =
         "select count(*) from CurrentPatientMatch as m where m.referenceServerId != '' or m.matchedServerId !=''";
@@ -295,7 +301,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientMatch> loadMatches(double score, double phenScore, double genScore,
+    public List<PatientMatch> loadMatches(String patientId, double score, double phenScore, double genScore,
         boolean onlyCurrentUserAccessible, final Timestamp fromDate, final Timestamp toDate)
     {
         // ...else it is more complicated: need to return all matches, but
@@ -310,6 +316,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
             String queryString = HQL_FIND_ALL_MATCHES_BY_SCORE;
+            if (StringUtils.isNotBlank(patientId)) {
+                queryString = HQL_FIND_ALL_MATCHES_FOR_PATIENT_BY_SCORE;
+            }
 
             if (fromDate != null) {
                 queryString += " and foundTimestamp >= :fromTimestamp";
@@ -323,6 +332,10 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             query.setParameter("minScore", score);
             query.setParameter("phenScore", phenScore);
             query.setParameter("genScore", genScore);
+
+            if (StringUtils.isNotBlank(patientId)) {
+                query.setParameter("patientId", patientId);
+            }
 
             if (fromDate != null) {
                 query.setTimestamp("fromTimestamp", fromDate);
