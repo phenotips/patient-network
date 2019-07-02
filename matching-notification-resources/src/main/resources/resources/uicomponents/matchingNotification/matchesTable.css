@@ -209,7 +209,6 @@ input.mme {
 }
 .across-mme {
   margin-top: 5px;
-  margin-left: 1em;
 }
 .exome-subtitle {
   font-weight: 400;
@@ -503,4 +502,8 @@ td[name="contact"] {
   color: #369;
   font-size: .8em;
   font-style: italic;
+}
+#mme-filter {
+  margin: 0 0.2em 0 0;
+  vertical-align: text-bottom;
 }

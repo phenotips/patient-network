@@ -247,6 +247,16 @@ var PhenoTips = (function (PhenoTips) {
             this._filterValues.serverIds[checkbox.value] = checkbox.checked;
         }.bind(this));
 
+        var mmeFilters = $$('#checkbox-server-filters input[name="checkbox-server-id-filter"].mme');
+        $('mme-filter') && $('mme-filter').on('click', function(event) {
+            var checked = event.currentTarget.checked;
+            mmeFilters.each(function (checkbox) {
+                this._filterValues.serverIds[checkbox.value] = checkbox.checked;
+                checkbox.checked = checked;
+            }.bind(this));
+            this._update();
+        }.bind(this));
+
         $$('input[name="status-filter"]').each(function (checkbox) {
             // initialize filter to the value set in the form
             this._filterValues.matchStatus[checkbox.value] = checkbox.checked;

@@ -177,7 +177,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;
                   $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;span class="matches-count"&gt;&lt;/span&gt;&lt;br&gt;
                 &lt;/label&gt;
-                &lt;div class="across-mme"&gt;$escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;:&lt;/div&gt;
+                &lt;div class="across-mme"&gt;&lt;input id="mme-filter" type="checkbox" checked &gt; $escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;:&lt;/div&gt;
                 #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
                 #set ($allRemotes = $preferenceDoc.getObjects("PhenomeCentral.RemoteMatchingServiceConfiguration"))
                 #foreach ($config in $allRemotes)
