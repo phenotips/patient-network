@@ -475,6 +475,15 @@ td[name="contact"] {
   white-space: normal;
   line-height: 12px;
 }
+.xTooltip {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+  font-weight: normal;
+  text-transform: initial;
+}
 .notes-container h4 {
   margin: 0;
 }
