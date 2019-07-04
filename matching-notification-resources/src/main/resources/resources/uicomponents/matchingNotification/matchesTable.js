@@ -890,8 +890,8 @@ var PhenoTips = (function (PhenoTips) {
                 commentsTable = this._generateCommentsTable(match.comments);
             }
             td += '<div class="xPopup comment-container"><span class="hide-tool" title="Hide">×</span>'
-                + '<div class="nhdialog-title">' + this._COMMENTS_TITLE + '</div>'
-                + '<p class="xHint">' + this._COMMENTS_HINT + '</p>'
+                + '<div class="nhdialog-title">' + this._COMMENTS_TITLE
+                + '<span class="fa fa-info-circle xHelpButton" title="' + this._COMMENTS_HINT + '"></span></div>'
                 + '<div><textarea rows="3" cols="20"></textarea></div>';
             td +='<span class="buttonwrapper"><button class="save-comment" data-matchid="' + match.id + '"><span class="fa fa-save"> </span>'
                 + this._SAVE_COMMENT_BUTTON_LABEL + '</button></span>' + commentsTable + '</div>';
@@ -913,7 +913,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         var tableBody = '';
 
-        for (var i=records.length-1; i >= 0; i--) {
+        for (var i = 0 ; i < records.length ; i++) {
             var record = records[i];
 
             // if no comment text, continue to next comment record
@@ -1478,6 +1478,9 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this));
 
         }.bind(this));
+
+        //initiate HelpButton widgets
+        Event.fire(document, "xwiki:dom:updated", {elements : this._tableElement.select('.comment-container .xHelpButton')});
     },
 
     _hideAllNotesDialogs: function(item)
