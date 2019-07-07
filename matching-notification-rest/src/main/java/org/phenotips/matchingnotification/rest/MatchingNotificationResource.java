@@ -239,4 +239,18 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/save-note")
     Response addNote(@FormParam("matchesIds") Set<Long> matchesIds, @FormParam("note") String note);
+
+    /**
+     * Computes phenotype similarity score.
+     *
+     * @param referencePatient JSON
+     * @param matchPatient JSON
+     * @return result JSON
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/compute-score")
+    Response computeScore(@FormParam("referencePatient") String referencePatient,
+            @FormParam("matchPatient") String matchPatient);
 }

@@ -304,6 +304,7 @@ public class DefaultPatientSimilarityViewFactory implements PatientSimilarityVie
             // Give data to views to use
             this.logger.info("Setting view globals...");
             DefaultPatientSimilarityView.initializeStaticData(termICs, this.vocabularyManager);
+            DefaultPatientSimilarityScorer.initializeStaticData(termICs, this.vocabularyManager);
         }
         this.logger.info("Initialized.");
     }

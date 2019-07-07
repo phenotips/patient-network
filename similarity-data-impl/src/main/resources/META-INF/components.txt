@@ -1,5 +1,6 @@
 org.phenotips.data.similarity.internal.DefaultPatientSimilarityViewFactory
 org.phenotips.data.similarity.internal.RestrictedPatientSimilarityViewFactory
 org.phenotips.data.similarity.internal.DefaultMatchedPatientClusterView
+org.phenotips.data.similarity.internal.DefaultPatientSimilarityScorer
 org.phenotips.data.similarity.script.ExomiserViewScriptService
 org.phenotips.data.similarity.script.PatientMatchingScriptService

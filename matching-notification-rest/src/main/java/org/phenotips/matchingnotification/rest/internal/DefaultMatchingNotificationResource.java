@@ -17,6 +17,9 @@
  */
 package org.phenotips.matchingnotification.rest.internal;
 
+import org.phenotips.data.Patient;
+import org.phenotips.data.PatientRepository;
+import org.phenotips.data.similarity.PatientSimilarityScorer;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
@@ -113,6 +116,12 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Inject
     private EntityReferenceResolver<String> resolver;
+
+    @Inject
+    private PatientRepository repository;
+
+    @Inject
+    private PatientSimilarityScorer phenotypeSimilarityScorer;
 
     @Override
     public void refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
@@ -481,5 +490,40 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             }
         }
         return id;
+    }
+
+    @Override
+    public Response computeScore(String referencePatient, String matchPatient)
+    {
+        Patient reference = createPatientFromJSON(referencePatient);
+        Patient match = createPatientFromJSON(matchPatient);
+
+        if (reference != null && match != null) {
+            try {
+                double score = this.phenotypeSimilarityScorer.getScore(reference, match);
+
+                JSONObject scoreJSON = new JSONObject();
+                scoreJSON.put("score", score);
+
+                return Response.ok(scoreJSON, MediaType.APPLICATION_JSON_TYPE).build();
+            } catch (Exception ex) {
+                this.slf4Jlogger.error("Can't compute phenotype similarity score: [{}]", ex);
+            }
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    private Patient createPatientFromJSON(String patientJSON)
+    {
+        JSONObject json;
+        try {
+            json = new JSONObject(patientJSON);
+        } catch (Exception ex) {
+            this.slf4Jlogger.error("Can't convert JSON to a patient: [{}]", ex.getMessage());
+            return null;
+        }
+        final Patient patient = this.repository.create();
+        patient.updateFromJSON(json);
+        return patient;
     }
 }
