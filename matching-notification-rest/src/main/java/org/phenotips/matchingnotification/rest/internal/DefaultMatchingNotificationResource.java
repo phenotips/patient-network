@@ -291,8 +291,11 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         } catch (final AccessControlException e) {
-            this.slf4Jlogger.error("No rights to modify match with id [{}]", matchId);
+            this.slf4Jlogger.error("No rights to modify match with id [{}]", matchId, e);
             return Response.status(Response.Status.FORBIDDEN).build();
+        } catch (final Exception e) {
+            this.slf4Jlogger.error("Failed to update match with id [{}]", matchId, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 

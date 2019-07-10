@@ -201,7 +201,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public PatientMatch setStatus(Long matchId, String status)
+    public PatientMatch setStatus(Long matchId, String status) throws AccessControlException
     {
         PatientMatch match = this.getMatch(matchId);
         if (match != null && this.matchStorageManager.setStatus(match, status)) {
@@ -211,7 +211,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public PatientMatch setUserContacted(Long matchId, boolean isUserContacted)
+    public PatientMatch setUserContacted(Long matchId, boolean isUserContacted) throws AccessControlException
     {
         PatientMatch match = this.getMatch(matchId);
         if (match != null && this.matchStorageManager.setUserContacted(match, isUserContacted)) {
@@ -221,7 +221,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public PatientMatch saveComment(Long matchId, String comment)
+    public PatientMatch saveComment(Long matchId, String comment) throws AccessControlException
     {
         PatientMatch match = this.getMatch(matchId);
         if (match != null && this.matchStorageManager.saveComment(match, comment)) {
@@ -231,7 +231,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     }
 
     @Override
-    public PatientMatch addNote(Long matchId, String note)
+    public PatientMatch addNote(Long matchId, String note) throws AccessControlException
     {
         PatientMatch match = this.getMatch(matchId);
         if (match != null && this.matchStorageManager.addNote(match, note)) {
@@ -249,7 +249,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         }
         PatientMatch match = matches.get(0);
         if (!currentUserHasViewAccess(match)) {
-            throw new AccessControlException("Current user has no rights to notify matchId " + matchId);
+            this.logger.error("Current user has no rights to modify match with id " + matchId);
+            throw new AccessControlException("Current user has no rights to modify match with id " + matchId);
         }
         return match;
     }
