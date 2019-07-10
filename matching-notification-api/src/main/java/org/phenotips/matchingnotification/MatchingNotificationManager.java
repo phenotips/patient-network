@@ -23,6 +23,7 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotificationR
 
 import org.xwiki.component.annotation.Role;
 
+import java.security.AccessControlException;
 import java.util.List;
 import java.util.Map;
 
@@ -109,8 +110,9 @@ public interface MatchingNotificationManager
      * @param matchId the internal ID of the match of interest
      * @param status whether matches should be set as saved, rejected or uncategorized
      * @return updated match
+     * @throws AccessControlException if user does not have at least view access to each patient in the match
      */
-    PatientMatch setStatus(Long matchId, String status);
+    PatientMatch setStatus(Long matchId, String status) throws AccessControlException;
 
     /**
      * Marks all matches with ids in {@code matchesIds} as user-contacted or not.
@@ -118,8 +120,9 @@ public interface MatchingNotificationManager
      * @param matchId the internal ID of the match of interest
      * @param isUserContacted boolean user-contacted status to set for matches
      * @return updated match
+     * @throws AccessControlException if user does not have at least view access to each patient in the match
      */
-    PatientMatch setUserContacted(Long matchId, boolean isUserContacted);
+    PatientMatch setUserContacted(Long matchId, boolean isUserContacted) throws AccessControlException;
 
     /**
      * Saves comment for a match that has the given {@code matchId internal ID}.
@@ -127,8 +130,9 @@ public interface MatchingNotificationManager
      * @param matchId the internal ID of the match of interest
      * @param comment comment text
      * @return updated match
+     * @throws AccessControlException if user does not have at least view access to each patient in the match
      */
-    PatientMatch saveComment(Long matchId, String comment);
+    PatientMatch saveComment(Long matchId, String comment) throws AccessControlException;
 
     /**
      * Saves note for a match that has the given {@code matchId internal ID}.
@@ -136,6 +140,7 @@ public interface MatchingNotificationManager
      * @param matchId the internal ID of the match of interest
      * @param note note text
      * @return updated match
+     * @throws AccessControlException if user does not have at least view access to each patient in the match
      */
-    PatientMatch addNote(Long matchId, String note);
+    PatientMatch addNote(Long matchId, String note) throws AccessControlException;
 }
