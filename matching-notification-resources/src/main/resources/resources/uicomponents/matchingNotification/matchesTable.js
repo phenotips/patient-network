@@ -1480,7 +1480,7 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
 
         //initiate HelpButton widgets
-        Event.fire(document, "xwiki:dom:updated", {elements : this._tableElement.select('.comment-container .xHelpButton')});
+        Event.fire(document, "xwiki:dom:updated", {'elements' : [this._tableElement]});
     },
 
     _hideAllNotesDialogs: function(item)
