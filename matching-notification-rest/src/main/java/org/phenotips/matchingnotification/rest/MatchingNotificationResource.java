@@ -104,7 +104,7 @@ public interface MatchingNotificationResource
      *  Output JSON: {"results": {"success":[a list of match ids], "failed": [a list of match ids]}}
      * </pre>
      * <dl>
-     * <dt>ids</dt>
+     * <dt>matchesToNotify</dt>
      * <dd>a JSON object (in the format as described above) with a list of match ids that given patients ids
      * should be notified about</dd>
      * </dl>
@@ -113,6 +113,7 @@ public interface MatchingNotificationResource
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("/email")
     Response sendAdminNotificationsToLocalUsers();
 
     /**
@@ -129,7 +130,7 @@ public interface MatchingNotificationResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{matchId}")
+    @Path("/{matchId}/email")
     Response sendUserNotification(@PathParam("matchId") Long matchId,
         @FormParam("subjectPatientId") String patientId,
         @FormParam("subjectServerId") String serverId,
@@ -156,7 +157,7 @@ public interface MatchingNotificationResource
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_HTML)
-    @Path("/{matchId}")
+    @Path("/{matchId}/email")
     Response getEmailToBeSent(@PathParam("matchId") Long matchId,
         @FormParam("subjectPatientId") String patientId,
         @FormParam("subjectServerId") String serverId);
@@ -180,4 +181,15 @@ public interface MatchingNotificationResource
         @Nullable @FormParam("isUserContacted") Boolean isUserContacted,
         @Nullable @FormParam("comment") String comment,
         @Nullable @FormParam("note") String note);
+
+    /**
+     * Returns a JSON object containing match details.
+     *
+     * @param matchId the internal ID of the match of interest
+     * @return match JSON
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{matchId}")
+    Response getMatch(@PathParam("matchId") Long matchId);
 }

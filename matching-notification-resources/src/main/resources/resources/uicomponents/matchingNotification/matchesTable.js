@@ -1696,7 +1696,7 @@ var PhenoTips = (function (PhenoTips) {
         }
         // console.log("Sending " + idsToNotify);
         var idsToNotify = JSON.stringify({ ids: matchIDs});
-        new Ajax.Request(this._ajaxURL, {
+        new Ajax.Request(this._ajaxURL + "/email", {
             parameters : {'matchesToNotify' : idsToNotify},
             onCreate : function (response) {
                 // console.log("Notification request sent");

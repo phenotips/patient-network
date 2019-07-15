@@ -95,7 +95,7 @@ var PhenoTips = (function(PhenoTips) {
 
     launchContactDialog  : function(matchId, subjectPatientId, subjectServerId)
     {
-        new Ajax.Request(this._ajaxURL + matchId + "?method=GET", {
+        new Ajax.Request(this._ajaxURL + matchId + "/email?method=GET", {
             contentType:'application/json',
             parameters : {
                 'subjectPatientId' : subjectPatientId,
@@ -137,7 +137,7 @@ var PhenoTips = (function(PhenoTips) {
 
     _notifyUserMatch: function(matchID, subjectPatientId, subjectServerId, emailText, emailSubject)
     {
-        new Ajax.Request(this._ajaxURL + matchID, {
+        new Ajax.Request(this._ajaxURL + matchID + "/email", {
             contentType : 'application/json',
             parameters : {'subjectPatientId' : subjectPatientId,
                           'subjectServerId' : subjectServerId,
