@@ -240,11 +240,12 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return null;
     }
 
-    private PatientMatch getMatch(Long matchId)
+    @Override
+    public PatientMatch getMatch(Long matchId)
     {
         List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
         if (matches.size() == 0) {
-            this.logger.error("No matches found for matchId " + matchId);
+            this.logger.error("No matches found for match id " + matchId);
             return null;
         }
         PatientMatch match = matches.get(0);

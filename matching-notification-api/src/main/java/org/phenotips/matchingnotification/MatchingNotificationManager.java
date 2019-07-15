@@ -143,4 +143,12 @@ public interface MatchingNotificationManager
      * @throws AccessControlException if user does not have at least view access to each patient in the match
      */
     PatientMatch addNote(Long matchId, String note) throws AccessControlException;
+
+    /**
+     * Returns a match that has the given {@code matchId internal ID}.
+     *
+     * @param matchId the internal ID of the match of interest
+     * @return {@code PatientMatch} match object
+     */
+    PatientMatch getMatch(Long matchId);
 }
