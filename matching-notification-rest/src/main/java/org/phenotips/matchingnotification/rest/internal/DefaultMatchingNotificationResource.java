@@ -202,6 +202,16 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     public Response sendUserNotification(Long matchId, String patientId, String serverId,
         String emailText, String emailSubject)
     {
+        if (matchId == null) {
+            this.slf4Jlogger.error("The requested match id is blank");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (StringUtils.isBlank(patientId)) {
+            this.slf4Jlogger.error("The requested patient id is blank");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         try {
             PatientMatchNotificationResponse notificationResult =
                 this.matchingNotificationManager.sendUserNotification(matchId, patientId, serverId,
