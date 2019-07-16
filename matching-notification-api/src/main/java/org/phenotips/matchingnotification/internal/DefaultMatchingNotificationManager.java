@@ -90,9 +90,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             PatientMatchNotificationResponse notificationResult = this.notifier.notify(email);
 
             if (notificationResult.isSuccessul()) {
-                Collection<PatientMatch> updatedMatches =
-                    this.updateNotificationHistory(notificationResult, email, "notification");
-                notificationResult.setPatientMatches(updatedMatches);
+                this.updateNotificationHistory(notificationResult, email, "notification");
             }
 
             responses.add(notificationResult);
@@ -136,7 +134,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         return notificationResult;
     }
 
-    private Collection<PatientMatch> updateNotificationHistory(PatientMatchNotificationResponse notificationResult,
+    private void updateNotificationHistory(PatientMatchNotificationResponse notificationResult,
         PatientMatchEmail email, String type)
     {
         Collection<PatientMatch> successfulMatches = notificationResult.getPatientMatches();
@@ -147,7 +145,8 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         for (PatientMatch match : successfulMatches) {
             updatedMatches.addAll(this.matchStorageManager.updateNotificationHistory(match, json));
         }
-        return updatedMatches;
+
+        notificationResult.setPatientMatches(updatedMatches);
     }
 
     private JSONObject getNotificationHistoryJSON(PatientMatchEmail email, String type)

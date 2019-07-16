@@ -503,34 +503,6 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
     }
 
-    /**
-     * Load {@code match} with specified parameters.
-     *
-     * @param referencePatientId id of reference patient
-     * @param referenceServerId id of the server that hosts reference patient
-     * @param matchedPatientId id of matched patient
-     * @param matchedServerId id of the server that hosts matched patient
-     * @return match
-     */
-    private PatientMatch loadMatchBetweenPatients(String referencePatientId, String referenceServerId,
-        String matchedPatientId, String matchedServerId)
-    {
-        if (StringUtils.isNotEmpty(referencePatientId)) {
-            // referencePatientId is "reference patient"
-            Criterion directMatch = Restrictions.and(
-                this.patientIsReference(referencePatientId, referenceServerId),
-                this.patientIsMatch(matchedPatientId, matchedServerId));
-            List<PatientMatch> matches = this.loadMatchesByCriteria(directMatch);
-            if (matches.isEmpty()) {
-                return null;
-            }
-
-            return matches.get(0);
-        } else {
-            return null;
-        }
-    }
-
     private String getStoredServerId(String serverId)
     {
         if (serverId == null) {
@@ -601,8 +573,8 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         matchesToUpdate.add(match);
 
         if (!match.isLocal()) {
-            String referenceServerId = match.isIncoming() ? match.getReferenceServerId() : "";
-            String matchedServerId = match.isIncoming() ? "" : match.getMatchedServerId();
+            String referenceServerId = this.getStoredServerId(match.getReferenceServerId());
+            String matchedServerId = this.getStoredServerId(match.getMatchedServerId());
 
             // Load equivalent remote match
             PatientMatch equivalentMatch = loadMatchBetweenPatients(match.getMatchedPatientId(),
@@ -617,9 +589,9 @@ public class DefaultMatchStorageManager implements MatchStorageManager
             for (PatientMatch matchToUpdate : matchesToUpdate) {
                 matchToUpdate.updateNotificationHistory(notificationRecord);
                 session.update(matchToUpdate);
-                transactionCompleted = true;
                 updatedMatches.add(matchToUpdate);
             }
+            transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error updating notification history: [{}]", ex.getMessage(), ex);
         } finally {
@@ -627,6 +599,31 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         }
 
         return updatedMatches;
+    }
+
+    /**
+     * Load {@code match} with specified parameters.
+     *
+     * @param referencePatientId id of reference patient
+     * @param referenceServerId id of the server that hosts reference patient
+     * @param matchedPatientId id of matched patient
+     * @param matchedServerId id of the server that hosts matched patient
+     * @return match
+     */
+    private PatientMatch loadMatchBetweenPatients(String referencePatientId, String referenceServerId,
+        String matchedPatientId, String matchedServerId)
+    {
+        if (StringUtils.isNotEmpty(referencePatientId)) {
+            // referencePatientId is "reference patient"
+            Criterion directMatch = Restrictions.and(
+                this.patientIsReference(referencePatientId, referenceServerId),
+                this.patientIsMatch(matchedPatientId, matchedServerId));
+            List<PatientMatch> matches = this.loadMatchesByCriteria(directMatch);
+            if (!matches.isEmpty()) {
+                return matches.get(0);
+            }
+        }
+        return null;
     }
 
     @Override
