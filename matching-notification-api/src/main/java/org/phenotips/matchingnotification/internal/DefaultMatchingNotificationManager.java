@@ -105,13 +105,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
         if (matches.size() == 0) {
-            throw new IllegalArgumentException("MatchId " + matchId + " is not a valid match id");
+            this.logger.error("No matches found for match id " + matchId);
+            return null;
         }
 
         PatientMatch match = matches.get(0);
 
         if (!this.currentUserHasViewAccess(match)) {
-            throw new AccessControlException("Current user has no rights to notify MatchId " + matchId);
+            throw new AccessControlException("Current user has no rights to notify match id " + matchId);
         }
 
         PatientMatchEmail email = this.notifier.createUserEmail(match,
@@ -180,7 +181,18 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         List<PatientMatch> matches =
             this.matchStorageManager.loadMatchesByIds(Collections.singleton(matchId));
 
-        PatientMatchEmail email = this.notifier.createUserEmail(matches.get(0),
+        if (matches.size() == 0) {
+            this.logger.error("No matches found for match id " + matchId);
+            return null;
+        }
+
+        PatientMatch match = matches.get(0);
+
+        if (!this.currentUserHasViewAccess(match)) {
+            throw new AccessControlException("Current user has no access to match id " + matchId);
+        }
+
+        PatientMatchEmail email = this.notifier.createUserEmail(match,
             subjectPatientId, subjectServerId, null, null);
 
         return email.getEmail();

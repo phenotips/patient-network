@@ -165,7 +165,7 @@ public interface MatchingNotificationResource
     /**
      * Update match status, user-contacted state, comment or note.
      *
-     * @param matchId the internal ID of the matchId of interest
+     * @param matchId the internal ID of the match of interest
      * @param status whether match status should be set as 'saved', 'rejected' or 'uncategorized'
      * @param isUserContacted boolean user-contacted status to set for the match
      * @param comment comment text
