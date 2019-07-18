@@ -414,7 +414,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
             // Factor in overlap between candidate genes
             double genotypeScore = getGenotypeScore();
             // Return boosted score
-            return 0.5 * (phenotypeScore + genotypeScore);
+            this.score = 0.5 * (phenotypeScore + genotypeScore);
         }
         return this.score;
     }
