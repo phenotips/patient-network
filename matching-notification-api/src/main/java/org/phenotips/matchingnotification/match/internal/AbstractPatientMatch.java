@@ -20,9 +20,9 @@ package org.phenotips.matchingnotification.match.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
-import org.phenotips.data.similarity.phenotype.PhenotypesMap;
+import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
 
@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
  * @version $Id$
  */
 @MappedSuperclass()
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class AbstractPatientMatch implements PatientMatch, Lifecycle
 {
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientMatch.class);
@@ -216,7 +217,7 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         this.referenceServerId = (referenceServerId == null) ? "" : referenceServerId;
         Set<String> matchedGenes = similarityView.getMatchingGenes();
         // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId,
+        this.referencePatientInMatch = new DefaultPatientInMatch(referencePatient, this.referenceServerId,
                 matchedGenes);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
@@ -232,7 +233,7 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         }
         this.matchedPatientId = this.limitStringLength(matchedPatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId,
+        this.matchedPatientInMatch = new DefaultPatientInMatch(matchedPatient, this.matchedServerId,
                 matchedGenes);
 
         // Properties of the match
@@ -244,11 +245,6 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
-
-        // Reorder phenotype
-        DefaultPhenotypesMap.reorder(
-            this.referencePatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED),
-            this.matchedPatientInMatch.getPhenotypes().get(PhenotypesMap.PREDEFINED));
 
         // After reordering!
         this.referenceDetails = this.referencePatientInMatch.getDetailsColumnJSON().toString();
@@ -469,6 +465,8 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         json.put("comments", this.getComments());
         json.put("notificationHistory", this.getNotificationHistory());
         json.put("notes", this.getNote());
+
+        json.put("phenotypesSimilarity", getFeatureMatchesJSON());
 
         return json;
     }
@@ -748,5 +746,15 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         } catch (JSONException ex) {
             // error parsing notes or new record JSON string to JSON object happened
         }
+    }
+
+    @Override
+    public JSONArray getFeatureMatchesJSON()
+    {
+        PatientPhenotypeSimilarityView featuresView =
+            new DefaultPatientPhenotypeSimilarityView(this.matchedPatientInMatch.getPhenotypes(),
+                this.referencePatientInMatch.getPhenotypes());
+
+        return featuresView.toJSON();
     }
 }

@@ -828,9 +828,7 @@ var PhenoTips = (function (PhenoTips) {
     _aggregatePhenotypes : function(match)
     {
         var matchPhenotypes = [];
-        var allPhenotypes = match.matched.phenotypes.predefined.concat(match.reference.phenotypes.predefined)
-                                                               .concat(match.reference.phenotypes.freeText)
-                                                               .concat(match.matched.phenotypes.freeText);
+        var allPhenotypes = match.matched.phenotypes.concat(match.reference.phenotypes);
         allPhenotypes.each(function (elm) {
             matchPhenotypes.push(elm.name);
         });

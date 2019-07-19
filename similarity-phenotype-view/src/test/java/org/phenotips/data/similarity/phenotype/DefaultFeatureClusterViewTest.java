@@ -18,7 +18,6 @@
 package org.phenotips.data.similarity.phenotype;
 
 import org.phenotips.data.Feature;
-import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.phenotype.mocks.MockFeature;
 import org.phenotips.vocabulary.VocabularyTerm;
@@ -30,7 +29,6 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
@@ -45,30 +43,18 @@ public class DefaultFeatureClusterViewTest
 {
     private static final String PHENOTYPE = "phenotype";
 
-    private static AccessType open;
-
-    @BeforeClass
-    public static void setupAccessTypes()
-    {
-        open = mock(AccessType.class);
-        when(open.isOpenAccess()).thenReturn(true);
-        when(open.isLimitedAccess()).thenReturn(false);
-        when(open.isPrivateAccess()).thenReturn(false);
-        when(open.toString()).thenReturn("owner");
-    }
-
     /** Missing reference throws exception. */
     @Test(expected = IllegalArgumentException.class)
     public void testNullReference()
     {
-        new DefaultFeatureClusterView(new ArrayList<Feature>(), null, open, null);
+        new DefaultFeatureClusterView(new ArrayList<Feature>(), null, null);
     }
 
     /** Missing match throws exception. */
     @Test(expected = IllegalArgumentException.class)
     public void testNullMatch()
     {
-        new DefaultFeatureClusterView(null, new ArrayList<Feature>(), open, null);
+        new DefaultFeatureClusterView(null, new ArrayList<Feature>(), null);
     }
 
     /** Basic test for ancestor information retrieval. */
@@ -82,7 +68,7 @@ public class DefaultFeatureClusterViewTest
         when(ancestor.getName()).thenReturn("Cataract");
         when(ancestor.getId()).thenReturn("HP:0000518");
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, ancestor);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, ancestor);
         // Test that ancestor information is retrieved as Feature methods of ClusterView
         Assert.assertEquals(ancestor, o.getRoot());
 
@@ -97,7 +83,7 @@ public class DefaultFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<>();
         Collection<Feature> reference = new ArrayList<>();
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
         // Test that ancestor information is retrieved as Feature methods of ClusterView
         Assert.assertEquals(null, o.getRoot());
         Assert.assertEquals("Unmatched", o.getName());
@@ -111,7 +97,7 @@ public class DefaultFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<>();
         Collection<Feature> reference = new ArrayList<>();
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
         Assert.assertTrue(o.getMatch().isEmpty());
     }
 
@@ -122,7 +108,7 @@ public class DefaultFeatureClusterViewTest
         Collection<Feature> match = new ArrayList<>();
         Collection<Feature> reference = new ArrayList<>();
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
         Assert.assertTrue(o.getMatch().isEmpty());
 
         match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
@@ -131,7 +117,7 @@ public class DefaultFeatureClusterViewTest
         match.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, false));
         match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
-        o = new DefaultFeatureClusterView(match, reference, open, null);
+        o = new DefaultFeatureClusterView(match, reference, null);
         Assert.assertEquals(match.size(), o.getMatch().size());
         for (Feature f : o.getMatch()) {
             Assert.assertTrue(match.contains(f));
@@ -147,7 +133,7 @@ public class DefaultFeatureClusterViewTest
 
         match.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
         Assert.assertEquals(match.size(), o.getMatch().size());
         o.getMatch().clear();
     }
@@ -161,7 +147,7 @@ public class DefaultFeatureClusterViewTest
 
         reference.add(new MockFeature("HP:0001382", "Joint hypermobility", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
         Assert.assertEquals(reference.size(), o.getReference().size());
         o.getReference().clear();
     }
@@ -186,7 +172,7 @@ public class DefaultFeatureClusterViewTest
         match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
         match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, ancestor);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, ancestor);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals(3, result.length());
@@ -228,7 +214,7 @@ public class DefaultFeatureClusterViewTest
         match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
         match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals(3, result.length());
@@ -266,7 +252,7 @@ public class DefaultFeatureClusterViewTest
         match.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
         match.add(new MockFeature("HP:0001256", "Mild intellectual disability", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals(3, result.length());
@@ -299,7 +285,7 @@ public class DefaultFeatureClusterViewTest
         reference.add(new MockFeature("HP:0000518", "Cataract", PHENOTYPE, true));
         reference.add(new MockFeature("HP:0001249", "Intellectual disability", PHENOTYPE, true));
 
-        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, open, null);
+        FeatureClusterView o = new DefaultFeatureClusterView(match, reference, null);
 
         JSONObject result = o.toJSON();
         Assert.assertEquals(3, result.length());

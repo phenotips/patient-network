@@ -19,9 +19,11 @@ package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
+import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.permissions.EntityPermissionsManager;
@@ -29,8 +31,6 @@ import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
-import org.phenotips.data.similarity.phenotype.DefaultPhenotypesMap;
-import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 import org.phenotips.groups.Group;
 import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientInMatch;
@@ -112,7 +112,7 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private Set<String> matchedExomeGenes;
 
-    private PhenotypesMap phenotypes;
+    private Set<? extends Feature> phenotypes;
 
     private Patient patient;
 
@@ -159,29 +159,28 @@ public class DefaultPatientInMatch implements PatientInMatch
      * Builds an object from PatientMatch and Patient objects. This is used when a PatientMatch object is built the
      * first time.
      *
-     * @param match the match that contains the patient this object represents
      * @param patient the patient that this object represents
      * @param serverId id of server where patient is found
      * @param matchedGenes all matched genes between two patients
      */
-    public DefaultPatientInMatch(PatientMatch match, Patient patient, String serverId, Set<String> matchedGenes)
+    public DefaultPatientInMatch(Patient patient, String serverId, Set<String> matchedGenes)
     {
         this.patient = patient;
         this.patientId = patient.getId();
         this.serverId = serverId;
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         this.setAccess();
-        this.readDetails(patient, matchedGenes);
+        this.readDetails(matchedGenes);
     }
 
     /**
-     * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumnJSON. This is used
-     * when a PatientMatch is retrieved from the DB.
+     * Builds an object for a patient from a PatientMatch and the result of a call to getDetailsColumnJSON().
+     * This is used when a PatientMatch is retrieved from the DB.
      *
      * @param match the match that contains the patient this object represents
      * @param patientId the id of the patient that this object represents
      * @param serverId id of server where patient is found
-     * @param patientDetails the result of a previous call to getDetailsColumnJSON.
+     * @param patientDetails the result of a previous call to getDetailsColumnJSON().
      */
     public DefaultPatientInMatch(PatientMatch match, String patientId, String serverId, String patientDetails)
     {
@@ -244,7 +243,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         JSONObject json = new JSONObject();
         json.put(GENES, this.genes);
         json.put(MATCHED_EXOME_GENES, this.matchedExomeGenes);
-        json.put(PHENOTYPES, this.phenotypes.toJSON());
+        json.put(PHENOTYPES, this.phenotypes);
         json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
         json.put(AGE_ON_ONSET, this.ageOfOnset);
         json.put(CONTACT_INFO, (this.contactInfo != null) ? this.contactInfo.toJSON() : null);
@@ -279,7 +278,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     }
 
     @Override
-    public PhenotypesMap getPhenotypes()
+    public Set<? extends Feature> getPhenotypes()
     {
         return this.phenotypes;
     }
@@ -375,7 +374,7 @@ public class DefaultPatientInMatch implements PatientInMatch
 
         this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
         this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.optJSONArray(MATCHED_EXOME_GENES)));
-        this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
+        this.phenotypes = readFeatures(json.optJSONArray(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
         this.contactInfo = rebuildContactInfo(json.optJSONObject(CONTACT_INFO), oldMMEContactData);
@@ -395,13 +394,13 @@ public class DefaultPatientInMatch implements PatientInMatch
         return Collections.unmodifiableSet(set);
     }
 
-    private void readDetails(Patient patient, Set<String> matchedGenes)
+    private void readDetails(Set<String> matchedGenes)
     {
-        this.genes = this.getGenes(patient);
+        this.genes = this.getGenes(this.patient);
         this.matchedExomeGenes = this.getMatchedExomeGenes(matchedGenes);
-        this.phenotypes = new DefaultPhenotypesMap(patient);
+        this.phenotypes = this.patient.getFeatures();
 
-        PatientData<List<SolrVocabularyTerm>> globalControllers = patient.getData("global-qualifiers");
+        PatientData<List<SolrVocabularyTerm>> globalControllers = this.patient.getData("global-qualifiers");
         this.ageOfOnset = this.getAgeOfOnset(globalControllers);
         this.modeOfInheritance = this.getModeOfInheritance(globalControllers);
         this.contactInfo = this.populateContactInfo();
@@ -595,5 +594,21 @@ public class DefaultPatientInMatch implements PatientInMatch
         ownershipJSON.put("userGroupIsOwner", userGroupIsOwner);
         ownershipJSON.put("publicRecord", isPublic);
         return ownershipJSON;
+    }
+
+    // read patient features from match "details" JSONArray saved in db
+    private Set<Feature> readFeatures(JSONArray phenotypesJson)
+    {
+        Set<Feature> features = new HashSet<>();
+        if (phenotypesJson == null) {
+            return features;
+        }
+
+        for (Object object : phenotypesJson) {
+            JSONObject item = (JSONObject) object;
+            Feature phenotipsFeature = new PhenoTipsFeature(item);
+            features.add(phenotipsFeature);
+        }
+        return features;
     }
 }

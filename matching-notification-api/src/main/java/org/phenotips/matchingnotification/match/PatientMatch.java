@@ -347,4 +347,9 @@ public interface PatientMatch
      * @param isExternallyContacted boolean indicator whether contact regarding this match was done or not
      */
     void setExternallyContacted(boolean isExternallyContacted);
+
+    /**
+     * @return the matched features JSON array in a cluster view.
+     */
+    JSONArray getFeatureMatchesJSON();
 }
