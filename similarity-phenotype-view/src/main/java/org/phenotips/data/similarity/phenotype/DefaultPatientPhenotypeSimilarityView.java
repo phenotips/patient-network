@@ -19,7 +19,6 @@ package org.phenotips.data.similarity.phenotype;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.Feature;
-import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.FeatureClusterView;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.vocabulary.Vocabulary;
@@ -70,9 +69,6 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
     /** The features in the reference patient. */
     protected final Set<? extends Feature> referenceFeatures;
 
-    /** The access level the user has to the patient. */
-    protected final AccessType access;
-
     /** The collection of feature cluster views for the match of patients. */
     protected final Collection<FeatureClusterView> featureClusters;
 
@@ -82,11 +78,10 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
      *
      * @param matchFeatures the features in the matched patient, can be empty
      * @param referenceFeatures the features in the reference patient, can be empty
-     * @param access the access level of the match
      * @throws IllegalArgumentException if match or reference features are null
      */
     public DefaultPatientPhenotypeSimilarityView(Set<? extends Feature> matchFeatures,
-        Set<? extends Feature> referenceFeatures, AccessType access)
+        Set<? extends Feature> referenceFeatures)
     {
         if (matchFeatures == null || referenceFeatures == null) {
             throw new IllegalArgumentException("match and reference feture sets must not be null");
@@ -107,7 +102,6 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
 
         this.matchFeatures = matchFeatures;
         this.referenceFeatures = referenceFeatures;
-        this.access = access;
         this.featureClusters = constructFeatureClusters();
     }
 
@@ -136,14 +130,13 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
      *
      * @param matchFeatures the features in the matched patient
      * @param reference the features in the reference patient
-     * @param access the access level of the match
      * @param root the root/shared ancestor for the cluster
      * @return returns a feature view container of matched and reference features with shared root
      */
     protected FeatureClusterView createFeatureClusterView(Collection<Feature> matchFeatures,
-        Collection<Feature> reference, AccessType access, VocabularyTerm root)
+        Collection<Feature> reference, VocabularyTerm root)
     {
-        return new DefaultFeatureClusterView(matchFeatures, reference, access, root);
+        return new DefaultFeatureClusterView(matchFeatures, reference, root);
     }
 
     private Collection<FeatureClusterView> constructFeatureClusters()
@@ -168,7 +161,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
             Collection<Feature> abnormalRefFeatures = termsToFeatures(refTerms, refFeatureLookup);
 
             FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
-                this.access, null);
+                null);
             clusters.add(cluster);
             return clusters;
         }
@@ -189,11 +182,8 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
                 Collection<Feature> abnormalRefFeatures =
                     termsToFeatures(refSortedTerms.get(abnormalityId), refFeatureLookup);
 
-                // reorder so the exact matches are listed first
-                DefaultPhenotypesMap.reorder(abnormalMatchFeatures, abnormalRefFeatures);
-
                 FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
-                    this.access, term);
+                    term);
                 clusters.add(cluster);
                 continue;
             } else {
@@ -211,7 +201,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
                 termsToFeatures(refSortedTerms.get(UNCATEGORIZED), refFeatureLookup);
 
             FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
-                this.access, null);
+                null);
             clusters.add(cluster);
         }
 

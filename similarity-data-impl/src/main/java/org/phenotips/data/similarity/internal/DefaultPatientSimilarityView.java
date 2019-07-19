@@ -151,7 +151,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
         if (!DefaultPatientPhenotypeSimilarityView.isInitialized()) {
             DefaultPatientPhenotypeSimilarityView.initializeStaticData(vocabularyManager);
         }
-        return new DefaultPatientPhenotypeSimilarityView(match, reference, access);
+        return new DefaultPatientPhenotypeSimilarityView(match, reference);
     }
 
     /**

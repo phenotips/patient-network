@@ -18,9 +18,9 @@
 package org.phenotips.matchingnotification.match;
 
 import org.phenotips.data.ContactInfo;
+import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.similarity.phenotype.PhenotypesMap;
 
 import java.util.Collection;
 import java.util.Set;
@@ -92,9 +92,9 @@ public interface PatientInMatch
     Set<String> getMatchedExomeGenes();
 
     /**
-     * @return phenotypes map
+     * @return set of patients phenotypes
      */
-    PhenotypesMap getPhenotypes();
+    Set<? extends Feature> getPhenotypes();
 
     /**
      * @return JSON representation of object

@@ -67,7 +67,7 @@ public class DefaultAdminPatientMatchEmail extends AbstractPatientMatchEmail
             Map<String, Object> matchMap = new HashMap<>();
 
             // Feature matching
-            JSONArray featureMatchesJSON = getFeatureMatchesJSON(match);
+            JSONArray featureMatchesJSON = match.getFeatureMatchesJSON();
             if (featureMatchesJSON.length() > 0) {
                 matchMap.put("featureMatches", featureMatchesJSON);
             }
