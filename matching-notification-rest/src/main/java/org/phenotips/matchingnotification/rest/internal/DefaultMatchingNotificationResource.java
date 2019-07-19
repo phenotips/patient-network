@@ -426,9 +426,11 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
         try {
             PatientMatch match = this.matchingNotificationManager.getMatch(matchId);
-            JSONObject matchJson = new JSONObject();
-            matchJson.put("results", match != null ? match.toJSON() : null);
-            return Response.ok(matchJson, MediaType.APPLICATION_JSON_TYPE).build();
+            if (match == null) {
+                this.slf4Jlogger.debug("No such match with id: [{}]", matchId);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.ok(match.toJSON(), MediaType.APPLICATION_JSON_TYPE).build();
         } catch (AccessControlException ex) {
             this.slf4Jlogger.error("No rights to access match id [{}]", matchId);
             return Response.status(Response.Status.FORBIDDEN).build();
