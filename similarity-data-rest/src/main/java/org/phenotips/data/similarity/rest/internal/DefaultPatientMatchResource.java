@@ -23,6 +23,7 @@ import org.phenotips.data.similarity.MatchedPatientClusterView;
 import org.phenotips.data.similarity.PatientSimilarityView;
 import org.phenotips.data.similarity.internal.DefaultMatchedPatientClusterView;
 import org.phenotips.data.similarity.rest.PatientMatchResource;
+import org.phenotips.matchingnotification.match.PatientMatch;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.similarity.SimilarPatientsFinder;
 
@@ -32,6 +33,7 @@ import org.xwiki.container.Request;
 import org.xwiki.rest.XWikiResource;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -131,12 +133,12 @@ public class DefaultPatientMatchResource extends XWikiResource implements Patien
     {
         final List<PatientSimilarityView> matches = this.similarPatientsFinder.findSimilarPatients(patient);
 
-        this.matchStorageManager.saveLocalMatches(
-            this.matchStorageManager.getMatchesToBePlacedIntoNotificationTable(matches), patient.getId());
+        Map<PatientSimilarityView, PatientMatch> savedMatches =
+            this.matchStorageManager.saveLocalMatches(matches, patient.getId());
 
-        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches);
+        final MatchedPatientClusterView cluster = new DefaultMatchedPatientClusterView(patient, matches, savedMatches);
         try {
-            final JSONObject matchesJson = cluster.toJSON(offset - 1, limit);
+            JSONObject matchesJson = cluster.toJSON(offset - 1, limit);
             matchesJson.put(REQ_NO, reqNo);
             return Response.ok(matchesJson, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (final IndexOutOfBoundsException e) {

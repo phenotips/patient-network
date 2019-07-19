@@ -94,10 +94,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
 
-            if (!this.matchStorageManager.setNotifiedStatus(successfulMatches, true)) {
-                this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
-            }
-
             this.updateNotificationHistory(successfulMatches, email, "notification");
 
             responses.addAll(notificationResults);
@@ -134,10 +130,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
         List<PatientMatch> successfulMatches = this.getSuccessfulNotifications(notificationResults);
 
-        if (!this.matchStorageManager.setNotifiedStatus(successfulMatches, true)) {
-            this.logger.error("Error marking matches as notified for patient {}.", email.getSubjectPatientId());
-        }
-
         this.updateNotificationHistory(successfulMatches, email, "contact");
 
         return notificationResults.get(0);
@@ -164,12 +156,10 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
         json.put("subjectPatientId", mimeJSON.optString(AbstractPatientMatchEmail.EMAIL_SUBJECT_PATIENT_ID));
 
         for (PatientMatch notifiedMatch : matches) {
-            Timestamp date = notifiedMatch.getNotifiedTimestamp();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm");
-            json.put("date", date == null ? sdf.format(new Timestamp(System.currentTimeMillis())) : sdf.format(date));
-
+            json.put("date", sdf.format(new Timestamp(System.currentTimeMillis())));
             if (!this.matchStorageManager.updateNotificationHistory(notifiedMatch, json)) {
-                this.logger.error("Error saving {} history for match {}", type, notifiedMatch.getId());
+                this.logger.error("Error saving [{}] history for match [{}]", type, notifiedMatch.getId());
             }
         }
     }
@@ -204,14 +194,14 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
     public boolean saveIncomingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
         String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, true);
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, true) != null;
     }
 
     @Override
     public boolean saveOutgoingMatches(List<? extends PatientSimilarityView> similarityViews, String patientId,
         String remoteId)
     {
-        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, false);
+        return this.matchStorageManager.saveRemoteMatches(similarityViews, patientId, remoteId, false) != null;
     }
 
     @Override
@@ -226,24 +216,6 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
             successful = this.matchStorageManager.setStatus(matches, status);
         } catch (Exception e) {
             this.logger.error("Error while marking matches {} as {}", Joiner.on(",").join(matchesIds), status, e);
-        }
-        return successful;
-    }
-
-    @Override
-    public boolean setNotifiedStatus(Set<Long> matchesIds, boolean isNotified)
-    {
-        boolean successful = false;
-        try {
-            List<PatientMatch> matches = this.matchStorageManager.loadMatchesByIds(matchesIds);
-
-            filterNonUsersMatches(matches);
-
-            successful = this.matchStorageManager.setNotifiedStatus(matches, isNotified);
-        } catch (Exception e) {
-            String status = isNotified ? "notified" : "unnotified";
-            this.logger.error("Error while marking matches {} as {}",
-                Joiner.on(",").join(matchesIds), status, e);
         }
         return successful;
     }

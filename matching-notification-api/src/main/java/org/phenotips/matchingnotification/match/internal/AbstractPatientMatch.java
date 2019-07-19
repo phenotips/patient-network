@@ -38,16 +38,14 @@ import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.CallbackException;
 import org.hibernate.Session;
-import org.hibernate.annotations.Index;
 import org.hibernate.classic.Lifecycle;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,75 +56,64 @@ import org.slf4j.LoggerFactory;
 /**
  * @version $Id$
  */
-
-@Entity
-@Table(name = "patient_matching")
-@org.hibernate.annotations.Table(appliesTo = "patient_matching",
-    indexes = { @Index(name = "filterIndex", columnNames = { "notified", "score" }),
-    @Index(name = "propertiesIndex", columnNames = { "notified", "status" }) })
-public class DefaultPatientMatch implements PatientMatch, Lifecycle
+@MappedSuperclass()
+public class AbstractPatientMatch implements PatientMatch, Lifecycle
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientMatch.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientMatch.class);
 
-    private static final int DB_HREF_FIELD_LENGTH = 2048;
+    protected static final int DB_HREF_FIELD_LENGTH = 2048;
 
-    private static final int DB_MAX_DEFAULT_STRING_LENGTH = 255;
+    protected static final int DB_MAX_DEFAULT_STRING_LENGTH = 255;
 
     /** separates between tokens. */
-    private static final String SEPARATOR = ";";
+    protected static final String SEPARATOR = ";";
 
-    private static final String ID = "id";
+    protected static final String ID = "id";
 
-    private static final String JSON_KEY_INTERACTIONS = "interactions";
+    protected static final String JSON_KEY_INTERACTIONS = "interactions";
 
-    private static final String USER_CONTACTED = "user-contacted";
+    protected static final String USER_CONTACTED = "user-contacted";
 
-    private static final UserManager USER_MANAGER;
+    protected static final UserManager USER_MANAGER;
+
+    protected static final double DOUBLE_COMPARE_EPSILON = 0.0000001;
 
     /*
      * Attributes of the match
      */
     @Id
     @GeneratedValue
-    private Long id;
+    protected Long id;
 
     @Basic
-    private Timestamp foundTimestamp;
-
-    @Basic
-    @Index(name = "notifiedIndex")
-    private Boolean notified;
-
-    @Basic
-    private Timestamp notifiedTimestamp;
+    protected Timestamp foundTimestamp;
 
     /**
      * @deprecated use {@link status} instead
      */
     @Basic
     @Deprecated
-    private Boolean rejected;
+    protected Boolean rejected;
 
     @Basic
-    @Index(name = "statusIndex")
-    private String status;
-
-    @Basic
-    @Column(length = 0xFFFFFF)
-    private String comments;
+    protected String status;
 
     @Basic
     @Column(length = 0xFFFFFF)
-    private String notes;
+    protected String comments;
 
     @Basic
-    private Double score;
+    @Column(length = 0xFFFFFF)
+    protected String notes;
 
     @Basic
-    private Double genotypeScore;
+    protected Double score;
 
     @Basic
-    private Double phenotypeScore;
+    protected Double genotypeScore;
+
+    @Basic
+    protected Double phenotypeScore;
 
     @Basic
     /* an href to remote patient (either matched or reference). Only one of these options is true
@@ -143,53 +130,49 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
      *       https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
      */
     @Column(length = DB_HREF_FIELD_LENGTH)
-    private String href;
+    protected String href;
 
     /*
      * Attributes of reference patient
      */
     @Basic
-    @Index(name = "referencePatientIndex")
-    private String referencePatientId;
+    protected String referencePatientId;
 
     /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
      * but getters return it as `null`
      */
     @Basic
-    @Index(name = "referenceServerIndex")
-    private String referenceServerId;
+    protected String referenceServerId;
 
     @Basic
     @Column(length = 0xFFFFFF)
-    private String referenceDetails;
+    protected String referenceDetails;
 
     @Transient
-    private PatientInMatch referencePatientInMatch;
+    protected PatientInMatch referencePatientInMatch;
 
     /*
      * Attributes of matched patient
      */
     @Basic
-    @Index(name = "matchedPatientIndex")
-    private String matchedPatientId;
+    protected String matchedPatientId;
 
     /* Local server is stored as "" (to avoid complications of dealing with `null`-s in SQL),
      * but getters return it as `null`
      */
     @Basic
-    @Index(name = "matchedServerIndex")
-    private String matchedServerId;
+    protected String matchedServerId;
 
     @Basic
     @Column(length = 0xFFFFFF)
-    private String matchedDetails;
+    protected String matchedDetails;
 
     @Basic
     @Column(length = 0xFFFFFF)
-    private String notificationHistory;
+    protected String notificationHistory;
 
     @Transient
-    private PatientInMatch matchedPatientInMatch;
+    protected PatientInMatch matchedPatientInMatch;
 
     static {
         UserManager um = null;
@@ -205,28 +188,18 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     /**
      * Hibernate requires a no-args constructor.
      */
-    public DefaultPatientMatch()
+    public AbstractPatientMatch()
     {
     }
 
     /**
-     * Build a DefaultPatientMatch from a PatientSimilarityView. Both patients are local.
-     *
-     * @param similarityView the object to read match from
-     */
-    public DefaultPatientMatch(PatientSimilarityView similarityView)
-    {
-        this.initialize(similarityView, null, null);
-    }
-
-    /**
-     * Build a DefaultPatientMatch from a PatientSimilarityView.
+     * Create a PatientMatch from a PatientSimilarityView.
      *
      * @param similarityView the object to read match from
      * @param referenceServerId id of server where reference patient is found
      * @param matchedServerId if of server where matched patient is found
      */
-    public DefaultPatientMatch(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
+    public AbstractPatientMatch(PatientSimilarityView similarityView, String referenceServerId, String matchedServerId)
     {
         this.initialize(similarityView, referenceServerId, matchedServerId);
     }
@@ -237,11 +210,10 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         Patient referencePatient = similarityView.getReference();
         this.referencePatientId = this.limitStringLength(referencePatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.referenceServerId = (referenceServerId == null) ? "" : referenceServerId;
-
         Set<String> matchedGenes = similarityView.getMatchingGenes();
         // we want to store local server ID as "" to avoid complications of dealing with `null`-s in SQL
-        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, referenceServerId,
-            matchedGenes);
+        this.referencePatientInMatch = new DefaultPatientInMatch(this, referencePatient, this.referenceServerId,
+                matchedGenes);
 
         // Matched patient: The matched patient is provided by the similarity view for local matches. But for an
         // incoming remote match, where the reference patient is remote and the matched is local, similarity view
@@ -256,12 +228,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
         }
         this.matchedPatientId = this.limitStringLength(matchedPatient.getId(), DB_MAX_DEFAULT_STRING_LENGTH);
         this.matchedServerId = (matchedServerId == null) ? "" : matchedServerId;
-        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, matchedServerId, matchedGenes);
+        this.matchedPatientInMatch = new DefaultPatientInMatch(this, matchedPatient, this.matchedServerId,
+                matchedGenes);
 
         // Properties of the match
         this.foundTimestamp = new Timestamp(System.currentTimeMillis());
-        this.notifiedTimestamp = null;
-        this.notified = false;
         this.notificationHistory = null;
         this.comments = null;
         this.notes = null;
@@ -413,27 +384,6 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     }
 
     @Override
-    public void setNotified(boolean isNotified)
-    {
-        this.notified = isNotified;
-        if (isNotified) {
-            this.notifiedTimestamp = new Timestamp(System.currentTimeMillis());
-        }
-    }
-
-    @Override
-    public Timestamp getNotifiedTimestamp()
-    {
-        return this.notifiedTimestamp;
-    }
-
-    @Override
-    public Boolean isNotified()
-    {
-        return this.notified;
-    }
-
-    @Override
     public String getReferencePatientId()
     {
         return this.referencePatientId;
@@ -512,9 +462,7 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
-        json.put("notifiedTimestamp", this.notifiedTimestamp == null ? "" : sdf.format(this.notifiedTimestamp));
 
-        json.put("notified", this.isNotified());
         json.put("status", this.getStatus());
         json.put("score", this.getScore());
         json.put("genotypicScore", this.getGenotypeScore());
@@ -530,11 +478,11 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public boolean equals(Object obj)
     {
-        if (!(obj instanceof DefaultPatientMatch)) {
+        if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
 
-        DefaultPatientMatch other = (DefaultPatientMatch) obj;
+        AbstractPatientMatch other = (AbstractPatientMatch) obj;
 
         return (StringUtils.equals(this.getReferencePatientId(), other.getReferencePatientId())
             && StringUtils.equals(this.getReferenceServerId(), other.getReferenceServerId())
@@ -549,6 +497,27 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
             && StringUtils.equals(this.getReferenceServerId(), other.getMatchedServerId())
             && StringUtils.equals(this.getMatchedPatientId(), other.getReferencePatientId())
             && StringUtils.equals(this.getMatchedServerId(), other.getReferenceServerId());
+    }
+
+    @Override
+    public boolean hasSameMatchData(PatientMatch other)
+    {
+        return isEquivalent(other)
+            && sameScore(other)
+            && StringUtils.equals(this.getMatchedDetails(), other.getMatchedDetails())
+            && StringUtils.equals(this.getReferenceDetails(), other.getReferenceDetails());
+    }
+
+    /**
+     * Compares match scores of this match and other match.
+     * @param other other match
+     * @return true if all match scores are the same
+     */
+    public boolean sameScore(PatientMatch other)
+    {
+        return Math.abs(this.getScore() - other.getScore()) < DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getPhenotypeScore() - other.getPhenotypeScore()) < DOUBLE_COMPARE_EPSILON
+            && Math.abs(this.getGenotypeScore() - other.getGenotypeScore()) < DOUBLE_COMPARE_EPSILON;
     }
 
     @Override
@@ -570,10 +539,15 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
     @Override
     public void onLoad(Session arg0, Serializable arg1)
     {
+        this.initializePatientInMatchesFromDBData();
+    }
+
+    protected void initializePatientInMatchesFromDBData()
+    {
         this.referencePatientInMatch = new DefaultPatientInMatch(
-            this, this.referencePatientId, this.getReferenceServerId(), this.referenceDetails);
+                this, this.referencePatientId, this.getReferenceServerId(), this.referenceDetails);
         this.matchedPatientInMatch = new DefaultPatientInMatch(
-            this, this.matchedPatientId, this.getMatchedServerId(), this.matchedDetails);
+                this, this.matchedPatientId, this.getMatchedServerId(), this.matchedDetails);
     }
 
     @Override
@@ -733,20 +707,22 @@ public class DefaultPatientMatch implements PatientMatch, Lifecycle
 
             records.put(notificationRecord);
             history.put(JSON_KEY_INTERACTIONS, records);
-            this.notificationHistory = history.toString();
+
+            this.setNotificationHistory(history);
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
         }
     }
 
     @Override
-    public void setUserContacted(boolean isUserContacted)
+    public void setExternallyContacted(boolean isExternallyContacted)
     {
         try {
             JSONObject history = (this.notificationHistory != null) ? new JSONObject(this.notificationHistory)
                 : new JSONObject();
-            history.put(USER_CONTACTED, isUserContacted);
-            this.notificationHistory = history.toString();
+            history.put(USER_CONTACTED, isExternallyContacted);
+
+            this.setNotificationHistory(history);
         } catch (JSONException ex) {
             // error parsing notification history/ new record JSON string to JSON object happened
         }

@@ -61,18 +61,6 @@ public interface PatientMatch
     String getMatchedServerId();
 
     /**
-     * @return whether notifications regarding this match were sent.
-     */
-    Boolean isNotified();
-
-    /**
-     * Marks whether notifications regarding this match were sent or not.
-     *
-     * @param isNotified boolean indicator whether notifications regarding this match were sent or not
-     */
-    void setNotified(boolean isNotified);
-
-    /**
      * @return true only if match is rejected.
      * @deprecated use {@link #getStatus()} instead
      */
@@ -130,7 +118,7 @@ public interface PatientMatch
     void updateNotes(String note);
 
     /**
-     * @return object in JSON format.
+     * @return complete match in JSON format.
      */
     JSONObject toJSON();
 
@@ -186,6 +174,16 @@ public interface PatientMatch
      * @return true if equivalent
      */
     boolean isEquivalent(PatientMatch other);
+
+    /**
+     * Checks that matches are equivalent (see {@code isEquivalent()}) and that the match data is the same,
+     * meaning that scores are the same, phenotype/genotype is the same, etc. However all difference in
+     * metadata (IDs, timestamps, notificationHistory, notes) is ignored.
+     *
+     * @param other match to compare to
+     * @return true if matches contain the same data
+     */
+    boolean hasSameMatchData(PatientMatch other);
 
     /**
      * @return {@code PatientInMatch} object representing the reference patient.
@@ -311,11 +309,6 @@ public interface PatientMatch
     String getMatchedDetails();
 
     /**
-     * @return timestamp the match was notified
-     */
-    Timestamp getNotifiedTimestamp();
-
-    /**
      * @return the match notification history JSON.
      */
     JSONObject getNotificationHistory();
@@ -351,7 +344,7 @@ public interface PatientMatch
     /**
      * Add a record to the notification history in case user contacted regarding this match outside of PhenomeCentral.
      *
-     * @param isUserContacted boolean indicator whether contact regarding this match was done or not
+     * @param isExternallyContacted boolean indicator whether contact regarding this match was done or not
      */
-    void setUserContacted(boolean isUserContacted);
+    void setExternallyContacted(boolean isExternallyContacted);
 }

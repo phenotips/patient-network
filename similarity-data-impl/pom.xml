@@ -27,7 +27,7 @@
   </parent>
 
   <properties>
-    <coverage.instructionRatio>0.59</coverage.instructionRatio>
+    <coverage.instructionRatio>0.58</coverage.instructionRatio>
   </properties>
 
   <artifactId>patient-similarity-data-impl</artifactId>
@@ -40,6 +40,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>patient-similarity-data-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>matching-notification-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
