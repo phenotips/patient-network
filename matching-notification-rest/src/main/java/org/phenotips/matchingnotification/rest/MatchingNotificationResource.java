@@ -36,7 +36,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -88,11 +87,11 @@ public interface MatchingNotificationResource
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    Response getMatches(@QueryParam("minScore") @DefaultValue("0.5") double minScore,
-        @QueryParam("minPhenScore") @DefaultValue("0") double minPhenScore,
-        @QueryParam("minGenScore") @DefaultValue("0.1") double minGenScore,
-        @QueryParam("fromDate") @DefaultValue("") String fromDate,
-        @QueryParam("toDate") @DefaultValue("") String toDate);
+    Response getMatches(@FormParam("minScore") @DefaultValue("0.5") double minScore,
+        @FormParam("minPhenScore") @DefaultValue("0") double minPhenScore,
+        @FormParam("minGenScore") @DefaultValue("0.1") double minGenScore,
+        @FormParam("fromDate") @DefaultValue("") String fromDate,
+        @FormParam("toDate") @DefaultValue("") String toDate);
 
     /**
      * Sends email notifications for each match using the "admin" email template.
