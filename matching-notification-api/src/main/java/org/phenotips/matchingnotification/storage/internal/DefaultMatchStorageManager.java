@@ -532,7 +532,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         List<PatientMatch> matches = null;
         Session session = this.sessionFactory.getSessionFactory().openSession();
         try {
-            matches = session.createCriteria(PatientMatch.class).add(criteriaToApply).list();
+            matches = session.createCriteria(CurrentPatientMatch.class).add(criteriaToApply).list();
         } catch (HibernateException ex) {
             this.logger.error("Error loading matches by criteria. Criteria: {},  ERROR: [{}]",
                     criteriaToApply.toString(), ex);
