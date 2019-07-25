@@ -115,7 +115,11 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
     @Basic
     protected Double phenotypeScore;
 
+    /**
+     * @deprecated use {@link referenceDetails} and {@link matchedDetails} owner info instead
+     */
     @Basic
+    @Deprecated
     /* an href to remote patient (either matched or reference). Only one of these options is true
      * 1. matched patient and reference patient are local =>
      *       getReferenceServerId()==null, getMatchedServerId()==null, href==null (for both patients)
@@ -240,12 +244,6 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         this.score = similarityView.getScore();
         this.phenotypeScore = similarityView.getPhenotypeScore();
         this.genotypeScore = similarityView.getGenotypeScore();
-
-        if (this.matchedPatientInMatch.isLocal()) {
-            this.href = this.limitStringLength(this.referencePatientInMatch.getHref(), DB_HREF_FIELD_LENGTH);
-        } else {
-            this.href = this.matchedPatientInMatch.getHref();
-        }
 
         // Reorder phenotype
         DefaultPhenotypesMap.reorder(

@@ -20,8 +20,6 @@ package org.phenotips.matchingnotification.notification.internal;
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Feature;
-import org.phenotips.data.Patient;
-import org.phenotips.data.PatientData;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityViewFactory;
@@ -458,7 +456,8 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         recipients.put(EMAIL_RECIPIENTS_TO, to);
         recipients.put(EMAIL_RECIPIENTS_CC, cc);
         recipients.put(EMAIL_RECIPIENTS_FROM, from);
-        recipients.put(EMAIL_RECIPIENTS_RECIPIENT, this.getPatientContactInfo(this.subjectPatient.getPatient()));
+        ContactInfo contactInfo = this.subjectPatient.getContactInfo();
+        recipients.put(EMAIL_RECIPIENTS_RECIPIENT, (contactInfo != null) ? contactInfo.toJSON() : null);
         recipients.put(EMAIL_RECIPIENTS_SENDER, this.getSenderContactInfo());
         result.put(EMAIL_RECIPIENTS_KEY, recipients);
 
@@ -470,18 +469,6 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         }
 
         return result;
-    }
-
-    private JSONObject getPatientContactInfo(Patient patient)
-    {
-        if (patient != null) {
-            PatientData<ContactInfo> data = patient.getData("contact");
-            if (data != null && data.size() > 0) {
-                ContactInfo contact = data.get(0);
-                return contact.toJSON();
-            }
-        }
-        return null;
     }
 
     private JSONObject getSenderContactInfo()

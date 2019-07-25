@@ -1165,6 +1165,20 @@ var PhenoTips = (function (PhenoTips) {
                 return td;
             }
         }
+
+        var contactInfo = patient.contact_info;
+        if (contactInfo && (contactInfo.name || contactInfo.institution)) {
+            if (contactInfo.name) {
+                td += '<div name="owner-info">' + contactInfo.name + '</div>';
+            }
+            if (contactInfo.institution) {
+                td += '<div name="owner-info">' + contactInfo.institution + '</div>';
+            }
+        } else {
+            var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
+            td += '<div name="notification-email-short">' + shortEmail + '</div>';
+        }
+
         for (var i=0; i < patient.emails.length; i++) {
             var email = patient.emails[i]
             if (email.indexOf("://") > -1) {
@@ -1182,8 +1196,6 @@ var PhenoTips = (function (PhenoTips) {
             }
             td += '<div name="notification-email-long">' + email + '</div>';
         }
-        var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
-        td += '<div name="notification-email-short">' + shortEmail + '</div>';
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
         if (this._isAdmin && patient.serverId == '' && patient.emails.length > 0) {
