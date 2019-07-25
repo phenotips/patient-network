@@ -251,7 +251,7 @@ var PhenoTips = (function (PhenoTips) {
         $('mme-filter') && $('mme-filter').on('click', function(event) {
             var checked = event.currentTarget.checked;
             mmeFilters.each(function (checkbox) {
-                this._filterValues.serverIds[checkbox.value] = checkbox.checked;
+                this._filterValues.serverIds[checkbox.value] = checked;
                 checkbox.checked = checked;
             }.bind(this));
             this._update();
