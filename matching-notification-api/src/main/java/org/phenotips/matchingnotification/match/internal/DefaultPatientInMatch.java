@@ -46,7 +46,6 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,6 +96,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final String MODE_OF_INHERITANCE = "mode_of_inheritance";
 
+    private static final String CONTACT_INFO = "contact_info";
+
     private String patientId;
 
     private String serverId;
@@ -116,6 +117,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     private Patient patient;
 
     private PatientGenotype genotype;
+
+    private ContactInfo contactInfo;
 
     /** The access level the user has to this patient. */
     private AccessLevel access;
@@ -168,7 +171,6 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.serverId = serverId;
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         this.setAccess();
-        this.populateContactInfo(null);
         this.readDetails(patient, matchedGenes);
     }
 
@@ -188,8 +190,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.patient = getLocalPatient();
         this.genotype = PATIENT_GENOTYPE_MANAGER.getGenotype(this.patient);
         this.setAccess();
-        this.populateContactInfo(match.getHref());
-        this.rebuildDetails(patientDetails);
+        this.rebuildDetails(patientDetails, match.getHref());
     }
 
     @Override
@@ -246,6 +247,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put(PHENOTYPES, this.phenotypes.toJSON());
         json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
         json.put(AGE_ON_ONSET, this.ageOfOnset);
+        json.put(CONTACT_INFO, (this.contactInfo != null) ? this.contactInfo.toJSON() : null);
         return json;
     }
 
@@ -258,25 +260,10 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public Collection<String> getEmails()
     {
-        Collection<String> emails = new LinkedList<>();
-        if (this.isLocal()) {
-            // Note: The patient is not saved because sometimes (often?) this method is run not on an object that
-            // was just created, but on one created from a column from the DB. In this case, we might not have
-            // a Patient object when the patient is remote.
-            emails.addAll(this.getPatientEmails(this.patient));
-        } else {
-            if (StringUtils.isNotEmpty(this.href)) {
-                // TODO: discuss what better algorithm/package can be use to split emails
-                // MME emails may be of the form "mailto:email1,email2", need ot parse that
-                if (this.href.startsWith("mailto:")) {
-                    String emailList = this.href.replace("mailto:", "");
-                    emails.addAll(Arrays.asList(emailList.split(",|;")));
-                } else {
-                    emails.add(this.href);
-                }
-            }
+        if (this.contactInfo != null) {
+            return this.contactInfo.getEmails();
         }
-        return emails;
+        return null;
     }
 
     @Override
@@ -371,12 +358,18 @@ public class DefaultPatientInMatch implements PatientInMatch
         return this.genotype.getGenesStatus();
     }
 
+    @Override
+    public ContactInfo getContactInfo()
+    {
+        return this.contactInfo;
+    }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumnJSON}. However, it is possible that
      * some data is missing in case more details added in newer versions. So, it is ok for some values to be missing
      * (but not genes or phenotypes).
      */
-    private void rebuildDetails(String patientDetails)
+    private void rebuildDetails(String patientDetails, String oldMMEContactData)
     {
         JSONObject json = new JSONObject(patientDetails);
 
@@ -385,6 +378,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.phenotypes = new DefaultPhenotypesMap(json.getJSONObject(PHENOTYPES));
         this.ageOfOnset = json.getString(AGE_ON_ONSET);
         this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
+        this.contactInfo = rebuildContactInfo(json.optJSONObject(CONTACT_INFO), oldMMEContactData);
     }
 
     // Returns an unmodifiable set of Strings
@@ -410,6 +404,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         PatientData<List<SolrVocabularyTerm>> globalControllers = patient.getData("global-qualifiers");
         this.ageOfOnset = this.getAgeOfOnset(globalControllers);
         this.modeOfInheritance = this.getModeOfInheritance(globalControllers);
+        this.contactInfo = this.populateContactInfo();
     }
 
     private Set<String> getGenes(Patient patient)
@@ -498,21 +493,42 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
     }
 
-    private void populateContactInfo(String href)
+    private ContactInfo populateContactInfo()
     {
-        this.href = null;
-        // if the patient is remote, we use whatever is passed by from DB
-        if (this.patient == null) {
-            this.href = href;
-            return;
-        }
-        PatientData<ContactInfo> data = this.patient.getData("contact");
-        if (data != null && data.size() > 0) {
-            ContactInfo contact = data.get(0);
-            if (contact != null) {
-                this.href = contact.getUrl();
+        if (this.patient != null && this.patient.getData("contact").size() > 0) {
+            PatientData<ContactInfo> data = this.patient.getData("contact");
+            if (data != null && data.size() > 0) {
+                return data.get(0);
             }
         }
+        return null;
+    }
+
+    private ContactInfo rebuildContactInfo(JSONObject contact, String oldMMEContactData)
+    {
+        if (contact != null) {
+            ContactInfo.Builder contactBuilder = new ContactInfo.Builder();
+            contactBuilder.withUserId(contact.optString("id"));
+            contactBuilder.withName(contact.optString("name"));
+            contactBuilder.withInstitution(contact.optString("institution"));
+            contactBuilder.withUrl(contact.optString("url"));
+            contactBuilder.withEmail(contact.optString("email"));
+            return contactBuilder.build();
+        } else if (StringUtils.isNotEmpty(oldMMEContactData)) {
+            // TODO: discuss what better algorithm/package can be use to split emails
+            // MME emails may be of the form "mailto:email1,email2", need to parse that
+            List<String> emails = new LinkedList<>();
+            if (oldMMEContactData.startsWith("mailto:")) {
+                String emailList = oldMMEContactData.replace("mailto:", "");
+                emails.addAll(Arrays.asList(emailList.split(",|;")));
+            } else {
+                emails.add(oldMMEContactData);
+            }
+            ContactInfo.Builder contactBuilder = new ContactInfo.Builder();
+            contactBuilder.withEmails(emails);
+            return contactBuilder.build();
+        }
+        return null;
     }
 
     private void setAccess()
@@ -576,19 +592,5 @@ public class DefaultPatientInMatch implements PatientInMatch
         ownershipJSON.put("userGroupIsOwner", userGroupIsOwner);
         ownershipJSON.put("publicRecord", isPublic);
         return ownershipJSON;
-    }
-
-    private Collection<String> getPatientEmails(Patient patient)
-    {
-        List<String> result = new ArrayList<>();
-        if (patient != null) {
-            PatientData<ContactInfo> data = patient.getData("contact");
-            if (data != null && data.size() > 0) {
-                for (ContactInfo contact : data) {
-                    result.addAll(contact.getEmails());
-                }
-            }
-        }
-        return result;
     }
 }

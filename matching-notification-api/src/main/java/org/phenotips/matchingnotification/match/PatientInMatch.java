@@ -17,6 +17,7 @@
  */
 package org.phenotips.matchingnotification.match;
 
+import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
 import org.phenotips.data.similarity.phenotype.PhenotypesMap;
@@ -152,4 +153,9 @@ public interface PatientInMatch
      *         or null if patient does not have genotype or genotype status is unknown.
      */
     String getGenesStatus();
+
+    /**
+     * @return patient contact information.
+     */
+    ContactInfo getContactInfo();
 }
