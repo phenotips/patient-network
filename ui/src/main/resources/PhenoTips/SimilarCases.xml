@@ -849,9 +849,6 @@
   width: 100%;
   display: inline;
 }
-.matching-patients .expandall {
-  line-height: 20px;
-}
 .space-data.matching-patients #document-head {
   margin-top: -3.3em;
 }

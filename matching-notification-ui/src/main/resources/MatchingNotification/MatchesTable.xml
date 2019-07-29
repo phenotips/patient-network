@@ -257,9 +257,6 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-    &lt;div class="expandall"&gt;
-      &lt;input type="checkbox" id="expand_all"/&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.expandAll'))
-    &lt;/div&gt;
 ##--TABLE--
     &lt;div id="table-container"&gt;
 ## Pagination

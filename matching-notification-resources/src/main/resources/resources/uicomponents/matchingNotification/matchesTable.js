@@ -3,7 +3,8 @@ require(["matchingNotification/utils",
          "matchingNotification/matcherPageSizer",
          "matchingNotification/notificationDialog",
          "matchingNotification/matcherContactDialog",
-         "matchingNotification/matchContactSelectDialog"],
+         "matchingNotification/matchContactSelectDialog",
+         "matchingNotification/matchDetailsView"],
         function(utils) {
             var loadMNM = function(utils) {
             new PhenoTips.widgets.MatchesTable(utils);
@@ -50,7 +51,6 @@ var PhenoTips = (function (PhenoTips) {
         this._notificationsButton.disabled = true;
         this._notificationsButton.hide();
         this._notificationsButton.on('click', this._sendNotification.bind(this));
-        $('expand_all').on('click', this._expandAllClicked.bind(this));
 
         if (!this._onSimilarCasesPage) {
             this._overallScoreSlider = this._initializeScoreSlider('show-matches-score', (!this._isAdmin) ? 0.4 : 0.1, 0.5);
@@ -101,6 +101,7 @@ var PhenoTips = (function (PhenoTips) {
         this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
         this._errorDialog = new PhenoTips.widgets.NotificationDialog(this._CONTACT_ERROR_DIALOG_TITLE);
         this._matchSelectDialog = new PhenoTips.widgets.MacthContactSelectDialog();
+        this._matchDetailsView = new PhenoTips.widgets.MatchDetailsView();
 
         // memorise filers open/close state
         var filtersButton = $('toggle-filters-button');
@@ -920,14 +921,14 @@ var PhenoTips = (function (PhenoTips) {
         this._displaySummary(tableSummary, $('panels-livetable-limits'), true);
 
         matchesForPage.each( function (match, index) {
-            var tr = this._rowWriter(index, match, this._tableElement.select('.second-header-row th'), this._simpleCellWriter);
+            var tr = this._rowWriter(match, this._tableElement.select('.second-header-row th'), this._simpleCellWriter);
             tableBody.insert(tr);
         }.bind(this));
 
         this._afterProcessTable(matchesForPage);
     },
 
-    _rowWriter : function(rowIndex, match, columns, cellWriter)
+    _rowWriter : function(match, columns, cellWriter)
     {
         var tr = '<tr id="row-' + match.rowIndex + '" data-matchid="' + match.id + '">';
 
@@ -941,10 +942,10 @@ var PhenoTips = (function (PhenoTips) {
                     tr += this._getNotesTd(match);
                     break;
                 case 'referencePatient':
-                    tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id, match.matched);
+                    tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id, match.matched, match.rowIndex);
                     break;
                 case 'matchedPatient':
-                    tr += this._getPatientDetailsTd(match.matched, 'matchedPatientTd', match.id, match.reference);
+                    tr += this._getPatientDetailsTd(match.matched, 'matchedPatientTd', match.id, match.reference, match.rowIndex);
                     break;
                 case 'referenceEmails':
                     tr += this._getEmailsTd(match.reference, match, 'referenceEmails');
@@ -1078,7 +1079,7 @@ var PhenoTips = (function (PhenoTips) {
         return '<td class="smaller">' + value + '</td>';
     },
 
-    _getPatientDetailsTd : function(patient, tdClass, matchId, otherPatient)
+    _getPatientDetailsTd : function(patient, tdClass, matchId, otherPatient, index)
     {
         var td = '<td class="' + tdClass;
         if (patient.solved) {
@@ -1087,7 +1088,9 @@ var PhenoTips = (function (PhenoTips) {
         td += '">';
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
-        td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '"></div>';
+        if ( tdClass != 'matchedPatientTd') {
+            td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '" data-matchindex="' + index + '"></div>';
+        }
         if (patient.serverId == '') { // local patient
             var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
             td += '<a href="' + patientHref + '" target="_blank" class="patient-href">' + patient.patientId + externalId + '</a>';
@@ -1102,17 +1105,6 @@ var PhenoTips = (function (PhenoTips) {
                 td += '<label class="patient-href">' + patient.patientId + externalId + ' (' + patient.serverId + ')</label>';
             }
         }
-
-        // Collapsible div
-        td += '<div class="collapse-gp-div" data-matchid="' + matchId + '">';
-
-        td += this._getAgeOfOnset(patient.age_of_onset);
-        td += this._getModeOfInheritance(patient.mode_of_inheritance);
-        td += this._getGenesDiv(patient.genes, patient.matchedExomeGenes, patient.hasExomeData, otherPatient.hasExomeData, patient.genesStatus, otherPatient.genes);
-        td += this._getPhenotypesDiv(patient.phenotypes, otherPatient.phenotypes);
-
-        // End collapsible div
-        td += '</div>';
 
         if (patient.solved) {
             td += '<div class="metadata">' + this._SOLVED_CASE + '</div>';
@@ -1558,7 +1550,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTable : function(matchesForPage)
     {
-        this._afterProcessTablePatientsDivs();
         this._afterProcessTableRegisterCollapisbleDivs();
         this._afterProcessTableStatusListeners();
         this._afterProcessTableCollapseEmails();
@@ -1734,20 +1725,6 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
-    _afterProcessTablePatientsDivs : function()
-    {
-        // Makes patient details divs the same height in patient and matched patient columns
-        this._tableElement.select('tbody tr[id^="row-"]').each( function (elm, index) {
-            var referencePatientTd = elm.down('.referencePatientTd');
-            var matchedPatientTd = elm.down('.matchedPatientTd');
-
-            var divs = ['.genes-div', '.phenotypes-div', '.age-of-onset-div', '.mode-of-inheritance-div'];
-            divs.each(function(div_class, skey) {
-                this._makeSameHeight(referencePatientTd, matchedPatientTd, div_class);
-            }.bind(this));
-        }.bind(this));
-    },
-
     _afterProcessTableCollapseEmails : function()
     {
         ["referenceEmails", "matchedEmails"].each(function (columnName) {
@@ -1831,11 +1808,10 @@ var PhenoTips = (function (PhenoTips) {
     _expandCollapseGP : function(target, expand)
     {
         var matchId = target.dataset.matchid;
+        var match = this._cachedMatches[target.dataset.matchindex];
 
-        // collapse/expand divs
-        this._tableElement.select('[data-matchid="' + matchId + '"].collapse-gp-div').each(function (elm, index) {
-            (expand) ? elm.show(): elm.hide();
-        }.bind(this));
+        // show match details pop-up
+        expand ? this._matchDetailsView.show(match, target) : this._matchDetailsView.close(target);
 
         // change display of collapse/display component (+/-)
         this._tableElement.select('[data-matchid="' + matchId + '"].collapse-gp-tool').each(function (elm) {
@@ -1846,16 +1822,6 @@ var PhenoTips = (function (PhenoTips) {
                 elm.addClassName("fa-plus-square-o");
                 elm.removeClassName("fa-minus-square-o");
             }
-        }.bind(this));
-    },
-
-    _expandAllClicked : function(event)
-    {
-        var checkbox = event.element();
-        if (!checkbox) return;
-        this._tableCollabsed = !checkbox.checked;
-        this._tableElement.select('.collapse-gp-tool').each(function (elm) {
-            this._expandCollapseGP(elm, !this._tableCollabsed);
         }.bind(this));
     },
 
