@@ -27,7 +27,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.mail.MailStatus;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -94,24 +93,17 @@ public class PatientMatchEmailNotifier implements PatientMatchNotifier
     }
 
     @Override
-    public List<PatientMatchNotificationResponse> notify(PatientMatchEmail email)
+    public PatientMatchNotificationResponse notify(PatientMatchEmail email)
     {
         email.send();
         if (!email.wasSent()) {
             this.logger.error("Email was not sent successfully: {}.", email.getStatus());
-            return Collections.emptyList();
+            return null;
         }
-
-        List<PatientMatchNotificationResponse> responses = new LinkedList<>();
 
         MailStatus status = email.getStatus();
         Collection<PatientMatch> matches = email.getMatches();
-        for (PatientMatch match : matches) {
-            PatientMatchNotificationResponse response = new PatientMatchEmailNotificationResponse(status, match);
-            responses.add(response);
-        }
-
-        return responses;
+        return new PatientMatchEmailNotificationResponse(status, matches);
     }
 
 }

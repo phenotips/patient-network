@@ -19,6 +19,8 @@ package org.phenotips.matchingnotification.notification;
 
 import org.phenotips.matchingnotification.match.PatientMatch;
 
+import java.util.Collection;
+
 /**
  * Response to a notification.
  *
@@ -27,9 +29,9 @@ import org.phenotips.matchingnotification.match.PatientMatch;
 public interface PatientMatchNotificationResponse
 {
     /**
-     * @return the {@link PatientMatch} associated with this response.
+     * @return the {@link PatientMatch} list associated with this response.
      */
-    PatientMatch getPatientMatch();
+    Collection<PatientMatch> getPatientMatches();
 
     /**
      * @return true if notification was sent successfully.
@@ -40,4 +42,9 @@ public interface PatientMatchNotificationResponse
      * @return error message.
      */
     String getErrorMessage();
+
+    /**
+     * @param matches patient matches related to the sent notification email.
+     */
+    void setPatientMatches(Collection<PatientMatch> matches);
 }

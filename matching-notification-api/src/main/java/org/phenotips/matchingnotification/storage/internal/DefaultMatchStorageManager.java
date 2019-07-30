@@ -31,6 +31,7 @@ import org.xwiki.users.User;
 import org.xwiki.users.UserManager;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -563,21 +564,66 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     }
 
     @Override
-    public boolean updateNotificationHistory(PatientMatch match, JSONObject notificationRecord)
+    public Collection<PatientMatch> updateNotificationHistory(PatientMatch match, JSONObject notificationRecord)
     {
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
 
+        Collection<PatientMatch> matchesToUpdate = new ArrayList<>();
+        matchesToUpdate.add(match);
+
+        if (!match.isLocal()) {
+            String referenceServerId = this.getStoredServerId(match.getReferenceServerId());
+            String matchedServerId = this.getStoredServerId(match.getMatchedServerId());
+
+            // Load equivalent remote match
+            PatientMatch equivalentMatch = loadMatchBetweenPatients(match.getMatchedPatientId(),
+                matchedServerId, match.getReferencePatientId(), referenceServerId);
+            if (equivalentMatch != null) {
+                matchesToUpdate.add(equivalentMatch);
+            }
+        }
+
+        Collection<PatientMatch> updatedMatches = new ArrayList<>();
         try {
-            match.updateNotificationHistory(notificationRecord);
-            session.update(match);
+            for (PatientMatch matchToUpdate : matchesToUpdate) {
+                matchToUpdate.updateNotificationHistory(notificationRecord);
+                session.update(matchToUpdate);
+                updatedMatches.add(matchToUpdate);
+            }
             transactionCompleted = true;
         } catch (Exception ex) {
             this.logger.error("Error updating notification history: [{}]", ex.getMessage(), ex);
         } finally {
             transactionCompleted = this.endTransaction(session, transactionCompleted) && transactionCompleted;
         }
-        return transactionCompleted;
+
+        return updatedMatches;
+    }
+
+    /**
+     * Load {@code match} with specified parameters.
+     *
+     * @param referencePatientId id of reference patient
+     * @param referenceServerId id of the server that hosts reference patient
+     * @param matchedPatientId id of matched patient
+     * @param matchedServerId id of the server that hosts matched patient
+     * @return match
+     */
+    private PatientMatch loadMatchBetweenPatients(String referencePatientId, String referenceServerId,
+        String matchedPatientId, String matchedServerId)
+    {
+        if (StringUtils.isNotEmpty(referencePatientId)) {
+            // referencePatientId is "reference patient"
+            Criterion directMatch = Restrictions.and(
+                this.patientIsReference(referencePatientId, referenceServerId),
+                this.patientIsMatch(matchedPatientId, matchedServerId));
+            List<PatientMatch> matches = this.loadMatchesByCriteria(directMatch);
+            if (!matches.isEmpty()) {
+                return matches.get(0);
+            }
+        }
+        return null;
     }
 
     @Override

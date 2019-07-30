@@ -22,6 +22,8 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotificationR
 
 import org.xwiki.mail.MailStatus;
 
+import java.util.Collection;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,18 +33,18 @@ public class PatientMatchEmailNotificationResponse implements PatientMatchNotifi
 {
     private MailStatus mailStatus;
 
-    private PatientMatch patientMatch;
+    private Collection<PatientMatch> patientMatches;
 
     /**
      * Default constructor.
      *
      * @param mailStatus mail status object
-     * @param patientMatch the match this response is associated with
+     * @param patientMatches the matches list this response is associated with
      */
-    public PatientMatchEmailNotificationResponse(MailStatus mailStatus, PatientMatch patientMatch)
+    public PatientMatchEmailNotificationResponse(MailStatus mailStatus, Collection<PatientMatch> patientMatches)
     {
         this.mailStatus = mailStatus;
-        this.patientMatch = patientMatch;
+        this.patientMatches = patientMatches;
     }
 
     @Override
@@ -58,9 +60,14 @@ public class PatientMatchEmailNotificationResponse implements PatientMatchNotifi
     }
 
     @Override
-    public PatientMatch getPatientMatch()
+    public Collection<PatientMatch> getPatientMatches()
     {
-        return this.patientMatch;
+        return this.patientMatches;
     }
 
+    @Override
+    public void setPatientMatches(Collection<PatientMatch> matches)
+    {
+        this.patientMatches = matches;
+    }
 }
