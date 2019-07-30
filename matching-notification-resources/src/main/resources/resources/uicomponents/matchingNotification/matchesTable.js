@@ -690,6 +690,8 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseNotificationHistory(match);
         }.bind(this));
 
+        this._updateServerFilterMatchesCount();
+
         // new data - forget current sorting preferences
         this._resetSortingPreferences();
 
@@ -726,6 +728,23 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         match.notificationHistory = records;
+    },
+
+    _updateServerFilterMatchesCount : function()
+    {
+        $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
+            //count matches with this server id
+            var serverID = selectEl.value;
+            var matchesForServer = [];
+            if (selectEl.value == "local") {
+                // local matches
+                matchesForServer = this._cachedMatches.filter(function(match) { return (match.reference.serverId === "" && match.matched.serverId === ""); });
+            } else {
+                // remote matches
+                matchesForServer = this._cachedMatches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
+            }
+            var countEl = selectEl.up().down('.matches-count').update(' (' + matchesForServer.length + ')');
+        }.bind(this));
     },
 
     _organiseModeOfInheritance : function(match) {
@@ -996,9 +1015,9 @@ var PhenoTips = (function (PhenoTips) {
         return '<td style="text-align: center">' + value + '</td>';
     },
 
-    _getPatientDetailsTd : function(patient, tdId, matchId, otherPatient)
+    _getPatientDetailsTd : function(patient, tdClass, matchId, otherPatient)
     {
-        var td = '<td id="' + tdId + '"';
+        var td = '<td class="' + tdClass + '"';
         if (patient.solved) {
             td += ' class="solved"';
         }
@@ -1437,7 +1456,6 @@ var PhenoTips = (function (PhenoTips) {
         this._afterProcessTableStatusListeners();
         this._afterProcessTableCollapseEmails();
         this._afterProcessTableInitNotificationEmails(matchesForPage);
-        this._afterProcessTableHideApsentServerIdsFromFilter();
         this._afterProcessTableComments();
         this._afterProcessTableNotes();
         this._afterProcessTableNotificationHistory();
@@ -1590,23 +1608,6 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
-    _afterProcessTableHideApsentServerIdsFromFilter : function()
-    {
-        $('matching-filters').select('input[type="checkbox"][name="checkbox-server-id-filter"]').each( function(selectEl) {
-            //count matches with this server id
-            var serverID = selectEl.value;
-            var matchesForServer = [];
-            if (selectEl.value == "local") {
-                // local matches
-                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === "" && match.matched.serverId === ""); });
-            } else {
-                // remote matches
-                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
-            }
-            var countEl = selectEl.up().down('.matches-count').update(' (' + matchesForServer.length + ')');
-        }.bind(this));
-    },
-
     _afterProcessTableStatusListeners : function()
     {
         this._tableElement.select('.status').each( function(selectEl) {
@@ -1630,8 +1631,8 @@ var PhenoTips = (function (PhenoTips) {
     {
         // Makes patient details divs the same height in patient and matched patient columns
         this._tableElement.select('tbody tr[id^="row-"]').each( function (elm, index) {
-            var referencePatientTd = elm.down('#referencePatientTd');
-            var matchedPatientTd = elm.down('#matchedPatientTd');
+            var referencePatientTd = elm.down('.referencePatientTd');
+            var matchedPatientTd = elm.down('.matchedPatientTd');
 
             var divs = ['.genes-div', '.phenotypes-div', '.age-of-onset-div', '.mode-of-inheritance-div'];
             divs.each(function(div_class, skey) {
