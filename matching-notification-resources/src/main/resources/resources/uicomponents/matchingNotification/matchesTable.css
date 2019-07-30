@@ -71,6 +71,8 @@ table#matchesTable {
 
 .matches-table td {
   vertical-align: top;
+  border-right: none;
+  border-left: none;
 }
 
 .matches-table .collapse-gp-tool {
@@ -203,7 +205,16 @@ input.mme {
   margin-left: 15px!important;
 }
 #checkbox-server-filters {
-  margin-top: 5px;
+  margin-top: 15px;
+}
+#checkbox-server-filters:first-child {
+  font-weight: bold;
+}
+#matching-filters ul.filters li {
+  padding: 0 0 15px 0;
+}
+ul.filters li.text-filter {
+  padding: 0 0 10px 0;
 }
 .across-mme {
   margin-top: 5px;
@@ -250,6 +261,7 @@ ul.filters label {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  font-weight: normal;
 }
 table.comments-table {
   margin: .5em 0;
