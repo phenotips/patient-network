@@ -69,7 +69,6 @@ var PhenoTips = (function (PhenoTips) {
         this._REJECTED = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
         this._HAS_EXOME_DATA = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
         this._EXOME_GENE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.exomeGene.label'))";
-        this._CONTACT_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.contactButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_LABEL = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserContactedButton.title'))";
         this._MARK_USER_UNCONTACTED_BUTTON_TITLE = "$escapetool.xml($services.localization.render('phenotips.myMatches.markUserUncontactedButton.title'))";
@@ -912,7 +911,7 @@ var PhenoTips = (function (PhenoTips) {
                     tr+= this._getContact(match);
                     break;
                 default:
-                    tr += cellWriter(match[column.dataset.column]);
+                    tr += cellWriter(match[column.dataset.column], column.dataset.column);
                     break;
             }
         }.bind(this));
@@ -1015,9 +1014,14 @@ var PhenoTips = (function (PhenoTips) {
         return table;
     },
 
-    _simpleCellWriter : function(value)
+    _simpleCellWriter : function(value, name)
     {
-        return '<td style="text-align: center">' + value + '</td>';
+        if (name == "score" || name == "genotypicScore" || name == "phenotypicScore") {
+            var score = parseFloat(value).toFixed(2);
+            var loColor = Math.max(0, 248 - Number.parseInt(score*96));
+            return '<td class="smaller" style="background-color: rgb(' + loColor + ', 248,' + loColor + ');"  >' + score + '</td>';
+        }
+        return '<td class="smaller">' + value + '</td>';
     },
 
     _getPatientDetailsTd : function(patient, tdClass, matchId, otherPatient)
@@ -1432,10 +1436,10 @@ var PhenoTips = (function (PhenoTips) {
             className += " secondary";
         }
 
-        var  buttonHTML = '<span class="buttonwrapper"><a class="' + className + '" data-matchid="'
+        var  buttonHTML = '<a class="' + className + '" data-matchid="'
                           + matchId + '" data-patientid="'
                           + patientID + '" data-serverid="'
-                          + serverId + '" href="#"><span class="fa fa-envelope"></span>'+ this._CONTACT_BUTTON_LABEL +'</a></span>';
+                          + serverId + '" href="#"><span class="fa fa-envelope"></span></a>';
         return buttonHTML;
     },
 

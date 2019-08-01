@@ -458,7 +458,7 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         json.put("reference", this.getReference().toJSON());
         json.put("matched", this.getMatched().toJSON());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         json.put("foundTimestamp", sdf.format(this.foundTimestamp));
 
         json.put("status", this.getStatus());

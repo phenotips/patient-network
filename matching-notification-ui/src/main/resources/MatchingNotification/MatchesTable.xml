@@ -258,18 +258,20 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
     &lt;table id="matchesTable" class="matches-table"&gt;
       &lt;thead&gt;
         &lt;tr class="first-header-row"&gt;
-          &lt;th colspan="1" &gt;&lt;/th&gt;
+          &lt;th colspan="1" &gt;#if($hasAdmin || $isAdminOfGroup)$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))#else$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notes'))#end&lt;/th&gt;
           &lt;th colspan="2"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.patDetails'))&lt;/th&gt;
-          &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))&lt;/th&gt;
+          &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))
+            &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.header.hint'))"&gt;&lt;/span&gt;
+          &lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
           &lt;th #if("${doc.space}" == "data")colspan="1"#else colspan="2"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.emails'))&lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
         &lt;/tr&gt;
         &lt;tr class="second-header-row"&gt;
         #if($hasAdmin || $isAdminOfGroup)
-          &lt;th data-column="status" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.status'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.status'))&lt;/th&gt;
+          &lt;th data-column="status"&gt;&lt;/th&gt;
         #else
-          &lt;th data-column="notes" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.notes'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.notes'))&lt;/th&gt;
+          &lt;th data-column="notes"&gt;&lt;/th&gt;
         #end
         &lt;th data-column="referencePatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referencePatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
         &lt;th data-column="matchedPatient" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedPatient'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;/th&gt;
