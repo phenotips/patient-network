@@ -263,7 +263,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         if (this.contactInfo != null) {
             return this.contactInfo.getEmails();
         }
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -506,7 +506,10 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private ContactInfo rebuildContactInfo(JSONObject contact, String oldMMEContactData)
     {
-        if (contact != null) {
+        ContactInfo result = this.populateContactInfo();
+        if (result != null) {
+            return result;
+        } else if (contact != null) {
             ContactInfo.Builder contactBuilder = new ContactInfo.Builder();
             contactBuilder.withUserId(contact.optString("id"));
             contactBuilder.withName(contact.optString("name"));
