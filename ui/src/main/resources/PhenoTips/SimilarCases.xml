@@ -222,18 +222,19 @@
   var generateTabs = function (onSimilarCasesPage) {
 
     var _generateSimilarCasesTab = function (isActive) {
+      var url = XWiki.currentDocument.getURL('view', 'sheet=PhenoTips.SimilarCases');
       var tab = _generateTab(
         'similar-cases-tab', // element id
         isActive,
         "$escapetool.javascript($services.localization.render('phenotips.similarCases.title'))", //displayed text
-        XWiki.currentDocument.getURL('view', 'sheet=PhenoTips.SimilarCases') // url for inactive tabs
+        url // url for inactive tabs
       );
 
       if (!isActive) {
         tab.observe('click', function(event) {
           event.stop();
           PhenoTips.widgets.FormUtils.getFormState().saveIfFormDirty( function () {
-            window.location = event.findElement().href;
+            window.location = url;
           });
         });
       }
@@ -334,8 +335,9 @@
 
       var serverName = _getServerName(serverId);
 
-      new Ajax.Request(url + "?method=PUT&amp;serverId=" + serverId, {
+      new Ajax.Request(url + "?method=PUT", {
           contentType : 'application/json',
+          parameters : {'serverId' : serverId},
           onSuccess : function(response) {
             var message = (serverId == "local") ? "$escapetool.javascript($services.localization.render('phenotips.similarCases.success.local'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.success')) " + serverName;
             notification.replace(new XWiki.widgets.Notification(message, "done"));
