@@ -3,12 +3,12 @@
 .do-not-remove-or-first-css-rule-is-not-used {
 }
 
-table#matchesTable {
+.matches-table {
   margin: 0!important;
   width: 100%;
 }
 
-#table-container{
+#table-container {
   margin-top: 1em;
 }
 
@@ -69,9 +69,16 @@ table#matchesTable {
 
 .matches-table th {
   white-space: nowrap;
-  border: 1px solid #ffffff;
   font-weight: normal;
-  padding: 0.5em;
+  padding: .5em .4em;
+  text-align: left;
+  font-variant: small-caps;
+  border-right: none;
+  border-left: none;
+}
+
+.matches-table .second-header-row {
+  text-align: -webkit-center;
 }
 
 .matches-table td {
@@ -79,11 +86,15 @@ table#matchesTable {
   border-right: none;
   border-left: none;
   padding: 0.5em;
+  text-align: left;
 }
 
 .matches-table td.smaller {
   text-align: center;
   font-size: 0.8em;
+  line-height: 1.8em;
+  opacity: .8;
+  white-space: nowrap;
 }
 
 .matches-table .collapse-gp-tool {
@@ -121,6 +132,9 @@ table#matchesTable {
 
 .expandall {
 }
+#table-container {
+  margin-top: 1em;
+}
 
 #show-matches-button {
   margin: 10px 40px 0 0;
@@ -135,17 +149,13 @@ table#matchesTable {
   margin-top: 10px;
   display: inline-block;
   float: right;
-  margin-bottom: 5px;
-}
-.matches-table .first-header-row, .matches-table .second-header-row {
-  text-align: -webkit-center;
+  margin-bottom: 0.5em;
 }
 
 .matches-table th .collapse-marker {
-  float: right;
   color: #EA972D;
   cursor: pointer;
-  margin-left: 3px;
+  margin-left: 5px;
 }
 
 .messages-hint {
@@ -239,19 +249,19 @@ ul.filters li.text-filter {
 .fa.fa-leanpub {
   padding-right: 4px;
 }
-.metadata {
+.matches-table .metadata {
   display: block;
   font-size: .8em;
   font-style: italic;
+  opacity: 0.8;
+  margin-bottom: 10px;
 }
 .filter-mme-server-name {
   display: inline-block;
   max-width: 180px; /* based on the width of filters column, defined to be 240px in DBWebHomeSheet */
   vertical-align: top;
 }
-.matches-table .fa.fa-sort, .matches-table .fa.fa-sort-up, .matches-table .fa.fa-sort-down {
-  padding-left: 10px;
-  float : right;
+.matches-table th .fa.fa-sort, .matches-table .fa.fa-sort-up, .matches-table .fa.fa-sort-down {
   cursor: pointer;
 }
 .matches-table .fa.fa-sort {
@@ -261,9 +271,6 @@ ul.filters li.text-filter {
 }
 .matches-table .fa.fa-sort:hover {
   color: #000;
-}
-.sortable {
-  cursor: pointer;
 }
 ul.filters label {
   -webkit-touch-callout: none;
@@ -321,7 +328,9 @@ a.button.comment, a.button.notes {
 td.status-column {
   white-space: nowrap;
   padding-right: 0px;
-  text-align: center;
+}
+td.notes-column {
+  white-space: nowrap;
 }
 select.status {
   padding: .3em 1px .3em 1px;
@@ -445,7 +454,7 @@ div[name="notification-email-long"], div[name="owner-info"] {
   font-size: 85%;
   background-color: rgba(27,31,35,0.05);
   border-radius: 3px;
-  display: block;
+  display: inline-block;
   margin: 0.2em 0;
 }
 .nhdialog-title {
@@ -532,4 +541,5 @@ td[name="contact"] {
   width: 20em;
   white-space: normal;
   text-align: left;
+  font-variant: normal;
 }

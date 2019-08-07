@@ -40,6 +40,7 @@ var PhenoTips = (function (PhenoTips) {
         this.paginator = new PhenoTips.widgets.MatcherPaginator(this, this.paginations, this._maxPagesShown);
 
         this._isAdmin = $('isAdmin');
+        this._isAdminOfGroup = $('isAdminOfGroup');
 
         this._utils = new utils(this._tableElement);
 
@@ -122,10 +123,10 @@ var PhenoTips = (function (PhenoTips) {
         this._resetSortingPreferences();
 
         // event listeners for sorting icon clicks
-        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn('score');}.bind(this));
-        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn('genotypicScore');}.bind(this));
-        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn('phenotypicScore');}.bind(this));
-        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp');}.bind(this));
+        $$('th[data-column="score"]')[0] && $$('th[data-column="score"]')[0].on('click', function(event) {this._sortByColumn('score', true);}.bind(this));
+        $$('th[data-column="genotypicScore"]')[0] && $$('th[data-column="genotypicScore"]')[0].on('click', function(event) {this._sortByColumn('genotypicScore', true);}.bind(this));
+        $$('th[data-column="phenotypicScore"]')[0] && $$('th[data-column="phenotypicScore"]')[0].on('click', function(event) {this._sortByColumn('phenotypicScore', true);}.bind(this));
+        $$('th[data-column="foundTimestamp"]')[0] && $$('th[data-column="foundTimestamp"]')[0].on('click', function(event) {this._sortByColumn('foundTimestamp', true);}.bind(this));
 
         Event.observe(window, 'resize', this._buildTable.bind(this));
 
@@ -178,7 +179,7 @@ var PhenoTips = (function (PhenoTips) {
         this._currentSortingOrder = "none";
     },
 
-    _sortByColumn : function(propName) {
+    _sortByColumn : function(propName, doUpdate) {
         if (!this._sortingOrder.hasOwnProperty(propName)) {
             console.log("Unsupported sorting column");
             return;
@@ -221,7 +222,8 @@ var PhenoTips = (function (PhenoTips) {
             if(a[propName] > b[propName]) return (this._sortingOrder[propName] == "ascending") ? +1 : -1;
             return 0;
         }.bind(this));
-        this._update();
+
+        doUpdate && this._update();
     },
 
     validateScore : function(score, messagesFieldName) {
@@ -235,7 +237,6 @@ var PhenoTips = (function (PhenoTips) {
     _initiateFilters : function()
     {
         this._filterValues = {};
-        this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
         this._filterValues.matchStatus = {"rejected"      : $$('input[name="status-filter"][value="rejected"]')[0].checked,
                                           "saved"         : $$('input[name="status-filter"][value="saved"]')[0].checked,
                                           "uncategorized" : $$('input[name="status-filter"][value="uncategorized"]')[0].checked};
@@ -300,19 +301,6 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[name="exome-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.hasExome[event.currentTarget.value] = event.currentTarget.checked;
-                this._update();
-            }.bind(this));
-        }.bind(this));
-
-        $$('input[name="access-filter"]').each(function (checkbox) {
-            checkbox.on('click', function(event) {
-                if (event.currentTarget.value == "owner") {
-                    this._filterValues.matchAccess["owner"]  = event.currentTarget.checked;
-                } else {
-                    this._filterValues.matchAccess["edit"]   = event.currentTarget.checked;
-                    this._filterValues.matchAccess["manage"] = event.currentTarget.checked;
-                    this._filterValues.matchAccess["view"]   = event.currentTarget.checked;
-                }
                 this._update();
             }.bind(this));
         }.bind(this));
@@ -416,9 +404,6 @@ var PhenoTips = (function (PhenoTips) {
             var hasCheckboxServerIDsMatch = this._filterValues.serverIds[match.reference.serverId]
                 || this._filterValues.serverIds[match.matched.serverId]
                 || (match.isLocal && this._filterValues.serverIds["local"]);
-            // by match access type (owned or shares cases for non admin users)
-            var hasAccessTypeMath = this._filterValues.matchAccess[match.matched.access]
-                || this._filterValues.matchAccess[match.reference.access];
             // by gene matching statuses (candidate-candidate, solved-candidate)
             var hasGeneTypeMatch = match.matchingGenesTypes.indexOf(this._filterValues.geneStatus) > -1;
             // by uploaded VCF file to ane of the patients
@@ -476,7 +461,7 @@ var PhenoTips = (function (PhenoTips) {
                 }.bind(this);
             var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasAccessTypeMath && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch
                        && hasMatchStatusMatch && hasGeneTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
@@ -502,7 +487,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _initiateEmailColumnsBehaviur : function()
     {
-        this.collapseEmails = {"referenceEmails" : false, "matchedEmails" : false};
+        this.collapseEmails = {"referenceEmails" : true, "matchedEmails" : true};
         this._tableElement.select('th .collapse-marker').each(function (elm) {
             elm.on('click', function(event) {
                 var trigger = event.element();
@@ -700,7 +685,7 @@ var PhenoTips = (function (PhenoTips) {
         this._resetSortingPreferences();
 
         // sort by match found timestamp in descending order
-        this._sortByColumn('foundTimestamp');
+        this._sortByColumn('foundTimestamp', false);
     },
 
     _organiseNotificationHistory : function(match)
@@ -890,10 +875,10 @@ var PhenoTips = (function (PhenoTips) {
         columns.each(function(column, index) {
             switch(column.dataset.column) {
                 case 'status':
-                    tr += this._getStatusTd(match, true);
+                    tr += this._getStatusTd(match);
                     break;
                 case 'notes':
-                    tr += this._getStatusTd(match);
+                    tr += this._getNotesTd(match);
                     break;
                 case 'referencePatient':
                     tr += this._getPatientDetailsTd(match.reference, 'referencePatientTd', match.id, match.matched);
@@ -921,15 +906,22 @@ var PhenoTips = (function (PhenoTips) {
         return tr;
     },
 
-    _getStatusTd : function(match, isAdminOrGroupAdmin)
+    _getStatusTd : function(match)
     {
         var td = '<td class="status-column">';
-        if (isAdminOrGroupAdmin) {
-            td += '<select class="status" data-matchid="' + match.id +'">'
-                + '<option value="uncategorized" '+ (match.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
-                + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
-                + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
-                + '</select>';
+        td += '<select class="status" data-matchid="' + match.id +'">'
+            + '<option value="uncategorized" '+ (match.status == "uncategorized" ? ' selected="selected"' : '') + '> </option>'
+            + '<option value="saved" '+ (match.status == "saved" ? ' selected="selected"' : '') + '>' + this._SAVED + '</option>'
+            + '<option value="rejected" '+ (match.status == "rejected" ? ' selected="selected"' : '') + '>' + this._REJECTED + '</option>'
+            + '</select>';
+        td += '</td>';
+        return td;
+    },
+
+    _getNotesTd : function(match)
+    {
+        var td = '<td class="notes-column">';
+        if (this._isAdmin || this._isAdminOfGroup) {
             // comments
             var icon = (match.comments) ? "fa fa-comments" : "fa fa-comments-o";
             td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
@@ -1026,11 +1018,11 @@ var PhenoTips = (function (PhenoTips) {
 
     _getPatientDetailsTd : function(patient, tdClass, matchId, otherPatient)
     {
-        var td = '<td class="' + tdClass + '"';
+        var td = '<td class="' + tdClass;
         if (patient.solved) {
-            td += ' class="solved"';
+            td += ' solved';
         }
-        td += '>';
+        td += '">';
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
         td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '"></div>';
@@ -1215,11 +1207,11 @@ var PhenoTips = (function (PhenoTips) {
                 td += '<div name="owner-info">' + contactInfo.name + '</div>';
             }
             if (contactInfo.institution) {
-                td += '<div name="owner-info">' + contactInfo.institution + '</div>';
+                td += '<div name="owner-info" class="metadata">' + contactInfo.institution + '</div>';
             }
         } else {
             var shortEmail = (patient.emails.length > 0) ? (patient.emails[0].substring(0, 9) + "...") :  "";
-            td += '<div name="notification-email-short">' + shortEmail + '</div>';
+            td += '<div name="notification-email-short" class="code">' + shortEmail + '</div>';
         }
 
         for (var i=0; i < patient.emails.length; i++) {
@@ -1237,12 +1229,12 @@ var PhenoTips = (function (PhenoTips) {
                 // and only after that on "@"
                 email = email.replace(/([^, ]+?@[^ ]+)/g,"<span class='avoidwrap'>$1</span> ")
             }
-            td += '<div name="notification-email-long">' + email + '</div>';
+            td += '<div name="notification-email-long" class="code">' + email + '</div>';
         }
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
         if (this._isAdmin && patient.serverId == '' && patient.emails.length > 0) {
-            td += '<span class="fa fa-envelope" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'">';
+            td += '<div><span class="fa fa-envelope-o" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'"></div>';
         }
         td += '</td>';
         return td;
@@ -1275,13 +1267,13 @@ var PhenoTips = (function (PhenoTips) {
             var from = '<td>';
             if (record.from) {
                 // The `From` field should be " PhenomeCentral" for all `notification`s, regardless of which admin sent them
-                from += (record.type == "notification") ? "PhenomeCentral" : this._generateUserInfoCell(record.from, record.type);
+                from += (record.type == "notification") ? "PhenomeCentral" : this._generateUserInfoCell(record.from);
             }
             from += '</td>';
 
             var to = '<td>';
             if (record.to) {
-                to += this._generateUserInfoCell(record.to, record.type);
+                to += this._generateUserInfoCell(record.to);
             }
             to += '</td>';
 
@@ -1298,7 +1290,7 @@ var PhenoTips = (function (PhenoTips) {
         return table;
     },
 
-    _generateUserInfoCell : function(info, type)
+    _generateUserInfoCell : function(info)
     {
         var cell = '';
         // user name and institution
