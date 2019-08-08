@@ -45,7 +45,6 @@
 &lt;div class="refresh-matches-container"&gt;
 &lt;span class="buttonwrapper similarity-results-refresh" id="similarity-results-refresh"&gt;
   &lt;button id="refresh-all-button"&gt;
-    &lt;span class="fa fa-refresh" title=""&gt;&lt;/span&gt;
     &lt;span class="refresh-matches-button"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.allServers.label'))&lt;/span&gt;
   &lt;/button&gt;
   &lt;button id="refresh-remote-select" class="refresh-remote-select"&gt; &lt;span class="fa fa-caret-down" title=""&gt;&lt;/span&gt;&lt;/button&gt;
@@ -604,6 +603,7 @@
 }
 .refresh-matches-container {
   position: relative;
+  margin-right: 3px;
 }
 .chapter.similarity-info .similar-cases-category {
   margin-top: 3.5em;
@@ -617,6 +617,15 @@
 .similarity-info .refresh-matches-button {
   margin-left: 5px;
   white-space: nowrap;
+}
+#refresh-remote-select {
+  border-radius: 0 5px 5px 0;
+  margin: -2px;
+  padding: .5em;
+}
+#refresh-all-button {
+  border-radius: 5px 0 0 5px;
+  padding: .5em;
 }</code>
     </property>
     <property>
