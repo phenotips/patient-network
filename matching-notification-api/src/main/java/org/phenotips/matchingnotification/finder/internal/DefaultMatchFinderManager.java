@@ -78,12 +78,11 @@ public class DefaultMatchFinderManager implements MatchFinderManager
         this.logger.error("Finding matches for patient [{}] for server [{}]", patient.getId(), serverId);
 
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
-            Set<String> supportedServers = matchFinder.getSupportedServerIdList();
-            if (!supportedServers.contains(serverId)) {
+            Response response = matchFinder.findMatches(patient, serverId);
+            if (response == null) {
                 continue;
             }
-
-            return matchFinder.findMatches(patient, serverId);
+            return response;
         }
         return null;
     }

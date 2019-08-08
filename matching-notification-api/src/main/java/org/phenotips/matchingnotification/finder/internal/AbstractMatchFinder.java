@@ -172,6 +172,10 @@ public abstract class AbstractMatchFinder implements MatchFinder
     @Override
     public Response findMatches(Patient patient, String serverId)
     {
+        Set<String> supportedServers = this.getSupportedServerIdList();
+        if (!supportedServers.contains(serverId)) {
+            return null;
+        }
         List<PatientMatch> patientMatches = new LinkedList<>();
         return this.specificFindMatches(patient, serverId, patientMatches);
     }
