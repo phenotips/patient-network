@@ -199,10 +199,10 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                 &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="me" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_me'))&lt;/label&gt;
                   &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.me.hint'))"&gt;&lt;/span&gt;
                 &lt;br&gt;
-                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="group" #if($hasAdmin || $isAdminOfGroup)checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_group'))&lt;/label&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="group" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_group'))&lt;/label&gt;
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.group.hint'))"&gt;&lt;/span&gt;
                 &lt;br&gt;
-                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="others" #if($hasAdmin || $isAdminOfGroup)checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_other'))&lt;/label&gt;
+                &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="others" checked&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_other'))&lt;/label&gt;
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.ownershipFilter.others.hint'))"&gt;&lt;/span&gt;
                 &lt;br&gt;
                 &lt;label&gt;&lt;input name="ownership-filter" type="checkbox" value="public" #if("${doc.space}" == "data")checked#end&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.owned_by_public'))&lt;/label&gt;

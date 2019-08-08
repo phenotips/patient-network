@@ -8,6 +8,10 @@ table#matchesTable {
   width: 100%;
 }
 
+#table-container{
+  margin-top: 1em;
+}
+
 .matches-table .collapsed {
   visibility: hidden;
   height: 1px;

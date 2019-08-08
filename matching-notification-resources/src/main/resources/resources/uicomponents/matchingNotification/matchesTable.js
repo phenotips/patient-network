@@ -237,8 +237,13 @@ var PhenoTips = (function (PhenoTips) {
     {
         this._filterValues = {};
         this._filterValues.matchAccess = {"owner" : true, "edit" : true, "manage" : true, "view" : true, "match" : true};
-        this._filterValues.matchStatus = {"rejected" : true, "saved" : true, "uncategorized" : true};
-        this._filterValues.ownerStatus = {"me" : true, "group" : true, "public" : false, "others": false};
+        this._filterValues.matchStatus = {"rejected"      : $$('input[name="status-filter"][value="rejected"]')[0].checked,
+                                          "saved"         : $$('input[name="status-filter"][value="saved"]')[0].checked,
+                                          "uncategorized" : $$('input[name="status-filter"][value="uncategorized"]')[0].checked};
+        this._filterValues.ownerStatus = {"me"     : $$('input[name="ownership-filter"][value="me"]')[0].checked,
+                                          "group"  : $$('input[name="ownership-filter"][value="group"]')[0].checked,
+                                          "others" : $$('input[name="ownership-filter"][value="others"]')[0].checked,
+                                          "public" : $$('input[name="ownership-filter"][value="public"]')[0].checked};
         this._filterValues.notified  = {"notified" : $$('input[name="notified-filter"][value="notified"]')[0].checked,
                                         "unnotified" : $$('input[name="notified-filter"][value="unnotified"]')[0].checked};
         this._filterValues.contacted  = {"contacted" : $$('input[name="contacted-filter"][value="contacted"]')[0].checked,
