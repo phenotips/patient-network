@@ -44,9 +44,9 @@
 {{html clean=false}}##
 &lt;div class="refresh-matches-container"&gt;
 &lt;span class="buttonwrapper similarity-results-refresh" id="similarity-results-refresh"&gt;
-  &lt;button id="refresh-all-button"&gt;
+  &lt;button id="refresh-all-button"&gt;##
     &lt;span class="refresh-matches-button"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.allServers.label'))&lt;/span&gt;
-  &lt;/button&gt;
+  &lt;/button&gt;##
   &lt;button id="refresh-remote-select" class="refresh-remote-select"&gt; &lt;span class="fa fa-caret-down" title=""&gt;&lt;/span&gt;&lt;/button&gt;
   &lt;div id="remote-select-dropdown" class="dropdown-menu"&gt;
     &lt;a class="local" href="#"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.localServer.label'))&lt;/a&gt;
@@ -603,7 +603,7 @@
 }
 .refresh-matches-container {
   position: relative;
-  margin-right: 3px;
+  float: right;
 }
 .chapter.similarity-info .similar-cases-category {
   margin-top: 3.5em;
@@ -615,17 +615,25 @@
   display: none;
 }
 .similarity-info .refresh-matches-button {
-  margin-left: 5px;
+  margin-left: .2em;
   white-space: nowrap;
 }
 #refresh-remote-select {
   border-radius: 0 5px 5px 0;
-  margin: -2px;
+  margin: 1px;
   padding: .5em;
 }
 #refresh-all-button {
   border-radius: 5px 0 0 5px;
   padding: .5em;
+}
+#remote-select-dropdown {
+  top: 1.6em;
+  right: 0;
+  min-width: 100%;
+}
+#remote-select-dropdown a {
+  padding: .7em;
 }</code>
     </property>
     <property>
