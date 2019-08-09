@@ -77,6 +77,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 {
     private static final Double MIN_MATCH_SCORE_FOR_NONADMIN_USERS = 0.3;
 
+    private static final Double MIN_MATCH_SCORE = 0.1;
+
     private static final String IDS_STRING = "ids";
 
     private static final String MATCHESTONOTIFY_STRING = "matchesToNotify";
@@ -351,7 +353,10 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             }
         }
 
-        double useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
+        double useScore = Math.max(score, MIN_MATCH_SCORE);
+        if (reference == null) {
+            useScore = this.isCurrentUserAdmin() ? score : Math.max(score, MIN_MATCH_SCORE_FOR_NONADMIN_USERS);
+        }
 
         try {
             return getMatchesResponse(reference, useScore, phenScore, genScore, from, to);
