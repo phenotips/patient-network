@@ -566,7 +566,7 @@ var PhenoTips = (function (PhenoTips) {
     // Generate options for matches search AJAX request
     _generateOptions : function()
     {
-        var score     = this._overallScoreSlider ? (Math.ceil(this._overallScoreSlider.value*20)/20).toFixed(2) : 0.1;
+        var score     = this._overallScoreSlider ? (Math.ceil(this._overallScoreSlider.value*20)/20).toFixed(2) : 0.3;
         var phenScore = this._phenScoreSlider ? (Math.ceil(this._phenScoreSlider.value*20)/20).toFixed(2) : 0;
         var genScore  = this._genScoreSlider ? (Math.ceil(this._genScoreSlider.value*20)/20).toFixed(2) : 0;
 

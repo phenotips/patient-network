@@ -129,9 +129,9 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/patients/{patientId}")
     Response getMatchesForPatient(@PathParam("patientId") String patientId,
-        @FormParam("minScore") @DefaultValue("0.5") double minScore,
+        @FormParam("minScore") @DefaultValue("0.1") double minScore,
         @FormParam("minPhenScore") @DefaultValue("0") double minPhenScore,
-        @FormParam("minGenScore") @DefaultValue("0.1") double minGenScore,
+        @FormParam("minGenScore") @DefaultValue("0") double minGenScore,
         @FormParam("fromDate") @DefaultValue("") String fromDate,
         @FormParam("toDate") @DefaultValue("") String toDate);
 
