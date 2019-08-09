@@ -330,6 +330,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
     }
 
+    @SuppressWarnings("NPathComplexity")
     private Response getMatches(@Nullable final String reference, @Nullable final double score,
         @Nullable final double phenScore, @Nullable final double genScore, final String fromDate, final String toDate)
     {
