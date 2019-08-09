@@ -77,10 +77,6 @@
   border-left: none;
 }
 
-.matches-table .second-header-row {
-  text-align: -webkit-center;
-}
-
 .matches-table td {
   vertical-align: top;
   border-right: none;
@@ -90,7 +86,6 @@
 }
 
 .matches-table td.smaller {
-  text-align: center;
   font-size: 0.8em;
   line-height: 1.8em;
   opacity: .8;
@@ -130,8 +125,6 @@
   margin-left: 20px;
 }
 
-.expandall {
-}
 #table-container {
   margin-top: 1em;
 }
@@ -170,8 +163,9 @@
   color: #404040!important;
 }
 
-input.notify , td span.fa.fa-envelope {
-  vertical-align: middle;
+input.notify, td span.fa.fa-envelope {
+  vertical-align: top;
+  margin-top: 2px;
 }
 
 .pagesizeselect {
@@ -261,15 +255,13 @@ ul.filters li.text-filter {
   max-width: 180px; /* based on the width of filters column, defined to be 240px in DBWebHomeSheet */
   vertical-align: top;
 }
-.matches-table th .fa.fa-sort, .matches-table .fa.fa-sort-up, .matches-table .fa.fa-sort-down {
+.matches-table .fa.fa-sort, .matches-table .fa.fa-sort-up, .matches-table .fa.fa-sort-down {
   cursor: pointer;
-}
-.matches-table .fa.fa-sort {
   color: #999;
   padding-left: 3px;
   float: none;
 }
-.matches-table .fa.fa-sort:hover {
+.matches-table .fa.fa-sort:hover, .matches-table .fa.fa-sort-up:hover, .matches-table .fa.fa-sort-down:hover {
   color: #000;
 }
 ul.filters label {
@@ -322,9 +314,6 @@ a.button.comment, a.button.notes {
   text-shadow: none;
   border: none;
 }
-.buttonwrapper a.button.comment:link {
-  margin-left: 5px;
-}
 td.status-column {
   white-space: nowrap;
   padding-right: 0px;
@@ -347,7 +336,6 @@ th[data-column="score"], th[data-column="genotypicScore"], th[data-column="pheno
 }
 div[name="notification-email-long"], div[name="owner-info"] {
   font-size: 95%;
-  margin: 0 2px 0 2px;
 }
 .slider {
   background: #bfbfbf;

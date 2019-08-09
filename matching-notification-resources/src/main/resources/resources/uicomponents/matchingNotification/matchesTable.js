@@ -572,6 +572,7 @@ var PhenoTips = (function (PhenoTips) {
             this.resultsSummary.hide();
         } else {
             this._matches = this._cachedMatches.filter( (filter) ? filter : this._advancedFilter);
+            this._updateServerFilterMatchesCount();
 
             this.paginations.invoke("show");
             this.resultsSummary.show();
@@ -679,8 +680,6 @@ var PhenoTips = (function (PhenoTips) {
             this._organiseNotificationHistory(match);
         }.bind(this));
 
-        this._updateServerFilterMatchesCount();
-
         // new data - forget current sorting preferences
         this._resetSortingPreferences();
 
@@ -727,10 +726,10 @@ var PhenoTips = (function (PhenoTips) {
             var matchesForServer = [];
             if (selectEl.value == "local") {
                 // local matches
-                matchesForServer = this._cachedMatches.filter(function(match) { return (match.reference.serverId === "" && match.matched.serverId === ""); });
+                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === "" && match.matched.serverId === ""); });
             } else {
                 // remote matches
-                matchesForServer = this._cachedMatches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
+                matchesForServer = this._matches.filter(function(match) { return (match.reference.serverId === serverID || match.matched.serverId === serverID); });
             }
             var countEl = selectEl.up().down('.matches-count').update(' (' + matchesForServer.length + ')');
         }.bind(this));
@@ -1234,7 +1233,7 @@ var PhenoTips = (function (PhenoTips) {
 
         //if logged as admin - add notification checkbox for local PC patient email contact but not for self (not for patients owned by admin)
         if (this._isAdmin && patient.serverId == '' && patient.emails.length > 0) {
-            td += '<div><span class="fa fa-envelope-o" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'"></div>';
+            td += '<div><span class="fa fa-volume-up" title="' + this._NOTIFY + '"></span> <input type="checkbox" class="notify" data-matchid="' + matchId + '" data-patientid="'+ patient.patientId +'" data-emails="'+ patient.emails.toString() +'"></div>';
         }
         td += '</td>';
         return td;
@@ -1780,11 +1779,22 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this),
             onFailure : function (response) {
                 this._errorDialog.showError(this._CONTACT_SEND_ERROR_HEADER, this._SERVER_ERROR_MESSAGE);
+                this._uncheckNotifyCheckboxes();
             }.bind(this),
             onComplete : function () {
                 this._utils.clearHint('send-notifications-messages');
             }.bind(this)
         });
+    },
+
+    _uncheckNotifyCheckboxes : function()
+    {
+        // un-check all notification checkboxes, only admin sees them
+        if (isAdminNotification) {
+            this._tableElement.select('input[type=checkbox][class="notify"]').each(function (contactCheckbox) {
+                contactCheckbox.checked = false;
+            });
+        }
     },
 
     _getMarkedToNotify : function()
@@ -1832,12 +1842,7 @@ var PhenoTips = (function (PhenoTips) {
     // updates the table after a match (or matches) have been notified by either the user (isAdminNotification == false) or admin (isAdminNotification == true)
     // notifiedPatients, failedNotifications: a map of { matchId -> [ list of notified patient IDs ] }
     _updateTableAfterNotification : function (notificationResult, isAdminNotification) {
-        // un-check all notification checkboxes, only admin sees them
-        if (isAdminNotification) {
-            this._tableElement.select('input[type=checkbox][class="notify"]').each(function (contactCheckbox) {
-                contactCheckbox.checked = false;
-            });
-        }
+    	this._uncheckNotifyCheckboxes();
 
         if (notificationResult.success && notificationResult.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
