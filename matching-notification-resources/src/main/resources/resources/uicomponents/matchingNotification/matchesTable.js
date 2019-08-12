@@ -91,6 +91,8 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTES_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.title'))";
         this._NOTES_SAVE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.save'))";
         this._NOTES_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.hint'))";
+        this._MATCHES_LAST_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun'))";
+        this._MATCHES_NEVER_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -131,6 +133,8 @@ var PhenoTips = (function (PhenoTips) {
         Event.observe(window, 'resize', this._buildTable.bind(this));
 
         Event.observe(document, "matches:refreshed", this._showMatches.bind(this));
+
+        this._initiateDisclaimers();
     },
 
     _initializeScoreSlider: function(id, minScore, initialScore) {
@@ -177,6 +181,36 @@ var PhenoTips = (function (PhenoTips) {
                                "foundTimestamp": "descending" };
         // current sorting order
         this._currentSortingOrder = "none";
+    },
+
+    _initiateDisclaimers: function() {
+        $$('#checkbox-server-filters .fa').each(function(trigger) {
+            var disclaimerTextInput = trigger.up('label').down('.disclaimer');
+            if (disclaimerTextInput && disclaimerTextInput.value) {
+
+                var disclaimerContainer = new Element('div');
+                disclaimerContainer.insert(new Element('p', {'class' : 'mme-disclaimer'}).insert(disclaimerTextInput.value));
+
+                var endTimeInput = trigger.up('label').down('.endTime');
+                var lastUpdateText = this._MATCHES_NEVER_RUN;
+                if (endTimeInput && endTimeInput.value) {
+                	var time = new Date(endTimeInput.value);
+                    lastUpdateText = this._MATCHES_LAST_RUN + " " + time.toISOString().split('T')[0];
+                }
+                disclaimerContainer.insert(new Element('div').insert(lastUpdateText));
+
+                var serverName = trigger.up('label').down('.serverName').value;
+                var disclaimerDialog = new PhenoTips.widgets.ModalPopup(disclaimerContainer, false, {'title': serverName + " $escapetool.javascript($services.localization.render('phenotips.myMatches.disclaimer.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
+
+                trigger.observe("click", function(event) {
+                      if (event) {event.stop();}
+                      /* TODO: This should use the reasonable default verticalAlignment once PhenoTips.Widgets is updated */
+                      disclaimerDialog.createDialog();
+                      disclaimerDialog.positionDialogInViewport(200, 200);
+                      disclaimerDialog.showDialog();
+                });
+            }
+        });
     },
 
     _sortByColumn : function(propName, doUpdate) {
