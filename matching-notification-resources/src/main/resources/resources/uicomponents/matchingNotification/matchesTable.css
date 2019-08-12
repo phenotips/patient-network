@@ -195,9 +195,6 @@ input.notify, td span.fa.fa-envelope {
   background-color: white;
 }
 .xHelpButton {
-  margin-left: 10px;
-}
-.xHelpButton {
   margin-left: 5px;
 }
 
@@ -218,6 +215,10 @@ a.button.toggle-filters.secondary-filters {
 }
 input.mme {
   margin-left: 15px!important;
+}
+span.matches-count {
+  font-size: .8em;
+  opacity: .7;
 }
 #checkbox-server-filters {
   margin-top: 15px;
@@ -530,4 +531,11 @@ td[name="contact"] {
   white-space: normal;
   text-align: left;
   font-variant: normal;
+}
+.mme-disclaimer {
+  color: #369;
+}
+#checkbox-server-filters .fa {
+  cursor: pointer;
+  margin-left: 5px;
 }

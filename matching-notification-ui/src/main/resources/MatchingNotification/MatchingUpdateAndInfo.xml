@@ -102,7 +102,6 @@ $xwiki.ssx.use($displayDocumentName)
     #set ($headerID = "mme-${foreach.count}")
     #set ($serverID = $config.getProperty('serverId').getValue())
     #set ($serverName = $config.getProperty('humanReadableName').getValue())
-    #set ($disclaimer = $config.getProperty('disclaimer').getValue())
     #if ($serverName == "")
       #set ($serverName = $serverID)
     #end
