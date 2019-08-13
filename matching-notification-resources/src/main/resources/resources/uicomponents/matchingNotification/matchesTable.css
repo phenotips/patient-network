@@ -527,10 +527,28 @@ td[name="contact"] {
   text-align: left;
   font-variant: normal;
 }
-.mme-disclaimer {
+.xTooltip.mme-disclaimer {
   color: #369;
+  min-width: 30em;
+  font-size: 90%;
 }
 #checkbox-server-filters .fa {
   cursor: pointer;
   margin-left: 5px;
+}
+.mme-disclaimer .server-name {
+  font-weight: bold;
+  padding-bottom: 0.5em;
+}
+.mme-disclaimer .title {
+  font-style: italic;
+  padding-top: 1em;
+  padding-bottom: 0.2em;
+  opacity: 0.6;
+}
+.mme-disclaimer .time-updated {
+  color: green;
+}
+.mme-disclaimer .never-run {
+  color: red;
 }
