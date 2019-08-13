@@ -370,16 +370,40 @@
         $('body').addEventListener('click', dropdownCloser, false);
     });
 
-    $$(".dropdown-menu a").invoke("observe", "click", function(event) {
-        $('remote-select-dropdown').removeClassName("show");
-        $('body').removeEventListener('click', dropdownCloser, false);
+    var getMatchesTimeRun = function(el) {
+        var serverId = el.className;
+        var mmeServ = $$('#checkbox-server-filters input[value="'+ el.className+ '"]')[0];
+        if (mmeServ) {
+            var mmeRunTime = mmeServ.up('label').down('.endTime');
+            if (mmeRunTime &amp;&amp; mmeRunTime.value &amp;&amp; new Date(mmeRunTime.value)) {
+                var now = new Date();
+                var time = new Date(mmeRunTime.value);
+                // if matches was ran 10 minutes ago
+                if (now.getTime() - time.getTime() &lt; 1000*60*10) {
+                    return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
+                } else {
+                    return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time')) " + time.toISOString().split('T')[0];
+                }
+            }
+        }
+        return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
+    };
 
-        var serverEl = event.element();
-        if (!serverEl || serverEl.className == "") { return; }
+    $$(".dropdown-menu a").each(function (el) {
+        var time = getMatchesTimeRun(el);
+        el.insert(new Element('div', {'class' : 'match-timeline-info'}).update(time));
 
-        refreshingNotification.show();
-        _refreshMatches(urlRefreshMatches, serverEl.className, refreshingNotification);
-    });
+        el.observe("click", function(event) {
+            $('remote-select-dropdown').removeClassName("show");
+            $('body').removeEventListener('click', dropdownCloser, false);
+
+            var serverEl = event.element();
+            if (!serverEl || serverEl.className == "") { return; }
+
+            refreshingNotification.show();
+            _refreshMatches(urlRefreshMatches, serverEl.className, refreshingNotification);
+        });
+    }.bind(this));
 
     var dropdownCloser = function(event) {
         // close remote servers dropdown menu on click outside
@@ -389,6 +413,7 @@
           $('body').removeEventListener('click', dropdownCloser, false);
         }
     };
+
   };
 
   var fetchConsents = function(callback) {
@@ -634,6 +659,12 @@
 }
 #remote-select-dropdown a {
   padding: .7em;
+}
+.match-timeline-info {
+  font-size: .8em;
+  line-height: 1.1em;
+  margin: 0;
+  opacity: .5;
 }</code>
     </property>
     <property>
