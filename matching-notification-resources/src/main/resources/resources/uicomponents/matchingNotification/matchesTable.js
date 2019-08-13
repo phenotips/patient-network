@@ -93,6 +93,7 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTES_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.hint'))";
         this._MATCHES_LAST_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun'))";
         this._MATCHES_NEVER_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))";
+        this._MATCHES_DISCLAIMER_TITLE = "$escapetool.javascript($services.localization.render('phenotips.myMatches.disclaimer.disclaimerTitle'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -188,29 +189,55 @@ var PhenoTips = (function (PhenoTips) {
             var disclaimerTextInput = trigger.up('label').down('.disclaimer');
             if (disclaimerTextInput && disclaimerTextInput.value) {
 
-                var disclaimerContainer = new Element('div');
-                disclaimerContainer.insert(new Element('p', {'class' : 'mme-disclaimer'}).insert(disclaimerTextInput.value));
+                var disclaimerContainer = new Element('span', {'class' : 'mme-disclaimer xTooltip hidden'});
 
-                var endTimeInput = trigger.up('label').down('.endTime');
-                var lastUpdateText = this._MATCHES_NEVER_RUN;
-                if (endTimeInput && endTimeInput.value) {
-                	var time = new Date(endTimeInput.value);
-                    lastUpdateText = this._MATCHES_LAST_RUN + " " + time.toISOString().split('T')[0];
+                var hideAllHelpOnOutsideClick = function (event) {
+                    if (!event.findElement('.xTooltip') && !event.findElement('.mme-disclaimer-help')) {
+                      disclaimerContainer.addClassName('hidden');
+                      document.stopObserving('click', hideAllHelpOnOutsideClick);
+                    }
                 }
-                disclaimerContainer.insert(new Element('div').insert(lastUpdateText));
+
+                var closeButton = new Element('span', {'class': 'hide-tool', 'title': 'Hide'}).update('×');
+                closeButton.observe('click', function(event) {
+                    if (event) {event.stop();}
+                    disclaimerContainer.addClassName('hidden');
+                    document.stopObserving('click', hideAllHelpOnOutsideClick);
+                });
+                disclaimerContainer.insert(closeButton);
 
                 var serverName = trigger.up('label').down('.serverName').value;
-                var disclaimerDialog = new PhenoTips.widgets.ModalPopup(disclaimerContainer, false, {'title': serverName + " $escapetool.javascript($services.localization.render('phenotips.myMatches.disclaimer.disclaimerDialogTitle'))", 'removeOnClose': false, 'resetPositionOnShow': false});
+                disclaimerContainer.insert(new Element('div', {'class' : 'server-name'}).insert(serverName));
+
+                var endTimeInput = trigger.up('label').down('.endTime');
+                if (endTimeInput && endTimeInput.value && new Date(endTimeInput.value)) {
+                    var time = new Date(endTimeInput.value);
+                    disclaimerContainer.insert(new Element('div', {'class' : 'time-updated'}).insert(this._MATCHES_LAST_RUN + " " + time.toISOString().split('T')[0] + "."));
+                } else {
+                    disclaimerContainer.insert(new Element('div', {'class' : 'never-run'}).insert(this._MATCHES_NEVER_RUN));
+                }
+
+                if (!this._utils.isBlank(disclaimerTextInput.value)) {
+                    disclaimerContainer.insert(new Element('div', {'class' : 'title'}).insert(this._MATCHES_DISCLAIMER_TITLE));
+                    disclaimerContainer.insert(new Element('div', {'class' : 'disclaimer-text'}).insert(disclaimerTextInput.value));
+                }
+
+                trigger.insert({"after" : disclaimerContainer});
 
                 trigger.observe("click", function(event) {
-                      if (event) {event.stop();}
-                      /* TODO: This should use the reasonable default verticalAlignment once PhenoTips.Widgets is updated */
-                      disclaimerDialog.createDialog();
-                      disclaimerDialog.positionDialogInViewport(200, 200);
-                      disclaimerDialog.showDialog();
+                    if (event) {event.stop();}
+                    if (disclaimerContainer.hasClassName('hidden')) {
+                        $$('.xTooltip:not(.hidden)', '.xPopup:not(.hidden)').each(function(el) { el.addClassName('hidden');});
+                        document.observe('click', hideAllHelpOnOutsideClick);
+                    } else {
+                        document.stopObserving('click', hideAllHelpOnOutsideClick);
+                    }
+                    disclaimerContainer.toggleClassName('hidden');
                 });
+
+                disclaimerContainer.observe("click", function(event) { if (event) {event.stop();} });
             }
-        });
+        }.bind(this));
     },
 
     _sortByColumn : function(propName, doUpdate) {
@@ -223,7 +250,7 @@ var PhenoTips = (function (PhenoTips) {
             // reverse sorting order if already sorting by this parameter...
             this._sortingOrder[propName] = (this._sortingOrder[propName] == "ascending") ? "descending" : "ascending";
         } else {
-            // ...but use curent/default sorting order if currently sorting by other column
+            // ...but use current/default sorting order if currently sorting by other column
             this._currentSortingOrder = propName;
         }
 
