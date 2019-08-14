@@ -48,7 +48,7 @@ $xwiki.ssx.use('PhenoTips.DBWebHomeSheet')##
 $xwiki.ssx.use('PhenoTips.Widgets')##
 $xwiki.jsx.use('PhenoTips.Widgets')##
 
-{{html clean='false' wiki='true'}}
+{{html clean='false' wiki='false'}}
 #macro (__generateGridBlock )
   &lt;div class="progress"&gt;&lt;/div&gt;
     &lt;div class="hider"&gt;&lt;/div&gt;
@@ -90,8 +90,8 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           &lt;div class="xform"&gt;
             #if("${doc.space}" != "data")&lt;span class='buttonwrapper'&gt;
               &lt;a class='button toggle-filters' href='#' id="toggle-filters-button"&gt;
-              {{icon name='search' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.matchingNotifications.table.matchesSearch.heading')&lt;/span&gt;
-              {{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}&lt;/a&gt;
+              &lt;span class="fa fa-search"&gt; &lt;/span&gt;&lt;span class='label'&gt;$services.localization.render('phenotips.matchingNotifications.table.matchesSearch.heading')&lt;/span&gt;
+              &lt;span class="fa fa-angle-double-left  collapse-marker"&gt; &lt;/span&gt;&lt;span class="fa fa-angle-double-down  expand-marker"&gt; &lt;/span&gt;&lt;/a&gt;
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
               &lt;li&gt;
@@ -129,7 +129,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;/div&gt;
             &lt;/ul&gt;#end
             &lt;span id="advanced-filters-header" class='buttonwrapper'&gt;
-              &lt;a class='button toggle-filters #if("${doc.space}" != "data")secondary-filters'#else' id="toggle-filters-button"#end href='#' &gt;{{icon name='filter' /}}&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt; #if("${doc.space}" == "data"){{icon name='angle-double-left' cssClass='collapse-marker' /}}{{icon name='angle-double-down' cssClass='expand-marker' /}}#end&lt;/a&gt;
+              &lt;a class='button toggle-filters #if("${doc.space}" != "data")secondary-filters'#else' id="toggle-filters-button"#end href='#' &gt;&lt;span class="fa fa-filter"&gt; &lt;/span&gt;&lt;span class='label'&gt;$services.localization.render('phenotips.myMatches.filterButton')&lt;/span&gt; #if("${doc.space}" == "data")&lt;span class="fa fa-angle-double-left  collapse-marker"&gt; &lt;/span&gt;&lt;span class="fa fa-angle-double-down  expand-marker"&gt; &lt;/span&gt;#end&lt;/a&gt;
             &lt;/span&gt;
             &lt;ul class="filters xform"&gt;
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
@@ -139,7 +139,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                   #if ($matchesUpdateObject)##
                     #set($endTime = $matchesUpdateObject.getValue('completedTime'))##
                   #end##
-                  &lt;input type="hidden" class="disclaimer" value=" "&gt;##
+                  &lt;input type="hidden" class="disclaimer" value="$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.disclaimer.PhenomeCentral'))"&gt;##
                   &lt;input type="hidden" class="endTime" value="${escapetool.xml($!endTime)}"&gt;##
                   &lt;input type="hidden" class="serverName" value="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))"&gt;##
                   &lt;span class="fa fa-info-circle mme-disclaimer-help" title="$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.showDisclaimer'))"&gt;&lt;/span&gt;
