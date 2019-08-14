@@ -91,7 +91,6 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTES_TITLE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.title'))";
         this._NOTES_SAVE = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.save'))";
         this._NOTES_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.hint'))";
-        this._MATCHES_LAST_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun'))";
         this._MATCHES_NEVER_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))";
         this._MATCHES_DISCLAIMER_TITLE = "$escapetool.javascript($services.localization.render('phenotips.myMatches.disclaimer.disclaimerTitle'))";
 
@@ -185,7 +184,7 @@ var PhenoTips = (function (PhenoTips) {
     },
 
     _initiateDisclaimers: function() {
-        $$('#checkbox-server-filters .fa').each(function(trigger) {
+        $$('#checkbox-server-filters .mme-disclaimer-help').each(function(trigger) {
             var disclaimerTextInput = trigger.up('label').down('.disclaimer');
             if (disclaimerTextInput && disclaimerTextInput.value) {
 
@@ -210,11 +209,8 @@ var PhenoTips = (function (PhenoTips) {
                 disclaimerContainer.insert(new Element('div', {'class' : 'server-name'}).insert(serverName));
 
                 var endTimeInput = trigger.up('label').down('.endTime');
-                if (endTimeInput && endTimeInput.value && new Date(endTimeInput.value)) {
-                    var time = new Date(endTimeInput.value);
-                    disclaimerContainer.insert(new Element('div', {'class' : 'time-updated'}).insert(this._MATCHES_LAST_RUN + " " + time.toISOString().split('T')[0] + "."));
-                } else {
-                    disclaimerContainer.insert(new Element('div', {'class' : 'never-run'}).insert(this._MATCHES_NEVER_RUN));
+                if (endTimeInput && endTimeInput.value) {
+                    disclaimerContainer.insert(new Element('div', {'class' : endTimeInput.className}).insert(endTimeInput.value));
                 }
 
                 if (!this._utils.isBlank(disclaimerTextInput.value)) {
