@@ -529,7 +529,7 @@ td[name="contact"] {
 }
 .xTooltip.mme-disclaimer {
   color: #369;
-  min-width: 30em;
+  min-width: 50em;
   font-size: 90%;
 }
 #checkbox-server-filters .fa {
