@@ -1787,7 +1787,7 @@ var PhenoTips = (function (PhenoTips) {
         });
     },
 
-    _uncheckNotifyCheckboxes : function()
+    _uncheckNotifyCheckboxes : function(isAdminNotification)
     {
         // un-check all notification checkboxes, only admin sees them
         if (isAdminNotification) {
@@ -1842,7 +1842,7 @@ var PhenoTips = (function (PhenoTips) {
     // updates the table after a match (or matches) have been notified by either the user (isAdminNotification == false) or admin (isAdminNotification == true)
     // notifiedPatients, failedNotifications: a map of { matchId -> [ list of notified patient IDs ] }
     _updateTableAfterNotification : function (notificationResult, isAdminNotification) {
-    	this._uncheckNotifyCheckboxes();
+    	this._uncheckNotifyCheckboxes(isAdminNotification);
 
         if (notificationResult.success && notificationResult.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
