@@ -125,10 +125,6 @@
   margin-left: 20px;
 }
 
-#table-container {
-  margin-top: 1em;
-}
-
 #show-matches-button {
   margin: 10px 40px 0 0;
 }
@@ -248,7 +244,6 @@ ul.filters li.text-filter {
   font-size: .8em;
   font-style: italic;
   opacity: 0.8;
-  margin-bottom: 10px;
 }
 .filter-mme-server-name {
   display: inline-block;
@@ -307,12 +302,8 @@ table.comments-table {
   resize: vertical;
   min-height: 45px;
 }
-a.button.comment, a.button.notes {
-  background-image: none;
-  background-color: transparent;
-  color: #000;
-  text-shadow: none;
-  border: none;
+.fa.comment, .fa.notes {
+  cursor: pointer;
 }
 td.status-column {
   white-space: nowrap;
@@ -320,6 +311,9 @@ td.status-column {
 }
 td.notes-column {
   white-space: nowrap;
+}
+td.notes-column .comment {
+  margin-right: .2em;
 }
 select.status {
   padding: .3em 1px .3em 1px;
@@ -419,7 +413,7 @@ div[name="notification-email-long"], div[name="owner-info"] {
   border: 0;
   border-bottom: 1px solid #D7DEE3;
   font-size: .8em;
-  padding: 3px 4px;
+  padding: .75em;
   text-transform: uppercase;
   background-color: #F6F8F9;
 }
@@ -434,16 +428,16 @@ div[name="notification-email-long"], div[name="owner-info"] {
   border: 0;
   color: #636B75;
   font-size: .95em;
-  padding: 3px 8px;
+  padding: .75em;
 }
-.code {
+.matches-table .code {
   padding: .2em .4em;
   margin: 0;
   font-size: 85%;
   background-color: rgba(27,31,35,0.05);
   border-radius: 3px;
   display: inline-block;
-  margin: 0.2em 0;
+  margin: .5em .5em .5em 0;
 }
 .nhdialog-title {
   font-weight: bold;
@@ -453,6 +447,7 @@ div[name="notification-email-long"], div[name="owner-info"] {
 .notification-history-table .date {
   font-size: .85em;
   margin-bottom: 0.5em;
+  margin-top: 0.2em;
 }
 .comments-table .date {
   font-size: .9em;
