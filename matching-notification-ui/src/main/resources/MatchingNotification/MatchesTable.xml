@@ -136,16 +136,11 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;##
                   $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;span class="matches-count"&gt;&lt;/span&gt;##
+                  #set ($endTime = '')##
                   #set ($endTime = "$!matchesRunDoc.getObject($infoClassname, 'serverName', 'local').getValue('completedTime')")##
-                  #set ($endTimeInfo = $services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))
-                  #if ($endTime &amp;&amp; "$!endTime.class" == 'class java.lang.String' &amp;&amp; "$!endTime" != "")
-                    #set ($endTimeParsed = $services.jodatime.getDateTimeFormatterForPattern('EEE MMM dd kk:mm:ss z yyyy').parseDateTime($endTime).toDate())
-                    #set ($endTimeFormatted = $services.jodatime.getDateTimeFormatterForPattern($dateFormat).print($endTimeParsed))
-                    #set ($endTimeInfo = $services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun', [$endTimeFormatted]))
-                  #end
                   #set ($disclaimer = "$!xwiki.getDocument('PhenomeCentral.ServiceDisclaimer').getRenderedContent()")##
                   &lt;input type="hidden" class="disclaimer" value="${escapetool.xml($disclaimer)}"&gt;##
-                  &lt;input type="hidden" class="endTime" value="${escapetool.xml($!endTimeInfo)}"&gt;##
+                  &lt;input type="hidden" class="endTime" value="${escapetool.xml($!endTime)}"&gt;##
                   &lt;input type="hidden" class="serverName" value="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))"&gt;##
                   &lt;span class="fa fa-info-circle mme-disclaimer-help" title="$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.showDisclaimer'))"&gt;&lt;/span&gt;
                   &lt;br&gt;
@@ -161,17 +156,12 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                       #set ($serverName = $serverID)
                     #end
                     #set ($disclaimer = $config.getProperty('disclaimer').getValue())
-                    #set ($endTime = "$!matchesRunDoc.getObject($infoClassname, 'serverName', $serverID).getValue('completedTime')")
-                    #set ($endTimeInfo = $services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))
-                    #if ($endTime &amp;&amp; "$!endTime.class" == 'class java.lang.String' &amp;&amp; "$!endTime" != "")
-                      #set ($endTimeParsed = $services.jodatime.getDateTimeFormatterForPattern('EEE MMM dd kk:mm:ss z yyyy').parseDateTime($endTime).toDate())
-                      #set ($endTimeFormatted = $services.jodatime.getDateTimeFormatterForPattern($dateFormat).print($endTimeParsed))
-                      #set ($endTimeInfo = $services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun', [$endTimeFormatted]))
-                    #end
+                    #set ($endTime = '')##
+                    #set ($endTime = "$!matchesRunDoc.getObject($infoClassname, 'serverName', $serverID).getValue('completedTime')")##
                     &lt;label&gt;
                       &lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="${escapetool.xml($serverID)}" checked&gt;
                       &lt;input type="hidden" class="disclaimer" value="${escapetool.xml($disclaimer)}"&gt;
-                      &lt;input type="hidden" class="endTime #if($endTime)time-updated#else never-run#end" value="${escapetool.xml($!endTimeInfo)}"&gt;
+                      &lt;input type="hidden" class="endTime" value="${escapetool.xml($!endTime)}"&gt;
                       &lt;input type="hidden" class="serverName" value="${escapetool.xml($serverName)}"&gt;
                       &lt;div class="filter-mme-server-name"&gt;${escapetool.xml($serverName)}&lt;span class="matches-count"&gt;&lt;/span&gt;&lt;span class="fa fa-info-circle mme-disclaimer-help" title="$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.showDisclaimer'))"&gt;&lt;/span&gt;&lt;/div&gt;
                       &lt;br&gt;

@@ -93,6 +93,7 @@ var PhenoTips = (function (PhenoTips) {
         this._NOTES_HINT = "$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.notes.hint'))";
         this._MATCHES_NEVER_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.noMatchRequest'))";
         this._MATCHES_DISCLAIMER_TITLE = "$escapetool.javascript($services.localization.render('phenotips.myMatches.disclaimer.disclaimerTitle'))";
+        this._MATCHES_LAST_RUN = "$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.matchesLastRun'))";
 
         this._PUBMED_URL = "http://www.ncbi.nlm.nih.gov/pubmed/";
 
@@ -209,8 +210,12 @@ var PhenoTips = (function (PhenoTips) {
                 disclaimerContainer.insert(new Element('div', {'class' : 'server-name'}).insert(serverName));
 
                 var endTimeInput = trigger.up('label').down('.endTime');
-                if (endTimeInput && endTimeInput.value) {
-                    disclaimerContainer.insert(new Element('div', {'class' : endTimeInput.className}).insert(endTimeInput.value));
+                if (endTimeInput && endTimeInput.value && new Date(endTimeInput.value)) {
+                    var time = new Date(endTimeInput.value);
+                    var lastRunInfo = this._MATCHES_LAST_RUN.replace('_TIME_', time.toISOString().split('T')[0]);
+                    disclaimerContainer.insert(new Element('div', {'class' : 'time-updated'}).insert(lastRunInfo));
+                } else {
+                    disclaimerContainer.insert(new Element('div', {'class' : 'never-run'}).insert(this._MATCHES_NEVER_RUN));
                 }
 
                 if (!this._utils.isBlank(disclaimerTextInput.value)) {
