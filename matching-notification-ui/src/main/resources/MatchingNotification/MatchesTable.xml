@@ -136,7 +136,6 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;li id="checkbox-server-filters"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.serverIdCheckbox.label'))&lt;br&gt;
                 &lt;label&gt;&lt;input name="checkbox-server-id-filter" type="checkbox" value="local" checked &gt;##
                   $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.matchesSeletFilter.local'))&lt;span class="matches-count"&gt;&lt;/span&gt;##
-                  #set ($endTime = '')##
                   #set ($endTime = "$!matchesRunDoc.getObject($infoClassname, 'serverName', 'local').getValue('completedTime')")##
                   #set ($disclaimer = "$!xwiki.getDocument('PhenomeCentral.ServiceDisclaimer').getRenderedContent()")##
                   &lt;input type="hidden" class="disclaimer" value="${escapetool.xml($disclaimer)}"&gt;##
@@ -156,7 +155,6 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                       #set ($serverName = $serverID)
                     #end
                     #set ($disclaimer = $config.getProperty('disclaimer').getValue())
-                    #set ($endTime = '')##
                     #set ($endTime = "$!matchesRunDoc.getObject($infoClassname, 'serverName', $serverID).getValue('completedTime')")##
                     &lt;label&gt;
                       &lt;input name="checkbox-server-id-filter" class="mme" type="checkbox" value="${escapetool.xml($serverID)}" checked&gt;
