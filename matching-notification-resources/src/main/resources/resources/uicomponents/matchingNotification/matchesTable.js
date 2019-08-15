@@ -923,7 +923,7 @@ var PhenoTips = (function (PhenoTips) {
         if (this._isAdmin || this._isAdminOfGroup) {
             // comments
             var icon = (match.comments) ? "fa fa-comments" : "fa fa-comments-o";
-            td += '<span class="buttonwrapper" title="' + this._ADD_COMMENT_TITLE + '"><a class="button comment" href="#"><span class="' + icon + '"> </span></a></span>';
+            td += '<span class="comment ' + icon + '" title="' + this._ADD_COMMENT_TITLE + '"> </span>';
             var commentsTable = '';
             if (match.comments) {
                 commentsTable = this._generateCommentsTable(match.comments);
@@ -937,7 +937,7 @@ var PhenoTips = (function (PhenoTips) {
         }
         // notes icon
         var icon = (match.notes) ? "fa fa-file" : "fa fa-file-o";
-        td += '<span class="buttonwrapper" title="' + this._NOTES_TITLE + '"><a class="button notes" href="#"><span class="' + icon + '"> </span></a></span>';
+        td += '<span class="notes ' + icon + '" title="' + this._NOTES_TITLE + '"> </span>';
         td += '<div class="xPopup notes-container"><span class="hide-tool" title="Hide">×</span>'
             + '<div class="nhdialog-title">' + this._NOTES_TITLE + '</div>'
             + '<p class="xHint">' + this._NOTES_HINT + '</p>'
@@ -963,8 +963,10 @@ var PhenoTips = (function (PhenoTips) {
             // date and user name row
             var row = '<tr>';
             var date = '<td class="comment-info">';
-            if (record.date) {
-                date += '<span class="date">' + record.date.split(' ')[0] + '</span>';
+            if (record.date && new Date(record.date)) {
+                var time = new Date(record.date);
+                time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
+                date += '<span class="date">' + time.toISOString().split('T')[0] + '</span>';
             }
             if (record.userinfo) {
                 // admin comments should have something generic e.g. "PhenomeCentral" (no link)
@@ -1219,9 +1221,6 @@ var PhenoTips = (function (PhenoTips) {
                 email = email.split('/')[2];
                 email = '<a href=' + patient.emails[i] + ' target="_blank">' + email + '</a>';
             } else {
-                if (i != patient.emails.length - 1) {
-                    email += ", ";
-                }
                 // insert a 0-width space after the @, so that a long email can be split into two lines
                 email = email.replace(/@/g,"@&#8203;");
                 // insert a "preferred-no-split <span> around emails, to make sure lines are first split on ",",
@@ -1257,9 +1256,11 @@ var PhenoTips = (function (PhenoTips) {
 
             var title = (record.type == 'contact') ? this._NOTIFICATION_HISTORY_CONTACT_TITLE : this._NOTIFICATION_HISTORY_NOTIFICATION_TITLE;
             var date = '<td title="' + title + '">';
-            if (record.date) {
+            if (record.date && new Date(record.date)) {
+                var time = new Date(record.date);
+                time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
                 var dateIconName = (record.type == 'contact') ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
-                date += '<div class="date">' + record.date.split(' ')[0] + '</div><span class="'+ dateIconName + '"> </span></td>';
+                date += '<div class="date">' + time.toISOString().split('T')[0] + '</div><span class="'+ dateIconName + '"> </span></td>';
             }
             date += '</td>';
 
@@ -1296,9 +1297,9 @@ var PhenoTips = (function (PhenoTips) {
         if (info.userinfo) {
             if (info.userinfo.name) {
                 if (info.userinfo.url) {
-                    cell += '<a href="' + info.userinfo.url + '" target="_blank">' + info.userinfo.name + '</a>';
+                    cell += '<div><a href="' + info.userinfo.url + '" target="_blank">' + info.userinfo.name + '</a></div>';
                 } else {
-                    cell += info.userinfo.name;
+                    cell += '<div>' + info.userinfo.name + '</div>';
                 }
             }
             if (info.userinfo.institution) {
@@ -1475,7 +1476,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         var history_container = elm.up('td').down('.notification-history-container');
 
-        // hide comment container on table update
+        // hide history container on table update
         history_container.addClassName('hidden');
 
         elm.on('click', function(event) {
@@ -1508,7 +1509,7 @@ var PhenoTips = (function (PhenoTips) {
 
     _afterProcessTableComments : function()
     {
-        this._tableElement.select('.button.comment').each(function (elm) {
+        this._tableElement.select('.fa.comment').each(function (elm) {
             var comment_container = elm.up('td').down('.comment-container');
             var textarea = comment_container.down('textarea');
             var saveButton = elm.up('td').down('.save-comment');
@@ -1558,14 +1559,14 @@ var PhenoTips = (function (PhenoTips) {
                 return;
             }
             var textarea = elm.down('textarea');
-            elm.up('td').down('.notes span.fa').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+            elm.up('td').down('span.fa.notes').className = (textarea.value) ? "notes fa fa-file" : "notes fa fa-file-o";
             elm.addClassName('hidden');
         });
     },
 
     _afterProcessTableNotes : function()
     {
-        this._tableElement.select('.button.notes').each(function (elm) {
+        this._tableElement.select('.fa.notes').each(function (elm) {
             var notes_container = elm.up('td').down('.notes-container');
             var textarea = notes_container.down('textarea');
 
@@ -1582,7 +1583,7 @@ var PhenoTips = (function (PhenoTips) {
 
             var hideTool = elm.up('td').down('.notes-container .hide-tool');
             hideTool.on('click', function(event) {
-                elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+                elm.className = (textarea.value) ? "notes fa fa-file" : "notes fa fa-file-o";
                 notes_container.addClassName('hidden');
             });
 
@@ -1598,7 +1599,7 @@ var PhenoTips = (function (PhenoTips) {
             saveButton.disable();
             saveButton.on('click', function(event) {
                 saveButton.disable();
-                elm.down('span').className = (textarea.value) ? "fa fa-file" : "fa fa-file-o";
+                elm.className = (textarea.value) ? "notes fa fa-file" : "notes fa fa-file-o";
                 notes_container.addClassName('hidden');
                 this._saveNote(event);
             }.bind(this));
@@ -1842,7 +1843,7 @@ var PhenoTips = (function (PhenoTips) {
     // updates the table after a match (or matches) have been notified by either the user (isAdminNotification == false) or admin (isAdminNotification == true)
     // notifiedPatients, failedNotifications: a map of { matchId -> [ list of notified patient IDs ] }
     _updateTableAfterNotification : function (notificationResult, isAdminNotification) {
-    	this._uncheckNotifyCheckboxes(isAdminNotification);
+        this._uncheckNotifyCheckboxes(isAdminNotification);
 
         if (notificationResult.success && notificationResult.success.length > 0 ) {
             var properties = {'notified': true, 'state': 'success', 'isAdminNotification': isAdminNotification};
@@ -1962,8 +1963,8 @@ var PhenoTips = (function (PhenoTips) {
                     commentsTable && commentsTable.remove();
                     var newCommentsTable = this._generateCommentsTable(this._matches[matchIndex].comments);
                     commentsContainer.insert(newCommentsTable);
-                    var commentsIconEl = commentsContainer.up('tr').down('.button.comment span.fa');
-                    if (commentsIconEl) { commentsIconEl.className = "fa fa-comments"; }
+                    var commentsIconEl = commentsContainer.up('tr').down('span.fa.comment');
+                    if (commentsIconEl) { commentsIconEl.className = "comment fa fa-comments"; }
                     var textarea = commentsContainer.down('textarea');
                     if (textarea) { textarea.value = ''; }
                 }
