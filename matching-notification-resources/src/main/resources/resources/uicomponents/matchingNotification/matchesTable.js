@@ -212,6 +212,7 @@ var PhenoTips = (function (PhenoTips) {
                 var endTimeInput = trigger.up('label').down('.endTime');
                 if (endTimeInput && endTimeInput.value && new Date(endTimeInput.value)) {
                     var time = new Date(endTimeInput.value);
+                    time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
                     var lastRunInfo = this._MATCHES_LAST_RUN.replace('_TIME_', time.toISOString().split('T')[0]);
                     disclaimerContainer.insert(new Element('div', {'class' : 'time-updated'}).insert(lastRunInfo));
                 } else {
