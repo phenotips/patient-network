@@ -26,8 +26,11 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -107,5 +110,19 @@ public class DefaultMatchFinderManager implements MatchFinderManager
         }
 
         return patients;
+    }
+
+    @Override
+    public Map<String, Date> getLastUpdatedDates(String patientId)
+    {
+        this.logger.error("Finding last updated date for patient [{}]", patientId);
+        Map<String, Date> dates = new HashMap<String, Date>();
+        for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
+            for (String serverId : matchFinder.getSupportedServerIdList()) {
+                Date date = matchFinder.getLastUpdatedDateForServerForPatient(patientId, serverId);
+                dates.put(serverId, date);
+            }
+        }
+        return dates;
     }
 }

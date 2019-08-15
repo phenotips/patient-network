@@ -233,4 +233,16 @@ public interface MatchingNotificationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{matchId}")
     Response getMatch(@PathParam("matchId") Long matchId);
+
+    /**
+     * Returns a JSON object containing last matches update date for a provided {@code patientId patient}
+     * for all servers (local matches or MME matches).
+     *
+     * @param patientId the internal ID of the local patient of interest
+     * @return JSON containing serialized dates
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/updated/{patientId}")
+    Response getLastUpdatedDate(@PathParam("patientId") String patientId);
 }
