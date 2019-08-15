@@ -312,4 +312,31 @@ public abstract class AbstractMatchFinder implements MatchFinder
 
         return null;
     }
+
+    @Override
+    public Date getLastUpdatedDateForServer(String serverId)
+    {
+        Set<String> supportedServers = this.getSupportedServerIdList();
+        if (!supportedServers.contains(serverId)) {
+            return null;
+        }
+
+        try {
+            XWikiDocument runInfoDoc = getMatchingRunInfoDoc();
+            if (runInfoDoc == null) {
+                return null;
+            }
+
+            BaseObject object = runInfoDoc.getXObject(MATCHING_RUN_INFO_CLASS, RUN_INFO_DOCUMENT_SERVERNAME,
+                serverId, false);
+            if (object != null) {
+                return object.getDateValue(RUN_INFO_DOCUMENT_ENDTIME);
+            }
+
+            return null;
+        } catch (Exception e) {
+            this.logger.error("Failed last updated date for server [{}]  {}.", serverId, e);
+        }
+        return null;
+    }
 }

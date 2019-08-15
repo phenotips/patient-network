@@ -506,4 +506,23 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @Override
+    public Response getLastUpdatedDate(String patientId)
+    {
+        if (StringUtils.isBlank(patientId)) {
+            this.slf4Jlogger.error("No patient ID was provided.");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        try {
+            Map<String, Date> dates = this.matchFinderManager.getLastUpdatedDates(patientId);
+            return Response.ok(dates, MediaType.APPLICATION_JSON_TYPE).build();
+        } catch (final SecurityException e) {
+            this.slf4Jlogger.error(
+                "Failed to retrieve last matches updated date for server with ID [{}] and patient with ID [{}]: {}",
+                patientId, e);
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
 }

@@ -26,6 +26,7 @@ import org.phenotips.similarity.SimilarPatientsFinder;
 import org.xwiki.component.annotation.Component;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,5 +78,13 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
         }
 
         return Response.status(Response.Status.OK).build();
+    }
+
+    @Override
+    public Date getLastUpdatedDateForServerForPatient(String patientId, String serverId)
+    {
+        // We do not record selective matches run requests per patient for local database
+        // so we return global matches update date
+        return this.getLastUpdatedDateForServer(serverId);
     }
 }

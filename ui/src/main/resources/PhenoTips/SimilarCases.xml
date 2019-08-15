@@ -370,29 +370,7 @@
         $('body').addEventListener('click', dropdownCloser, false);
     });
 
-    var getMatchesTimeRun = function(el) {
-        var serverId = el.className;
-        var mmeServ = $$('#checkbox-server-filters input[value="'+ el.className+ '"]')[0];
-        if (mmeServ) {
-            var mmeRunTime = mmeServ.up('label').down('.endTime');
-            if (mmeRunTime &amp;&amp; mmeRunTime.value &amp;&amp; new Date(mmeRunTime.value)) {
-                var now = new Date();
-                var time = new Date(mmeRunTime.value);
-                // if matches was ran 10 minutes ago
-                if (now.getTime() - time.getTime() &lt; 1000*60*10) {
-                    return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
-                } else {
-                    return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time')) " + time.toISOString().split('T')[0];
-                }
-            }
-        }
-        return "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
-    };
-
     $$(".dropdown-menu a").each(function (el) {
-        var time = getMatchesTimeRun(el);
-        el.insert(new Element('div', {'class' : 'match-timeline-info'}).update(time));
-
         el.observe("click", function(event) {
             $('remote-select-dropdown').removeClassName("show");
             $('body').removeEventListener('click', dropdownCloser, false);
@@ -409,10 +387,41 @@
         // close remote servers dropdown menu on click outside
         var el = event.element();
         if (!el.up('#remote-select-dropdown')) {
-          $('remote-select-dropdown').removeClassName("show");
-          $('body').removeEventListener('click', dropdownCloser, false);
+            $('remote-select-dropdown').removeClassName("show");
+            $('body').removeEventListener('click', dropdownCloser, false);
         }
     };
+
+    // fetch last update day and append to the server dropdown list for matches refresh
+    new Ajax.Request(XWiki.contextPath + "/rest/matches/updated/" + XWiki.currentDocument.page + "?method=GET", {
+        contentType : 'application/json',
+        onSuccess : function(response) {
+            if (response &amp;&amp; response.responseJSON) {
+                var dates = response.responseJSON;
+
+                Object.keys(dates).each(function (serverId) {
+                    var mmeTimeMessage = '';
+                    var serverDropdownEl = $$(".dropdown-menu a." + serverId)[0];
+
+                    if (dates[serverId] &amp;&amp; new Date(dates[serverId]) &amp;&amp; serverDropdownEl) {
+                        var now = new Date();
+                        var time = new Date(dates[serverId]);
+
+                        // if matches was ran 10 minutes ago
+                        if (now.getTime() - time.getTime() &lt; 1000*60*10) {
+                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
+                        } else {
+                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time'))".replace("_TIME_", time.toISOString().split('T')[0]);
+                        }
+                    } else {
+                        mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
+                    }
+
+                    serverDropdownEl.insert(new Element('div', {'class' : 'match-timeline-info'}).update(mmeTimeMessage));
+                });
+            }
+        }
+    });
 
   };
 

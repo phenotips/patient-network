@@ -21,6 +21,7 @@ import org.phenotips.data.Patient;
 
 import org.xwiki.component.annotation.Role;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -61,4 +62,27 @@ public interface MatchFinder
      * @return a response containing a success message or an error code if unsuccessful
      */
     Response findMatches(Patient patient, String serverId);
+
+    /**
+     * Finds last matches update date for a provided for the selected server (local matches or MME matches).
+     *
+     * Information is retrieved from the 'PhenomeCentral.MatchingUpdateAndInfo' XWiki document.
+     *
+     * @param serverId the remote or local server
+     * @return last matches update request date
+     */
+    Date getLastUpdatedDateForServer(String serverId);
+
+    /**
+     * Finds last matches update date for a provided {@code patientId patient} for the
+     * selected server (local matches or MME matches).
+     *
+     * Information for PhenomeCental local db is retrieved from the 'PhenomeCentral.MatchingUpdateAndInfo' document.
+     * For all other servers information is retrieved from the "remote_matching_outgoing_requests" table.
+     *
+     * @param patientId local patient ID
+     * @param serverId the remote or local server
+     * @return last matches update request date
+     */
+    Date getLastUpdatedDateForServerForPatient(String patientId, String serverId);
 }
