@@ -27,7 +27,6 @@ import org.phenotips.matchingnotification.notification.PatientMatchNotificationR
 import org.phenotips.matchingnotification.rest.MatchingNotificationResource;
 import org.phenotips.matchingnotification.storage.MatchStorageManager;
 import org.phenotips.security.authorization.AuthorizationService;
-import org.phenotips.similarity.SimilarPatientsFinder;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
@@ -123,9 +122,6 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
 
     @Inject
     private PatientRepository repository;
-
-    @Inject
-    private SimilarPatientsFinder similarPatientsFinder;
 
     @Override
     public void refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
