@@ -576,7 +576,7 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this),
             onSuccess : function (response) {
                 if (response.responseJSON) {
-                    console.log("Show matches response JSON (min scores: " + options.score + "/" + options.phenScore + "/" + options.genScore + "):");
+                    console.log("Show matches response JSON (min scores: " + options.minScore + "/" + options.minPhenScore + "/" + options.minGenScore + "):");
                     console.log(response.responseJSON);
 
                     if (response.responseJSON.hasOwnProperty("results")) {
