@@ -49,7 +49,10 @@
   &lt;/button&gt;##
   &lt;button id="refresh-remote-select" class="refresh-remote-select"&gt; &lt;span class="fa fa-caret-down" title=""&gt;&lt;/span&gt;&lt;/button&gt;
   &lt;div id="remote-select-dropdown" class="dropdown-menu"&gt;
-    &lt;a class="local" href="#"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.localServer.label'))&lt;/a&gt;
+    &lt;a class="local" href="#"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.localServer.label'))
+## for local database we always show "Matches computed just now" because we re-compute them on page load
+      &lt;div class="match-timeline-info"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.matchesRan.now'))&lt;/div&gt;
+    &lt;/a&gt;
 ##=======================================
 ## Get list of remote configurations and
 ## only display those which have a non-empty token and the checkbox to show in UI is checked
@@ -326,7 +329,7 @@
       var _getServerName = function(serverId) {
         var name = $('remote-select-dropdown').down('a.' + serverId);
         if (name) {
-          return name.innerHTML;
+          return name.firstChild.textContent;
         } else {
           return serverId;
         }
@@ -342,6 +345,7 @@
             notification.replace(new XWiki.widgets.Notification(message, "done"));
             var event = { 'notificationResult' : 'success' };
             document.fire("matches:refreshed", event);
+            fetchLastUpdatedTime();
           },
           onFailure : function(response) {
             var error = _generateFailureReason(response.status);
@@ -351,7 +355,7 @@
       });
     };
 
-    var urlRefreshMatches = window.location.protocol + '//' + window.location.host + '/rest/matches/patients/' + XWiki.currentDocument.page;
+    var urlRefreshMatches = XWiki.contextPath + '/rest/matches/patients/' + XWiki.currentDocument.page;
     var refreshingNotification = new XWiki.widgets.Notification("Refreshing", "inprogress", {'inactive': true});
 
     // Refresh local matches
@@ -375,11 +379,8 @@
             $('remote-select-dropdown').removeClassName("show");
             $('body').removeEventListener('click', dropdownCloser, false);
 
-            var serverEl = event.element();
-            if (!serverEl || serverEl.className == "") { return; }
-
             refreshingNotification.show();
-            _refreshMatches(urlRefreshMatches, serverEl.className, refreshingNotification);
+            _refreshMatches(urlRefreshMatches, this.className, refreshingNotification);
         });
     }.bind(this));
 
@@ -392,37 +393,47 @@
         }
     };
 
-    // fetch last update day and append to the server dropdown list for matches refresh
-    new Ajax.Request(XWiki.contextPath + "/rest/matches/updated/" + XWiki.currentDocument.page + "?method=GET", {
-        contentType : 'application/json',
-        onSuccess : function(response) {
-            if (response &amp;&amp; response.responseJSON) {
-                var dates = response.responseJSON;
+    var fetchLastUpdatedTime = function() {
+        // fetch last update day and append to the server dropdown list for matches refresh
+        new Ajax.Request(XWiki.contextPath + "/rest/matches/updated/" + XWiki.currentDocument.page + "?method=GET", {
+            contentType : 'application/json',
+            onSuccess : function(response) {
+                if (response &amp;&amp; response.responseJSON) {
+                    var dates = response.responseJSON;
 
-                Object.keys(dates).each(function (serverId) {
-                    var mmeTimeMessage = '';
-                    var serverDropdownEl = $$(".dropdown-menu a." + serverId)[0];
+                    // exclude local, as we always show matches were just computed for local DB
+                    delete dates.local;
 
-                    if (dates[serverId] &amp;&amp; new Date(dates[serverId]) &amp;&amp; serverDropdownEl) {
-                        var now = new Date();
-                        var time = new Date(dates[serverId]);
+                    Object.keys(dates).each(function (serverId) {
+                        var mmeTimeMessage = '';
+                        var serverDropdownEl = $$(".dropdown-menu a." + serverId)[0];
 
-                        // if matches was ran 10 minutes ago
-                        if (now.getTime() - time.getTime() &lt; 1000*60*10) {
-                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
+                        if (dates[serverId] &amp;&amp; new Date(dates[serverId]) &amp;&amp; serverDropdownEl) {
+                            var now = new Date();
+                            var time = new Date(dates[serverId]);
+
+                            // if matches was ran 10 minutes ago
+                            if (now.getTime() - time.getTime() &lt; 1000*60*10) {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
+                            } else {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time'))".replace("_TIME_", time.toISOString().split('T')[0]);
+                            }
                         } else {
-                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time'))".replace("_TIME_", time.toISOString().split('T')[0]);
+                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
                         }
-                    } else {
-                        mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
-                    }
 
-                    serverDropdownEl.insert(new Element('div', {'class' : 'match-timeline-info'}).update(mmeTimeMessage));
-                });
+                        if (serverDropdownEl.down('.match-timeline-info')){
+                            serverDropdownEl.down('.match-timeline-info').update(mmeTimeMessage);
+                        } else {
+                            serverDropdownEl.insert(new Element('div', {'class' : 'match-timeline-info'}).update(mmeTimeMessage));
+                        }
+                    });
+                }
             }
-        }
-    });
+        });
+    };
 
+    fetchLastUpdatedTime();
   };
 
   var fetchConsents = function(callback) {

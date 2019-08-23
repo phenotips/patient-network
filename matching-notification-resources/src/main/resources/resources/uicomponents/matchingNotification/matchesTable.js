@@ -117,7 +117,9 @@ var PhenoTips = (function (PhenoTips) {
 
         document.observe("match:contacted:byuser", this._handleUserNotifiedUpdate.bind(this));
 
-        if (!this._isAdmin || this._onSimilarCasesPage) {
+        if (this._onSimilarCasesPage) {
+            this._updateAndShowMatches();
+        } else if (!this._isAdmin) {
             this._showMatches();
         }
 
@@ -591,6 +593,17 @@ var PhenoTips = (function (PhenoTips) {
             onComplete : function () {
                 $("panels-livetable-ajax-loader").hide();
                 this._update();
+            }.bind(this)
+        });
+    },
+
+    _updateAndShowMatches : function()
+    {
+        new Ajax.Request(this._loadMatchesURL + "?method=PUT", {
+            contentType : 'application/json',
+            parameters : {'serverId' : 'local'},
+            onComplete : function () {
+                this._showMatches();
             }.bind(this)
         });
     },
