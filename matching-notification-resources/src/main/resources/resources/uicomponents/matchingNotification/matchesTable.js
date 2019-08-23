@@ -232,7 +232,6 @@ var PhenoTips = (function (PhenoTips) {
 
     _sortByColumn : function(propName, doUpdate) {
         if (!this._sortingOrder.hasOwnProperty(propName)) {
-            console.log("Unsupported sorting column");
             return;
         }
 
@@ -576,8 +575,6 @@ var PhenoTips = (function (PhenoTips) {
             }.bind(this),
             onSuccess : function (response) {
                 if (response.responseJSON) {
-                    console.log("Show matches response JSON (min scores: " + options.minScore + "/" + options.minPhenScore + "/" + options.minGenScore + "):");
-                    console.log(response.responseJSON);
 
                     if (response.responseJSON.hasOwnProperty("results")) {
                         var matches = response.responseJSON;
@@ -1799,12 +1796,10 @@ var PhenoTips = (function (PhenoTips) {
         if (matchIDs.length == 0) {
             return;
         }
-        // console.log("Sending " + idsToNotify);
         var idsToNotify = JSON.stringify({ ids: matchIDs});
         new Ajax.Request(this._ajaxURL + "/email", {
             parameters : {'matchesToNotify' : idsToNotify},
             onCreate : function (response) {
-                // console.log("Notification request sent");
                 this._notificationsButton.disabled = true;
                 this._utils.showSent('send-notifications-messages');
             }.bind(this),
@@ -1867,8 +1862,6 @@ var PhenoTips = (function (PhenoTips) {
         if (!event || !event.memo || !event.memo.notificationResult) {
             return;
         }
-        console.log("Send notification - reply received:");
-        console.log(event.memo.results);
 
         this._utils.showReplyReceived('send-notifications-messages');
 
@@ -2024,7 +2017,6 @@ var PhenoTips = (function (PhenoTips) {
                 this._matches[this._matches.indexOf(match)].notes = properties.notes;
                 this._cachedMatches[this._cachedMatches.indexOf(match)].notes = properties.notes;
             }
-            // console.log('Set ' + match.id + ' to ' + JSON.stringify(state, null, 2));
         }.bind(this));
     },
 
