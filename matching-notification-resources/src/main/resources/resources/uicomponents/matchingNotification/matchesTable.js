@@ -133,7 +133,7 @@ var PhenoTips = (function (PhenoTips) {
 
         Event.observe(document, "matches:refreshed", this._showMatches.bind(this));
 
-        this._initiateDisclaimers();
+        this._initializeDisclaimers();
     },
 
     _initializeScoreSlider: function(id, minScore, initialScore) {
@@ -182,7 +182,7 @@ var PhenoTips = (function (PhenoTips) {
         this._currentSortingOrder = "none";
     },
 
-    _initiateDisclaimers: function() {
+    _initializeDisclaimers: function() {
         $$('#checkbox-server-filters .mme-disclaimer-help').each(function(trigger) {
             var disclaimerTextInput = trigger.up('label').down('.disclaimer');
             if (disclaimerTextInput && disclaimerTextInput.value) {
