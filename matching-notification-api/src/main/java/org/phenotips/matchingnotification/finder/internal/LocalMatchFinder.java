@@ -85,6 +85,6 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     {
         // We do not record selective matches run requests per patient for local database
         // so we return global matches update date
-        return this.getLastUpdatedDateForServer(serverId);
+        return this.getLastUpdatedDateForServer(RUN_INFO_DOCUMENT_LOCALSERVER_ID);
     }
 }
