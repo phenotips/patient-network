@@ -243,6 +243,6 @@ public interface MatchingNotificationResource
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/updated/{patientId}")
+    @Path("/patients/{patientId}/updated")
     Response getLastUpdatedDate(@PathParam("patientId") String patientId);
 }
