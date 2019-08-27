@@ -64,25 +64,13 @@ public interface MatchFinder
     Response findMatches(Patient patient, String serverId);
 
     /**
-     * Finds last matches update date for a provided for the selected server (local matches or MME matches).
+     * Finds last matches update date for a provided {@code patientId patient} for the selected server.
      *
-     * Information is retrieved from the 'PhenomeCentral.MatchingUpdateAndInfo' XWiki document.
-     *
-     * @param serverId the remote or local server
-     * @return last matches update request date
-     */
-    Date getLastUpdatedDateForServer(String serverId);
-
-    /**
-     * Finds last matches update date for a provided {@code patientId patient} for the
-     * selected server (local matches or MME matches).
-     *
-     * Information for PhenomeCental local db is retrieved from the 'PhenomeCentral.MatchingUpdateAndInfo' document.
-     * For all other servers information is retrieved from the "remote_matching_outgoing_requests" table.
+     * For all remote servers information is retrieved from the "remote_matching_outgoing_requests" table.
      *
      * @param patientId local patient ID
      * @param serverId the remote or local server
-     * @return last matches update request date
+     * @return last matches update request date for MME remote servers if exists or null (null for local server)
      */
     Date getLastUpdatedDateForServerForPatient(String patientId, String serverId);
 }

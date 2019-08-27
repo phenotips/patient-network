@@ -115,7 +115,7 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     @Override
     public Map<String, Date> getLastUpdatedDates(String patientId)
     {
-        this.logger.error("Finding last updated date for patient [{}]", patientId);
+        this.logger.debug("Finding last updated date for patient [{}]", patientId);
         Map<String, Date> dates = new HashMap<String, Date>();
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
             for (String serverId : matchFinder.getSupportedServerIdList()) {

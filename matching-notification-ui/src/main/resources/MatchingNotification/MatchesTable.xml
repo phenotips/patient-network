@@ -79,6 +79,11 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
 #if($hasAdmin)&lt;input type="hidden" id="isAdmin"&gt;#end
 #if($isAdminOfGroup)&lt;input type="hidden" id="isAdminOfGroup"&gt;#end
 #set ($infoClassname = 'PhenomeCentral.MatchingRunInfoClass')
+#if("${doc.space}" == "data")
+  #set ($patientId = $doc.getName())
+  #set ($hasMMEConsent = $services.patientconsents.hasConsent("$patientId", "matching"))
+  #if ($hasMMEConsent)&lt;input type="hidden" id="hasMMEConsent"&gt;#end
+#end
 ##--FILTERS--
 &lt;div id="matches-directory" class="entity-directory"&gt;
   &lt;div class="xwiki-livetable-container"&gt;
@@ -141,6 +146,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                     &lt;span class="fa fa-info-circle mme-disclaimer-help" title="$escapetool.xml($services.localization.render('phenotips.myMatches.disclaimer.showDisclaimer'))"&gt;&lt;/span&gt;
                   #end
                 &lt;/label&gt;
+              #if ($hasMMEConsent || "${doc.space}" != "data")
                 &lt;br&gt;
                 &lt;div class="across-mme"&gt;&lt;input id="mme-filter" type="checkbox" checked &gt; $escapetool.xml($services.localization.render('phenotips.myMatches.filters.mme.label')) &lt;a href="http:\/\/matchmakerexchange.org" target="_blank"&gt;MME&lt;/a&gt;:&lt;/div&gt;
                 #set ($preferenceDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
@@ -166,6 +172,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
                     &lt;br&gt;
                   #end
                 #end
+              #end
               &lt;/li&gt;
               &lt;li class="text-filter #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)hidden#end"&gt;
                 &lt;div style="vertical-align: -webkit-baseline-middle;"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.showMatches.score.label'))

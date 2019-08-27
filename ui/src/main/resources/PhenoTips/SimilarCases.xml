@@ -83,8 +83,10 @@
   $xwiki.ssx.use('PhenoTips.PatientSheetCode')##
   $xwiki.jsx.use($doc.fullName, {'minify' : false})##
   ##
+  #set ($patientId = $doc.getName())
+  #set ($hasMMEConsent = $services.patientconsents.hasConsent("$patientId", "matching"))
   (% class="clear clinical-info similarity-info chapter"%)(((##
-    #__generateRefreshMatchesSelector()
+    #if ($hasMMEConsent)#__generateRefreshMatchesSelector()#end
     {{include reference="MatchingNotification.MatchesTable" /}}
   )))
 #end## action == view
@@ -395,7 +397,7 @@
 
     var fetchLastUpdatedTime = function() {
         // fetch last update day and append to the server dropdown list for matches refresh
-        new Ajax.Request(XWiki.contextPath + "/rest/matches/updated/" + XWiki.currentDocument.page + "?method=GET", {
+        new Ajax.Request(XWiki.contextPath + "/rest/matches/patients/" + XWiki.currentDocument.page + "/updated?method=GET", {
             contentType : 'application/json',
             onSuccess : function(response) {
                 if (response &amp;&amp; response.responseJSON) {
@@ -475,7 +477,7 @@
         try {
           consents = JSON.parse($('patient-consents-json').value);
         } catch(err) {
-          console &amp;&amp; console.log(err);
+          // console &amp;&amp; console.log(err);
         }
 
         if (!consents || consents.length == 0) {
