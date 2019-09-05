@@ -21,11 +21,12 @@ import org.phenotips.data.Patient;
 
 import org.xwiki.component.annotation.Role;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.Response;
+
+import org.json.JSONObject;
 
 /**
  * @version $Id$
@@ -64,13 +65,21 @@ public interface MatchFinder
     Response findMatches(Patient patient, String serverId);
 
     /**
-     * Finds last matches update date for a provided {@code patientId patient} for the selected server.
-     *
-     * For all remote servers information is retrieved from the "remote_matching_outgoing_requests" table.
+     * Finds last matches update status for a provided {@code patientId patient} for the selected server.
      *
      * @param patientId local patient ID
      * @param serverId the remote or local server
-     * @return last matches update request date for MME remote servers if exists or null (null for local server)
+     *
+     * @return JSON containing dates of the last match update request (if any) and last successful
+     *         match update request (if any, can be the same as the last request), as well as the
+     *         last error iff the last request generated an error, in the following format:
+     *
+     *         {
+     *           "lastSuccessfulMatchUpdateDate": date (or null if there were no successful requests),
+     *           "lastMatchUpdateDate": date (or null if there were no match requests to this server),
+     *           "lastMatchUpdateErrorCode": HTTP error code (if the last macth update failed, optional),
+     *           "lastMatchUpdateError": a JSON with error details (if the was an error, optional)
+     *         }
      */
-    Date getLastUpdatedDateForServerForPatient(String patientId, String serverId);
+    JSONObject getLastUpdatedDateForServerForPatient(String patientId, String serverId);
 }
