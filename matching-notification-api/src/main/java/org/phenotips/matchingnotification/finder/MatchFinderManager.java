@@ -21,11 +21,11 @@ import org.phenotips.data.Patient;
 
 import org.xwiki.component.annotation.Role;
 
-import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.Response;
+
+import org.json.JSONObject;
 
 /**
  * @version $Id$
@@ -47,7 +47,7 @@ public interface MatchFinderManager
     void findMatchesForAllPatients(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun);
 
     /**
-     * Finds matches for s local patient on the selected server.
+     * Finds matches for a local patient on the selected server.
      *
      * All matches that are found will be stored in the matching notification table.
      *
@@ -58,13 +58,23 @@ public interface MatchFinderManager
     Response findMatchesForPatient(Patient patient, String serverId);
 
     /**
-     * Finds last updated matches dates for all servers for a specified local patients.
-     *
-     * Information for PhenomeCental local db is retrieved from the 'PhenomeCentral.MatchingUpdateAndInfo' document.
-     * For all other servers information is retrieved from the "remote_matching_outgoing_requests" table.
+     * Returns a JSON object containing last matches update details for a provided {@code patientId patient}
+     * for all servers (local matches or MME matches).
      *
      * @param patientId local patient ID
-     * @return a map between server and corresponding last updated date
+     * @return JSON containing, for each configured server(including local), dates of the last match
+     *         update request (if any) and last successful match update request (if any, can be the same as
+     *         the last request), as well as the last error iff the last request generated an error,
+     *         in the following format:
+     *
+     *         {
+     *           server_id: { "lastSuccessfulMatchUpdateDate": date (or null if there were no successful requests),
+     *                        "lastMatchUpdateDate": date (or null if there were no match requests to this server),
+     *                        "lastMatchUpdateErrorCode": HTTP error code (if the last macth update failed, optional),
+     *                        "lastMatchUpdateError": a JSON with error details (if the was an error, optional)
+     *                      },
+     *           ...
+     *         }
      */
-    Map<String, Date> getLastUpdatedDates(String patientId);
+    JSONObject getLastMatchUpdateStatus(String patientId);
 }

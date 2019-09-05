@@ -235,14 +235,26 @@ public interface MatchingNotificationResource
     Response getMatch(@PathParam("matchId") Long matchId);
 
     /**
-     * Returns a JSON object containing last matches update date for a provided {@code patientId patient}
+     * Returns a JSON object containing last matches update details for a provided {@code patientId patient}
      * for all servers (local matches or MME matches).
      *
      * @param patientId the internal ID of the local patient of interest
-     * @return JSON containing serialized dates
+     * @return JSON containing, for each configured server(including local), dates of the last match
+     *         update request (if any) and last successful match update request (if any, can be the same as
+     *         the last request), as well as the last error iff the last request generated an error,
+     *         in the following format:
+     *
+     *         {
+     *           server_id: { "lastSuccessfulMatchUpdateDate": date (or null if there were no successful requests),
+     *                        "lastMatchUpdateDate": date (or null if there were no match requests to this server),
+     *                        "lastMatchUpdateErrorCode": HTTP error code (if the last macth update failed, optional),
+     *                        "lastMatchUpdateError": a JSON with error details (if there was an error, optional)
+     *                      },
+     *           ...
+     *         }
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/patients/{patientId}/updated")
-    Response getLastUpdatedDate(@PathParam("patientId") String patientId);
+    Response getLastMatchUpdateStatus(@PathParam("patientId") String patientId);
 }

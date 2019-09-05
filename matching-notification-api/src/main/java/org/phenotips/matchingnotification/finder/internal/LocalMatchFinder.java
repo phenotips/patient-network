@@ -26,7 +26,6 @@ import org.phenotips.similarity.SimilarPatientsFinder;
 import org.xwiki.component.annotation.Component;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +34,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONObject;
 
 /**
  * @version $Id$
@@ -81,9 +82,12 @@ public class LocalMatchFinder extends AbstractMatchFinder implements MatchFinder
     }
 
     @Override
-    public Date getLastUpdatedDateForServerForPatient(String patientId, String serverId)
+    public JSONObject getLastUpdatedDateForServerForPatient(String patientId, String serverId)
     {
+        JSONObject result = new JSONObject();
         // We do not record selective matches run requests per patient for local database
-        return null;
+        result.put("lastSuccessfulMatchUpdateDate", JSONObject.NULL);
+        result.put("lastMatchUpdateDate", JSONObject.NULL);
+        return result;
     }
 }

@@ -26,11 +26,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -39,6 +36,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,16 +111,16 @@ public class DefaultMatchFinderManager implements MatchFinderManager
     }
 
     @Override
-    public Map<String, Date> getLastUpdatedDates(String patientId)
+    public JSONObject getLastMatchUpdateStatus(String patientId)
     {
         this.logger.debug("Finding last updated date for patient [{}]", patientId);
-        Map<String, Date> dates = new HashMap<String, Date>();
+        JSONObject result = new JSONObject();
         for (MatchFinder matchFinder : this.matchFinderProvider.get()) {
             for (String serverId : matchFinder.getSupportedServerIdList()) {
-                Date date = matchFinder.getLastUpdatedDateForServerForPatient(patientId, serverId);
-                dates.put(serverId, date);
+                JSONObject serverUpdateStatus = matchFinder.getLastUpdatedDateForServerForPatient(patientId, serverId);
+                result.put(serverId, serverUpdateStatus);
             }
         }
-        return dates;
+        return result;
     }
 }

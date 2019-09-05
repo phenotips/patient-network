@@ -504,7 +504,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     }
 
     @Override
-    public Response getLastUpdatedDate(String patientId)
+    public Response getLastMatchUpdateStatus(String patientId)
     {
         if (StringUtils.isBlank(patientId)) {
             this.slf4Jlogger.error("No patient ID was provided.");
@@ -512,8 +512,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         }
 
         try {
-            Map<String, Date> dates = this.matchFinderManager.getLastUpdatedDates(patientId);
-            return Response.ok(dates, MediaType.APPLICATION_JSON_TYPE).build();
+            JSONObject matchUpdateStatus = this.matchFinderManager.getLastMatchUpdateStatus(patientId);
+            return Response.ok(matchUpdateStatus, MediaType.APPLICATION_JSON_TYPE).build();
         } catch (final SecurityException e) {
             this.slf4Jlogger.error(
                 "Failed to retrieve last matches updated date for server with ID [{}] and patient with ID [{}]: {}",

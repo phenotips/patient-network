@@ -284,6 +284,31 @@
     $('document-head') &amp;&amp; $('document-title').insert({after: _generateSimilarCasesTab(onSimilarCasesPage)});
   };
 
+  var _generateFailureReason = function(status) {
+      switch(status) {
+        case 401:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthorizedMME'))";
+        case 400:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
+        case 204:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.noMatchRequest'))";
+        case 409:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantSendThisPatientOverMME'))";
+        case 503:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantConnectMME'))";
+        case 403:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
+        case 406:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.invalidRequestMME'))";
+        case 415:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unsupportedProtocolMME'))";
+        case 500:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+        default:
+          return "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
+      }
+  };
+
   var initRefreshRemoteMatchesSelect = function() {
     if (!$('similarity-results-refresh')) {
       return;
@@ -291,42 +316,6 @@
 
     var _refreshMatches = function(url, serverId, notification) {
       var _this = this;
-
-      var _generateFailureReason = function(status) {
-          var response;
-          switch(status) {
-            case 401:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthenticated'))";
-              break;
-            case 400:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.badRequest'))";
-              break;
-            case 204:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.noMatchRequest'))";
-              break;
-            case 409:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantSendThisPatientOverMME'))";
-              break;
-            case 503:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.cantConnectMME'))";
-              break;
-            case 403:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.notAuthorizedMME'))";
-              break;
-            case 406:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.invalidRequestMME'))";
-              break;
-            case 415:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unsupportedProtocolMME'))";
-              break;
-            case 500:
-              response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
-              break;
-            default:
-            response = "$escapetool.javascript($services.localization.render('phenotips.similarCases.error.unexpectedError'))";
-          }
-          return response;
-      };
 
       var _getServerName = function(serverId) {
         var name = $('remote-select-dropdown').down('a.' + serverId);
@@ -353,6 +342,7 @@
             var error = _generateFailureReason(response.status);
             var message = "$escapetool.javascript($services.localization.render('phenotips.similarCases.errorSendingRequest')) " + serverName + ": " + error;
             notification.replace(new XWiki.widgets.Notification(message, "error"));
+            fetchLastUpdatedTime();
           }
       });
     };
@@ -401,33 +391,65 @@
             contentType : 'application/json',
             onSuccess : function(response) {
                 if (response &amp;&amp; response.responseJSON) {
-                    var dates = response.responseJSON;
+                    var matchUpdateStatus = response.responseJSON;
 
-                    // exclude local, as we always show matches were just computed for local DB
-                    delete dates.local;
+                    // exclude local server, as we always show "matches were just computed" for local DB
+                    delete matchUpdateStatus.local;
 
-                    Object.keys(dates).each(function (serverId) {
-                        var mmeTimeMessage = '';
+                    Object.keys(matchUpdateStatus).each(function (serverId) {
+
                         var serverDropdownEl = $$(".dropdown-menu a." + serverId)[0];
-
-                        if (dates[serverId] &amp;&amp; new Date(dates[serverId]) &amp;&amp; serverDropdownEl) {
-                            var now = new Date();
-                            var time = new Date(dates[serverId]);
-
-                            // if matches was ran 10 minutes ago
-                            if (now.getTime() - time.getTime() &lt; 1000*60*10) {
-                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
-                            } else {
-                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time'))".replace("_TIME_", time.toISOString().split('T')[0]);
-                            }
-                        } else {
-                            mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
+                        if (!serverDropdownEl) {
+                            return;
                         }
 
-                        if (serverDropdownEl.down('.match-timeline-info')){
-                            serverDropdownEl.down('.match-timeline-info').update(mmeTimeMessage);
+                        var serverStatus = matchUpdateStatus[serverId];
+
+                        var lastRunWasAnError = serverStatus.hasOwnProperty("lastMatchUpdateDate")
+                                                &amp;&amp; serverStatus.lastMatchUpdateDate != null
+                                                &amp;&amp; new Date(serverStatus.lastMatchUpdateDate)
+                                                &amp;&amp; serverStatus.hasOwnProperty("lastMatchUpdateError")
+                                                &amp;&amp; serverStatus.hasOwnProperty("lastMatchUpdateErrorCode");
+
+                        var lastGoodRunDate = (serverStatus.hasOwnProperty("lastSuccessfulMatchUpdateDate")
+                                               &amp;&amp; serverStatus.lastSuccessfulMatchUpdateDate != null
+                                               &amp;&amp; new Date(serverStatus.lastSuccessfulMatchUpdateDate))
+                                              ? new Date(serverStatus.lastSuccessfulMatchUpdateDate)
+                                              : undefined;
+
+                        var mmeTimeMessage = '';
+                        if (lastGoodRunDate) {
+                            var now = new Date();
+
+                            // if matches were updated less than 10 minutes ago
+                            if (now.getTime() - lastGoodRunDate.getTime() &lt; 1000*60*10) {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.now'))";
+                            } else {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.time'))"
+                                                 .replace("_TIME_", lastGoodRunDate.toISOString().split('T')[0]);
+                            }
                         } else {
-                            serverDropdownEl.insert(new Element('div', {'class' : 'match-timeline-info'}).update(mmeTimeMessage));
+                            if (lastRunWasAnError) {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.onlyRunWithError'))";
+                            } else {
+                                mmeTimeMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.neverRan'))";
+                            }
+                        }
+
+                        if (!serverDropdownEl.down('.match-timeline-info')){
+                            serverDropdownEl.insert(new Element('div', {'class' : 'match-timeline-info'}));
+                        }
+
+                        serverDropdownEl.down('.match-timeline-info').update(mmeTimeMessage);
+
+                        if (lastRunWasAnError) {
+                            var errorDate = new Date(serverStatus.lastMatchUpdateDate).toISOString().split('T')[0];
+                            var errorMessage = "$escapetool.javascript($services.localization.render('phenotips.similarCases.matchesRan.errorTime'))"
+                                                 .replace("_TIME_", errorDate);
+                            var errorDiv = new Element('div', {'class' : 'match-update-error-info'}).update(errorMessage);
+                            var errorDetailsDiv = new Element('div', {'class' : 'match-update-error-details'}).update(_generateFailureReason(serverStatus.lastMatchUpdateErrorCode));
+
+                            serverDropdownEl.down('.match-timeline-info').insert(errorDiv).insert(errorDetailsDiv);
                         }
                     });
                 }
@@ -667,8 +689,7 @@
 }
 #refresh-remote-select {
   border-radius: 0 5px 5px 0;
-  margin: 1px;
-  padding: .5em;
+  padding: .5em .5em .5em .6em;
 }
 #refresh-all-button {
   border-radius: 5px 0 0 5px;
@@ -681,6 +702,12 @@
 }
 #remote-select-dropdown a {
   padding: .7em;
+}
+.match-update-error-info {
+  margin-top: 5px;
+}
+.match-update-error-details {
+  font-style: italic;
 }
 .match-timeline-info {
   font-size: .8em;
