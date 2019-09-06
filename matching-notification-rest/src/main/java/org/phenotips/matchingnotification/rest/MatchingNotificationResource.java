@@ -63,10 +63,14 @@ public interface MatchingNotificationResource
      * @param serverIds list or server IDs selected for matches search
      * @param onlyCheckPatientsUpdatedAfterLastRun if true, for each server only local patients which have been
      *            modified after the last time this refresh was run for that server will be tested for matches
+     * @return HTTP OK if successful, HTTP FORBIDDEN if current user is not admin.
+     *         Note that refreshing all matches may take a very long time and the HTTP request may time out,
+     *         even though matches are still being refreshed with - this is expected, match update should
+     *         still finish with no problems.
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    void refreshMatches(
+    Response refreshMatches(
         @FormParam("serverIds") Set<String> serverIds,
         @FormParam("onlyCheckPatientsUpdatedAfterLastRun") @DefaultValue("false") boolean
         onlyCheckPatientsUpdatedAfterLastRun);
