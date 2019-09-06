@@ -19,6 +19,8 @@ package org.phenotips.matchingnotification.rest.internal;
 
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.matchingnotification.MatchingNotificationManager;
 import org.phenotips.matchingnotification.export.PatientMatchExport;
 import org.phenotips.matchingnotification.finder.MatchFinderManager;
@@ -123,10 +125,26 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
     @Inject
     private PatientRepository repository;
 
+    /** Needed for checking if a given access level provides read access to patients. */
+    @Inject
+    @Named("view")
+    private AccessLevel viewAccess;
+
+    @Inject
+    @Named("secure")
+    private EntityPermissionsManager pm;
+
     @Override
-    public void refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
+    public Response refreshMatches(Set<String> serverIds, boolean onlyCheckPatientsUpdatedAfterLastRun)
     {
+        if (!isCurrentUserAdmin()) {
+            this.slf4Jlogger.error("Non-admins cant refresh matches for multiple patients");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
         this.matchFinderManager.findMatchesForAllPatients(serverIds, onlyCheckPatientsUpdatedAfterLastRun);
+
+        return Response.ok().build();
     }
 
     @Override
@@ -145,12 +163,25 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
+            // in the code below we need to have a copy of a Patient, not SecurePatient,
+            // so can't just use a "secure" patient repository to get the patient
+            // (which does the access rights checks itself) and need to check access rights manually
+            if (!currentUserHasViewAccess(patient)) {
+                this.slf4Jlogger.error("Current user has no rights to find matches for patient {}", patient.getId());
+                return Response.status(Response.Status.FORBIDDEN).build();
+            }
+
             return this.matchFinderManager.findMatchesForPatient(patient, serverId);
 
-        } catch (final SecurityException e) {
-            this.slf4Jlogger.error("Failed to retrieve patient with ID [{}]: {}", patientId, e);
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch (final Exception e) {
+            this.slf4Jlogger.error("Failed to refresh matches for patient [{}]", patientId);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private boolean currentUserHasViewAccess(Patient patient)
+    {
+        return this.viewAccess.compareTo(this.pm.getEntityAccess(patient).getAccessLevel()) <= 0;
     }
 
     @Override
@@ -318,7 +349,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         } catch (final AccessControlException e) {
-            this.slf4Jlogger.error("No rights to modify match with id [{}]", matchId, e);
+            this.slf4Jlogger.error("No rights to modify match with id [{}]", matchId);
             return Response.status(Response.Status.FORBIDDEN).build();
         } catch (final Exception e) {
             this.slf4Jlogger.error("Failed to update match with id [{}]", matchId, e);
@@ -358,8 +389,8 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
         try {
             return getMatchesResponse(reference, useScore, phenScore, genScore, from, to);
         } catch (final SecurityException e) {
-            this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage(), e);
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            this.slf4Jlogger.error("Failed to retrieve matches: {}", e.getMessage());
+            return Response.status(Response.Status.FORBIDDEN).build();
         } catch (final Exception e) {
             this.slf4Jlogger.error("Unexpected exception while generating matches JSON: {}", e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -518,7 +549,7 @@ public class DefaultMatchingNotificationResource extends XWikiResource implement
             this.slf4Jlogger.error(
                 "Failed to retrieve last matches updated date for server with ID [{}] and patient with ID [{}]: {}",
                 patientId, e);
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
     }
 }
