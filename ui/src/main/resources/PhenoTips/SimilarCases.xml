@@ -44,10 +44,10 @@
 {{html clean=false}}##
 &lt;div class="refresh-matches-container"&gt;
 &lt;span class="buttonwrapper similarity-results-refresh" id="similarity-results-refresh"&gt;
-  &lt;button id="refresh-all-button"&gt;##
+  &lt;button id="refresh-all-button"  title="$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.allServers.title'))"&gt;##
     &lt;span class="refresh-matches-button"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.allServers.label'))&lt;/span&gt;
   &lt;/button&gt;##
-  &lt;button id="refresh-remote-select" class="refresh-remote-select"&gt; &lt;span class="fa fa-caret-down" title=""&gt;&lt;/span&gt;&lt;/button&gt;
+  &lt;button id="refresh-remote-select" class="refresh-remote-select" title="$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.selectServers.title'))"&gt; &lt;span class="fa fa-caret-down" title=""&gt;&lt;/span&gt;&lt;/button&gt;
   &lt;div id="remote-select-dropdown" class="dropdown-menu"&gt;
     &lt;a class="local" href="#"&gt;$escapetool.xml($services.localization.render('phenotips.similarCases.refreshMatches.localServer.label'))
 ## for local database we always show "Matches computed just now" because we re-compute them on page load
@@ -689,7 +689,8 @@
 }
 #refresh-remote-select {
   border-radius: 0 5px 5px 0;
-  padding: .5em .5em .5em .6em;
+  margin: 1px;
+  padding: .5em;
 }
 #refresh-all-button {
   border-radius: 5px 0 0 5px;
@@ -708,6 +709,7 @@
 }
 .match-update-error-details {
   font-style: italic;
+  color: red;
 }
 .match-timeline-info {
   font-size: .8em;
