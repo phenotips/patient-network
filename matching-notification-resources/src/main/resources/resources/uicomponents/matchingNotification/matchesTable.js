@@ -2,7 +2,8 @@ require(["matchingNotification/utils",
          "matchingNotification/matcherPaginator",
          "matchingNotification/matcherPageSizer",
          "matchingNotification/notificationDialog",
-         "matchingNotification/matcherContactDialog"],
+         "matchingNotification/matcherContactDialog",
+         "matchingNotification/matchContactSelectDialog"],
         function(utils) {
             var loadMNM = function(utils) {
             new PhenoTips.widgets.MatchesTable(utils);
@@ -99,6 +100,7 @@ var PhenoTips = (function (PhenoTips) {
 
         this._contactDialog = new PhenoTips.widgets.MatcherContactDialog();
         this._errorDialog = new PhenoTips.widgets.NotificationDialog(this._CONTACT_ERROR_DIALOG_TITLE);
+        this._matchSelectDialog = new PhenoTips.widgets.MacthContactSelectDialog();
 
         // memorise filers open/close state
         var filtersButton = $('toggle-filters-button');
@@ -487,7 +489,7 @@ var PhenoTips = (function (PhenoTips) {
 
             var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.adminNotified && this._filterValues.notified.notified || !match.adminNotified && this._filterValues.notified.unnotified;
-            var isContactedMatch = (match.contacted || match.userContacted) && this._filterValues.contacted.contacted 
+            var isContactedMatch = (match.contacted || match.userContacted) && this._filterValues.contacted.contacted
                                 || (!match.contacted && !match.userContacted) && this._filterValues.contacted.uncontacted;
             var hasScoreMatch = match.score >= this._filterValues.score.score
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
@@ -1444,6 +1446,29 @@ var PhenoTips = (function (PhenoTips) {
         return null;
     },
 
+
+    _canCaseBeContacted : function(matchedCase)
+    {
+        if (!matchedCase) {
+            return false;
+        }
+
+        // 1) check if the case has a PubmedID:
+        //    it it does, no need to have a contact button, user should use PubmedID link instead
+        var caseHasPubmedID = matchedCase.pubmedIds && matchedCase.pubmedIds.size() > 0;
+        if (caseHasPubmedID) {
+            return false;
+        }
+
+        // 2) check if there is an email to be used: no emails => no way to contact, no contact button
+        if (matchedCase.validatedEmails.length == 0) {
+            return false;
+        }
+
+        return true;
+    },
+
+    // returns null if match should not be contacted, caseID if it is clear whom to contact, and undefined if it is not
     _getPatientToBeContactedByCurrentNonAdminUser : function(match)
     {
         if (this._isAdmin) {
@@ -1455,44 +1480,66 @@ var PhenoTips = (function (PhenoTips) {
             return null;
         }
 
-        // check if the case the user can contact has a PubmedID:
-        // it it does, no need to have any contact button(s), user should use PubmedID link instead
-        var matchedCaseHasPubmedID = match.notMyCase.pubmedIds && match.notMyCase.pubmedIds.size() > 0;
-        if (matchedCaseHasPubmedID) {
-            return null;
+        if (match.notMyCase == null) {
+            // not clear which of the two cases should be contacted: only allow contact if both cases are "cotactable"
+            if (!this._canCaseBeContacted(match.matched) || !this._canCaseBeContacted(match.reference))
+            {
+                return null;
+            }
+            return undefined;
+        } else {
+            // match.notMyCase is the case to be contacted: check that ic can be contacted (e.g. no pubmedid, has email)
+            if (!this._canCaseBeContacted(match.notMyCase)) {
+                return null;
+            }
+            return match.notMyCase;
         }
-
-        return match.notMyCase;
     },
 
     _getContactButtonHTML : function(match)
     {
         var matchedCase = this._getPatientToBeContactedByCurrentNonAdminUser(match);
-        if (!matchedCase) {
+
+        if (matchedCase === null) {
             // a match should not be contacted (because it has a pubmedID or not enough permissions for current user to contact)
             // OR unable to determine which of the two cases should be contacted => do not show contact button
             return '';
         }
 
-        var validatedEmails = matchedCase.validatedEmails;
-        if (validatedEmails.length == 0) {
-            // no emails => no contact button
-            return '';
-        }
-
         var matchId = match.id[0] ? match.id[0] : match.id;
-        var patientID = matchedCase.patientId;
-        var serverId = matchedCase.serverId;
-        var className = "button contact-button";
 
+        var className = "button";
         if (match.contacted || match.userContacted) {
             className += " secondary";
         }
 
-        var  buttonHTML = '<a class="' + className + '" data-matchid="'
-                          + matchId + '" data-patientid="'
-                          + patientID + '" data-serverid="'
-                          + serverId + '" href="#"><span class="fa fa-envelope"></span></a>';
+        if (matchedCase === undefined) {
+            // not sure which of the two patients to contact
+            className += " pick-contact-button";
+
+            var leftName  = match.reference.contact_info.name ? match.reference.contact_info.name :
+                              (match.reference.contact_info.institution ? match.reference.contact_info.institution : match.emails[0]);
+            var rightName = match.matched.contact_info.name ? match.matched.contact_info.name :
+                              (match.matched.contact_info.institution ? match.matched.contact_info.institution : match.emails[0]);
+
+            var buttonHTML = '<a class="' + className
+            + '" data-matchid="' + matchId
+            + '" data-leftpatientid="' + match.reference.patientId
+            + '" data-leftserverid="' + match.reference.serverId
+            + '" data-leftlabel="' + leftName
+            + '" data-rightpatientid="' + match.matched.patientId
+            + '" data-rightserverid="' + match.matched.serverId
+            + '" data-rightlabel="' + rightName
+            + '" href="#"><span class="fa fa-envelope"></span></a>';
+        } else {
+            className += " contact-button";
+            var buttonHTML = '<a class="' + className
+            + '" data-matchid="' + matchId
+            + '" data-patientid="' + matchedCase.patientId
+            + '" data-serverid="' + matchedCase.serverId
+            + '" href="#"><span class="fa fa-envelope"></span></a>';
+        }
+
         return buttonHTML;
     },
 
@@ -1724,6 +1771,14 @@ var PhenoTips = (function (PhenoTips) {
         }.bind(this));
     },
 
+    _afterProcessPickMatchToContactButton : function(elm)
+    {
+        elm.on('click', function(event) {
+            event.stop();
+            this._matchSelectDialog.show(elm, this._contactDialog.launchContactDialog.bind(this._contactDialog));
+        }.bind(this));
+    },
+
     _afterProcessSingleUserContactedButton : function(elm)
     {
         elm.on('click', function(event) {
@@ -1752,6 +1807,10 @@ var PhenoTips = (function (PhenoTips) {
 
         $$('.contact-button').each(function (elm) {
             this._afterProcessSingleContactButton(elm);
+        }.bind(this));
+
+        $$('.pick-contact-button').each(function (elm) {
+            this._afterProcessPickMatchToContactButton(elm);
         }.bind(this));
 
         $$('.mark-user-contacted-button').each(function (elm) {

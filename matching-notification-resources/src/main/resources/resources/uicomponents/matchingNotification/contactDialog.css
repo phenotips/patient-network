@@ -1,7 +1,7 @@
 a.contact-button {
   background: transparent none left top no-repeat;
 }
-.contact-button .fa.fa-envelope {
+.contact-button .fa.fa-envelope, .pick-contact-button .fa.fa-envelope {
   vertical-align: baseline;
   margin-right: 3px;
 }
@@ -30,4 +30,26 @@ input[name="to"], input[name="from"], input[name="cc"] {
   color: #000;
   opacity: 1;
   background-color: #f4f4f4;
+}
+.select-patient-to-contact .buttons {
+  text-align: center;
+}
+.contact_left_patient_in_match .button {
+  text-transform: none;
+  width: 40%;
+}
+.contact_right_patient_in_match .button {
+  text-transform: none;
+  width: 40%;
+}
+.contact_right_patient_in_match .button {
+  text-transform: none;
+  width: 40%;
+}
+.select-patient-to-contact-content {
+  text-align: center;
+  margin: 1em 0 2em 0;
+}
+.cancel_contact_button {
+  width: 10em !important;
 }
