@@ -25,6 +25,7 @@ a.contact-button {
   width: 6em;
   clear: both;
   text-align: center;
+  margin-top: 1em;
 }
 input[name="to"], input[name="from"], input[name="cc"] {
   color: #000;
@@ -36,19 +37,19 @@ input[name="to"], input[name="from"], input[name="cc"] {
 }
 .contact_left_patient_in_match .button {
   text-transform: none;
-  width: 40%;
+  width: 35%;
+  min-width: 21em;
 }
 .contact_right_patient_in_match .button {
   text-transform: none;
-  width: 40%;
-}
-.contact_right_patient_in_match .button {
-  text-transform: none;
-  width: 40%;
+  width: 35%;
+  min-width: 21em;
+  margin-right: 0.2em;
+  margin-left: 0.2em;
 }
 .select-patient-to-contact-content {
   text-align: center;
-  margin: 1em 0 2em 0;
+  margin: 1em 0 1em 0;
 }
 .cancel_contact_button {
   width: 10em !important;
