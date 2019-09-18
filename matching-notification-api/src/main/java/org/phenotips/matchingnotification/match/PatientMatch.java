@@ -352,4 +352,9 @@ public interface PatientMatch
      * @return the matched features JSON array in a cluster view.
      */
     JSONArray getFeatureMatchesJSON();
+
+    /**
+     * @return the matched genotype JSON array in a cluster view.
+     */
+    JSONArray getGenotypeSimilarityJSON();
 }
