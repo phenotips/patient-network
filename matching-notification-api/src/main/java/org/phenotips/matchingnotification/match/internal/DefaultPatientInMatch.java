@@ -26,11 +26,15 @@ import org.phenotips.data.PatientRepository;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
+import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
+import org.phenotips.data.similarity.AccessType;
 import org.phenotips.data.similarity.PatientGenotype;
 import org.phenotips.data.similarity.PatientGenotypeManager;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.internal.DefaultAccessType;
 import org.phenotips.groups.Group;
 import org.phenotips.groups.GroupManager;
 import org.phenotips.matchingnotification.match.PatientInMatch;
@@ -65,7 +69,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @version $Id$
  */
-@SuppressWarnings("checkstyle:ClassFanOutComplexity")
+@SuppressWarnings({ "checkstyle:ClassFanOutComplexity", "checkstyle:ExecutableStatementCount" })
 public class DefaultPatientInMatch implements PatientInMatch
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPatientInMatch.class);
@@ -85,6 +89,10 @@ public class DefaultPatientInMatch implements PatientInMatch
     private static final GroupManager GROUP_MANAGER;
 
     private static final AccessLevel VIEW;
+
+    private static final AccessLevel MATCH;
+
+    private static final Visibility MATCHABLE_VISIBILITY;
 
     private static final String GENES = "genes";
 
@@ -132,6 +140,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         UserManager um = null;
         GroupManager gm = null;
         AccessLevel v = null;
+        AccessLevel m = null;
+        Visibility vi = null;
         try {
             ComponentManager ccm = ComponentManagerRegistry.getContextComponentManager();
             pgm = ccm.getInstance(PatientGenotypeManager.class);
@@ -142,6 +152,8 @@ public class DefaultPatientInMatch implements PatientInMatch
             um = ccm.getInstance(UserManager.class);
             gm = ccm.getInstance(GroupManager.class);
             v = ccm.getInstance(AccessLevel.class, "view");
+            m = ccm.getInstance(AccessLevel.class, "match");
+            vi = ccm.getInstance(Visibility.class, "matchable");
         } catch (Exception e) {
             LOGGER.error("Error loading static components: {}", e.getMessage(), e);
         }
@@ -153,6 +165,8 @@ public class DefaultPatientInMatch implements PatientInMatch
         USER_MANAGER = um;
         GROUP_MANAGER = gm;
         VIEW = v;
+        MATCH = m;
+        MATCHABLE_VISIBILITY = vi;
     }
 
     /**
@@ -342,6 +356,22 @@ public class DefaultPatientInMatch implements PatientInMatch
     public AccessLevel getAccess()
     {
         return this.access;
+    }
+
+    @Override
+    public AccessType getAccessType()
+    {
+        EntityAccess entityAccess = PERMISSIONS_MANAGER.getEntityAccess(this.patient);
+        AccessLevel useAccess = entityAccess.getAccessLevel();
+        Visibility visibility = entityAccess.getVisibility();
+        if (useAccess.compareTo(MATCH) < 0 && visibility.compareTo(MATCHABLE_VISIBILITY) >= 0) {
+            // matches which are not matchable are filtered out elsewhere. But for MME requests which are
+            // done as a guest user (who has no access to all patients), need to make sure the match can
+            // be processed and returned, for which there should be at least "match" access level
+            useAccess = MATCH;
+        }
+
+        return new DefaultAccessType(this.access, VIEW, MATCH);
     }
 
     @Override

@@ -18,10 +18,14 @@
 package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
+import org.phenotips.data.Gene;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.internal.PhenoTipsGene;
+import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientPhenotypeSimilarityView;
 import org.phenotips.data.similarity.PatientSimilarityView;
+import org.phenotips.data.similarity.genotype.RestrictedPatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.phenotype.DefaultPatientPhenotypeSimilarityView;
 import org.phenotips.matchingnotification.match.PatientInMatch;
 import org.phenotips.matchingnotification.match.PatientMatch;
@@ -34,6 +38,8 @@ import org.xwiki.users.UserManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -57,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * @version $Id$
  */
 @MappedSuperclass()
-@SuppressWarnings("checkstyle:ClassFanOutComplexity")
+@SuppressWarnings({ "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling" })
 public class AbstractPatientMatch implements PatientMatch, Lifecycle
 {
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPatientMatch.class);
@@ -467,6 +473,7 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
         json.put("notes", this.getNote());
 
         json.put("phenotypesSimilarity", getFeatureMatchesJSON());
+        json.put("genotypeSimilarity", getGenotypeSimilarityJSON());
 
         return json;
     }
@@ -756,5 +763,41 @@ public class AbstractPatientMatch implements PatientMatch, Lifecycle
                 this.referencePatientInMatch.getPhenotypes());
 
         return featuresView.toJSON();
+    }
+
+    @Override
+    public JSONArray getGenotypeSimilarityJSON()
+    {
+        Patient matched = this.matchedPatientInMatch.getPatient();
+        // if matched is remote, instantiate RemotePatient
+        if (matched == null) {
+            matched = new RemoteMatchingPatient(this.matchedPatientInMatch.getPatientId(), null, null, null,
+                getPhenoTipsGenes(this.matchedPatientInMatch.getCandidateGenes()), null);
+        }
+
+        Patient ref = this.referencePatientInMatch.getPatient();
+        // if matched is remote, instantiate RemotePatient
+        if (ref == null) {
+            ref = new RemoteMatchingPatient(this.referencePatientInMatch.getPatientId(), null, null, null,
+                getPhenoTipsGenes(this.referencePatientInMatch.getCandidateGenes()), null);
+        }
+
+        PatientGenotypeSimilarityView genesView =
+            new RestrictedPatientGenotypeSimilarityView(matched, ref, this.matchedPatientInMatch.getAccessType());
+
+        return genesView.toJSON();
+    }
+
+    private Set<Gene> getPhenoTipsGenes(Set<String> genes)
+    {
+        Set<Gene> geneSet = new HashSet<>();
+        for (String geneName : genes) {
+            if (StringUtils.isBlank(geneName)) {
+                continue;
+            }
+            Gene gene = new PhenoTipsGene(null, geneName, null, Collections.singleton(""), null);
+            geneSet.add(gene);
+        }
+        return geneSet;
     }
 }

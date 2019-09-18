@@ -21,6 +21,7 @@ import org.phenotips.data.ContactInfo;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
+import org.phenotips.data.similarity.AccessType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -158,4 +159,9 @@ public interface PatientInMatch
      * @return patient contact information.
      */
     ContactInfo getContactInfo();
+
+    /**
+     * @return What type of access does the user have to this patient profile.
+     */
+    AccessType getAccessType();
 }
