@@ -19,10 +19,12 @@ package org.phenotips.matchingnotification.match.internal;
 
 import org.phenotips.components.ComponentManagerRegistry;
 import org.phenotips.data.ContactInfo;
+import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.PatientRepository;
+import org.phenotips.data.internal.PhenoTipsDisorder;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
@@ -58,6 +60,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,6 +109,8 @@ public class DefaultPatientInMatch implements PatientInMatch
 
     private static final String CONTACT_INFO = "contact_info";
 
+    private static final String DISORDERS = "disorders";
+
     private String patientId;
 
     private String serverId;
@@ -127,6 +132,8 @@ public class DefaultPatientInMatch implements PatientInMatch
     private PatientGenotype genotype;
 
     private ContactInfo contactInfo;
+
+    private Set<? extends Disorder> disorders;
 
     /** The access level the user has to this patient. */
     private AccessLevel access;
@@ -261,6 +268,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
         json.put(AGE_ON_ONSET, this.ageOfOnset);
         json.put(CONTACT_INFO, (this.contactInfo != null) ? this.contactInfo.toJSON() : null);
+        json.put(DISORDERS, this.disorders);
         return json;
     }
 
@@ -393,6 +401,12 @@ public class DefaultPatientInMatch implements PatientInMatch
         return this.contactInfo;
     }
 
+    @Override
+    public Set<? extends Disorder> getDisorders()
+    {
+        return this.disorders;
+    }
+
     /*
      * Data read from {@code patientDetails} was exported in {@link getDetailsColumnJSON}. However, it is possible that
      * some data is missing in case more details added in newer versions. So, it is ok for some values to be missing
@@ -400,14 +414,19 @@ public class DefaultPatientInMatch implements PatientInMatch
      */
     private void rebuildDetails(String patientDetails, String oldMMEContactData)
     {
-        JSONObject json = new JSONObject(patientDetails);
+        try {
+            JSONObject json = new JSONObject(patientDetails);
 
-        this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
-        this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.optJSONArray(MATCHED_EXOME_GENES)));
-        this.phenotypes = readFeatures(json.optJSONArray(PHENOTYPES));
-        this.ageOfOnset = json.getString(AGE_ON_ONSET);
-        this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
-        this.contactInfo = rebuildContactInfo(json.optJSONObject(CONTACT_INFO), oldMMEContactData);
+            this.genes = getGeneSymbols(jsonArrayToSet(json.getJSONArray(GENES)));
+            this.matchedExomeGenes = getGeneSymbols(jsonArrayToSet(json.optJSONArray(MATCHED_EXOME_GENES)));
+            this.phenotypes = readFeatures(json.optJSONArray(PHENOTYPES));
+            this.ageOfOnset = json.getString(AGE_ON_ONSET);
+            this.modeOfInheritance = jsonArrayToSet(json.getJSONArray(MODE_OF_INHERITANCE));
+            this.contactInfo = rebuildContactInfo(json.optJSONObject(CONTACT_INFO), oldMMEContactData);
+            this.disorders = readDisorders(json.optJSONArray(DISORDERS));
+        } catch (Exception ex) {
+            LOGGER.error("Error parsing patientDetails JSON: {}", ex.getMessage(), ex);
+        }
     }
 
     // Returns an unmodifiable set of Strings
@@ -434,6 +453,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         this.ageOfOnset = this.getAgeOfOnset(globalControllers);
         this.modeOfInheritance = this.getModeOfInheritance(globalControllers);
         this.contactInfo = this.populateContactInfo();
+        this.disorders = this.getClinicalDisorders(this.patient);
     }
 
     private Set<String> getGenes(Patient patient)
@@ -531,6 +551,24 @@ public class DefaultPatientInMatch implements PatientInMatch
             }
         }
         return null;
+    }
+
+    private Set<? extends Disorder> getClinicalDisorders(Patient patient)
+    {
+        if (!this.isLocal()) {
+            return patient.getDisorders();
+        }
+
+        PatientData<Disorder> data = patient.getData("clinical-diagnosis");
+        Set<Disorder> clinicalDisorders = new TreeSet<>();
+        if (data != null) {
+            Iterator<Disorder> iterator = data.iterator();
+            while (iterator.hasNext()) {
+                Disorder disorder = iterator.next();
+                clinicalDisorders.add(disorder);
+            }
+        }
+        return Collections.unmodifiableSet(clinicalDisorders);
     }
 
     private ContactInfo rebuildContactInfo(JSONObject contact, String oldMMEContactData)
@@ -640,5 +678,20 @@ public class DefaultPatientInMatch implements PatientInMatch
             features.add(phenotipsFeature);
         }
         return features;
+    }
+
+    private Set<Disorder> readDisorders(JSONArray disordersJson)
+    {
+        Set<Disorder> disorderSet = new HashSet<>();
+        if (disordersJson == null) {
+            return disorderSet;
+        }
+
+        for (Object object : disordersJson) {
+            JSONObject jsonDisorder = (JSONObject) object;
+            Disorder disorder = new PhenoTipsDisorder(jsonDisorder);
+            disorderSet.add(disorder);
+        }
+        return disorderSet;
     }
 }

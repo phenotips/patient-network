@@ -24,7 +24,6 @@ import org.phenotips.data.Patient;
 import org.phenotips.data.PatientData;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
 import org.phenotips.data.similarity.AccessType;
-import org.phenotips.data.similarity.DisorderSimilarityView;
 import org.phenotips.data.similarity.PatientGenotypeSimilarityView;
 import org.phenotips.data.similarity.genotype.RestrictedPatientGenotypeSimilarityView;
 
@@ -126,12 +125,6 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
         } else {
             return super.getDisorders();
         }
-    }
-
-    @Override
-    protected DisorderSimilarityView createDisorderSimilarityView(Disorder match, Disorder reference, AccessType access)
-    {
-        return new RestrictedDisorderSimilarityView(match, reference, this.access);
     }
 
     @Override

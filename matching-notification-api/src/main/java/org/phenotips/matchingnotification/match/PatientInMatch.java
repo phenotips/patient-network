@@ -18,6 +18,7 @@
 package org.phenotips.matchingnotification.match;
 
 import org.phenotips.data.ContactInfo;
+import org.phenotips.data.Disorder;
 import org.phenotips.data.Feature;
 import org.phenotips.data.Patient;
 import org.phenotips.data.permissions.AccessLevel;
@@ -164,4 +165,9 @@ public interface PatientInMatch
      * @return What type of access does the user have to this patient profile.
      */
     AccessType getAccessType();
+
+    /**
+     * @return Patient disorders.
+     */
+    Set<? extends Disorder> getDisorders();
 }
