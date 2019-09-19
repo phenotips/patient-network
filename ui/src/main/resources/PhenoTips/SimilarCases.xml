@@ -314,6 +314,9 @@
       return;
     }
 
+    this._outstandingRefreshCalls = 0;     // the number of "refresh matches" AJAX calls to various servers still in progress
+    this._outstandingSuccessfulCalls = 0;  // the number of successfully completed refresh calls for which results are not displayed yet
+
     var _refreshMatches = function(url, serverId, notification) {
       var _this = this;
 
@@ -331,17 +334,44 @@
       new Ajax.Request(url + "?method=PUT", {
           contentType : 'application/json',
           parameters : {'serverId' : serverId},
+          onCreate : function () {
+            _this._outstandingRefreshCalls += 1;
+            $("panels-livetable-ajax-loader").show();
+            // disable the refresh matches button, to avoid accidental double-refreshes (especially to MME servers)
+            $('refresh-all-button').disable();
+            $('refresh-remote-select').disable();
+            // grey out the main matches table as any user interaction may be disrupted by the refreshed matches after this call is complete
+            $('table-container').addClassName("greyed-out");
+          },
           onSuccess : function(response) {
             var message = (serverId == "local") ? "$escapetool.javascript($services.localization.render('phenotips.similarCases.success.local'))" : "$escapetool.javascript($services.localization.render('phenotips.similarCases.success')) " + serverName;
             notification.replace(new XWiki.widgets.Notification(message, "done"));
-            var event = { 'notificationResult' : 'success' };
-            document.fire("matches:refreshed", event);
-            fetchLastUpdatedTime();
+            _this._outstandingSuccessfulCalls += 1;
           },
           onFailure : function(response) {
             var error = _generateFailureReason(response.status);
             var message = "$escapetool.javascript($services.localization.render('phenotips.similarCases.errorSendingRequest')) " + serverName + ": " + error;
             notification.replace(new XWiki.widgets.Notification(message, "error"));
+          },
+          onComplete: function() {
+            _this._outstandingRefreshCalls -= 1;
+
+            if (_this._outstandingRefreshCalls == 0) {
+                // the last outstanding request completed - restore all UI elements
+                $("panels-livetable-ajax-loader").hide();
+                $('refresh-all-button').enable();
+                $('refresh-remote-select').enable();
+                $('table-container').removeClassName("greyed-out");
+
+                if (_this._outstandingSuccessfulCalls > 0) {
+                  // at least one of the refresh calls produced new matches - need to request a match reload
+                  var event = { 'updatedMatches' : 'success' };
+                  document.fire("matches:refreshed", event);
+                  _this._outstandingSuccessfulCalls = 0;
+                }
+            }
+
+            // success or fail, refresh server status in the dropdown after every call
             fetchLastUpdatedTime();
           }
       });
@@ -848,6 +878,10 @@
 }
 .space-data #document-title.active {
   margin-left: 0;
+}
+.greyed-out {
+  opacity: 0.5;
+  pointer-events: none;
 }
 </code>
     </property>
