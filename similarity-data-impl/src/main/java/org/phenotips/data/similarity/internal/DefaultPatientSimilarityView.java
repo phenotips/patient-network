@@ -207,14 +207,7 @@ public class DefaultPatientSimilarityView extends AbstractPatientSimilarityView
     @Override
     public Set<? extends Disorder> getDisorders()
     {
-        Set<Disorder> result = new HashSet<>();
-        for (DisorderSimilarityView disorder : getMatchedDisorders()) {
-            if (disorder.getId() != null) {
-                result.add(disorder);
-            }
-        }
-
-        return result;
+        return this.match.getDisorders();
     }
 
     /**

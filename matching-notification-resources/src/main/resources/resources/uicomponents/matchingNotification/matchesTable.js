@@ -739,6 +739,10 @@ var PhenoTips = (function (PhenoTips) {
             if (match.notMyCase != null && match.reference == match.notMyCase) {
                 match.reference = match.matched;
                 match.matched = match.notMyCase
+
+                // also need to swap "reference" and "matched" in all similarity views
+                match.phenotypesSimilarity && this._swapSimilaritiesIfNotMyCase(match.phenotypesSimilarity);
+                match.genotypeSimilarity && this._swapSimilaritiesIfNotMyCase(match.genotypeSimilarity);
             }
 
             this._organiseNotificationHistory(match);
@@ -749,6 +753,14 @@ var PhenoTips = (function (PhenoTips) {
 
         // sort by match found timestamp in descending order
         this._sortByColumn('foundTimestamp', false);
+    },
+
+    _swapSimilaritiesIfNotMyCase : function(similarities) {
+        similarities.each( function (similarity) {
+            var temp = similarity.match;
+            similarity.match = similarity.reference;
+            similarity.reference = temp;
+        }.bind(this));
     },
 
     _organiseNotificationHistory : function(match)

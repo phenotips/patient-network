@@ -32,6 +32,7 @@ var PhenoTips = (function(PhenoTips) {
         this._displayModeOfInheritance(table, match);
         this._displayFeatureMatches(table, match);
         this._displayGeneMatches(table, match);
+        this._displayDisorders(table, match);
         result.insert(table);
         return result;
     },
@@ -257,6 +258,33 @@ var PhenoTips = (function(PhenoTips) {
             );
         });
         return result;
+    },
+
+    _displayDisorders : function(table, r) {
+        //sort made of inheritance: those that matched to be first in alphabetic order
+        if (r.matched.disorders && r.matched.disorders.length > 0 && r.reference.disorders && r.reference.disorders.length > 0) {
+            var common = r.matched.disorders.intersect(r.reference.disorders).sort();
+            r.reference.disorders = common.concat(r.reference.disorders.sort()).uniq();
+            r.matched.disorders = common.concat(r.matched.disorders.sort()).uniq();
+        }
+
+        this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))");
+        var row = this._getEmptyTableRow(table);
+        if ((!r.matched.disorders || r.matched.disorders.length == 0) && (!r.reference.disorders || r.reference.disorders.length == 0)) {
+            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))"));
+        } else {
+            var handleEmptyArray = function(moiArray) {return (moiArray && moiArray.length > 0) ? moiArray : ["-"];};
+            var referenceElement = new Element('td', {'class' : 'table-data query'});
+            row.insert(referenceElement);
+            handleEmptyArray(r.reference.disorders).each(function (item) {
+                referenceElement.insert(new Element('div').update(item.label || item.name));
+          });
+          var matchedElement = new Element('td', {'class' : 'table-data result'});
+          row.insert(matchedElement);
+          handleEmptyArray(r.matched.disorders).each(function (item) {
+              matchedElement.insert(new Element('div').update(item.label || item.name));
+          });
+       }
     },
 
     _getEmptyTableRow : function(table, cssClass) {
