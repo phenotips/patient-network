@@ -249,7 +249,7 @@
       &lt;/ul&gt;
     #end
   #end
-  #if ($freetextFeatureSet.size() &gt; 0)
+  #if ($freetextFeatureSet &amp;&amp; $freetextFeatureSet.size() &gt; 0)
     &lt;div style="$abnormality-category"&gt;Free Text&lt;/div&gt;
     &lt;ul style="$bullet-list"&gt;##
     #foreach ($phenotype in $freetextFeatureSet)
