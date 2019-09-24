@@ -28,7 +28,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -94,10 +93,11 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
         + " and d2.matchedServerId = '' and d2.referenceServerId = '')";
 
     // inspired by https://stackoverflow.com/questions/37649/swapping-column-values-in-mysql
+    // had to wrap ":=" in /*'*/ as suggested in https://stackoverflow.com/questions/9460018/
     private static final String SQL_NORMALIZE_ORDER_OF_PATIENTS_IN_LOCAL_MATCHES =
-        "update patient_matching set referencePatientId = (@tempId:=referencePatientId),"
+        "update patient_matching set referencePatientId = (@tempId/*'*/:=/*'*/referencePatientId),"
         + " referencePatientId = matchedPatientId, matchedPatientId = @tempId,"
-        + " referenceDetails = (@tempDetails:=referenceDetails),"
+        + " referenceDetails = (@tempDetails/*'*/:=/*'*/referenceDetails),"
         + " referenceDetails = matchedDetails, matchedDetails = @tempDetails"
         + " where referencePatientId > matchedPatientId and referenceServerId = '' and matchedServerId = ''";
 
@@ -145,10 +145,11 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
             this.logger.error("Normalized [{}] local matches [A->B where A>B] to [B->A]", numNormalized);
 
             t.commit();
-        } catch (HibernateException ex) {
+        } catch (Exception ex) {
             this.logger.error("Failed to de-duplicate and normalize matches: [{}]", ex.getMessage());
             if (t != null) {
                 t.rollback();
+                throw new DataMigrationException("Migration 74696 failed");
             }
         } finally {
             session.close();
