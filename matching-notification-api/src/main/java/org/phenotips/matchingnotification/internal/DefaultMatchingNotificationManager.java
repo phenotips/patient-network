@@ -89,7 +89,7 @@ public class DefaultMatchingNotificationManager implements MatchingNotificationM
 
             PatientMatchNotificationResponse notificationResult = this.notifier.notify(email);
 
-            if (notificationResult.isSuccessul()) {
+            if (notificationResult != null && notificationResult.isSuccessul()) {
                 this.updateNotificationHistory(notificationResult, email, "notification");
             }
 
