@@ -559,13 +559,20 @@ public class DefaultPatientInMatch implements PatientInMatch
             return patient.getDisorders();
         }
 
-        PatientData<Disorder> data = patient.getData("clinical-diagnosis");
         Set<Disorder> clinicalDisorders = new TreeSet<>();
+
+        PatientData<Disorder> data = patient.getData("clinical-diagnosis");
         if (data != null) {
             Iterator<Disorder> iterator = data.iterator();
             while (iterator.hasNext()) {
                 Disorder disorder = iterator.next();
                 clinicalDisorders.add(disorder);
+            }
+        }
+
+        for (Disorder disease : patient.getDisorders()) {
+            if (!StringUtils.isBlank(disease.getId())) {
+                clinicalDisorders.add(disease);
             }
         }
         return Collections.unmodifiableSet(clinicalDisorders);
