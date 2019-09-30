@@ -291,7 +291,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           &lt;th colspan="3"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.score'))
             &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.myMatches.score.header.hint'))"&gt;&lt;/span&gt;
           &lt;/th&gt;
-          &lt;th colspan="1"&gt;&lt;/th&gt;
+          #if("${doc.space}" != "data")&lt;th colspan="1"&gt;&lt;/th&gt;#end
           &lt;th #if("${doc.space}" == "data")colspan="1"#else colspan="2"#end&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.contact'))&lt;/th&gt;
           &lt;th colspan="1"&gt;&lt;/th&gt;
         &lt;/tr&gt;
@@ -300,8 +300,10 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
           &lt;th data-column="status"&gt;&lt;/th&gt;
         #end
         &lt;th data-column="notes"&gt;&lt;/th&gt;
-        &lt;th data-column="referencePatient"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
-        &lt;th data-column="matchedPatient"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;/th&gt;
+        #if("${doc.space}" != "data")
+          &lt;th data-column="referencePatient"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;/th&gt;
+        #end
+        &lt;th data-column="matchedPatient"&gt;#if("${doc.space}" == "data")$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))#end&lt;/th&gt;
         &lt;th data-column="score" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.score'))"&gt;
            $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.averageScore'))
            &lt;span class="fa fa-sort" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.sort'))"&gt;&lt;/span&gt;
@@ -321,7 +323,7 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
         #if("${doc.space}" != "data")
           &lt;th data-column="referenceEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.referenceContact'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.reference'))&lt;span class="fa fa-angle-double-right collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
         #end
-        &lt;th data-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedContact'))"&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))&lt;span class="fa fa-angle-double-right collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
+        &lt;th data-column="matchedEmails" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.titles.matchedContact'))"&gt;#if("${doc.space}" == "data")$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.headings.matched'))#end&lt;span class="fa fa-angle-double-right collapse-marker"&gt;&lt;/span&gt;&lt;/th&gt;
         &lt;th data-column="contact"&gt;&lt;/th&gt;
         &lt;/tr&gt;
       &lt;/thead&gt;

@@ -235,7 +235,7 @@ ul.filters li.text-filter {
   font-weight: 400;
   text-transform: none;
   font-style: italic;
-  display : block;
+  padding-left: 5px;
 }
 .fa.fa-leanpub {
   padding-right: 4px;
@@ -552,54 +552,37 @@ td[name="contact"] {
   color: red;
 }
 .xPopup.match-details {
-  border: 1px solid #DDD;
+  border: 1px solid #666;
   padding: 5px 1em;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
   display: block;
+  margin-left: .1em;
+  margin-top: .3em;
 }
-.match-details:before, .match-details:after {
-  content: "";
-  display: block;
-  width: 0;
-  height: 0;
-  position: absolute;
-  top: -10.5px;
-  right: 95%;
-  border: 11px solid transparent;
-  border-top: 0 none;
-  border-bottom-color: #DDD;
-}
-.match-details:after {
-  top: -9.5px;
-  right: 95.1%;
-  border: 10px solid transparent;
-  border-top: 0 none;
-  border-bottom-color: #FFF;
-}
-.match-details table.phenotype-matches&gt;tr:nth-child(2n+1) {
+.match-details table.phenotype-matches>tr:nth-child(2n+1) {
   background-color: #f9f9f9;
   color: #000;
   text-shadow: none;
   text-align: center;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(2n){
+.match-details table.phenotype-matches>tr:nth-child(2n){
   background-color: transparent;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
+.match-details table.phenotype-matches>tr:nth-child(2n)>td {
   padding-bottom: 0;
 }
-.match-details table.phenotype-matches&gt;tr:nth-child(2n)&gt;td {
+.match-details table.phenotype-matches>tr:nth-child(2n)>td {
   padding-top: 0;
 }
 
-.match-details table.age-of-onset &gt; tr &gt; td,
-.match-details table.mode-of-inheritance &gt; tr &gt; td {
+.match-details table.age-of-onset > tr > td,
+.match-details table.mode-of-inheritance > tr > td {
   padding-top: 0;
   padding-bottom: 0;
   background-color: $theme.menuLinkColor;
 }
 
-.match-details table &gt; tr &gt; td.result {
+.match-details table > tr > td.result {
   background: $theme.highlightColor;
 }
 
@@ -635,12 +618,10 @@ td[name="contact"] {
 }
 .match-details th.hint.result, .match-details th.hint.query {
   color: #369;
-  text-align: center;
 }
 .match-details table th {
-  border-bottom: 1px solid #d7dee3!important;
-  font-size: .8em;
-  text-transform: uppercase;
+  border-bottom: 1px solid #d7dee3;
+  border-top: none;
   font-weight: 700;
   background-color: #f6f8f9;
 }
@@ -656,17 +637,27 @@ td[name="contact"] {
   border: 0 none!important;
   vertical-align: baseline!important;
   padding: .5em;
+  width: 50%;
+}
+.match-details table th.patient-name {
+  font-weight: bold;
+  color: black;
+  text-transform: uppercase;
+  font-size: 1em;
+  background: none;
+  border-bottom: 4px solid #000;
 }
 .match-details table th.phenotype-category, .match-details table th.gene {
   text-align: center;
   padding-top: 6px;
   padding-bottom: 6px;
   position: relative;
+  font-variant: normal;
 }
 .xPopup.match-details .hide-tool {
   margin-top: -0.2em;
 }
-.match-details table>tr>td.result {
+.match-details table>tr>td.result, .match-details table>tr>th.result {
   background: #fff9ee;
 }
 .hint {
@@ -675,4 +666,11 @@ td[name="contact"] {
   padding: 0;
   margin: 0;
   font-style: normal;
+}
+.match-details table .variants-data {
+  vertical-align: top;
+  margin-top: 0;
+}
+.match-details table .variants-data td {
+  padding: 0;
 }

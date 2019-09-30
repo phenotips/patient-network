@@ -380,7 +380,7 @@ public class RestrictedPatientGenotypeSimilarityViewTest
                     Assert.assertFalse(v.getString("type").isEmpty());
                 } else if (detailLevel.equals(VariantDetailLevel.LIMITED)) {
                     // Ensure limited variant details displayed
-                    Assert.assertEquals(2, v.length());
+                    Assert.assertEquals(3, v.length());
                     Assert.assertTrue(v.getDouble("score") > 0);
                     Assert.assertFalse(v.getString("type").isEmpty());
                 }

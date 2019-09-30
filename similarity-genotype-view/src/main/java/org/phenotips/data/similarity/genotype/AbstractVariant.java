@@ -183,6 +183,7 @@ public abstract class AbstractVariant implements Variant
         result.put("ref", getRef());
         result.put("alt", getAlt());
         result.put("type", getEffect());
+        result.put("isHomozygous", isHomozygous());
         return result;
     }
 }

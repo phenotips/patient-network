@@ -28,7 +28,6 @@ import org.phenotips.data.internal.PhenoTipsDisorder;
 import org.phenotips.data.internal.PhenoTipsFeature;
 import org.phenotips.data.internal.SolvedData;
 import org.phenotips.data.permissions.AccessLevel;
-import org.phenotips.data.permissions.EntityAccess;
 import org.phenotips.data.permissions.EntityPermissionsManager;
 import org.phenotips.data.permissions.Visibility;
 import org.phenotips.data.permissions.internal.EntityAccessManager;
@@ -369,17 +368,19 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public AccessType getAccessType()
     {
-        EntityAccess entityAccess = PERMISSIONS_MANAGER.getEntityAccess(this.patient);
-        AccessLevel useAccess = entityAccess.getAccessLevel();
-        Visibility visibility = entityAccess.getVisibility();
-        if (useAccess.compareTo(MATCH) < 0 && visibility.compareTo(MATCHABLE_VISIBILITY) >= 0) {
-            // matches which are not matchable are filtered out elsewhere. But for MME requests which are
-            // done as a guest user (who has no access to all patients), need to make sure the match can
-            // be processed and returned, for which there should be at least "match" access level
-            useAccess = MATCH;
+        AccessLevel useAccess = this.access;
+
+        if (useAccess.compareTo(MATCH) < 0) {
+            Visibility visibility = PERMISSIONS_MANAGER.getEntityAccess(this.patient).getVisibility();
+            if (visibility.compareTo(MATCHABLE_VISIBILITY) >= 0) {
+                // matches which are not matchable are filtered out elsewhere. But for MME requests which are
+                // done as a guest user (who has no access to all patients), need to make sure the match can
+                // be processed and returned, for which there should be at least "match" access level
+                useAccess = MATCH;
+            }
         }
 
-        return new DefaultAccessType(this.access, VIEW, MATCH);
+        return new DefaultAccessType(useAccess, VIEW, MATCH);
     }
 
     @Override
