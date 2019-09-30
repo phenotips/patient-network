@@ -41,8 +41,8 @@ var PhenoTips = (function(PhenoTips) {
         var row = this._getEmptyTableRow(table);
         var refExternalId = (r.reference.externalId) ? " : " + r.reference.externalId : '';
         var matchedExternalId = (r.matched.externalId) ? " : " + r.matched.externalId : '';
-        row.insert(new Element('th', {'class' : 'hint query'}).update(r.reference.patientId + refExternalId));
-        row.insert(new Element('th', {'class' : 'hint result'}).update(r.matched.patientId + matchedExternalId));
+        row.insert(new Element('th', {'class' : 'patient-name'}).update(r.reference.patientId + refExternalId));
+        row.insert(new Element('th', {'class' : 'patient-name result'}).update(r.matched.patientId + matchedExternalId));
     },
 
     _createTableCategoryHeader : function(table, cssClass, title) {
@@ -164,21 +164,27 @@ var PhenoTips = (function(PhenoTips) {
     _displayGeneMatches : function(table, r) {
         this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.geneMatchingBreakdown'))");
         var _this = this;
-        if (!r.genotypeSimilarity) {
+        var allRefGenes = r.reference.genes.slice();
+        var allMatchGenes = r.matched.genes.slice();
+        if (!r.genotypeSimilarity && allRefGenes.length == 0 && allMatchGenes.length == 0) {
             // The 'genes' field is absent when there is no genetic information in one of the two patients
             var row = _this._getEmptyTableRow(table);
             row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
-        } else if (r.genotypeSimilarity.length == 0) {
+        } else if (!r.genotypeSimilarity || r.genotypeSimilarity.length == 0) {
             // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
             var row = _this._getEmptyTableRow(table);
             row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
         } else {
+            var referenceP = r.reference;
+            var matchedP = r.matched;
             // Display genotype matches
             r.genotypeSimilarity.each(function (geneInfo) {
+                var geneName = geneInfo.symbol || geneInfo.gene;
+                allRefGenes.indexOf(geneName) > -1 && allRefGenes.splice(allRefGenes.indexOf(geneName), 1);
+                allMatchGenes.indexOf(geneName) > -1 && allMatchGenes.splice(allMatchGenes.indexOf(geneName), 1);
                 var titleRow = _this._getEmptyTableRow(table, 'gene-row');
                 titleRow.insert(new Element('th', {'class' : 'gene', 'colspan' : 2})
-                                  .insert(geneInfo.symbol || geneInfo.gene)
-                                  .insert(new Element('input', {'type':'hidden', 'name': 'gene_name', 'class' : 'gene-name', 'value' : geneInfo.gene}))
+                                  .insert(geneName)
                                   .insert(new Element('span', {'class' : 'variants-toggle'}))
                                    /* The genename service should populate this with links if the input is present*/);
                 if (geneInfo.reference || geneInfo.match) {
@@ -189,16 +195,8 @@ var PhenoTips = (function(PhenoTips) {
 
                         titleRow.down('span.variants-toggle').insert(variantToggle);
                         var variantsRow = _this._getEmptyTableRow(table, 'variants-row');
-                        variantsRow.insert(new Element('td', {'class' : 'query'})
-                                            .insert(geneInfo.reference
-                                                    && geneInfo.reference.variants
-                                                    && _this._displayVariants(geneInfo.reference.variants)
-                                                    || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
-                        variantsRow.insert(new Element('td', {'class' : 'result'})
-                                            .insert(geneInfo.match
-                                                    && geneInfo.match.variants
-                                                    && _this._displayVariants(geneInfo.match.variants)
-                                                    || "$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))"));
+                        variantsRow.insert(new Element('td', {'class' : 'query table-data'}).insert(_this._displayVariants(geneInfo.reference)));
+                        variantsRow.insert(new Element('td', {'class' : 'result table-data'}).insert(_this._displayVariants(geneInfo.match)));
 
                         // Add behavior for showing/hiding the variants
                         variantsRow.hide();
@@ -219,16 +217,41 @@ var PhenoTips = (function(PhenoTips) {
                 }
             });
         }
+
+        // Display unmatched genes
+        if (allRefGenes && allRefGenes.length > 0 || allMatchGenes && allMatchGenes.length > 0) {
+            var title = "$escapetool.javascript($services.localization.render('phenotips.similarCases.unmatched'))";
+            _this._createTableCategoryHeader(table, 'phenotype-category', title);
+            var unmatchedGenesRow = _this._getEmptyTableRow(table);
+            var refPGenesTd = new Element('td', {'class' : 'table-data query'});
+            var matchedPGenesTd = new Element('td', {'class' : 'table-data result'});
+            unmatchedGenesRow.insert(refPGenesTd).insert(matchedPGenesTd);
+
+            if (allRefGenes && allRefGenes.length > 0) {
+                allRefGenes.each(function (geneSymbol) {
+                    refPGenesTd.insert((geneSymbol && ("<div>"+geneSymbol+"</div>")) || '');
+                });
+            } else {
+                refPGenesTd.insert("-");
+            }
+            if (allMatchGenes && allMatchGenes.length > 0) {
+                allMatchGenes.each(function (geneSymbol) {
+                    matchedPGenesTd.insert((geneSymbol && ("<div>"+geneSymbol+"</div>")) || '');
+                });
+            } else {
+                matchedPGenesTd.insert("-");
+            }
+        }
     },
 
-    _displayVariants : function (variants) {
-        if (!variants || variants.length == 0) {
+    _displayVariants : function (geneInfo) {
+        
+        if (!geneInfo || !geneInfo.variants || geneInfo.variants.length == 0) {
             return new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noVariantInformation'))");
         }
         var result = new Element('table', {'class' : 'variants-data'});
         var _this = this;
-        var hRow = _this._getEmptyTableRow(result);
-        variants.each(function (v) {
+        geneInfo.variants.each(function (v) {
             var vRow = _this._getEmptyTableRow(result);
             var position = new Element('span', {'class' : 'hint'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedPosition'))");
             var change = "";
@@ -254,6 +277,7 @@ var PhenoTips = (function(PhenoTips) {
                                          .insert(new Element('div')
                                                         .insert(new Element('strong').update(change))
                                                         .insert(v.type && new Element('span', {'class' : 'hint'}).update(' (' + v.type + ')') || '')
+                                                        .insert(v.isHomozygous && new Element('span', {'class' : 'hint'}).update(' (' + "$escapetool.javascript($services.localization.render('phenotips.similarCases.homozygous'))" + ')') || '')
                                           )
             );
         });

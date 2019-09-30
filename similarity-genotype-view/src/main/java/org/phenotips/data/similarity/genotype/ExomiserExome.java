@@ -96,10 +96,6 @@ public class ExomiserExome extends AbstractExome implements Exome
             }
 
             geneMutations.add(variant);
-            // Represent homozygous variants as two separate mutations
-            if (variant.isHomozygous()) {
-                geneMutations.add(variant);
-            }
         }
         reader.close();
 

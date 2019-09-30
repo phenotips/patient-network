@@ -59,18 +59,10 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         this._PAGE_COUNT_TEMPLATE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.matchesTable.pagination.footer'))";
-        this._AGE_OF_ONSET = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.ageOfOnset.label'))";
-        this._MODE_OF_INHERITANCE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.modeOfInheritance'))";
-        this._NOT_OBSERVED = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notObserved'))";
-        this._GENES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.genes.label'))";
-        this._CAUSAL_GENE_STATUS = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.geneStatus.causal'))";
-        this._PHENOTYPES = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.email.table.phenotypes.label'))";
         this._NOTIFY = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.notify'))";
         this._NONE_STANDART_PHENOTYPE = "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))";
         this._SAVED = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.saved'))";
         this._REJECTED = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.rejected'))";
-        this._HAS_EXOME_DATA = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.hasExome.label'))";
-        this._EXOME_GENE = "$escapetool.javascript($services.localization.render('phenotips.matchingNotifications.table.exomeGene.label'))";
         this._MARK_USER_CONTACTED_BUTTON_LABEL = "$escapetool.javascript($services.localization.render('phenotips.myMatches.markUserContactedButton.label'))";
         this._MARK_USER_CONTACTED_BUTTON_TITLE = "$escapetool.javascript($services.localization.render('phenotips.myMatches.markUserContactedButton.title'))";
         this._MARK_USER_UNCONTACTED_BUTTON_TITLE = "$escapetool.javascript($services.localization.render('phenotips.myMatches.markUserUncontactedButton.title'))";
@@ -842,8 +834,14 @@ var PhenoTips = (function (PhenoTips) {
     {
         var matchPhenotypes = [];
         var allPhenotypes = match.matched.phenotypes.concat(match.reference.phenotypes);
+        if (match.reference.phenotypes.freeText) {
+            allPhenotypes = allPhenotypes.concat(match.reference.phenotypes.freeText);
+        }
+        if (match.matched.phenotypes.freeText) {
+            allPhenotypes = allPhenotypes.concat(match.matched.phenotypes.freeText);
+        }
         allPhenotypes.each(function (elm) {
-            matchPhenotypes.push(elm.name);
+            elm.name && matchPhenotypes.push(elm.name);
         });
         return matchPhenotypes;
     },
@@ -1100,7 +1098,7 @@ var PhenoTips = (function (PhenoTips) {
         td += '">';
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
-        if ( tdClass != 'matchedPatientTd') {
+        if (this._onSimilarCasesPage || tdClass != 'matchedPatientTd') {
             td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '" data-matchindex="' + index + '"></div>';
         }
         if (patient.serverId == '') { // local patient
@@ -1123,132 +1121,6 @@ var PhenoTips = (function (PhenoTips) {
         }
 
         td += '</td>';
-        return td;
-    },
-
-    _getGenesDiv : function(genes, exomeGenes, hasExomeData, otherPatientHasExomeData, genesStatus, otherPatientGenes)
-    {
-        var td = '<div class="genes-div">';
-        var genesTitle = this._GENES;
-        if (genes.size() == 0) {
-            genesTitle += ' -';
-        }
-        td += '<p class="subtitle">' + genesTitle;
-        if (genesStatus && genesStatus.length > 0 && genes.size() > 0) {
-            var status = genesStatus == "solved" ? this._CAUSAL_GENE_STATUS : genesStatus;
-            td += ' (' + status + ')';
-        }
-
-        if (hasExomeData || otherPatientHasExomeData) {
-            var hasExome = (hasExomeData) ? this._HAS_EXOME_DATA : '&nbsp;';
-            td += '<span class="exome-subtitle">' + hasExome + '</span>';
-        }
-
-        td += '</p>';
-        if (genes.size() != 0) {
-            td += '<ul>';
-            for (var i = 0 ; i < genes.size() ; i++) {
-                var gene = genes[i].replace(' (candidate)', '').replace(' (solved)', ''); //just in case of cashed/saved status with gene symbol
-                if (otherPatientGenes.indexOf(gene) > -1) {
-                    td += '<li class="matched">' + gene;
-                    if (exomeGenes && exomeGenes.indexOf(gene) > -1) {
-                        td += ' ' + '<span class="exome-gene">' + this._EXOME_GENE + '</span>';
-                    }
-                    td += '</li>';
-                } else {
-                    td += '<li>' + gene + '</li>';
-                }
-            }
-            td += '</ul>';
-        }
-        td += '</div>';
-        return td;
-    },
-
-    _getPhenotypesDiv : function(phenotypes, otherPatientPhenotypes)
-    {
-        var empty = (phenotypes.predefined.size() + phenotypes.freeText.size() == 0);
-
-        var td = '<div class="phenotypes-div">';
-        var phenotypesTitle = this._PHENOTYPES;
-        if (empty) {
-            phenotypesTitle += ' -';
-        }
-
-        td += '<p class="subtitle">' + phenotypesTitle + '</p>';
-        if (!empty) {
-            td += '<ul>';
-            td += this._addPhenotypes(phenotypes.predefined, false, otherPatientPhenotypes.predefined);
-            td += this._addPhenotypes(phenotypes.freeText, true, otherPatientPhenotypes.freeText);
-            td += '</ul>';
-        }
-        td += '</div>';
-        return td;
-    },
-
-    _addPhenotypes : function(phenotypesArray, asFreeText, otherPatientPhenotypesArray)
-    {
-        var otherPatientPhenotypesNames = [];
-        if (otherPatientPhenotypesArray && otherPatientPhenotypesArray.size() > 0) {
-            otherPatientPhenotypesArray.each( function (el) { otherPatientPhenotypesNames.push(el.name);});
-        }
-
-        var td = '';
-        for (var i = 0 ; i < phenotypesArray.size() ; i++) {
-            var observed = phenotypesArray[i].observed != "no";
-
-            var phenotypesClass = '';
-            if (otherPatientPhenotypesNames.size() > 0 && otherPatientPhenotypesNames.indexOf(phenotypesArray[i].name) > -1) {
-                phenotypesClass = ' class="matched"';
-            }
-
-            td += '<li' + phenotypesClass + '>';
-            if (asFreeText) {
-                td += '<div>';
-                td += '<span class="fa fa-exclamation-triangle" title="' + this._NONE_STANDART_PHENOTYPE + '"/> ';
-            }
-
-            td += (!observed ? this._NOT_OBSERVED + ' ' : '') + phenotypesArray[i].name;
-            if (asFreeText) {
-                td += '</div>';
-            }
-            td += '</li>';
-        }
-        return td;
-    },
-
-    _getAgeOfOnset(age_of_onset)
-    {
-        var td = '<div class="age-of-onset-div">';
-
-        var aooTitle = this._AGE_OF_ONSET;
-        if (age_of_onset == '' || age_of_onset == undefined) {
-            aooTitle += ' -';
-        }
-        td += '<p class="subtitle">' + aooTitle + '</p>';
-        if (age_of_onset) {
-            td += '<ul><li>' + age_of_onset + '</li></ul>';
-        }
-        td += '</div>';
-        return td;
-    },
-
-    _getModeOfInheritance(mode_of_inheritance)
-    {
-        var td = '<div class="mode-of-inheritance-div">';
-        var moiTitle = this._MODE_OF_INHERITANCE;
-        if (mode_of_inheritance.size() == 0) {
-            moiTitle += ' -';
-        }
-        td += '<p class="subtitle">' + moiTitle + '</p>';
-        if (mode_of_inheritance.size() != 0) {
-            td += '<ul>';
-            for (var i = 0 ; i < mode_of_inheritance.size() ; i++) {
-                td += '<li>' + mode_of_inheritance[i] + '</li>';
-            }
-            td += '</ul>';
-        }
-        td += '</div>';
         return td;
     },
 
