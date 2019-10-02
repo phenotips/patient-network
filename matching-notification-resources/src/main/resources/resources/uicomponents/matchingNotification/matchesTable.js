@@ -336,7 +336,7 @@ var PhenoTips = (function (PhenoTips) {
             // click handler
             checkbox.on('click', function(event) {
                 this._filterValues.ownerStatus[event.currentTarget.value] = event.currentTarget.checked;
-                this._update(this._advancedFilter);
+                this._update();
             }.bind(this));
         }.bind(this));
 
@@ -415,39 +415,30 @@ var PhenoTips = (function (PhenoTips) {
             this._update();
         }.bind(this));
 
-        $('global-search-input').on('input', function(event) {
-            this._filterValues.globalFilter = event.currentTarget.value.toLowerCase();
-            this._update(this._globalFilter);
-        }.bind(this));
-
-        this._globalFilter = function (match) {
-            return ( match.matched.patientId.toLowerCase().includes(this._filterValues.globalFilter) // filter by search input in patient ID, external ID and emails
-             || match.reference.patientId.toLowerCase().includes(this._filterValues.globalFilter)
-             || match.matched.externalId.toLowerCase().includes(this._filterValues.globalFilter)
-             || match.reference.externalId.toLowerCase().includes(this._filterValues.globalFilter)
-             || match.matched.emails.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || match.reference.emails.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || match.matched.genes.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || match.reference.genes.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || match.reference.genes.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || match.matched.serverId.toLowerCase().includes(this._filterValues.globalFilter)
-             || match.reference.serverId.toLowerCase().includes(this._filterValues.globalFilter)
-             || match.phenotypes.toString().toLowerCase().includes(this._filterValues.globalFilter)
-             || this._filterValues.serverIds[match.reference.serverId]
-             || this._filterValues.serverIds[match.matched.serverId]
-             || (match.isLocal && this._filterValues.serverIds["local"]))
-             && this._advancedFilter(match);
-        }.bind(this);
-
         this._advancedFilter = function (match) {
-            var hasExternalIdMatch = match.matched.patientId.toLowerCase().includes(this._filterValues.externalId) // filter by search input in patient ID, external ID and emails
-                || match.reference.patientId.toLowerCase().includes(this._filterValues.externalId)
-                || match.matched.externalId.toLowerCase().includes(this._filterValues.externalId)
-                || match.reference.externalId.toLowerCase().includes(this._filterValues.externalId);
-            var hasEmailMatch = match.matched.emails.toString().toLowerCase().includes(this._filterValues.email)
-                || match.reference.emails.toString().toLowerCase().includes(this._filterValues.email);
-            var hasGeneSymbolMatch = match.matched.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol)
-                || match.reference.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol);
+            // filter by search input in patient ID, external ID and emails
+            var hasExternalIdMatch = match.matched.patientId.toLowerCase().includes(this._filterValues.externalId) 
+                || match.matched.externalId.toLowerCase().includes(this._filterValues.externalId);
+            if (!this._onSimilarCasesPage) {
+                hasExternalIdMatch = hasExternalIdMatch || match.reference.patientId.toLowerCase().includes(this._filterValues.externalId)
+                                                        || match.reference.externalId.toLowerCase().includes(this._filterValues.externalId);
+            }
+
+            var hasEmailMatch = match.matched.emails.toString().toLowerCase().includes(this._filterValues.email);
+            if (!this._onSimilarCasesPage) {
+                hasEmailMatch = hasEmailMatch || match.reference.emails.toString().toLowerCase().includes(this._filterValues.email);
+            }
+
+            var hasGeneSymbolMatch = match.matched.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol);
+            if (!this._onSimilarCasesPage) {
+                hasGeneSymbolMatch = hasGeneSymbolMatch || match.reference.genes.toString().toLowerCase().includes(this._filterValues.geneSymbol);
+            }
+
+            var hasPhenotypeMatch = match.matched.aggregatedPhenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
+            if (!this._onSimilarCasesPage) {
+                hasPhenotypeMatch = hasPhenotypeMatch || match.reference.aggregatedPhenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
+            }
+
             var hasCheckboxServerIDsMatch = this._filterValues.serverIds[match.reference.serverId]
                 || this._filterValues.serverIds[match.matched.serverId]
                 || (match.isLocal && this._filterValues.serverIds["local"]);
@@ -480,7 +471,6 @@ var PhenoTips = (function (PhenoTips) {
                                     || (this._filterValues.ownerStatus["public"] && matchOwnedByPublic)
                                     || (this._filterValues.ownerStatus["others"] && matchOwnedByOthers);
 
-            var hasPhenotypeMatch = match.phenotypes.toString().toLowerCase().includes(this._filterValues.phenotype);
             var isNotifiedMatch = match.adminNotified && this._filterValues.notified.notified || !match.adminNotified && this._filterValues.notified.unnotified;
             var isContactedMatch = (match.contacted || match.userContacted) && this._filterValues.contacted.contacted
                                 || (!match.contacted && !match.userContacted) && this._filterValues.contacted.uncontacted;
@@ -627,7 +617,7 @@ var PhenoTips = (function (PhenoTips) {
             this.paginations.invoke("hide");
             this.resultsSummary.hide();
         } else {
-            this._matches = this._cachedMatches.filter( (filter) ? filter : this._advancedFilter);
+            this._matches = this._cachedMatches.filter(this._advancedFilter);
             this._updateServerFilterMatchesCount();
 
             this.paginations.invoke("show");
@@ -717,7 +707,8 @@ var PhenoTips = (function (PhenoTips) {
             match.remoteType = this._getRemoteType(match);
 
             // aggregate phenotypes from both reference and matched patients for future faster filtering
-            match.phenotypes = this._aggregatePhenotypes(match);
+            match.matched.aggregatedPhenotypes = this._aggregatePhenotypes(match.matched.phenotypes);
+            match.reference.aggregatedPhenotypes = this._aggregatePhenotypes(match.reference.phenotypes);
 
             //sort made of inheritance: those that matched to be first in alphabetic order
             this._organiseModeOfInheritance(match);
@@ -830,20 +821,20 @@ var PhenoTips = (function (PhenoTips) {
         match.reference.genes = commonGenes.concat(referenceGenes).uniq();
     },
 
-    _aggregatePhenotypes : function(match)
+    _aggregatePhenotypes : function(phenotypes)
     {
-        var matchPhenotypes = [];
-        var allPhenotypes = match.matched.phenotypes.concat(match.reference.phenotypes);
-        if (match.reference.phenotypes.freeText) {
-            allPhenotypes = allPhenotypes.concat(match.reference.phenotypes.freeText);
-        }
-        if (match.matched.phenotypes.freeText) {
-            allPhenotypes = allPhenotypes.concat(match.matched.phenotypes.freeText);
-        }
-        allPhenotypes.each(function (elm) {
-            elm.name && matchPhenotypes.push(elm.name);
+        var allPhenotypes = [];
+        phenotypes.each(function (elm) {
+            elm.name && allPhenotypes.push(elm.name);
         });
-        return matchPhenotypes;
+
+        if (phenotypes.freeText) {
+            phenotypes.freeText.each(function (elm) {
+                elm.name && allPhenotypes.push(elm.name);
+            });
+        }
+
+        return allPhenotypes;
     },
 
     _getRemoteType : function(match)
@@ -1692,7 +1683,8 @@ var PhenoTips = (function (PhenoTips) {
     _expandCollapseGP : function(target, expand)
     {
         var matchId = target.dataset.matchid;
-        var match = this._cachedMatches[target.dataset.matchindex];
+        var matchesById = this._cachedMatches.filter(function(match) { return String(match.id) === matchId; });
+        var match = matchesById[0];
 
         // show match details pop-up
         expand ? this._matchDetailsView.show(match, target) : this._matchDetailsView.close(target);
