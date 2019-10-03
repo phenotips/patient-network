@@ -147,7 +147,8 @@ public class RestrictedPatientSimilarityView extends DefaultPatientSimilarityVie
 
     private boolean isLimitedAccessibleField(String fieldName)
     {
-        return ("contact".equals(fieldName) || "genes".equals(fieldName) || "solved".equals(fieldName));
+        return ("contact".equals(fieldName) || "genes".equals(fieldName) || "solved".equals(fieldName)
+            || "clinical-diagnosis".equals(fieldName));
     }
 
     @Override
