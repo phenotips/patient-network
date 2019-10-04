@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -120,7 +121,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         for (Feature term : getReference()) {
             String termId = "";
             if (term != null) {
-                termId = term.getId();
+                termId = !StringUtils.isBlank(term.getId()) ? term.getId() : term.getName();
             }
             referenceJSON.put(termId);
         }

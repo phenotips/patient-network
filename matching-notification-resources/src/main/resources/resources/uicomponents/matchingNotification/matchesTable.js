@@ -828,12 +828,6 @@ var PhenoTips = (function (PhenoTips) {
             elm.name && allPhenotypes.push(elm.name);
         });
 
-        if (phenotypes.freeText) {
-            phenotypes.freeText.each(function (elm) {
-                elm.name && allPhenotypes.push(elm.name);
-            });
-        }
-
         return allPhenotypes;
     },
 

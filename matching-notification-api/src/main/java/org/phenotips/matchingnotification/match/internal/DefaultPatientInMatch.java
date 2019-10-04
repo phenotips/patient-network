@@ -572,9 +572,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         }
 
         for (Disorder disease : patient.getDisorders()) {
-            if (!StringUtils.isBlank(disease.getId())) {
-                clinicalDisorders.add(disease);
-            }
+            clinicalDisorders.add(disease);
         }
         return Collections.unmodifiableSet(clinicalDisorders);
     }
@@ -682,6 +680,12 @@ public class DefaultPatientInMatch implements PatientInMatch
 
         for (Object object : phenotypesJson) {
             JSONObject item = (JSONObject) object;
+            // for AbstractPhenoTipsVocabularyProperty from JSON constructor
+            // for free terms set "label" property same as a "name", if missing
+            String label = item.optString("label");
+            if (StringUtils.isBlank(label)) {
+                item.put("label", item.optString("name"));
+            }
             Feature phenotipsFeature = new PhenoTipsFeature(item);
             features.add(phenotipsFeature);
         }
@@ -697,6 +701,12 @@ public class DefaultPatientInMatch implements PatientInMatch
 
         for (Object object : disordersJson) {
             JSONObject jsonDisorder = (JSONObject) object;
+            // for AbstractPhenoTipsVocabularyProperty from JSON constructor
+            // for free terms set "label" property same as a "name", if missing
+            String label = jsonDisorder.optString("label");
+            if (StringUtils.isBlank(label)) {
+                jsonDisorder.put("label", jsonDisorder.optString("name"));
+            }
             Disorder disorder = new PhenoTipsDisorder(jsonDisorder);
             disorderSet.add(disorder);
         }
