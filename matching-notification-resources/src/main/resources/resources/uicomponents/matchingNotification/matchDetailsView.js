@@ -8,18 +8,29 @@ var PhenoTips = (function(PhenoTips) {
     },
 
     show  : function(match, elm) {
-        this.close(elm);
+        this._trigger = elm; // trigger is the component that was clicked to expand/collapse match details view ( +/- sign).
+        this.close();
         this._matchBreakdown = this._createDialogContainer(match);
-        elm.insert({ "after" : this._matchBreakdown });
+        this._trigger.insert({ "after" : this._matchBreakdown });
+        this._trigger.removeClassName("fa-plus-square-o");
+        this._trigger.addClassName("fa-minus-square-o");
         this._matchBreakdown.down('.hide-tool').on('click', function(event) {
             this.close();
-            elm.addClassName("fa-plus-square-o");
-            elm.removeClassName("fa-minus-square-o");
         }.bind(this));
+        document.observe('click', this._hideOnOutsideClick.bind(this));
     },
 
-    close : function(elm) {
+    close : function() {
         $("matchDetails") && $("matchDetails").remove();
+        this._trigger.addClassName("fa-plus-square-o");
+        this._trigger.removeClassName("fa-minus-square-o");
+        document.stopObserving('click', this._hideOnOutsideClick);
+    },
+
+    _hideOnOutsideClick : function (event) {
+        if (!event.findElement('.match-details') && !event.findElement('.collapse-gp-tool')) {
+          this.close();
+        }
     },
 
     _createDialogContainer : function(match)
