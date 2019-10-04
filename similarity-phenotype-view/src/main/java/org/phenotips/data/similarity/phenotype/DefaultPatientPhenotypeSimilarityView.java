@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SpellingParams;
 import org.json.JSONArray;
@@ -133,12 +134,13 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
      * @param root the root/shared ancestor for the cluster
      * @return returns a feature view container of matched and reference features with shared root
      */
-    protected FeatureClusterView createFeatureClusterView(Collection<Feature> matchFeatures,
+    private FeatureClusterView createFeatureClusterView(Collection<Feature> matchFeatures,
         Collection<Feature> reference, VocabularyTerm root)
     {
         return new DefaultFeatureClusterView(matchFeatures, reference, root);
     }
 
+    @SuppressWarnings({ "checkstyle:ExecutableStatementCount" })
     private Collection<FeatureClusterView> constructFeatureClusters()
     {
         Collection<FeatureClusterView> clusters = new LinkedList<>();
@@ -155,13 +157,18 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
         Collection<VocabularyTerm> matchTerms = getPresentPatientTerms(this.matchFeatures);
         Collection<VocabularyTerm> refTerms = getPresentPatientTerms(this.referenceFeatures);
 
+        // Get free text terms
+        Collection<Feature> matchFreeTextFeatures = getFreeTextTerms(this.matchFeatures);
+        Collection<Feature> refFreeTextFeatures = getFreeTextTerms(this.referenceFeatures);
+
         // if one of feature sets is empty - then we create and return a single cluster view of uncategorized features
         if (this.matchFeatures.size() == 0 || this.referenceFeatures.size() == 0) {
             Collection<Feature> abnormalMatchFeatures = termsToFeatures(matchTerms, matchFeatureLookup);
             Collection<Feature> abnormalRefFeatures = termsToFeatures(refTerms, refFeatureLookup);
+            abnormalMatchFeatures.addAll(matchFreeTextFeatures);
+            abnormalRefFeatures.addAll(refFreeTextFeatures);
 
-            FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
-                null);
+            FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures, null);
             clusters.add(cluster);
             return clusters;
         }
@@ -182,8 +189,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
                 Collection<Feature> abnormalRefFeatures =
                     termsToFeatures(refSortedTerms.get(abnormalityId), refFeatureLookup);
 
-                FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
-                    term);
+                FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures, term);
                 clusters.add(cluster);
                 continue;
             } else {
@@ -199,6 +205,8 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
                 termsToFeatures(matchSortedTerms.get(UNCATEGORIZED), matchFeatureLookup);
             Collection<Feature> abnormalRefFeatures =
                 termsToFeatures(refSortedTerms.get(UNCATEGORIZED), refFeatureLookup);
+            abnormalMatchFeatures.addAll(matchFreeTextFeatures);
+            abnormalRefFeatures.addAll(refFreeTextFeatures);
 
             FeatureClusterView cluster = createFeatureClusterView(abnormalMatchFeatures, abnormalRefFeatures,
                 null);
@@ -313,6 +321,23 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
             if (term != null) {
                 // Only add resolvable terms
                 terms.add(term);
+            }
+        }
+        return terms;
+    }
+
+    /**
+     * Return a (potentially empty) collection of free text terms present in the patient.
+     *
+     * @param features the patient features to process
+     * @return a collection of free text terms present in the patient
+     */
+    private Collection<Feature> getFreeTextTerms(Set<? extends Feature> features)
+    {
+        Set<Feature> terms = new HashSet<>();
+        for (Feature feature : features) {
+            if (feature.isPresent() && StringUtils.isBlank(feature.getId())) {
+                terms.add(feature);
             }
         }
         return terms;

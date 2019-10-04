@@ -54,7 +54,7 @@ var PhenoTips = (function(PhenoTips) {
         this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.ageOfOnset'))");
         var row = this._getEmptyTableRow(table);
         if (!r.reference.age_of_onset && !r.matched.age_of_onset) {
-            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noAgeOfOnset'))"));
+            row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noAgeOfOnset'))")));
         } else {
             var formatAgeOfOnset = function(age) {return age ? age : "-";};
             row.insert(new Element('td', {'class' : 'table-data query'}).update(formatAgeOfOnset(r.reference.age_of_onset)));
@@ -72,7 +72,7 @@ var PhenoTips = (function(PhenoTips) {
          this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.modeOfInheritance'))");
          var row = this._getEmptyTableRow(table);
          if ((!r.reference.mode_of_inheritance || r.reference.mode_of_inheritance.length == 0) && (!r.matched.mode_of_inheritance || r.matched.mode_of_inheritance.length == 0)) {
-             row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noModeOfInheritance'))"));
+             row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noModeOfInheritance'))")));
          } else {
              var handleEmptyArray = function(moiArray) {return (moiArray && moiArray.length > 0) ? moiArray : ["-"];};
              var referenceElement = new Element('td', {'class' : 'table-data query'});
@@ -93,7 +93,7 @@ var PhenoTips = (function(PhenoTips) {
         _this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.phenotypicFeaturesBreakdown'))");
         if (!r.phenotypesSimilarity) {
             var row = _this._getEmptyTableRow(table);
-            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))"));
+            row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noPhenotypeInformation'))")));
             return;
         }
 
@@ -147,6 +147,9 @@ var PhenoTips = (function(PhenoTips) {
              "class" : cssModifier
         }).insert(f.name && prefix + f.name || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
             //.insert(f.type && new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
+        if (!f.id) {
+            name.insert(new Element("div").insert(new Element('span', {'class' : 'fa fa-exclamation-triangle', 'title' : "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))"})));
+        }
         container.insert(name);
         if (f.metadata && f.metadata instanceof Array && f.metadata.length > 0) {
             var metadata = new Element ("ul", {"class" : this._METADATA_MARKER});
@@ -169,11 +172,11 @@ var PhenoTips = (function(PhenoTips) {
         if (!r.genotypeSimilarity && allRefGenes.length == 0 && allMatchGenes.length == 0) {
             // The 'genes' field is absent when there is no genetic information in one of the two patients
             var row = _this._getEmptyTableRow(table);
-            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))"));
+            row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGeneticInfo'))")));
         } else if (!r.genotypeSimilarity || r.genotypeSimilarity.length == 0) {
             // The 'genes' field is present but empty when both patients have genetic information available but no matches were found
             var row = _this._getEmptyTableRow(table);
-            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))"));
+            row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.noGenotypeMatches'))")));
         } else {
             var referenceP = r.reference;
             var matchedP = r.matched;
@@ -295,7 +298,7 @@ var PhenoTips = (function(PhenoTips) {
         this._createTableCategoryHeader(table, 'match-category-header', "$escapetool.javascript($services.localization.render('phenotips.similarCases.diagnosis'))");
         var row = this._getEmptyTableRow(table);
         if ((!r.matched.disorders || r.matched.disorders.length == 0) && (!r.reference.disorders || r.reference.disorders.length == 0)) {
-            row.insert(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))"));
+            row.insert(new Element('td', {'colspan' : '2'}).update(new Element('p', {'class' : 'hint block'}).update("$escapetool.javascript($services.localization.render('phenotips.similarCases.undiagnosed'))")));
         } else {
             var handleEmptyArray = function(moiArray) {return (moiArray && moiArray.length > 0) ? moiArray : ["-"];};
             var referenceElement = new Element('td', {'class' : 'table-data query'});
@@ -321,9 +324,10 @@ var PhenoTips = (function(PhenoTips) {
         var featureIndex = {};
         if (features) {
           features.each(function (f) {
-            if (f.type && f.id) {
+            if (f.type && (f.id || f.name)) {
               featureIndex[f.type] = featureIndex[f.type] || {};
-              featureIndex[f.type][f.id] = f;
+              var key = f.id || f.name;
+              featureIndex[f.type][key] = f;
             }
           });
         }

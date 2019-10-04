@@ -616,6 +616,12 @@ td[name="contact"] {
 .match-details table .table-data {
   padding-left: 1em !important;
 }
+.match-details table .table-data div {
+  margin: 0 0 .4em 0;
+}
+.match-details p.hint.block {
+  text-align: center;
+}
 .match-details th.hint.result, .match-details th.hint.query {
   color: #369;
 }
