@@ -1084,7 +1084,7 @@ var PhenoTips = (function (PhenoTips) {
         var externalId = (!this._utils.isBlank(patient.externalId)) ? " : " + patient.externalId : '';
         // Patient id and collapsible icon
         if (this._onSimilarCasesPage || tdClass != 'matchedPatientTd') {
-            td += '<div class="fa fa-minus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '" data-matchindex="' + index + '"></div>';
+            td += '<div class="fa fa-plus-square-o patient-div collapse-gp-tool" data-matchid="' + matchId + '" data-matchindex="' + index + '"></div>';
         }
         if (patient.serverId == '') { // local patient
             var patientHref = new XWiki.Document(patient.patientId, 'data').getURL();
@@ -1590,7 +1590,6 @@ var PhenoTips = (function (PhenoTips) {
                 var expand = elm.hasClassName("fa-plus-square-o");
                 this._expandCollapseGP(element, expand);
             }.bind(this));
-            this._expandCollapseGP(elm, !this._tableCollabsed);
         }.bind(this));
     },
 
@@ -1680,19 +1679,8 @@ var PhenoTips = (function (PhenoTips) {
         var matchesById = this._cachedMatches.filter(function(match) { return String(match.id) === matchId; });
         var match = matchesById[0];
 
-        // show match details pop-up
-        expand ? this._matchDetailsView.show(match, target) : this._matchDetailsView.close(target);
-
-        // change display of collapse/display component (+/-)
-        this._tableElement.select('[data-matchid="' + matchId + '"].collapse-gp-tool').each(function (elm) {
-            if (expand) {
-                elm.removeClassName("fa-plus-square-o");
-                elm.addClassName("fa-minus-square-o");
-            } else {
-                elm.addClassName("fa-plus-square-o");
-                elm.removeClassName("fa-minus-square-o");
-            }
-        }.bind(this));
+        // show/hide match details pop-up
+        expand ? this._matchDetailsView.show(match, target) : this._matchDetailsView.close();
     },
 
 //-- NOTIFICATION
