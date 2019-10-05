@@ -2,7 +2,6 @@ var PhenoTips = (function(PhenoTips) {
   var widgets = PhenoTips.widgets = PhenoTips.widgets || {};
   widgets.MatchDetailsView = Class.create({
     initialize: function() {
-        this._UNKNOWN_INFO_MARKER = "unknown";
         this._METADATA_MARKER = "metadata";
         this._NEGATIVE_MARKER = "negative";
     },
@@ -120,54 +119,46 @@ var PhenoTips = (function(PhenoTips) {
             phenotypeRow.insert(crtPFeatures).insert(otherPFeatures);
             if (featureMatch.reference) {
                 featureMatch.reference.each(function (fId) {
-                    crtPFeatures.insert(_this._displayFeature(queryFeatures['phenotype'] && queryFeatures['phenotype'][fId] || queryFeatures['prenatal_phenotype'] && queryFeatures['prenatal_phenotype'][fId]) || (fId && ("<div>"+fId+"</div>")) || '');
+                    var phenotype = queryFeatures['phenotype'] && queryFeatures['phenotype'][fId] || queryFeatures['prenatal_phenotype'] && queryFeatures['prenatal_phenotype'][fId];
+                    crtPFeatures.insert(_this._displayFeature(phenotype) || (fId && ("<div>"+fId+"</div>")) || '');
                 });
             } else {
                 crtPFeatures.insert("-");
             }
             if (featureMatch.match) {
-                var undisclosedCount = 0;
                 featureMatch.match.each(function (fId) {
-                  if (fId) {
-                      otherPFeatures.insert(_this._displayFeature(resultFeatures['phenotype'] && resultFeatures['phenotype'][fId] || resultFeatures['prenatal_phenotype'] && resultFeatures['prenatal_phenotype'][fId]) || (fId && ("<div>"+fId+"</div>")) || '');
-                  } else {
-                      undisclosedCount++;
-                  }
-              });
-              if (undisclosedCount > 0) {
-                  otherPFeatures.insert(new Element('div', {'class' : _this._UNKNOWN_INFO_MARKER})
-                                                   .update(undisclosedCount
-                                                   + " $escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedFeature'))"));
-              }
-          } else {
-              otherPFeatures.insert("-");
-          }
-       });
+                    var phenotype = resultFeatures['phenotype'] && resultFeatures['phenotype'][fId] || resultFeatures['prenatal_phenotype'] && resultFeatures['prenatal_phenotype'][fId];
+                    otherPFeatures.insert(_this._displayFeature(phenotype) || (fId && ("<div>"+fId+"</div>")) || '');
+                });
+            } else {
+                otherPFeatures.insert("-");
+            }
+        });
     },
 
     _displayFeature : function(f) {
         if (!f) { return ''; }
-        var prefix = "", cssModifier = !f.name && this._UNKNOWN_INFO_MARKER || "";
-        if (f.present === false) {
+        var label = f.label || "";
+        var prefix = "", cssModifier = !label && this._UNKNOWN_INFO_MARKER || "";
+        if (f.observed === false) {
             prefix = "NO ";
             cssModifier += " " + this._NEGATIVE_MARKER;
         }
         var container = new Element("div");
         var name = new Element("span", {
-             "title" : (f.id || "") + " " + (f.name || ""),
+             "title" : (f.id || "") + " " + (label || ""),
              "class" : cssModifier
-        }).insert(f.name && prefix + f.name || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
-            //.insert(f.type && new Element("span", {"class" : this._METADATA_MARKER}).insert(" (" + f.type + ")") || "");
+            }).insert(label && prefix + label);
         if (!f.id) {
-            name.insert(new Element("div").insert(new Element('span', {'class' : 'fa fa-exclamation-triangle', 'title' : "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))"})));
+            name.insert(new Element('span', {'class' : 'fa fa-exclamation-triangle', 'title' : "$escapetool.javascript($services.localization.render('phenotips.patientSheetCode.termSuggest.nonStandardPhenotype'))"}));
         }
         container.insert(name);
-        if (f.metadata && f.metadata instanceof Array && f.metadata.length > 0) {
+        if (f.qualifiers && f.qualifiers instanceof Array && f.qualifiers.length > 0) {
             var metadata = new Element ("ul", {"class" : this._METADATA_MARKER});
             container.insert(metadata);
-            f.metadata.each(function(m) {
-                if (m.name) {
-                    var entry = new Element("li", {"title" : (m.id || "") + " " + (m.name || ""), "class" : f.type || ""}).update(m.name || "$escapetool.javascript($services.localization.render('phenotips.similarCases.undisclosedInfo'))");
+            f.qualifiers.each(function(m) {
+                if (m.label) {
+                    var entry = new Element("li", {"title" : (m.id || "") + " " + (m.label || ""), "class" : f.type || ""}).update(m.label || "");
                     metadata.insert(entry);
                 }
             });
@@ -335,9 +326,9 @@ var PhenoTips = (function(PhenoTips) {
         var featureIndex = {};
         if (features) {
           features.each(function (f) {
-            if (f.type && (f.id || f.name)) {
+            if (f.type && (f.id || f.label)) {
               featureIndex[f.type] = featureIndex[f.type] || {};
-              var key = f.id || f.name;
+              var key = f.id || f.label;
               featureIndex[f.type][key] = f;
             }
           });

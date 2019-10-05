@@ -132,7 +132,7 @@ public class DefaultFeatureClusterView implements FeatureClusterView
         for (Feature term : getMatch()) {
             String termId = "";
             if (term != null) {
-                termId = term.getId();
+                termId = !StringUtils.isBlank(term.getId()) ? term.getId() : term.getName();
             }
             matchJSON.put(termId);
         }

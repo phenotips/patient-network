@@ -680,3 +680,6 @@ td[name="contact"] {
 .match-details table .variants-data td {
   padding: 0;
 }
+.match-details .fa.fa-exclamation-triangle {
+  padding-left: 2px;
+}
