@@ -140,7 +140,7 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
         return new DefaultFeatureClusterView(matchFeatures, reference, root);
     }
 
-    @SuppressWarnings({ "checkstyle:ExecutableStatementCount" })
+    @SuppressWarnings({ "checkstyle:ExecutableStatementCount", "checkstyle:CyclomaticComplexity" })
     private Collection<FeatureClusterView> constructFeatureClusters()
     {
         Collection<FeatureClusterView> clusters = new LinkedList<>();
@@ -200,7 +200,8 @@ public class DefaultPatientPhenotypeSimilarityView implements PatientPhenotypeSi
         }
 
         // add uncategorized cluster view for terms whose abnormality categories unmatched
-        if (matchSortedTerms.containsKey(UNCATEGORIZED) || refSortedTerms.containsKey(UNCATEGORIZED)) {
+        if (matchSortedTerms.containsKey(UNCATEGORIZED) || refSortedTerms.containsKey(UNCATEGORIZED)
+                || !matchFreeTextFeatures.isEmpty() || !refFreeTextFeatures.isEmpty()) {
             Collection<Feature> abnormalMatchFeatures =
                 termsToFeatures(matchSortedTerms.get(UNCATEGORIZED), matchFeatureLookup);
             Collection<Feature> abnormalRefFeatures =

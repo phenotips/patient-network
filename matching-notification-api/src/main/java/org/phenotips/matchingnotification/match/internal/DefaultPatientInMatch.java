@@ -263,7 +263,7 @@ public class DefaultPatientInMatch implements PatientInMatch
         JSONObject json = new JSONObject();
         json.put(GENES, this.genes);
         json.put(MATCHED_EXOME_GENES, this.matchedExomeGenes);
-        json.put(PHENOTYPES, this.phenotypes);
+        json.put(PHENOTYPES, this.getPhenotypesJSON());
         json.put(MODE_OF_INHERITANCE, new JSONArray(this.modeOfInheritance));
         json.put(AGE_ON_ONSET, this.ageOfOnset);
         json.put(CONTACT_INFO, (this.contactInfo != null) ? this.contactInfo.toJSON() : null);
@@ -668,6 +668,13 @@ public class DefaultPatientInMatch implements PatientInMatch
         ownershipJSON.put("userGroupIsOwner", userGroupIsOwner);
         ownershipJSON.put("publicRecord", isPublic);
         return ownershipJSON;
+    }
+
+    private JSONArray getPhenotypesJSON()
+    {
+        JSONArray result = new JSONArray();
+        this.phenotypes.stream().forEach(item -> result.put(item.toJSON()));
+        return result;
     }
 
     // read patient features from match "details" JSONArray saved in db

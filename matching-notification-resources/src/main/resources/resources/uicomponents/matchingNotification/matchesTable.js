@@ -825,7 +825,7 @@ var PhenoTips = (function (PhenoTips) {
     {
         var allPhenotypes = [];
         phenotypes.each(function (elm) {
-            elm.name && allPhenotypes.push(elm.name);
+            elm.label && allPhenotypes.push(elm.label);
         });
 
         return allPhenotypes;
