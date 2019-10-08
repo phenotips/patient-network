@@ -149,7 +149,6 @@ public class R74696PatientNetwork456DataMigration extends AbstractHibernateDataM
             this.logger.error("Failed to de-duplicate and normalize matches: [{}]", ex.getMessage());
             if (t != null) {
                 t.rollback();
-                throw new DataMigrationException("Migration 74696 failed");
             }
         } finally {
             session.close();
