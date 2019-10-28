@@ -497,18 +497,12 @@ public class DefaultMatchStorageManager implements MatchStorageManager
                     this.patientIsReference(referencePatientId, referenceServerId),
                     Restrictions.eq("matchedServerId", this.getStoredServerId(matchedServerId)));
 
-            if (StringUtils.isBlank(matchedServerId) && StringUtils.isBlank(referenceServerId)) {
-                // for local matches: search for either A-to-B or B-to-A
+            // referencePatientId is "match patient"
+            Criterion reverseMatch = Restrictions.and(
+                    this.patientIsMatch(referencePatientId, referenceServerId),
+                    Restrictions.eq("referenceServerId", this.getStoredServerId(matchedServerId)));
 
-                // referencePatientId is "match patient"
-                Criterion reverseMatch = Restrictions.and(
-                        this.patientIsMatch(referencePatientId, referenceServerId),
-                        Restrictions.eq("referenceServerId", this.getStoredServerId(null)));
-
-                return this.loadMatchesByCriteria(Restrictions.or(directMatch, reverseMatch));
-            } else {
-                return this.loadMatchesByCriteria(directMatch);
-            }
+            return this.loadMatchesByCriteria(Restrictions.or(directMatch, reverseMatch));
         } else {
             return Collections.emptyList();
         }
