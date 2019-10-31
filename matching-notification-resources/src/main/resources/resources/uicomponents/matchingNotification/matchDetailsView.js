@@ -51,8 +51,19 @@ var PhenoTips = (function(PhenoTips) {
         var row = this._getEmptyTableRow(table);
         var refExternalId = (r.reference.externalId) ? " : " + r.reference.externalId : '';
         var matchedExternalId = (r.matched.externalId) ? " : " + r.matched.externalId : '';
-        row.insert(new Element('th', {'class' : 'patient-name'}).update(r.reference.patientId + refExternalId));
-        row.insert(new Element('th', {'class' : 'patient-name result'}).update(r.matched.patientId + matchedExternalId));
+        row.insert(new Element('th', {'class' : 'patient-name'}).update(this._getRemotePatientId(r.reference.patientId, r.reference.serverId) + refExternalId));
+        row.insert(new Element('th', {'class' : 'patient-name result'}).update(this._getRemotePatientId(r.matched.patientId, r.matched.serverId) + matchedExternalId));
+    },
+
+    _getRemotePatientId : function(patientId, serverId) {
+        // Parse remote patient ID because MyGene2 uses URLs in the ID field to ensure that the public MyGene2 profiles are actually delivered to the end user
+        if (serverId == "mygene2" && patientId && patientId.startsWith("http")) {
+            var matches = patientId.match(/[\d]+/g);
+            var id = matches ? matches[matches.length - 1] : "$escapetool.javascript($services.localization.render('phenotips.similarCases.profile'))";
+            return id;
+        } else {
+            return patientId;
+        }
     },
 
     _createTableCategoryHeader : function(table, cssClass, title) {
