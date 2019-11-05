@@ -59,7 +59,7 @@ var PhenoTips = (function(PhenoTips) {
         // Parse remote patient ID because MyGene2 uses URLs in the ID field to ensure that the public MyGene2 profiles are actually delivered to the end user
         if (serverId == "mygene2" && patientId && patientId.startsWith("http")) {
             var matches = patientId.match(/[\d]+/g);
-            var id = matches ? matches[matches.length - 1] : patientId;
+            var id = matches ? matches[matches.length - 1] : "$escapetool.javascript($services.localization.render('phenotips.similarCases.profile'))";
             return id;
         } else {
             return patientId;
