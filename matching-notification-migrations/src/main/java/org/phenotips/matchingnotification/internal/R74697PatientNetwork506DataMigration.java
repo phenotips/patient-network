@@ -41,8 +41,9 @@ import com.xpn.xwiki.store.migration.XWikiDBVersion;
 import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 
 /**
- * Migration for PatientNetwork issue PN-506: for each incoming/outgoing MME match pair move the older
- * match to the history table (regardless of if it is incoming or outgoing).
+ * Migration for PatientNetwork issue PN-506: for each incoming/outgoing MME match pair move the "worse"
+ * match to the history table (regardless of if it is incoming or outgoing). A match is cosidered to be
+ * "worse" if the match score is lower, or if the score is the same and the match is older.
  *
  * @version $Id$
  * @since 1.3m1
@@ -52,13 +53,15 @@ import com.xpn.xwiki.store.migration.hibernate.AbstractHibernateDataMigration;
 @Singleton
 public class R74697PatientNetwork506DataMigration extends AbstractHibernateDataMigration
 {
-    private static final String SQL_GET_OLDER_EQUIVALENTS_OF_MME_MATCHES =
+    private static final String SQL_GET_WORSE_EQUIVALENTS_OF_MME_MATCHES =
         "select id, foundTimestamp, referencePatientId, matchedPatientId, referenceServerId, matchedServerId"
         + " from patient_matching as d where exists"
         + " (select * from patient_matching as d2 where"
         + " d2.referencePatientId = d.matchedPatientId and d2.matchedPatientId = d.referencePatientId"
         + " and d2.matchedServerId = d.referenceServerId and d2.referenceServerId = d.matchedServerId"
-        + " and d2.foundTimestamp > d.foundTimestamp)";
+        + " and ((d2.score > d.score) or (d2.score = d.score and"
+        + " (d2.foundTimestamp > d.foundTimestamp or (d2.foundTimestamp = d.foundTimestamp and d2.id > d.id)))"
+        + " ))";
 
     private static final String SQL_COPY_MATCHES_TO_HISTORY_BY_IDS =
         "INSERT patient_matching_history"
@@ -102,7 +105,7 @@ public class R74697PatientNetwork506DataMigration extends AbstractHibernateDataM
         Transaction t = session.beginTransaction();
 
         try {
-            SQLQuery query = session.createSQLQuery(SQL_GET_OLDER_EQUIVALENTS_OF_MME_MATCHES);
+            SQLQuery query = session.createSQLQuery(SQL_GET_WORSE_EQUIVALENTS_OF_MME_MATCHES);
             @SuppressWarnings("unchecked")
             List<Object[]> matches = query.list();
             if (matches != null) {
