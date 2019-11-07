@@ -1020,7 +1020,7 @@ var PhenoTips = (function (PhenoTips) {
             // date and user name row
             var row = '<tr>';
             var date = '<td class="comment-info">';
-            if (record.date && new Date(record.date)) {
+            if (record.date && ("Invalid Date" != new Date(record.date))) {
                 var time = new Date(record.date);
                 time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
                 date += '<span class="date">' + time.toISOString().split('T')[0] + '</span>';
@@ -1178,11 +1178,15 @@ var PhenoTips = (function (PhenoTips) {
 
             var title = (record.type == 'contact') ? this._NOTIFICATION_HISTORY_CONTACT_TITLE : this._NOTIFICATION_HISTORY_NOTIFICATION_TITLE;
             var date = '<td title="' + title + '">';
-            if (record.date && new Date(record.date)) {
-                var time = new Date(record.date);
-                time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
+            if (record.date) {
                 var dateIconName = (record.type == 'contact') ? 'fa fa-envelope-o' : 'fa fa-volume-up' ;
-                date += '<div class="date">' + time.toISOString().split('T')[0] + '</div><span class="'+ dateIconName + '"> </span></td>';
+                dateString = record.date;
+                if ("Invalid Date" != new Date(record.date)) {
+                    var time = new Date(record.date);
+                    time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
+                    dateString = time.toISOString().split('T')[0]
+                }
+                date += '<div class="date">' + dateString + '</div><span class="'+ dateIconName + '"> </span></td>';
             }
             date += '</td>';
 
