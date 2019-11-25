@@ -1280,10 +1280,6 @@ var PhenoTips = (function (PhenoTips) {
             return null;
         }
 
-        if (this._isAdmin) {
-            return null;
-        }
-
         // determine which of the two patients in match is "my case" and which is "matched case" which should be contacted
         if (match.reference.ownership["userIsOwner"]) {
             // user directly owns "match.reference" => "matched" is match.matched (we know user never owns both patients in a match from this table)
