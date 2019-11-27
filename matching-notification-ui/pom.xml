@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.phenotips</groupId>
     <artifactId>patient-network</artifactId>
-    <version>1.3-SNAPSHOT</version>
+    <version>1.3-rc-2</version>
   </parent>
   <packaging>xar</packaging>
   <name>PhenoTips - Patient Network - Matching Notification - UI</name>
