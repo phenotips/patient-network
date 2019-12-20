@@ -303,7 +303,8 @@ var PhenoTips = (function (PhenoTips) {
         this._filterValues.email       = "";
         this._filterValues.geneSymbol  = "";
         this._filterValues.phenotype   = "";
-        this._filterValues.solved   = $$('input[name="solved-filter"][value="hide"]')[0].checked;
+        this._filterValues.solved      = $$('input[name="solved-filter"][value="hide"]')[0].checked;
+        this._filterValues.ownCases    = $$('input[name="own-filter"][value="hide"]')[0].checked;
 
         this._filterValues.serverIds   = [{"local" : true}];
         $$('input[name="checkbox-server-id-filter"]').each(function (checkbox) {
@@ -355,6 +356,13 @@ var PhenoTips = (function (PhenoTips) {
         $$('input[name="solved-filter"]').each(function (checkbox) {
             checkbox.on('click', function(event) {
                 this._filterValues.solved = event.currentTarget.checked;
+                this._update();
+            }.bind(this));
+        }.bind(this));
+
+        $$('input[name="own-filter"]').each(function (checkbox) {
+            checkbox.on('click', function(event) {
+                this._filterValues.ownCases = event.currentTarget.checked;
                 this._update();
             }.bind(this));
         }.bind(this));
@@ -498,7 +506,18 @@ var PhenoTips = (function (PhenoTips) {
                 }.bind(this);
             var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch
+
+            var matchBetweenOwnCases = function(match) {
+                if (match.reference.serverId == "" && (match.reference.ownership["userIsOwner"] || match.reference.ownership["userGroupIsOwner"]) &&
+                    match.matched.serverId == ""   && (match.matched.ownership["userIsOwner"] || match.matched.ownership["userGroupIsOwner"])) {
+                    return true;
+                }
+                return false;
+            }
+
+            var hideOwnCases = !this._filterValues.ownCases || !matchBetweenOwnCases(match);
+
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch && hideOwnCases
                        && hasMatchStatusMatch && hasGeneTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
