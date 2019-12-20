@@ -74,6 +74,16 @@ public class R74697PatientNetwork506DataMigration extends AbstractHibernateDataM
         + " referencePatientId, referenceServerId, rejected, score, status"
         + " from patient_matching where id in :idlist";
 
+    // probably due to past bugs there are (unexpected) exact duplicates of some matches in the DB
+    // => they should be removed. Note: it was confirmed that all duplicates are exact in the production DB
+    private static final String SQL_GET_COMPLETE_DUPLICATES_OF_ANY_MATCH =
+        "select id, referencePatientId, matchedPatientId, referenceServerId, matchedServerId"
+        + " from patient_matching as d where exists"
+        + " (select * from patient_matching as d2 where"
+        + " d2.referencePatientId = d.referencePatientId and d2.matchedPatientId = d.matchedPatientId"
+        + " and d2.matchedServerId = d.matchedServerId and d2.referenceServerId = d.referenceServerId"
+        + " and d2.id > d.id)";
+
     /** A query used to delete matches by IDs.  */
     private static final String HQL_DELETE_MATCHES_BY_IDS =
         "delete CurrentPatientMatch where id in :idlist";
@@ -112,9 +122,17 @@ public class R74697PatientNetwork506DataMigration extends AbstractHibernateDataM
                 this.logger.error("Found [{}] older equivalents of MME matches", matches.size());
                 this.moveToHistory(session, this.getMatchIDs(matches));
             }
+
+            SQLQuery queryDuplicates = session.createSQLQuery(SQL_GET_COMPLETE_DUPLICATES_OF_ANY_MATCH);
+            @SuppressWarnings("unchecked")
+            List<Object[]> matchesDuplicates = queryDuplicates.list();
+            if (matchesDuplicates != null) {
+                this.logger.error("Found [{}] complete duplicate matches", matchesDuplicates.size());
+                this.moveToHistory(session, this.getMatchIDs(matchesDuplicates));
+            }
             t.commit();
         } catch (Exception ex) {
-            this.logger.error("Failed to remove duplicates of MME matches: [{}]", ex.getMessage());
+            this.logger.error("Failed to archive and remove duplicate matches: [{}]", ex.getMessage());
             if (t != null) {
                 t.rollback();
             }
