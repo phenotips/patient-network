@@ -41,12 +41,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -117,12 +115,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
     public List<PatientMatch> saveLocalMatches(Collection<? extends PatientSimilarityView> similarityViews,
         String patientId)
     {
-        Predicate<PatientMatch> filterOutSameOwnerMatches = match -> {
-            return (match.getReference().getEmails().size() > 0) && CollectionUtils.isEqualCollection(
-                    match.getReference().getEmails(), match.getMatched().getEmails());
-        };
-
-        return this.saveMatches(similarityViews, patientId, "", "", filterOutSameOwnerMatches);
+        return this.saveMatches(similarityViews, patientId, "", "");
     }
 
     @Override
@@ -132,32 +125,24 @@ public class DefaultMatchStorageManager implements MatchStorageManager
         String referenceServerId = isIncoming ? serverId : "";
         String matchedServerId = isIncoming ? "" : serverId;
 
-        return this.saveMatches(similarityViews, patientId, referenceServerId, matchedServerId, null);
+        return this.saveMatches(similarityViews, patientId, referenceServerId, matchedServerId);
     }
 
     private Map<PatientSimilarityView, PatientMatch>
         convertSimilarityViewsToPatientMatches(Collection<? extends PatientSimilarityView> similarityViews,
-            String referenceServerId, String matchedServerId, Predicate<PatientMatch> excludeFilter)
+            String referenceServerId, String matchedServerId)
     {
         Map<PatientSimilarityView, PatientMatch> matchMapping = new HashMap<>();
 
         for (PatientSimilarityView similarityView : similarityViews) {
             PatientMatch match = new CurrentPatientMatch(similarityView, referenceServerId, matchedServerId);
-
-            // filter out matches owned by the same user(s), as those are not shown in matching notification anyway
-            // and they break match count calculation if they are included
-            if (excludeFilter != null && excludeFilter.test(match)) {
-                matchMapping.put(similarityView, null);
-            } else {
-                matchMapping.put(similarityView, match);
-            }
+            matchMapping.put(similarityView, match);
         }
         return matchMapping;
     }
 
     private List<PatientMatch> saveMatches(Collection<? extends PatientSimilarityView> similarityViews,
-        String patientId,
-            String referenceServerId, String matchedServerId, Predicate<PatientMatch> filter)
+        String patientId, String referenceServerId, String matchedServerId)
     {
         this.logger.debug("[debug] saving [{}] matches for patient [{}] @ server [{}]...",
                 similarityViews.size(), patientId, referenceServerId);
@@ -170,8 +155,7 @@ public class DefaultMatchStorageManager implements MatchStorageManager
 
         // convert similarity views to PatientMatch and get the mapping from one to the other
         Map<PatientSimilarityView, PatientMatch> matchMapping =
-                this.convertSimilarityViewsToPatientMatches(
-                        similarityViews, referenceServerId, matchedServerId, filter);
+                this.convertSimilarityViewsToPatientMatches(similarityViews, referenceServerId, matchedServerId);
 
         Session session = this.beginTransaction();
         boolean transactionCompleted = false;
