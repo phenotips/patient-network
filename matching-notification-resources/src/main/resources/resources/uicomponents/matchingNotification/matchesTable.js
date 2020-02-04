@@ -425,7 +425,7 @@ var PhenoTips = (function (PhenoTips) {
 
         this._advancedFilter = function (match) {
             // filter by search input in patient ID, external ID and emails
-            var hasExternalIdMatch = match.matched.patientId.toLowerCase().includes(this._filterValues.externalId) 
+            var hasExternalIdMatch = match.matched.patientId.toLowerCase().includes(this._filterValues.externalId)
                 || match.matched.externalId.toLowerCase().includes(this._filterValues.externalId);
             if (!this._onSimilarCasesPage) {
                 hasExternalIdMatch = hasExternalIdMatch || match.reference.patientId.toLowerCase().includes(this._filterValues.externalId)
@@ -486,25 +486,27 @@ var PhenoTips = (function (PhenoTips) {
                              && match.phenotypicScore >= this._filterValues.score.phenotypicScore
                              && match.genotypicScore >= this._filterValues.score.genotypicScore;
 
-            // returns true if one of the records in match is local and owned my user and is solved
-            var matchHasOwnSolvedCase = function(match) {
-                    // exclud ematch if both cases are solved (one of them must be "mine", so want to exclude those - both solved is not interesting anyway)
+            // returns true if at least one of the patients in a match is owned by the user (or user's group) and is unsolved
+            var matchHasOwnUnSolvedCase = function(match) {
+                    // both patients in the match are solved - so "exclude my solved" filter should exclude this match, no matter which patient is "mine"
                     if (match.reference.solved && match.matched.solved) {
-                        return true;
-                    }
-
-                    // otherwise only exclude matches where it is clear which patient is "mine"
-                    if (match.notMyCase == null) {
-                        // can't decide which patient is mine: do not exclude this record
                         return false;
                     }
-                    var myCase = (match.notMyCase == match.reference) ? match.matched : match.reference;
-                    if (myCase.solved) {
+                    // no solved cases in the match => there is own unsolved case, since at least one patient
+                    // must be "own", and both are unsolved
+                    if (!match.reference.solved && !match.matched.solved) {
                         return true;
                     }
+                    // by this point it is guaranteed that only one of the patients is solved
+                    var unsolvedCase = match.reference.solved ? match.matched : match.reference;
+                    // check the unsolved patient. If it is editable by the user => keep the match
+                    if (this._accessAtLeastEdit(unsolvedCase)) {
+                        return true;
+                    }
+                    // unsolved case is not "mine", thus there are no unsolved cases which are "mine"
                     return false;
                 }.bind(this);
-            var hideOwnSolvedCases = !this._filterValues.solved || !matchHasOwnSolvedCase(match);
+            var keepOwnSolvedCases = !this._filterValues.solved || matchHasOwnUnSolvedCase(match);
 
 
             var matchBetweenOwnCases = function(match) {
@@ -515,9 +517,9 @@ var PhenoTips = (function (PhenoTips) {
                 return false;
             }
 
-            var hideOwnCases = !this._filterValues.ownCases || !matchBetweenOwnCases(match);
+            var keepOwnMatchedOwnCases = !this._filterValues.ownCases || !matchBetweenOwnCases(match);
 
-            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasOwnershipMatch && hideOwnSolvedCases && hasExomeMatch && hideOwnCases
+            return hasExternalIdMatch && hasEmailMatch && hasGeneSymbolMatch && hasOwnershipMatch && keepOwnSolvedCases && hasExomeMatch && keepOwnMatchedOwnCases
                        && hasMatchStatusMatch && hasGeneTypeMatch && hasPhenotypeMatch && isNotifiedMatch && isContactedMatch && hasScoreMatch && hasCheckboxServerIDsMatch;
         }.bind(this);
     },
