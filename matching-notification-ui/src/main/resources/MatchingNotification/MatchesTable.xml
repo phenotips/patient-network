@@ -204,8 +204,9 @@ $xwiki.jsx.use('PhenoTips.Widgets')##
               &lt;li&gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.userInputEmail'))
                 &lt;input type="text" id="email-filter"&gt;
               &lt;/li&gt;
-              &lt;li #if("${doc.space}" == "data")class="hidden"#end&gt;
-                &lt;label&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;
+              &lt;li&gt;
+                &lt;label #if("${doc.space}" == "data")class="hidden"#end&gt;&lt;input type="checkbox" name="solved-filter" value="hide"/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.solved'))&lt;/label&gt;&lt;br&gt;
+                &lt;label&gt;&lt;input type="checkbox" name="own-filter" #if("${doc.space}" != "data") checked #end value="hide"/&gt; $escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.ownMatches'))&lt;/label&gt;
               &lt;/li&gt;
               &lt;li #if(!$hasAdmin &amp;&amp; !$isAdminOfGroup)class="hidden"#end &gt;$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter'))
                 &lt;span class="fa fa-info-circle xHelpButton" title="$escapetool.xml($services.localization.render('phenotips.matchingNotifications.table.geneStatusFilter.hint'))"&gt;&lt;/span&gt;
