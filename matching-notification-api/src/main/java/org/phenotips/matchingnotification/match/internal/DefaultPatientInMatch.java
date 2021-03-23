@@ -313,7 +313,7 @@ public class DefaultPatientInMatch implements PatientInMatch
     @Override
     public String getExternalId()
     {
-        if (isLocal() && this.access.compareTo(VIEW) >= 0) {
+        if (this.patient != null && isLocal() && this.access.compareTo(VIEW) >= 0) {
             return this.patient.getExternalId();
         }
         return "";
