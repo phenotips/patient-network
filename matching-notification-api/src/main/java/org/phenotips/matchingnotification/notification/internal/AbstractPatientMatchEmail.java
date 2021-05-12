@@ -426,6 +426,7 @@ public abstract class AbstractPatientMatchEmail implements PatientMatchEmail
         info.put("id", user.getId());
         info.put("name", user.getName());
         info.put("institution", user.getAttribute("company") != null ? user.getAttribute("company").toString() : null);
+        info.put("url", user.getProfileURI() != null ? user.getProfileURI().toString() : null);
         return info;
     }
 }
